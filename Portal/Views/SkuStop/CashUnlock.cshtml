@@ -1,0 +1,64 @@
+﻿@model List<RKNet_Model.Rk7XML.CashStation>
+
+<p>После успешного выполнения запроса, касса будет немедленно разблокированна по всем блюдам, находящимся на "СТОПе". Однако если в "СТОПах" на Портале есть активные задания с этой кассой, то в течении 10 минут "СТОПы" будут снова установлены на данную кассу.</p>
+
+<!--селектор касс-->
+<div class="form-group">
+    <label class="label-light" style="width:100%; margin-top:20px">селектор касс</label>
+    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+        <select id="cashesList" class="form-control selectors" data-width="100%">
+            <option></option>
+            @foreach (var cash in Model.OrderBy(c => c.Name))
+            {
+                <option value="@cash.Id">@cash.Name</option>
+            }
+
+        </select>
+    </div>           
+</div>
+
+<!--форматирование окошка-->
+<div class="input-group col-md-12" style="height:50px"></div>
+
+<!--кнопки-->
+<div class="modal-footer">
+    <button id="sendUnlock" type="button" class="btn btn-sm btn-danger hidden" onclick="SendUnlock()">разблокировать</button>
+    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">отмена</button>
+</div>
+
+<!-------------------------------------------------------------------------------------------------------------->
+
+<script>
+    // инициализация селектора касс
+    $('#cashesList').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: true,
+        placeholder: "выберите кассу..."
+    });
+
+    // выбор кассы
+    $('#cashesList').on('select2:select', function (e) 
+    { 
+        $('#sendUnlock').removeClass('hidden');               
+    });
+
+    // отправка разблокировки
+    function SendUnlock()
+    {
+        var cashId = Number($('#cashesList').select2('data')[0].id);        
+        $.get(`/SkuStop/SendUnlock?cashId=${cashId}`, function(result) {
+            if(result.ok)
+            {
+                $("#addCashModal").modal("hide");
+                alert(result.data);
+            }
+            else
+            {
+                alert(result.errorMessage);
+            }
+        });
+    }
+
+</script>
+    

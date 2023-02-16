@@ -1,0 +1,263 @@
+﻿@model Portal.ViewModels.Menu.MenuViewModel
+
+<!--КАТЕГОРИЯ-->    
+@{
+    string ttId = "";
+    string ttCode = "";
+    if(Model.User.TTs.FirstOrDefault() != null)
+    {
+        ttId = Model.User.TTs.FirstOrDefault().Id.ToString();  
+        ttCode = Model.User.TTs.FirstOrDefault().Code.ToString();
+    }
+
+    // подкатегории
+    foreach (var cat in Model.MenuCategory.Categories.OrderBy(c => c.Name))
+    {                   
+        var image = "";
+
+        if (cat.Image != null) // передача картинки вместе с моделью в представления
+        {
+            var base64str = Convert.ToBase64String(cat.Image, 0, cat.Image.Length);
+            image = "url('data:image/jpg;base64," + base64str + "'";
+        }
+        else // загрузка картинки уже после загрзуки представления
+        {
+            //image = "url('/pic/fonll.png'";
+            image = $"url('/menu/categorysImages/category{cat.Id}.jpg'";
+        }
+    <div class="menu col-xs-12 col-sm-6 col-md-5 col-lg-3">
+        <a href="#menu" class="panel panel-default thumbnail cm-thumbnail tails-panel categoryItem"; style="background-image:@image" onclick="LoadCategory(@cat.Id)">
+            <div class="folder panel-body text-center" style="min-height: 147px">                           
+                <div class="text">
+                    <small>@cat.Name</small>
+                </div>                        
+            </div>
+        </a>
+    </div>
+    }
+    // позиции меню
+    foreach(var item in Model.MenuCategory.Items.OrderBy(i => i.marketName))
+    {
+        var elementId = $"item{item.Id}";
+        var image = "";
+        var disabled = "scale";
+        var onclick = "";
+        var tailsPanel = "tails-panel";
+
+        if(User.IsInRole("menuDelivery_edit"))
+        {
+            onclick = "ItemEditor(" + item.Id + ")";
+        }
+
+        if(!item.Enabled)
+        {
+            disabled = "menuItems-disabled";
+            tailsPanel = "";
+            //onclick = "";
+        }
+
+        if (item.Image != null)
+        {
+            var base64str = Convert.ToBase64String(item.Image, 0, item.Image.Length);
+            image = "url('data:image/jpg;base64," + base64str + "'";
+        }
+        else
+        {
+            //image = "url('/pic/fonll.png'";
+            image = $"url('/menu/itemsImages/item{item.Id}.jpg'";
+        }
+
+        var itemStopped = false;
+        var cashStop = false;
+        var style = "";
+
+        // стопы доставки
+        if(Model.DeliveryStops.FirstOrDefault(s => s.ItemId == item.Id) != null)
+        {
+            itemStopped = true;
+            style = "background-color:#b70e0e; color:black";
+        }
+
+        // стопы на кассах
+        if(Model.SkuStops.FirstOrDefault(s => s.SkuRkCode == item.rkCode.ToString()) != null)
+        {
+            style = "background-color:#b70e0e !important; color:black";
+            disabled = "menuItems-disabled";
+            tailsPanel = "";
+            cashStop = true;
+        }
+
+        <div class="menu col-xs-12 col-sm-6 col-md-5 col-lg-3">            
+            <a id="@elementId" href="#menu" class="panel panel-default thumbnail cm-thumbnail @tailsPanel menuItem @disabled" onclick="@onclick" style="@style">
+                <div class="itemName">
+                    <p>@item.marketName</p>
+                </div>
+                <div class="itemDescription">
+                    <p style="@style">@item.Description</p>
+                </div>                      
+                <div class="folder panel-body text-center" style="min-height: 147px; background-image:@image">
+                    @if(User.IsInRole("menuDelivery_stops") && Model.User.TTs.Count == 1 && item.Enabled && !cashStop)
+                    {                        
+                        if(!itemStopped)
+                        {
+                            <button class="btn btn-danger" style="position:absolute; bottom:5px; right:5px" onclick="StopButton('@item.Id')">СТОП</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-success" style="position:absolute; bottom:5px; right:5px" onclick="StopCancelButton('@item.Id')">Снять со стопа</button>
+                        }
+                    }                    
+                </div>
+            </a>
+        </div>
+    }
+} 
+ 
+
+<!-------------------------------------------------------------------->
+
+
+<script>
+    var cat = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MenuCategory));    
+    var path = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.CategoryPath)); 
+    var parentName = cat.Name;    
+    const ttId = '@ttId';    
+    const ttCode = '@ttCode';
+
+    PathUpdate(cat, path);
+    
+    // конвертация изображения в Base64
+    function convertImgToBase64URL(url, callback, outputFormat)
+    {        
+        var img = new Image();
+        img.crossOrigin = 'Anonymous';
+
+        img.onload = function()
+        {
+            var canvas = document.createElement('CANVAS'),
+            ctx = canvas.getContext('2d'), dataURL;
+            canvas.height = img.height;
+            canvas.width = img.width;
+            ctx.drawImage(img, 0, 0);
+            dataURL = canvas.toDataURL(outputFormat);
+            callback(dataURL);
+            canvas = null; 
+        };
+        img.src = url;
+    }
+    
+    // вызов редактора категории (клик по кнопке рядом с именем категории)
+    function EditCategoryButton()
+    {                        
+        $('#categoryEditor').find('.modal-body').load(`/Menu/CategoryEditor?Id=${cat.Id}`, function()
+        { 
+            $('#categoryEditor').modal('show');
+        });
+                
+    }
+
+    // вызов редактора позицию (клик по позиции)
+    function ItemEditor(id)
+    {                        
+        $('#itemEditor').find('.modal-body').load('/Menu/ItemEditor?Id=' + id, function()
+        { 
+            $('#itemEditor').modal('show');
+        });
+                
+    }
+
+    // кнопка добавить категорию
+    function AddCategoryButton()
+    {        
+        var parentId = null;        
+        if(cat.Id != 0)
+            parentId = cat.Id;        
+
+        cat = {};
+        cat.Id = 0;
+        cat.Name = 'Новая категория';
+        cat.Image = null;
+        cat.ParentCategoryId = parentId;
+
+        $('#categoryEditor').find('.modal-body').load('/Menu/CategoryEditor', function()
+        {                         
+            $('#categoryEditor').modal('show');
+        });
+                
+    }
+
+    // кнопка добавить позицию
+    function AddItemButton()
+    {                
+        $('#itemEditor').find('.modal-body').load('/Menu/ItemEditor?Id=0', function()
+        {                         
+            $('#itemEditor').modal('show');
+        });
+                
+    }
+
+    // кнопка СТОП
+    function StopButton(itemId)
+    {        
+        $.get(`/menu/SetStopDeliveryItem?ttId=${ttId}&itemId=${itemId}`, function(result){
+            if(result.ok)
+            {                
+                LoadCategory(cat.Id);
+            }
+            else
+            {
+                ShowModal('Ошибка', result.errorMessage);
+            }
+        });
+
+        // меняем отображение плитки для лучшего отклика, однако в случае ошибки плитка перекрасится обратно
+        var element = $(`#item${itemId}`);
+        var style = "background-color:lightgray; color:black";
+        
+        element.attr('style', style);
+        element.find('.btn').hide();
+        element.find('.itemDescription').children('P').attr('style', style);
+    }    
+
+    // кнопка снять со СТОПа
+    function StopCancelButton(itemId)
+    {        
+        $.get(`/menu/RemoveStopDeliveryItem?ttId=${ttId}&itemId=${itemId}`, function(result){
+            if(result.ok)
+            {       
+                var isChecked = $('#checkDeliveryStops').prop('checked');
+                if(isChecked)
+                {
+                    $('#DeliveryMenu').load(`/menu/DeliveryStops?ttCode=${ttCode}`, function(){ $('#spinner').hide(); });
+                }
+                else
+                {
+                    LoadCategory(cat.Id);
+                } 
+            }
+            else
+            {
+                ShowModal('Ошибка', result.errorMessage);
+            }
+        });
+
+        // меняем отображение плитки для лучшего отклика, однако в случае ошибки плитка перекрасится обратно
+        var element = $(`#item${itemId}`);
+        var style = "background-color:lightgray; color:black";
+        
+        element.attr('style', style);
+        element.find('.btn').hide();
+        element.find('.itemDescription').children('P').attr('style', style);
+    }    
+
+    // очистка модальных окон редакторов при закрытии
+     $("#itemEditor").on('hide.bs.modal', function () 
+     {
+        $("#itemEditor").find('.modal-body').empty();
+     });
+
+     $("#categoryEditor").on('hide.bs.modal', function () 
+     {
+        $("#categoryEditor").find('.modal-body').empty();
+     });
+</script>

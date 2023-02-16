@@ -1,0 +1,388 @@
+﻿@model Portal.ViewModels.Menu.MenuViewModel
+
+<div id="menuItemEditor" class="row editorsContent">    
+    
+    <!--блок изображения-->
+    <div class="col-md-4" id="image" >
+
+        <label style="margin-top:20px; text-align:center; display:block">горизонтальное изображение, не более 3мб</label>
+
+        <!--кнопка загрузить изображение-->
+        <div id="loadButton" class="example-2">
+            <div class="form-group">
+                <input type="file" accept=".jpg,.jpeg,.png" name="file" id="fileUpload" class="input-file">
+                <label for="file" class="btn btn-tertiary js-labelFile">
+                    <i class="icon fa fa-check"></i>
+                    <span class="js-fileName">Загрузить изображение</span>
+                </label>   
+                <!--ссылка очистить-->
+                <div class="clear">                    
+                    <a onclick="ImageClear()"><i class="icon fa fa-trash"></i>очистить</a>
+                </div>
+            </div>
+        </div>
+
+        <!--индикатор загрузки-->
+        <div id="progressBar" class="progress">
+            <div class="progress-bar progress-bar-warning" style="width: 50%">50%</div>
+        </div>
+
+    </div>
+    
+    
+    <!--блок данных позиции-->
+    <div class="col-md-8">
+
+        <div class="col-md-9">
+            
+            <!--выбор позиции РК-->
+            <label for="rkName" class="control-label">наименование Р-Кипер</label>
+            <input id="rkName" type="text" placeholder="начните вводить для поиска..." autocomplete="off">
+
+            <label id="marketLabel">наименование Маркетинг</label>
+            <input id="marketName" type="text" class="form-control" placeholder="название для агрегаторов" value="@Model.Item.marketName">
+
+            <div class="col-md-2" style="padding:0">
+                <label>количество</label>
+                <input id="measure" type="number" class="form-control" placeholder="кол-во" value="@Model.Item.Measure">
+            </div>
+
+            <div class="col-md-4">
+                <label>единицы измерения</label>
+                <select id="measureUnits" class="form-control form-control-sm">
+                    <option value="0" selected disabled>выберите</option>
+                    @if (Model.MeasureUnits != null)
+                    {
+                        foreach (var unit in Model.MeasureUnits.OrderBy(u => u.Name))
+                        {
+                            var curUnit = Model.Item.MeasureUnit;
+                            if(curUnit != null)
+                            {
+                                if(unit.Id == curUnit.Id)
+                                {
+                                    <option value="@unit.Id" selected>@unit.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@unit.Id">@unit.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="@unit.Id">@unit.Name</option>
+                            }
+                            
+
+                        }
+                    }
+                </select>
+            </div>
+            
+        </div>
+
+        <div class="col-md-3">
+            <label>код Р-Кипер</label>
+            <input id="rkCode" type="number" class="form-control" value="@Model.Item.rkCode" disabled>        
+
+            <label>цена доставки Р-Кипер</label>
+            <input id="rkDeliveryPrice" type="number" class="form-control" value="@Model.Item.rkDeliveryPrice" disabled>
+        </div>               
+        
+        <div class="col-md-12">
+            <label>полное описание блюда (не более 300 символов)</label>
+            <textarea class="form-control" id="itemDescription" placeholder="полное описание блюда" rows="4" style="resize:none" maxlength="300">@Model.Item.Description</textarea>
+        </div>
+            
+    </div>        
+</div>
+
+<!--------------------------------------------------------------------------->
+
+<script>              
+
+    // по загрузке страницы
+    $(document).ready(function() 
+    {     
+        var item = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Item)); 
+        $('#image').css('background-image', 'url("data:image/jpg;base64,' + item.Image + '")');
+        
+        //var image = `url('/menu/itemsImages/item${item.Id}.jpg'`;
+        //$('#image').css('background-image', image);
+
+        $('#itemEditorPath').empty();
+        $('#itemEditorPath').append('<li><a>Меню</a></li>');
+        $.each(path, function(){
+            $('#itemEditorPath').append('<li><a>' + this.Name + '</a></li>');        
+        });    
+        if(cat.Id != 0)
+            $('#itemEditorPath').append('<li><a>' + cat.Name + '</a></li>');        
+
+        $('#progressBar').hide();
+
+        if(item.Id == 0)
+        {
+            $('#DeleteItemButton').hide();
+        }
+        else
+        {
+             $('#DeleteItemButton').show();
+        }  
+        
+        //Селектор позиции (Combo-Tree)
+        var rkItems = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.rkMenuTree.OrderBy(m => m.title)));
+        var rkMenu = $('#rkName').comboTree(
+        {
+            source: rkItems,
+            isMultiple: false,
+            collapse: true
+        }); 
+        
+        var selectedItem = findById(rkItems, $('#rkCode').val());
+        $('#rkName').val(selectedItem.title);
+
+        $('#rkName').change(function()
+        {
+            //var rkName = rkMenu.getSelectedNames();
+            var rkCode = rkMenu.getSelectedIds();
+
+            var selectedItem = findById(rkItems, rkCode);
+            $('#rkCode').val(selectedItem.id);
+            $('#rkDeliveryPrice').val(selectedItem.deliveryPrice);                        
+        });
+    });            
+
+    //рекурсивный перебор меню Р-Кипер
+    function findById(arr, id) 
+    {
+  
+        // if empty array then return
+        if(arr.length == 0) return
+  
+        // return element if found else collect all children(or other nestedKey) array and run this function
+        return arr.find(d => d.id == id) 
+            || findById(arr.flatMap(d => d['subs'] || []), id) 
+            || 'Not found'
+    }
+
+    // кнопка загрузить изображение
+    $('.js-labelFile').click(function(){
+        $('#fileUpload').click();
+    });
+
+
+    // загрузка изображения
+    $('#fileUpload').change(function()
+    {                
+        var fileName = '';
+        var files = $('#fileUpload').prop("files");
+
+        var filename = $("#fileUpload").val();
+        var extension = filename.replace(/^.*\./, '');
+
+        if (extension == filename) {
+            extension = '';
+        } 
+        else {            
+            extension = extension.toLowerCase();
+        }
+
+        
+        if(extension != 'jpg' & extension != 'jpeg' & extension != 'png')
+        {
+            ShowModal('Редактор позиции', 'Недопустимый тип файла. Можно загружать только изображения в jpeg или png формате');   
+            return false;
+        }               
+
+        if(!validateSize(this, 3))
+        {
+            ShowModal('Редактор позиции', "Размер загружаемого файла не должен превышать 3Мб");
+            return false;
+        }
+
+        // получаем файл изображения
+        let reader = new FileReader();
+              
+        // начало загрузки
+        reader.onloadstart = function(event) 
+        {            
+            $('#progressBar').children('div').text('0%');
+            $('#progressBar').children('div').css('width', '0%');
+            $('#progressBar').show();
+            $('#loadButton').hide();            
+        }
+        // ход загрузки
+        reader.onprogress = function(event) 
+        {
+            if (event.lengthComputable) 
+            {
+                // индикатор хода загрузки
+                var level = parseInt((event.loaded/event.total)*100);                
+                $('#progressBar').children('div').text(level + '%');
+                $('#progressBar').children('div').css('width', level + '%');
+            }
+        };
+        // по факту загрузки
+        reader.onload = function(event)
+        {         
+            var error = event.target.error;
+            if (error != null) 
+            {
+                ShowModal('Редактор позиции',"Ошибка загрузки файла:" + error.message);
+            }
+            else
+            {                   
+                $('#progressBar').hide();
+                $('#loadButton').show();
+                ImageResize(event.target.result);
+            }            
+        }  
+
+        // старт процесса загрузки 
+        reader.readAsDataURL(files[0]);        
+    });      
+
+    // очистка изображения
+    function ImageClear()
+    {
+        $('#image').css('background-image', '');
+        imageUpdated = true;
+    }
+
+    // изменение размера картинки    
+    function ImageResize(baseImage)
+    {        
+        $.ajax({            
+            type: "POST",
+            url: 'Menu/ResizeImage',
+            data: { data: baseImage },
+            datatype: 'application/json',
+            success: function (result) 
+            {              
+                $('#image').css('background-image', 'url("data:image/jpg;base64,' + result + '")');
+                imageUpdated = true;
+            },
+            error: function (error) 
+            { 
+                ShowModal('Редактор позиции', 'error:  ' + error.responseText); 
+            }
+        });
+    }
+
+    // сохранить/добавить позицию
+    function SaveItem()
+    {            
+        var item = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Item)); 
+        
+        var newImage = $('#image').css('background-image');
+        newImage = newImage.replace('url("data:image/jpg;base64,', '');
+        newImage = newImage.replace('")', '');                  
+               
+        item.rkName = $('#rkName').val(); 
+        item.rkCode = $('#rkCode').val();
+        item.rkDeliveryPrice = $('#rkDeliveryPrice').val();
+        item.marketName = $('#marketName').val(); 
+        item.Description = $('#itemDescription').val(); 
+        item.Measure = $('#measure').val();
+        item.MeasureUnit.Id = $('#measureUnits').val();             
+        item.ParentCategory.Id = cat.Id;
+
+        if(!item.rkCode)
+            item.rkCode = 0;
+
+        if(!item.rkDeliveryPrice)
+            item.rkDeliveryPrice = 0;
+
+        if(!item.Measure)
+            item.Measure = 0;
+
+        if(item.MeasureUnit.Id == null)
+            item.MeasureUnit.Id = 0;
+
+        if(newImage == 'none' | newImage == 'null' | newImage == null)
+            item.Image = null;
+        else
+            item.Image = newImage;        
+
+        var jsn = JSON.stringify(item);                 
+        //alert(jsn);
+        jsn = jsn.replace(/\+/g, "%pp%");
+        jsn = jsn.replace(/ /g, "%bkspc%");
+
+        var url = 'Menu/EditItem';
+        if(item.Id == 0)
+            url = 'Menu/AddItem';
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { json: jsn },
+            datatype: "application/json",
+            success: function (result) {  
+                //alert(JSON.stringify(result));
+                if(result.ok)
+                {                    
+                    $("#itemEditor").modal("hide");
+                    LoadCategory(cat.Id);
+                }
+                else
+                {
+                    ShowModal('Редактор позиции', result.errorMessage);
+                }
+            },
+            error: function (error) { ShowModal('Редактор позиции', error.statusText); }
+         });         
+    }
+
+    // удаление позиции
+    function DeleteItem()
+    {
+        var item = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Item));
+
+        var confirmMessage = "Позиция \"" + item.marketName + "\" будет удалена из меню доставки, продолжить?";
+        ShowModal("Подтвердите удаление", confirmMessage, 1);
+
+        // кнопка ok в модальном окне
+        $('#ok').on('click', function () {
+            $('#ok').off('click');
+            $.get('/Menu/DeleteItem?Id=' + item.Id, function(result)
+            {
+                //ShowModal('Редактор категории', JSON.stringify(result));
+                if(result.ok)
+                {                    
+                    $("#itemEditor").modal("hide");
+                    LoadCategory(cat.Id);
+                }
+                else
+                {
+                    ShowModal('Редактор позиции', result.errorMessage);
+                }
+            });
+        });
+
+        
+    }
+
+    // определение размера файла
+    function validateSize(fileInput,size) 
+    {
+        var fileObj, oSize;
+        if ( typeof ActiveXObject == "function" ) 
+        { // IE
+            fileObj = (new ActiveXObject("Scripting.FileSystemObject")).getFile(fileInput.value);
+        }
+        else 
+        {
+            fileObj = fileInput.files[0];
+        }
+ 
+        oSize = fileObj.size; // Size returned in bytes.
+        if(oSize > size * 1024 * 1024)
+        {
+            return false
+        }
+        return true;
+    }
+   
+    
+</script>
+

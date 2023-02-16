@@ -1,0 +1,184 @@
+﻿@model Portal.ViewModels.CameraView
+
+@if (Model.servName != null)
+{
+    <a class="arrowLink" href="#link" onclick="ShowCaseFrom3to2()">←</a>
+}
+<h2>Конфигурация зон и расписания для анализа</h2>
+
+
+
+<div id="zonesBlock">
+
+
+
+</div>
+
+<div class="zoneSelectDiv" id="zoneSelectDiv">
+    <p id="zoneSelectTitle"></p>
+    <canvas id="canvas"></canvas>
+</div>
+<div id="downPreviews">
+
+</div>
+
+
+<!-------------------------------------------------------------------------------------------------------------------------------------->
+<!--Переменные-->
+<script>
+    var camView = @Html.Raw(Json.Serialize(Model));
+    var defDate;
+    var compareEnable = true;
+</script>
+
+
+<!--возврат на предыдущий шаг-->
+<script>
+    function ShowCaseFrom3to2() {
+        $('#loading').show();
+
+        var jsn = JSON.stringify(camView);
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+        $('#demo').load('@Url.Action("ShowcaseAddCamera02", "Settings")?jsn=' + jsn);
+    }
+</script>
+
+<!--вывод списка зон в область справа-->
+<script>
+    function zoneList() {
+        var jsn = JSON.stringify(camView);
+
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+        $('#zonesBlock').load('@Url.Action("ShowcaseAddCamera03_zoneList", "Settings")?jsn=' + jsn);
+    }
+</script>
+
+<!--загрузка ленты изображений снизу-->
+<script>
+    function feedImages() {
+
+        var dateTime = camView.dateTime;
+        var time = dateTime.substr(dateTime.length - 5, 5);
+        var date = dateTime.substr(0, dateTime.length - time.length);
+
+        var dd = date.substr(0, 2);
+        var MM = date.substr(3, 2);
+        var yyyy = date.substr(6, 4);
+
+        var date = yyyy + '-' + MM + '-' + dd;
+
+        var hour = time.substr(0, 2);
+        var minute = time.substr(3, 2);
+
+        var h = 9;
+        var m = 0;
+
+        defDate = date + 'T' + hour + ':' + minute;
+
+        var x = 0;
+        while (x < 6) {
+
+
+            if (x == 0) {
+                var camDiv = '<div class="downPic" onclick="setImageToCanvas(0,' + x + ')">';
+                var img = '<img class="picOff" id="' + x + '" />';
+                camDiv += img;
+                camDiv += '</div>';
+                $('#downPreviews').append(camDiv);
+                var src = '/Api/GetSourceImage/?camGuid=' + camView.cameraGuid + '&sef=' + Math.random();
+                $('#' + x).attr('src', src);
+            }
+            else {
+                if (h < 10) hour = '0' + h.toString(); else hour = h.toString();
+                if (m < 10) minute = '0' + m.toString(); else minute = m.toString();
+                dateTime = date + 'T' + hour + ':' + minute;
+
+                var jsn = JSON.stringify(
+                    {
+                        'cameraGuid': camView.cameraGuid,
+                        'camName': camView.camName,
+                        'sysName': camView.sysName,
+                        'previewHeight': 300,
+                        'dateTime': dateTime
+                    });
+
+                jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+                var req = '/Api/GetImages/' + jsn;
+                var data = "'" + dateTime + "'";
+
+                // генерируем html код блока элементов изображения
+                var camDiv = '<div class="downPic" onclick="setImageToCanvas(' + data + ', ' + x + ')">';
+                var img = '<img class="picOff" id="' + x + '" />';
+                //camDiv += camName;
+                camDiv += img;
+                camDiv += '</div>';
+                $('#downPreviews').append(camDiv);
+                $('#' + x).attr('src', req);
+
+                h += 4;
+                if (h >= 24) h = h - 24;
+
+            }
+            x++;
+        }
+    }
+</script>
+<!-------------------------------------------------------------------------------------------------------------------------------------->
+<!--устанавливаем в канвас выбранное изображение из ленты снизу-->
+<script>
+    function setImageToCanvas(data, id) {
+        var x = 0;
+        while (x <= 5) {
+            var picId = '#' + x;
+            $(picId).attr('class', 'picOff');
+            x++;
+        }
+
+        id = '#' + id;
+        $(id).attr('class', 'picOn');
+
+        if (data == "0") {
+
+            var src = '/Api/GetSourceImage/?camGuid=' + camView.cameraGuid + '&sef=' + Math.random();
+
+            $('#canvas').css("background", "transparent url('" + src + "') no-repeat");
+            $('#zoneSelectTitle').text("Исходное изображение для сравнения");
+        }
+        else {
+            var jsn = JSON.stringify(
+                {
+                    'cameraGuid': camView.cameraGuid,
+                    'camName': camView.camName,
+                    'sysName': camView.sysName,
+                    'previewHeight': 700,
+                    'dateTime': data
+                });
+
+            jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+            var req = '/Api/GetImages/' + jsn;
+            $('#canvas').css("background", "transparent url('" + req + "') no-repeat");
+
+            var time = data.substr(data.length - 5, 5);
+            var date = data.substr(0, data.length - time.length);
+            var dd = date.substr(8, 2);
+            var MM = date.substr(5, 2);
+            var yyyy = date.substr(0, 4);
+            data = camView.camName + ' ' + dd + '.' + MM + '.' + yyyy + ' ' + time;
+
+            $('#zoneSelectTitle').text(data);
+        }
+        if (compareEnable) ComparePictures();
+    }
+</script>
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        feedImages();
+        zoneList();
+        setImageToCanvas('0', '0');
+        $('#loading').hide();
+    });
+</script>

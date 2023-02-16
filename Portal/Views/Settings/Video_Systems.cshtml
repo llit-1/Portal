@@ -1,0 +1,136 @@
+﻿@{
+    ViewBag.Title = "Настройки видеонаблюдения";
+}
+
+@model List<RKNet_Model.VMS.NX.NxSystem>
+<!--блок над таблицей-->
+<div class="row" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--добавить систему-->
+    <div class="col-sm-2 el-marging">
+        <button type="button" class="btn btn-default" onclick="addNxSystem()">добавить систему</button>
+    </div>
+
+</div>
+
+<!--таблица систем-->
+<div class="table-responsive" id="demo">
+
+    <table class="table">
+        <thead class="thead-01">
+            <tr>
+                <th>название</th>
+                <th class="mobile-hide">тип системы</th>
+                <th class="mobile-hide">описание</th>
+                <th class="mobile-hide">кол-во серверов</th>
+                <th class="mobile-hide">кол-во камер</th>
+                <th>статус</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        @foreach (var nxSystem in Model)
+        {
+            <tr>
+                <td>@nxSystem.Name</td>
+                <td class="mobile-hide">@nxSystem.Type</td>
+                <td class="mobile-hide">@nxSystem.Description</td>
+                <td class="mobile-hide">@nxSystem.ServersTotal</td>
+                <td class="mobile-hide">@nxSystem.CamerasTotal</td>
+                @if (nxSystem.isOnline)
+                {
+                    <td class="onlineColor text-success">● онлайн</td>
+                }
+                else
+                {
+                    <td class="offlineColor text-danger">● нет связи</td>
+                }
+
+                <td><label id="@nxSystem.Id" class="ico md-mode-edit" onclick="modifyNxSystem(this)"></label></td>
+                <td><label id="@nxSystem.Id" class="ico md-delete" onclick="deleteNxSystem(this)"></label></td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!--------------------------------------------------------------------------->
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--добавить-->
+<script>
+    function addNxSystem() {
+        $('#loading').show();
+        $(contentContainer).load('/Settings/Video_AddNxSystem');
+    }    
+</script>
+
+<!--изменить-->
+<script>
+    function modifyNxSystem(nx) {
+        $('#loading').show();
+
+        var jsn = JSON.stringify(
+            {
+                'Id': nx.id
+            });
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+        $(contentContainer).load('@Url.Action("Video_ModifyNxSystem", "Settings")?jsn=' + jsn);
+    }
+</script>
+
+<!--удалить-->
+<script>
+    function deleteNxSystem(nx) {
+
+        $('#loading').show();
+
+        var jsn = JSON.stringify(
+            {
+                'Id': nx.id
+            });
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+        var confDel = confirm("Внимание! Это действие полностью удалит систему NX, включая подключенные камеры, их настройки, расписания и конфигурации. Изменения нельзя будет отменить, продолжить?");
+        if (confDel) {
+            $(contentContainer).load('@Url.Action("Video_DeleteNxSystem", "Settings")?jsn=' + jsn);
+        }
+        else {
+            $('#loading').hide();
+        }
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        $('#loading').hide();
+    });
+</script>

@@ -1,0 +1,467 @@
+﻿@model Portal.ViewModels.Settings_TT.TTTypeSettings
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows");
+
+    var display = "";
+    var disabled = "disabled";
+    var formClass = "input-group";
+    var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
+
+
+    if (Model.isNew)
+    {
+        display = "d-none";
+        disabled = "";
+        formClass = "form-group";
+    }
+}
+
+<div class="row flex bg-white" style="margin:0px">
+
+    <!--данные типа-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Данные типа</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--название-->
+        <label class="label-light">название</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="typeName" type="text" class="form-control" value="@Model.TTType.Name" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <hr />
+
+    </div>
+
+    <!--торговые точки-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Торговые точки</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор точек-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">селектор тт</label>
+            <div style="width:100%; float:left">
+                <select id="tts" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var tt in Model.TTs.OrderBy(t => t.Name))
+                    {
+                        if (Model.TTType.TTs.FirstOrDefault(t => t.Id == tt.Id) != null)
+                        {
+                            <option selected="selected" value="@tt.Id">@tt.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@tt.Id">@tt.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--кнопки сохранить/отмена-->
+    @if (Model.isNew)
+    {
+        blockStyle += ";width:100%";
+        <div class="col-12" @blockStyle>
+            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="SaveNewItem()">Сохранить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="DataTable()">Отмена</button>
+        </div>
+    }
+
+</div>
+
+<!----------------------------скрипты----------------------------------->
+<!--переменные-->
+<script>
+    var newType = @Html.Raw(Json.Serialize(Model.isNew));
+    var typeId = @Model.TTType.Id;
+</script>
+
+<!--торговые точки-->
+<script>
+    $('#tts').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите тт..."
+    });
+</script>
+
+<!--изменение данных в селекторах-->
+<script>
+    // события изменения в селекторах
+    $('.selectors').on('select2:select', function (e) { SelectChange(this) });
+    $('.selectors').on('select2:unselect', function (e) { SelectChange(this) });
+
+    // изменение набора выделенных элементов в селекторе
+    function SelectChange(selector) {
+
+        if (!newType) {
+
+            // определяем элементы
+            var multiple = $(selector).prop('multiple');
+            var selId = '#' + $(selector).prop('id');
+            var selCont = $(selector).parent();
+            var edit = $(selector).parent().parent().find('.edit');
+            var save = $(selector).parent().parent().find('.save');
+            var cancel = $(selector).parent().parent().find('.cancel');
+
+            // одиночные селекторы
+            if (!multiple) {
+                selector.prop("disabled", false);
+                edit.addClass('d-none');
+            }
+
+            // включаем кнопки
+            $(save).removeClass('d-none');
+            $(cancel).removeClass('d-none');
+
+            $(selCont).css('width', 'calc(100% - 86px)');
+        }
+    }
+
+    // кнопка сохранить
+    function SaveSelect(save) {
+
+        var cancel = $(save).parent().find('.cancel');
+        var edit = $(save).parent().find('.edit');
+        var spinner = $(save).parent().find('.saving');
+
+        var selector = $(save).parent().find('select');
+        var multiple = $(selector).prop('multiple');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var type = {};
+        type.id = typeId;
+        type.attribute = selectId;
+        type.items = [];
+
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            type.items.push(item);
+        });
+
+        var typejsn = JSON.stringify(type);
+        typejsn = typejsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TypeSave',
+            data: { typejsn: typejsn },
+            datatype: "text",
+            success: function (result) {
+
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // скрываем кнопки
+                    $(save).addClass('d-none');
+                    $(cancel).addClass('d-none');
+
+                    // меняем ширину селектора
+                    $(selCont).css('width', '100%');
+
+                    // получаем коллекцию ваыбранных элементов из бд (контроль)
+                    SelectItems(ttId, selectId);
+
+                    // включаем кнопку редактировать
+                    if (!multiple) {
+                        selector.parent().css('width', 'calc(100% - 43px)');
+                        $(edit).removeClass('d-none');
+                        selector.prop("disabled", true);
+                    }
+                }
+                else {
+                    ShowModal('Редактор типа', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор типа', error.responseText); }
+        });
+
+    }
+
+    // кнопка отмена
+    function CancelSelect(cancel) {
+        var save = $(cancel).parent().find('.save');
+        var edit = $(cancel).parent().find('.edit');
+
+        var selector = $(cancel).parent().find('select');
+        var multiple = $(selector).prop('multiple');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // получаем коллекцию ваыбранных элементов из бд
+        SelectItems(typeId, selectId);
+
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+        $(selCont).css('width', '100%');
+
+        // включаем кнопку редактировать
+        if (!multiple) {
+            $(selCont).css('width', 'calc(100% - 43px)');
+            $(edit).removeClass('d-none');
+            selector.prop("disabled", true);
+        }
+    }
+
+    // получение коллекций данных
+    function SelectItems(typeId, selectId) {
+
+        // снимаем выделение со всех элементов
+        $('#' + selectId + ' option').each(function () {
+            $(this).prop('selected', false);
+        });
+
+        // получаем данные из контроллера
+        $.get('/Settings_TT/GetTypeItems?Id=' + typeId + '&selectId=' + selectId, function (selectedItems) {
+            $(selectedItems).each(function () {
+                $('#' + selectId + ' option[value=' + this.id + ']').prop('selected', true);
+            });
+
+            // ре-инициализируем select2
+            var selector = $('#' + selectId).select2();
+            selector.select2({
+                theme: "bootstrap4",
+                width: "resolve",
+                language: "ru",
+                closeOnSelect: false,
+                placeholder: "выберите..."
+            });
+        });
+    }
+
+</script>
+
+<!--изменение данных типа-->
+<script>
+    var oldValue = "";
+    // кнопка редактировать справа
+    function Edit(edit) {
+        // получаем текущие элементы
+        var save = $(edit).parent().find('.save');
+        var cancel = $(edit).parent().find('.cancel');
+        var input = $(edit).parent().parent().children('input');
+
+        oldValue = $(input).val();
+
+        // меняем кнопки
+        $(edit).addClass('d-none');
+        $(save).removeClass('d-none');
+        $(cancel).removeClass('d-none');
+
+        // активируем поле ввода и ставим туда курсос
+        $(input).prop('disabled', false);
+        $(input).focus();
+    }
+
+    // кнопка сохранить справа
+    function Save(save) {
+
+        // определяем текущие элементы
+        var input = $(save).parent().parent().children('input');
+        var edit = $(save).parent().find('.edit');
+        var cancel = $(save).parent().find('.cancel');
+        var spinner = $(save).parent().children('.saving');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var type = {};
+        type.id = typeId;
+        type.attribute = $(input).attr('id');
+
+        type.name = $('#typeName').val();
+
+        var typejsn = JSON.stringify(type);
+        typejsn = typejsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TypeSave',
+            data: { typejsn: typejsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // меняем кнопку сохранить на кнопку редактировать
+                    $(save).addClass('d-none');
+                    $(edit).removeClass('d-none');
+
+                    // блокируем поле ввода
+                    $(input).prop('disabled', true);
+
+                    // обновляем заголовок страницы
+                    $('#header').text(tt.name);
+                }
+                else {
+                    ShowModal('Редактор типа', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор типа', error.responseText); }
+        });
+    }
+
+    // кнопка отмена справа
+    function Cancel(cancel) {
+        // получаем текущие элементы
+        var save = $(cancel).parent().find('.save');
+        var edit = $(cancel).parent().find('.edit');
+        var input = $(cancel).parent().parent().children('input');
+
+        // меняем кнопки
+        $(edit).removeClass('d-none');
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+
+        // блокируем поле ввода
+        $(input).val(oldValue);
+        $(input).prop('disabled', true);
+
+    }
+
+</script>
+
+<!--сохранить новый тип-->
+<script>
+    function SaveNewItem() {
+
+        var type = {};
+        type.id = 0;
+        type.name = $('#typeName').val();
+
+        type.tts = DataFromSelector($('#tts'));
+
+        var typejsn = JSON.stringify(type);
+        typejsn = typejsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TypeSave',
+            data: { typejsn: typejsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    ShowModal('Редактор типа', 'Новый тип успешно добавлен');
+                    //DataTable();
+
+                    $('#modalWindow').on('hidden.bs.modal', function () {
+
+                        setTimeout(function () {
+                            $('#modalWindow').remove();
+                            DataTable();
+                        }, 100);
+
+                        $('#modalWindow').off('hidden.bs.modal');
+                    });
+                }
+                else {
+                    ShowModal('Редактор типа', result.data);
+                }
+            },
+            error: function (error) { ShowModal('Редактор типа', error.responseText); }
+        });
+    }
+
+    // получение данных в селекторах
+    function DataFromSelector(selector) {
+
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            items.push(item);
+        });
+
+        return items;
+    }
+</script>
+
+<!--удаление типа-->
+<script>
+    function DeleteItem() {
+        var typeName = $('#typeName').val();
+        var confirmMessage = 'Тип "' + typeName + '" будет удален, продолжить?';
+
+        ShowModal("Подтвердите удаление", confirmMessage, 1);
+
+        // кнопка ok в модальном окне
+        $('#ok').on('click', function () {
+            $('#ok').off('click');
+            SpinnerShow();
+            $.get('/Settings_TT/TypeDelete?Id=' + typeId, function (result) {
+                if (result == "ok") {
+                    DataTable();
+                }
+                else {
+                    ShowModal('Ошибка', result);
+                }
+            });
+        });
+    }
+</script>

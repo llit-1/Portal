@@ -1,0 +1,577 @@
+﻿@model List<Portal.Models.MSSQL.UserRequest>
+@{ 
+    var roles = Model.Select(r => r.RoleName).ToList();
+    var classTails = "col-xs-6 col-sm-4 col-md-3 col-lg-2";
+}
+
+<div class="row">
+
+    <!--отчёты-->
+    @if (User.IsInRole("reports"))
+    {
+        <div class="@classTails">
+            <a href="#reports" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/reports.svg" width="20px">
+                    </span>
+                    <h4>Отчёты</h4>
+                    <small>отчёты по выручке, сервис-деск, Power Bi и Клик </small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/reports.svg" width="20px">
+                    </span>
+                    <h4>Отчёты</h4>
+                    <small>отчёты по выручке, сервис-деск, Power Bi и Клик </small>
+                </div>
+
+                @{
+                    var role = "reports";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+
+            </a>
+        </div>
+    }
+
+    <!--меню-->
+    @if (User.IsInRole("menuDelivery"))
+    {
+        <div class="@classTails">
+            <a href="#menu" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/menu.svg" width="20px">
+                    </span>
+                    <h4>Меню доставки</h4>
+                    <small>редактор меню для агрегаторов</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/menu.svg" width="20px">
+                    </span>
+                    <h4>Меню доставки</h4>
+                    <small>редактор меню агрегаторов</small>
+                </div>
+
+                @{
+                    var role = "menu";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+            </a>
+        </div>
+    }
+
+    <!--заказы тт-->
+    @if (User.IsInRole("ttorders"))
+    {
+        <div class="@classTails">
+            <a href="#ttorders" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/shopping.svg" width="20px">
+                    </span>
+                    <h4>Заказы ТТ</h4>
+                    <small>удобный механизм формирования заказов для точек</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/shopping.svg" width="20px">
+                    </span>
+                    <h4>Заказы ТТ</h4>
+                    <small>удобный механизм формирования заказов для точек</small>
+                </div>
+
+                @{
+                    var role = "ttorders";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+            </a>
+        </div>
+    }
+
+    <!--сообщения на кассы-->
+    @if (User.IsInRole("cashmsg"))
+    {
+        <div class="@classTails">
+            <a href="#cashmsg" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/cashier.svg" width="20px">
+                    </span>
+                    <h4>Сообщения на кассы</h4>
+                    <small>рассылка сообщений в пекарни</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/cashier.svg" width="20px">
+                    </span>
+                    <h4>Сообщения на кассы</h4>
+                    <small>рассылка сообщений в пекарни</small>
+                </div>
+
+                @{
+                    var role = "cashmsg";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+            </a>
+        </div>
+    }
+
+    <!--стопы на кассах-->
+    @if (User.IsInRole("skustop"))
+    {
+        <div class="@classTails">
+            <a href="#skustop" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/block-sku.svg" width="20px">
+                    </span>
+                    <h4>Стопы на кассах</h4>
+                    <small>блокировка позиций на кассах</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/block-sku.svg" width="20px">
+                    </span>
+                    <h4>Стопы на кассах</h4>
+                    <small>блокировка позиций на кассах</small>
+                </div>
+
+                @{
+                    var role = "skustop";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+            </a>
+        </div>
+    }
+
+    <!--библиотека знаний-->
+    @if (User.IsInRole("library"))
+    {
+        <div class="@classTails">
+            <a href="#library" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/library.svg" width="20px">
+                    </span>
+                    <h4>Библиотека знаний</h4>
+                    <small>материалы для сотрудников и партнеров</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/library.svg" width="20px">
+                    </span>
+                    <h4>Библиотека знаний</h4>
+                    <small>материалы для сотрудников и партнеров</small>
+                </div>
+
+                @{
+                    var role = "library";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+            </a>
+        </div>
+    }
+
+    <!--видеонаблюдение-->
+    @if (User.IsInRole("video"))
+    {
+        <div class="@classTails">
+            <a href="#video" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/video.svg" width="20px">
+                    </span>
+                    <h4>Видео-наблюдение</h4>
+                    <small>анализ данных с камер видеонаблюдения</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/video.svg" width="20px">
+                    </span>
+                    <h4>видео-наблюдение</h4>
+                    <small>анализ данных с камер видеонаблюдения</small>
+                </div>
+
+                @{
+                    var role = "video";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+
+            </a>
+        </div>
+    }
+
+    <!--калькуляторы-->
+    @if (User.IsInRole("calculators"))
+    {
+        <div class="@classTails">
+            <a href="#calculators" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/calculator.svg" width="20px">
+                    </span>
+                    <h4>Калькуляторы</h4>
+                    <small>инструменты для расчета выпечки и дефроста в пекарнях</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/calculator.svg" width="20px">
+                    </span>
+                    <h4>Калькуляторы</h4>
+                    <small>инструменты для расчета выпечки и дефроста в пекарнях</small>
+                </div>
+
+                @{
+                    var role = "calculators";
+                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
+                }
+
+                @if (req == null)
+                {
+                    <div class="tailsReq">
+                        <label class="fa fa-unlock-alt ico"></label>
+                        <p></p>
+                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+                    </div>
+                }
+                else
+                {
+                    if (req.State != "denied")
+                    {
+                        <div class="tailsReq">
+                            <label class="fa fa-unlock-alt ico"></label>
+                            <p></p>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tailsReq tailsWork">
+                            <label class="fa fa-lock ico"></label>
+                            <p>отказано</p>
+                        </div>
+                    }
+                }
+            </a>
+        </div>
+    }
+
+    <!--запросы пользователей-->
+    @if (User.IsInRole("settings"))
+    {
+        <div class="@classTails">
+            <a href="#userrequests" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/ringing.svg" width="20px">
+                    </span>
+                    <h4>Запросы</h4>
+                    <small>управление запросами пользователей портала</small>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--логи-->
+    @if (User.IsInRole("logs"))
+    {
+        <div class="@classTails">
+            <a href="#logs" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/notebook.svg" width="20px">
+                    </span>
+                    <h4>Журнал событий</h4>
+                    <small>просмотр действий пользователей</small>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--настройки-->
+    @if (User.IsInRole("settings"))
+    {
+        <div class="@classTails">
+            <a href="#settings" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/settings.svg" width="20px">
+                    </span>
+                    <h4>Настройки</h4>
+                    <small>гибкое управление ресурсами и доступом к ним</small>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--помощь-->
+    <div class="@classTails">
+        <a href="#help" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+            <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                <span class="svg-48">
+                    <img src="~/svg/panels/help.svg" width="20px">
+                </span>
+                <h4>Помощь</h4>
+                <small>материалы по работе с Порталом и интерактивными сервисами</small>
+            </div>
+        </a>
+    </div>
+</div>
+
+
+<!-------------------------------------------------------------->
+<script src="~/ViewScripts/Home/Index.js" asp-append-version="true"></script>

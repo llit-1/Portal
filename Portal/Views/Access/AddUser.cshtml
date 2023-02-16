@@ -1,0 +1,19 @@
+﻿
+
+<div class="row cm-fix-height">
+    <div id="content"></div>
+</div>
+
+
+<!--------------------------------------------------------->
+<!--загрузка редактора пользователя на страницу-->
+<script>
+    $('#content').load('/Access/UserCreate');
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

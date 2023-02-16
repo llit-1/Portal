@@ -1,0 +1,447 @@
+﻿@model Portal.ViewModels.FranchOrdersView
+
+@{
+    var ModelOrders = Model.forders;
+}
+
+<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#ttorders" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<!--блок элементов над списком заказов-->
+<div class="row" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--добавить заказ-->
+    @if (User.IsInRole("forders_edit"))
+    {
+        <div class="col-sm-2 el-marging">
+            <button type="button" class="btn btn-default" onclick="orderNew()">добавить заказ</button>
+        </div>
+    }
+
+    <!--фильтр ТТ-->
+    <div class="col-sm-2 el-marging" style="width:250px">
+        <select class="form-control form-control-sm" id="ttSelector">
+
+            @if (Model.selectedTT == "all")
+            {
+                <option id="0" selected>все тт</option>
+            }
+            else
+            {
+                <option id="0">все тт</option>
+            }
+
+            @foreach (var tt in Model.TTs)
+            {
+                if (Model.selectedTT != "all")
+                {
+                    if (tt.Code == int.Parse(Model.selectedTT))
+                    {
+                        <option id="@tt.Code" selected>@tt.Name</option>
+                    }
+                    else
+                    {
+                        <option id="@tt.Code">@tt.Name</option>
+                    }
+                }
+                else
+                {
+                    <option id="@tt.Code">@tt.Name</option>
+                }
+            }
+        </select>
+    </div>
+
+    <!--фильтр дат-->
+    <div class="col-sm-2 el-marging" style="width:250px">
+        <select class="form-control form-control-sm" id="dateSelector">
+
+            @if (Model.selectedDate == "current")
+            {
+                <option selected>текущие заказы</option>
+            }
+            else
+            {
+                <option>текущие заказы</option>
+            }
+
+            @if (Model.selectedDate == "all")
+            {
+                <option selected>все заказы</option>
+            }
+            else
+            {
+                <option>все заказы</option>
+            }
+
+            @foreach (var date in Model.deliveryDates.OrderByDescending(d => d.Date))
+            {
+                var dateString = date.ToString("dd.MM.yyyy");
+                if (dateString == Model.selectedDate)
+                {
+                    <option selected>@dateString</option>
+                }
+                else
+                {
+                    <option>@dateString</option>
+                }
+            }
+        </select>
+    </div>
+
+</div>
+
+
+<!--таблица заказов-->
+<div class="panel panel-default" id="OrdersFranch">
+
+    <div class="table-responsive">
+        <table class="table" id="fOrdersTable">
+
+            <tbody>
+                @if (ModelOrders.Count() > 0)
+                {
+                    var tts = ModelOrders.GroupBy(g => g.TTName).OrderBy(t => t.Key);
+                    foreach (var tt in tts)
+                    {
+                        var orders = tt.GroupBy(g => g.OrderNumber).OrderBy(g => g.Key);
+                        var text = orders.Count().ToString();
+
+                        switch (orders.Count().ToString().Last())
+                        {
+                            case '1':
+                                {
+                                    text += " заказ";
+                                    break;
+                                }
+                            case '2':
+                            case '3':
+                            case '4':
+                                {
+                                    text += " заказа";
+                                    break;
+                                }
+                            default:
+                                {
+                                    text += " заказов";
+                                    break;
+                                }
+                        }
+
+                        <!--точки-->
+                        <tr class="row-group-01">
+                            <td width="175px"><label><input class="hidden" type="checkbox" id="@tt.FirstOrDefault().TTCode">@tt.Key</label></td>
+                            <td width="150px">@text</td>
+                            <td colspan="4"></td>
+
+                        </tr>
+
+                        <!--сгруппированные заказы-->
+                        foreach (var g in orders)
+                        {
+                            var order = g.FirstOrDefault();
+                            var canEdit = true;
+
+                            var orderDate = order.DeliveryDate;
+                            var days = 0;
+
+
+                            //----------------
+
+                            // учитываем время, в которое был сделан заказ
+                            bool timeOk = false;
+                            DateTime periodStart = DateTime.Now; ;
+                            if (Model.orderType.Id == 1) // регулярный заказ
+                            {
+
+                                var time = DateTime.Now.ToString("HH:mm");
+                                var hour = int.Parse(time.Substring(0, 2));
+                                var minute = int.Parse(time.Substring(3, 2));
+
+                                foreach (var item in g)
+                                {
+                                    var itemDays = 0;
+                                    var maxTime = item.maxTime;
+
+                                    var maxHour = int.Parse(maxTime.Substring(0, 2));
+                                    var maxMinute = int.Parse(maxTime.Substring(3, 2));
+
+                                    if (hour < maxHour) timeOk = true;
+                                    if (hour == maxHour & minute < maxMinute) timeOk = true;
+
+                                    if (!timeOk)
+                                    {
+                                        itemDays = 1;
+                                    }
+
+                                    if (item.minDeliveryDate == "Завтра") itemDays += 1;
+                                    if (item.minDeliveryDate == "Послезавтра") itemDays += 2;
+
+                                    if (days < itemDays) days = itemDays;
+                                }
+
+                                var deliveryDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(days);
+                                var differense = orderDate.Subtract(deliveryDate).TotalDays;
+
+
+                                if (differense < 0)
+                                {
+                                    canEdit = false;
+                                }
+                            }
+                            else
+                            {
+                                // запрет на редактирование исполненных заказов
+                                var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);                                
+                                if (order.DeliveryDate < today) canEdit = false;
+
+                                // запрет на редактирование заказов внутри наступившего периода (неделя, месяц)
+                                if (Model.orderType.Id == 2) // еженедельный заказ
+                                {
+                                    today = DateTime.Now;
+                                    if(User.IsInRole("ttorders_editweektomonday"))
+                                    {
+                                        periodStart = order.DeliveryDate.AddDays(-7 + 1).AddHours(24); // до конца понедельника
+                                    }
+                                    else
+                                    {
+                                        periodStart = order.DeliveryDate.AddDays(-7 + 1).AddHours(12); // до 12 часов понедельника
+                                    }                                    
+                                }
+                                if (Model.orderType.Id == 3 || Model.orderType.Id == 4) // ежемесячный заказ и ценники
+                                {
+                                    periodStart = order.DeliveryDate.AddDays(-DateTime.DaysInMonth(order.DeliveryDate.Year, order.DeliveryDate.Month) + 1);
+                                }
+
+                                if (today >= periodStart) canEdit = false;
+                            }
+
+                            <!--заказы-->
+                            <tr class="row-group-02 hidden items_@order.TTCode">
+                                <td><label><input class="hidden" type="checkbox" id="@order.OrderNumber">@order.OrderNumber</label></td>
+                                <td class="mobile-hide">@order.OrderName</td>
+                                <td>@order.DeliveryDate.ToString("dd.MM.yyyy")</td>
+                                <td class="mobile-hide">@order.UserName</td>
+
+                                @if (canEdit & User.IsInRole("forders_edit"))
+                                {
+                                    <td width="50px"><label class="md-edit ico" onclick="orderEdit(@order.OrderNumber)"><br /></label></td>
+                                    <td width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
+                                }
+                                else
+                                {
+                                    if (User.IsInRole("forders_edit") & User.IsInRole("forders_historyedit"))
+                                    {
+                                        <td width="50px"><label class="md-content-copy ico" onclick="orderCopy(@order.OrderNumber)"><br /></label></td>
+                                        <td width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
+
+                                    }
+                                    else
+                                    {
+                                        if (User.IsInRole("forders_edit"))
+                                        {
+                                            <td><label class="ico"></label></td>
+                                            <td width="50px"><label class="md-content-copy ico" onclick="orderCopy(@order.OrderNumber)"><br /></label></td>
+                                        }
+                                        else
+                                        {
+                                            if (User.IsInRole("forders_historyedit"))
+                                            {
+                                                <td><label class="ico"></label></td>
+                                                <td width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
+                                            }
+                                            else
+                                            {
+                                                <td><label class="ico"></label></td>
+                                                <td><label class="ico"></label></td>
+
+                                            }
+                                        }
+                                    }
+                                }
+                            </tr>
+
+                            <!--позиции заказа-->
+                            @foreach (var item in ModelOrders.Where(i => i.OrderNumber == order.OrderNumber).OrderBy(n => n.SKU))
+                            {
+                                <tr class="hidden items_@order.OrderNumber">
+                                    <td class="mobile-hide">@item.Article</td>
+                                    <td style="text-align:center">@item.Count ед.</td>
+                                    <td colspan="3">@item.SKU</td>
+                                </tr>
+
+                            }
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+
+<!---------------------------------------------------------------------------------------------------->
+<script>
+    var orderTypeId = @Model.orderType.Id;
+</script>
+<!--добавить заказ-->
+<script>
+    function orderNew() {
+        $('#loading').show();
+        $(contentContainer).empty();
+        $(contentContainer).load('/ttOrders/OrderEdit?mode=new&orderTypeId=' + orderTypeId);   
+    }
+</script>
+
+<!--редактировать заказ-->
+<script>
+    function orderEdit(orderNumber) {
+        $('#loading').show();
+        $(contentContainer).empty();
+        $(contentContainer).load('/ttOrders/OrderEdit?mode=edit' + '&orderNumber=' + orderNumber + '&orderTypeId=' + orderTypeId);
+    }
+</script>
+
+<!--копировать заказ-->
+<script>
+    function orderCopy(orderNumber) {
+        $('#loading').show();
+        $(contentContainer).empty();
+        $(contentContainer).load('/ttOrders/OrderEdit?mode=copy' + '&orderNumber=' + orderNumber + '&orderTypeId=' + orderTypeId);
+    }
+</script>
+
+<!--удалить заказ-->
+<script>
+    function orderDelete(orderNumber) {
+
+        var confDel = confirm("Удалить заказ № " + orderNumber + "?");
+
+        if (confDel) {
+            $.get('/ttOrders/DeleteOrder?orderNumber=' + orderNumber, function (result) {
+                if (result.ok) {
+                    $(contentContainer).load('/ttOrders/OrdersList?orderTypeId=' + orderTypeId);
+                }
+                else {
+                    alert(result);
+                }
+            });
+        }
+    }
+</script>
+
+<!--группировка по ТТ-->
+<script>
+    $('.row-group-01').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.items_' + $(check).attr('id');
+
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(items).each(function () {
+                var check01 = $(this).children('td').children('label').children('input');
+                var items01 = '.items_' + $(check01).attr('id');
+                if ($(check01).prop('checked')) {
+                    $(check01).prop('checked', false);
+                    $(items01).addClass('hidden');
+                }
+            });
+
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+</script>
+
+<!--группировка по заказу-->
+<script>
+    $('.row-group-02').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.items_' + $(check).attr('id');
+
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+</script>
+
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--селектор дат-->
+<script>
+    $('#dateSelector').on('change', function () {
+        filters();
+    });
+</script>
+
+<!--селектор ТТ-->
+<script>
+    $('#ttSelector').on('change', function () {
+        filters();
+    });
+</script>
+
+<!--фильтры-->
+<script>
+    function filters() {
+        var dateVal = $('#dateSelector').val();
+        if (dateVal == 'текущие заказы') dateVal = 'current';
+        if (dateVal == 'все заказы') dateVal = 'all';
+
+        var ttVal = $("option:selected", '#ttSelector').attr('id');
+        if (ttVal == '0') ttVal = 'all';
+
+        $('#loading').show();
+        $('#OrdersFranch').empty();
+        $(contentContainer).load('/ttOrders/OrdersList?dateString=' + dateVal + '&ttString=' + ttVal + '&orderTypeId=' + orderTypeId);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        $('#loading').hide();  
+    });
+</script>

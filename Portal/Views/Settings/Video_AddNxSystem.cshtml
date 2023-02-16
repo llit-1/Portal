@@ -1,0 +1,105 @@
+﻿@model RKNet_Model.VMS.NX.NxSystem
+<!--форма ввода-->
+<div class="row cm-fix-height">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">Добавление системы NX</div>
+            <div class="panel-body">
+
+                <div class="text-danger" asp-validation-summary="All"></div>
+
+                <form class="form-horizontal" asp-action="AddNxSystem" asp-controller="Settings" asp-anti-forgery="true">
+
+                    <!--сервер-->
+                    <div class="form-group">
+                        <label for="Host" class="col-sm-3 control-label">сервер</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="Host" asp-for="Host">
+                        </div>
+                    </div>
+
+                    <!--порт-->
+                    <div class="form-group">
+                        <label for="Port" class="col-sm-3 control-label">порт</label>
+                        <div class="col-sm-9">
+                            <input type="number" class="form-control" id="Port" asp-for="Port">
+                        </div>
+                    </div>
+
+                    <!--логин-->
+                    <div class="form-group">
+                        <label for="Login" class="col-sm-3 control-label">логин</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="Login" asp-for="Login">
+                        </div>
+                    </div>
+
+                    <!--пароль-->
+                    <div class="form-group">
+                        <label for="Password" class="col-sm-3 control-label">пароль</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="Password" asp-for="Password">
+                        </div>
+                    </div>
+
+                    <!--описание-->
+                    <div class="form-group">
+                        <label for="Description" class="col-sm-3 control-label">описание</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="Description" asp-for="Description">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--кнопки сохранить/отмена-->
+<div class="col-sm-12 text-left">
+    <button type="button" class="btn btn-success btn-sm" style="margin-right:10px" onclick="submitNxSystem()">Сохранить</button>
+    <button type="button" class="btn btn-default btn-sm" onclick="{ $('#loading').show(); $(contentContainer).load('/Settings/Video_Systems'); }">Отмена</button>
+</div>
+
+
+
+
+<!-------------------------------------------------------------------------------------------------------->
+
+<!--Отправка данных формы в контроллер и выгрузка результатов обработки на страницу-->
+<script>
+
+    function submitNxSystem()
+    {
+        $('#loading').show();
+
+        var adress = $("#Host").val();
+        var port = $("#Port").val();
+        var login = $("#Login").val();
+        var password = $("#Password").val();
+        var description = $("#Description").val();
+
+        var jsn = JSON.stringify(
+            {
+                'Host': adress,
+                'Port': port,
+                'Login': login,
+                'Password': password,
+                'Description': description
+            });
+
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+        //alert(jsn);
+        $(contentContainer).load('@Url.Action("Video_postAddNxSystem", "Settings")?jsn=' + jsn);
+    };
+
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

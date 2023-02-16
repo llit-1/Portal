@@ -1,0 +1,557 @@
+﻿@model Portal.ViewModels.FranchOrdersView
+
+@{
+    var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+
+    var minDate = new DateTime(today.Year, today.Month, today.Day).AddDays(1).ToString("yyyy-MM-dd");
+    var order = new Portal.Models.MSSQL.FranchOrder();    
+
+    // рассчитываем даты доставки хозки
+    var nextMonth = today.AddMonths(1);
+    var monthDelivery = new DateTime(nextMonth.Year, nextMonth.Month, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month)).ToString("yyyy-MM-dd"); ;
+
+    var weekDeliveryDate = today.AddDays(7);    
+    while (weekDeliveryDate.DayOfWeek != DayOfWeek.Sunday) weekDeliveryDate = weekDeliveryDate.AddDays(1);
+    // пн до 12
+    if(today.DayOfWeek == DayOfWeek.Monday & DateTime.Now.Hour < 12)
+    {
+        weekDeliveryDate = weekDeliveryDate.AddDays(-7);
+    }
+
+    var weekDelivery = weekDeliveryDate.ToString("yyyy-MM-dd");
+
+
+
+    if (Model.mode == "edit")
+    {
+        order = Model.forders.FirstOrDefault();
+        Model.orderNumber = Model.orderEditNumber;
+    }
+    if (Model.mode == "copy")
+    {
+        Model.orderNumber = Model.orderEditNumber;
+    }
+
+
+    try
+    {
+        <!--блок элементов сверху-->
+        <div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+            <!--Назад-->
+            <div class="col-sm-1 el-marging" style="width:100px; cursor:pointer" onclick="loadUrl('/ttOrders/OrdersList?orderTypeId=@Model.orderType.Id')">
+                <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+            </div>
+
+        </div>
+
+        <div class="row" id="fordres_editor">
+            <!--группы-->
+            <div class="col-sm-2">
+                <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+
+                    <table class="table">
+                        <tr>
+                            <th class="bg-primary">группа</th>
+                        </tr>
+                    </table>
+
+                    <div class="scroll">
+                        <table class="table table-hover" id="groupTable">
+                            @if (Model.orderType.Id == 1)
+                            {
+                                @foreach (var dd in Model.Groups.GroupBy(d => d.DeliveryDate).OrderBy(k => k.Key))
+                                {
+                                    <tr class="row-group-02" id="@dd.Key">
+                                        <td class="TableGroup"><input type="checkbox" class="hidden"><label>@dd.Key</label></td>
+                                    </tr>
+
+                                    @foreach (var group in dd.GroupBy(g => g.Name).OrderBy(k => k.Key))
+                                    {
+                                        var id = group.Key.Replace(" ", "") + dd.Key.Replace(" ", "");
+                                        id = id.Replace("+", "");
+                                        id = id.Replace(",", "");
+                                        id = id.Replace(".", "");
+                                        id = id.Replace("/", "");
+
+                                        <tr class="GroupTR items_@dd.Key hidden" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@dd.Key')"><td>@group.Key</td></tr>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                @foreach (var group in Model.Groups.GroupBy(g => g.Name).OrderBy(k => k.Key))
+                                {
+                                    var id = group.Key.Replace(" ", "");
+                                    id = id.Replace("+", "");
+                                    id = id.Replace(",", "");
+                                    id = id.Replace(".", "");
+                                    id = id.Replace("/", "");
+
+                                    <tr class="GroupTR items_@id" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@group.FirstOrDefault().DeliveryDate')">
+                                        <td>@group.Key</td>
+                                    </tr>
+                                }
+                            }
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!--SKU-->
+            <div class="col-sm-5">
+                <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+
+                    <table class="table">
+                        <tr class="bg-primary">
+                            <th width="40%" class="text-center">наименование</th>
+                            <th width="11%" class="text-center mobile-hide">мин. шт.</th>
+                            @if (Model.orderType.Id == 1)
+                            {
+                                <th width="11%" class="text-center mobile-hide">время</th>
+                                <th width="13%" class="text-center mobile-hide">доставка</th>
+                            }
+                            <th width="7%" class="text-center"></th>
+                        </tr>
+                    </table>
+
+                    <div class="scroll" id="skuTables">
+
+                    </div>
+
+                </div>
+
+                <!--добавить все-->
+                <div class="col-4" style="height:40px">
+                    <button class="btn btn-sm btn-default" type="button" href="javascript:void(0)" onclick="selectAllSku()" style="float:right; margin-left:20px">добавить все</button>
+                </div>
+
+            </div>
+
+            <!--заказ-->
+            <div class="col-sm-5">
+                <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+
+                    <table class="table">
+                        <tr class="bg-primary">
+                            <td>
+                                <label for="ttSelect">тт</label>
+                                <select class="form-control form-control-sm" id="ttSelect">
+                                    <option selected disabled>выберите точку</option>
+                                    @foreach (var tt in Model.TTs)
+                                    {
+                                        if (Model.mode == "edit" & Model.orderEditNumber > 0 & tt.Code == order.TTCode)
+                                        {
+                                            <option selected value="@tt.Id">@tt.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@tt.Id">@tt.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <label class="mobile-hide" for="orderName">имя</label>
+                                <input class="form-control form-control-sm mobile-hide" id="orderName" type="text" placeholder="@Model.defaultName()" value="@order.OrderName" />
+                            </td>
+                            <td>
+                                <label for="orderDate">дата доставки</label>
+
+                                @if (Model.mode == "edit" & Model.orderEditNumber > 0)
+                                {
+                                    if(Model.orderType.Id == 1)
+                                    {
+                                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
+                                    }
+                                    else
+                                    {
+                                        <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
+                                    }
+                                }
+                                else
+                                {
+                                    if (Model.orderType.Id == 1)
+                                    {
+                                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" />
+                                    }
+                                    else
+                                    {
+                                        if (Model.orderType.Id == 2)
+                                        {
+                                            <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@weekDelivery" />
+                                        }
+                                        if (Model.orderType.Id == 3 || Model.orderType.Id == 4)
+                                        {
+                                            <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@monthDelivery" />
+                                        }
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="table">
+                        <tr class="bg-primary">
+                            <th width="70%" class="text-left">наименование</th>
+                            <th width="20%" class="text-left">кол-во</th>
+                            <th width="10%" class="text-center"></th>
+                        </tr>
+                    </table>
+
+                    <!--sku  в заказе-->
+                    <div class="scroll" id="SkuInOrder">
+                        <table class="table" id="FOrdersItemsTable">
+                            <tr>
+                            </tr>
+                            @if (Model.orderEditNumber > 0)
+                            {
+                                foreach (var item in Model.forders)
+                                {
+                                    var selid = "sel" + item.Article;
+
+                                    <tr id="@item.Article">
+                                        <td id="name_@item.Article" width="70%">@item.SKU</td>
+                                        <td>
+                                            <select class="form-control form-control-sm" id="@selid" style="min-width:90px">
+                                            </select>
+                                        </td>
+                                        <td width="10%"><label class="md-remove-circle-outline ico" onclick="RemoveItemsFOrder('@item.Article')"></label></td>
+                                        <td class="hidden"><input id="minCountInput_@item.Article" value="@item.minCount" /></td>
+                                        <td id="hiddenCount_@item.Article" class="hidden">@item.Count</td>
+                                        <td class="hidden"><input id="formingTimeInput_@item.Article" value="до @item.maxTime" /></td>
+                                        <td class="hidden"><input id="delivery_@item.Article" value="@item.minDeliveryDate" /></td>
+                                    </tr>
+                                }
+                            }
+                        </table>
+                    </div>
+
+
+                </div>
+
+                <!--кнопки сохранить/отмена-->
+                <div class="col-4" style="height:40px">
+                    <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder()" style="float:right">оформить заказ</button>
+                </div>
+            </div>
+        </div>
+
+
+    }
+    catch (Exception e)
+    {
+        <p>@e.ToString()</p>
+    }
+}
+
+<!------------------------------------------------------------------------------->
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+            $('.scroll').removeClass('pre-scrollable');
+
+            if (!isMobile()) {
+                $('.height').height(height - 180);
+            }
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+            $('.height').css('height', '');
+
+            if (!isMobile()) {
+                $('.scroll').addClass('pre-scrollable');
+            }
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--переменные-->
+<script>
+    var orderType = @Html.Raw(Json.Serialize(Model.orderType.Id));
+</script>
+
+<!--загрузка SKU при выборе группы-->
+<script>
+    function GroupSkuLoad(group, id, delivery) {
+
+        // экранирование символов: +, пробел
+        group = group.replace(/\+/g, "plustoreplace");
+        group = group.replace(/ /g, "backspacetoreplace");
+
+        delivery = delivery.replace(/\+/g, "plustoreplace");
+        delivery = delivery.replace(/ /g, "backspacetoreplace");
+
+        var orderTypeId = @Model.orderType.Id;
+
+        $('#loading').show();
+        $('#skuTables').load('/ttOrders/SkuList?group=' + group + '&delivery=' + delivery + '&orderTypeId=' + orderTypeId, function () {
+            curOrient = '';
+            autoScreenLoad();
+        });
+
+        // выделяем выбранную группу
+        $('.GroupTR').each(function () {
+            $(this).removeClass('table-active');
+        });
+
+        $('#' + id).addClass('table-active');
+    }
+</script>
+
+<!--добавление позиции в блок заказа-->
+<script>
+    function AddItemToFOrder(article, skuName, el) {
+        // подсвечиваем строку sku
+        $(el).parent().parent().tempClass("clicked", 200);
+
+        // проверяем позицию на доступность по времени
+        var marker = 'formingTime_';
+        var id = marker + article;
+        var timeCheck = timeOk(id, article);
+        timeCheck = true;
+
+        if (timeCheck) {
+
+            // проверяем наличие позиции в блоке заказов
+            var itemExist = false;
+            $("#FOrdersItemsTable tr").each(function () {
+                if (this.id == article) itemExist = true;
+            });
+
+
+            if (itemExist) {
+                alert('Позиция ' + skuName + ' уже есть в заказе');
+            }
+            else {
+                // добавляем позицию
+                $("#FOrdersItemsTable").find('tbody')
+                    .append($('<tr>')
+                        .attr('id', article)
+                        .append($('<td>')
+                            .attr('width', '70%')
+                            .attr('id', 'name_' + article)
+                            .text(skuName)
+                        )
+                        .append($('<td>')
+                            .append($('<select>')
+                                .attr('style', 'min-width:90px')
+                                .attr('class', 'form-control form-control-sm')
+                                .attr('id', 'sel' + article)
+                                .append($('<option>')
+                                    .attr('selected', 'selected')
+                                    .attr('disabled', 'disabled')
+                                    .text('кол-во')
+                                )
+                            )
+                        )
+                        .append($('<td>')
+                            .attr('width', '10%')
+                            .append($('<label>')
+                                .attr('class', 'md-remove-circle-outline ico')
+                                .attr('onclick', 'RemoveItemsFOrder(\'' + article + '\')')
+                            )
+                        )
+                        .append($('<td>')
+                            .attr('class', 'hidden')
+                            .append($('<input>')
+                                .attr('id', 'delivery_' + article)
+                                .attr('value', $('#deliveryDate_' + article).text())
+                            )
+                        )
+                        .append($('<td>')
+                            .attr('class', 'hidden')
+                            .append($('<input>')
+                                .attr('id', 'formingTimeInput_' + article)
+                                .attr('value', $('#formingTime_' + article).text())
+                            )
+                        )
+                        .append($('<td>')
+                            .attr('class', 'hidden')
+                            .append($('<input>')
+                                .attr('id', 'minCountInput_' + article)
+                                .attr('value', $('#minCount_' + article).text())
+                            )
+                        )
+                    );
+
+                // рассчитываем опции количества для селектора
+                itemCounts(article);
+            }
+        }
+        else {
+            alert('на данный момент позиция не доступна к заказу');
+            checkTimeAllSKU();
+        }
+    }
+</script>
+
+<!--удаление позиции из блока заказа-->
+<script>
+    function RemoveItemsFOrder(id) {
+        $('#' + id).remove();
+    }
+</script>
+
+<!--оформить заказ-->
+<script>
+    function SendOrder() {
+        var isEmty = true;
+        var order = {};
+
+        order.number = @Html.Raw(Json.Serialize(Model.orderNumber));
+        order.tt = $('#ttSelect').val();
+        order.date = $('#orderDate').val();
+        order.name = $('#orderName').val();
+        order.mode = @Html.Raw(Json.Serialize(Model.mode));
+        order.type = orderTypeId;
+        
+        if (order.name.length == 0) {
+            var defName = @Html.Raw(Json.Serialize(Model.defaultName()));
+            order.name = defName;
+        }
+
+        order.items = [];
+
+        $('#FOrdersItemsTable tr').each(function () {
+            if (this.id != "") {
+                isEmty = false;
+
+                var item = {};
+                item.name = $('#name_' + this.id).text();
+                item.article = this.id;
+                item.count = $('#sel' + this.id).val();
+                item.mincount = $('#minCountInput_' + this.id).val();
+                item.delivery = $('#delivery_' + this.id).val();
+                item.formingTime = $('#formingTimeInput_' + this.id).val();
+
+                order.items.push(item);
+            }
+        });
+
+
+        var jsn = JSON.stringify(order);        
+        jsn = jsn.replace(/\+/g, "pp");
+
+        if (isEmty) {
+            alert('не выбрано ни одной позиции для заказа');
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: 'ttOrders/SaveOrder',
+                data: { json: jsn },
+                datatype: "text",
+                success: function (result) {
+                    alert(result.data);
+                    if (result.ok) $(contentContainer).load('/ttOrders/OrdersList?orderTypeId=' + orderTypeId);                    
+                },
+                error: function (error) { alert(error.responseText); }
+            });
+        }
+    }
+</script>
+
+<!--рассчёт значений количества для селектора позиции-->
+<script>
+    function itemCounts(article) {
+        if (orderType == 4) {
+            $('#sel' + article).attr('disabled', true);
+            $('#sel' + article).append($('<option selected>').text(1));
+        }
+        else {
+            var minCount;
+            var anyCount = @Html.Raw(Json.Serialize(User.IsInRole("forders_anycount")));
+
+            if (anyCount & orderType == 1) {
+                minCount = 1;
+            }
+            else {
+                minCount = parseInt($('#minCountInput_' + article).val());
+            }
+
+            var maxCount = minCount * 100;
+
+            for (var x = minCount; x <= maxCount; x += minCount) {
+                $('#sel' + article).append($('<option>').text(x));
+            }
+        }
+    }
+</script>
+
+<!--установка вариантов количества для позиций в режиме редактирования заказа-->
+<script>
+    $('#FOrdersItemsTable select').each(function () {
+        article = this.id.substr(3, this.id.length - 3);
+        itemCounts(article);
+        var count = parseInt($('#hiddenCount_' + article).text());
+
+        $('#sel' + article).val(count);
+    });
+</script>
+
+<!--добавление в заказ всех sku из группы-->
+<script>
+    function selectAllSku() {
+        $('#skuTables td').each(function () {
+            var prefix = this.id.substr(0, 4);
+            if (prefix == 'sku_') {
+                var name = $(this).text();
+                var article = this.id.substr(4, this.id.length - 4);
+                AddItemToFOrder(article, name);
+            }
+        });
+    }
+</script>
+
+<!--сгруппированная категория групп завтра/послезавтра-->
+<script>
+    $('.row-group-02').click(function () {
+
+        var checkbox = $(this).find('input');
+        var icon = $(this).find('.ico');
+        var items = $('.items_' + this.id);
+
+        if (checkbox.is(':checked')) {
+
+            checkbox.prop('checked', false);
+            items.addClass('hidden');
+            icon.removeClass('glyphicon-menu-down');
+            icon.addClass('glyphicon-menu-right');
+        }
+        else {
+            checkbox.prop('checked', true);
+            items.removeClass('hidden');
+            icon.removeClass('glyphicon-menu-right');
+            icon.addClass('glyphicon-menu-down');
+        }
+
+    });
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        location.hash = "#OrderEditor";
+        autoScreenLoad();
+        $('#loading').hide();
+    });
+</script>

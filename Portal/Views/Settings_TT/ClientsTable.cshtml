@@ -1,0 +1,251 @@
+﻿@model Portal.ViewModels.Settings_TT.CashClientsView
+
+<!--таблица кассовых клиентов-->
+<div class="panel panel-default" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Торговая точка</th>
+                                    <th>Касса</th>
+                                    <th>Ip адрес</th>
+                                    <th>Яндекс Еда</th>
+                                    <th>Delivery Club</th>
+                                    <th>Принтер</th>
+                                    <th>Версия клиента</th>
+                                    <th>В сети</th>
+                                    <th>Обновление</th>
+                                </tr>
+                            </thead>
+                            <tbody> 
+
+                            @foreach (var client in Model.Clients.OrderBy(c => c.TTName))
+                            {
+                                <tr id="@client.CashId" class="activeRow" >
+                                    <td><p class="list-item-heading ttName">@client.TTName</p></td>
+                                    <td><p class="text-muted">@client.CashName</p></td>
+                                    <td><p class="text-muted">@client.CashIp</p></td>
+                                    <td><p class="text-muted">@client.YandexCount</p></td>
+                                    <td><p class="text-muted">@client.DeliveryCount</p></td>
+                                    <td><p class="text-muted">@client.PrinterName</p></td>
+                                    <td><p id="ver_@client.CashId" class="text-muted">@client.Version</p></td>               
+                                
+                                    @if (client.isOnline)
+                                    {                                                                                
+                                        <td><p class="text-muted" style="font-weight:bold; color: green">онлайн</p></td>
+                                    }
+                                    else
+                                    {
+                                        <td><p class="text-muted" style="font-weight:bold; color: red">@client.LastSeen.ToString("dd.MM HH:mm")</p></td>
+                                    }  
+                                    
+                                    <!--Обновление (выбор версии и кнопка)-->
+                                     @{
+                                         var displayButton = "";
+                                         var displaySelect = "";
+                                         var displayText = "";
+                                     }
+                                        @if(string.IsNullOrEmpty(client.UpdateToVersion))
+                                        {
+                                            displayText = "display:none";
+                                            <td>
+                                                <select id="sel_@client.CashId" class="versionSelector form-control-sm" style="height:21px; padding:0px; text-align:center; font-weight:bold; min-width:70px; margin-right:10px; @displaySelect" >
+                                                @foreach(var ver in Model.Versions.OrderByDescending(v => v.Version))
+                                                {
+                                                    if(ver.isActual)
+                                                    {
+                                                        <option selected>@ver.Version</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option>@ver.Version</option>
+                                                    }                                                                
+                                                }                                                                                
+                                                </select>
+                                                                                   
+                                                @if (client.Version == Model.Versions.FirstOrDefault(v => v.isActual).Version)
+                                                {
+                                                    displayButton = "display:none";
+                                                } 
+                                                <p id="vertext_@client.CashId" style="display:inline-block; background-color:yellow; text-align:center; font-weight:bold; min-width:70px; margin-right:10px; @displayText" >@client.UpdateToVersion</p>
+                                                <button id="btn_@client.CashId" ver="@client.Version" class="btn btn-xs btn-danger" onclick="UpdateClient('@client.ClientId', '@client.CashId')" style="width:90px; @displayButton">обновить</button>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            displaySelect = "display:none";
+                                            <td>
+                                                <select id="sel_@client.CashId" class="versionSelector form-control-sm" style="height:21px; padding:0px; text-align:center; font-weight:bold; min-width:70px; margin-right:10px; @displaySelect">
+                                                @foreach(var ver in Model.Versions.OrderByDescending(v => v.Version))
+                                                {
+                                                    if(ver.isActual)
+                                                    {
+                                                        <option selected>@ver.Version</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option>@ver.Version</option>
+                                                    }                                                                
+                                                }                                                                                
+                                                </select>
+                                                <p id="vertext_@client.CashId" style="display:inline-block; background-color:yellow; text-align:center; font-weight:bold; min-width:70px; margin-right:10px; @displayText">@client.UpdateToVersion</p>
+                                                <button id="btn_@client.CashId" class="btn btn-xs btn-warning" onclick="CancelUpdate('@client.ClientId', '@client.CashId')" style="width:90px">отменить</button>
+                                            </td>                                        
+                                        }
+                                    
+                                </tr>
+                            }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!----------------------------------------------------------------------->
+<!--вычисление высоты таблицы-->
+<script>
+    var height = $('#global').height();
+
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+<script>
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+</script>
+
+<!--клик по строке-->
+<script>
+    $('.activeRow').click(function () {
+        //var itemId = this.id;
+        //var itemName = $(this).find('.ttName').text();
+        //EditItem(itemName, itemId);
+    });
+</script>
+
+<!--выбор версии в селекторе в строке-->
+<script>
+    $('.versionSelector').on('change', function() {
+
+        var button = $(this).parent().find('button');
+        var version = $(button).attr('ver');
+        //var version = $('#ver_' + cashId).text();
+        
+        if(this.value === version)
+        {
+            button.hide();
+        }
+        else
+        {
+            button.show();
+        }
+    });
+</script>
+
+<!--кнопка Обновить все-->
+<script>
+    function UpdateAll(){
+        var ver = $('#updateAllSelector').val();
+        
+        $.get('/Settings_TT/UpdateAllClients?version=' + ver, function(data){            
+            ShowModal('Обновление кассовых клиентов', data);
+            DataTable();
+        });
+    }
+</script>
+
+<!--кнопка обновить в строке-->
+<script>
+    function UpdateClient(clientId, cashId){
+        
+        var ver = $('#sel_' + cashId).val();
+        var button = $(`#btn_${cashId}`);
+        var selector = $(`#sel_${cashId}`);
+        var vertext = $(`#vertext_${cashId}`);
+        
+        $.get('/Settings_TT/UpdateOneClient?clientId=' + clientId + '&version=' + ver, function(data){            
+            if (data == 'ok') {
+                button.text('отменить');
+                button.removeClass('btn-danger');
+                button.addClass('btn-warning');
+                button.removeAttr('onclick');
+                button.attr('onclick', `CancelUpdate('${clientId}', '${cashId}')`);
+
+                selector.css('display', 'none');
+                vertext.css('display', 'inline-block');
+                vertext.text(ver);
+            }
+            else {
+                ShowModal('Ошибка', data);
+                //DataTable();
+            }
+            
+        });
+    }
+</script>
+
+<!--кнопка отменить в строке-->
+<script>
+    function CancelUpdate(clientId, cashId){
+        var ver = $('#sel_' + cashId).val();
+        var curVer = $('#ver_' + cashId).text();
+        var button = $(`#btn_${cashId}`);
+        var selector = $(`#sel_${cashId}`);
+        var vertext = $(`#vertext_${cashId}`);
+        
+        $.get('/Settings_TT/CancelUpdate?clientId=' + clientId, function(data){ 
+            if (data == 'ok') {
+                button.text('обновить');
+                button.removeClass('btn-warning');
+                button.addClass('btn-danger');
+                button.removeAttr('onclick');
+                button.attr('onclick', `UpdateClient('${clientId}', '${cashId}')`);
+                $(button).attr('ver', curVer);
+
+                if (ver == curVer) {
+                    button.hide();
+                }  
+                selector.css('display', 'inline-block');
+                vertext.css('display', 'none');
+            }
+            else {
+                ShowModal('Ошибка', data);
+                //DataTable();
+            }
+        });
+    }
+</script>

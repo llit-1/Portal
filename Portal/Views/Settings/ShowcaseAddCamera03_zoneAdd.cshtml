@@ -1,0 +1,488 @@
+﻿@model Portal.ViewModels.ZoneView
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                <label>торговая точка</label>
+                <select id="ttSelector">
+                    <option selected disabled></option>
+                    @foreach (var tt in Model.TTs)
+                    {
+                        <option id="TTId @tt.Id">@tt.Name</option>
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr><td id="interval"></td></tr>
+        <tr>
+            <td>
+                <label class="zoneName">имя зоны</label>
+                <label class="zoneColor">цвет</label>
+                <input class="zoneName" type="text" id="zoneName" value="@Model.Zone.Name" />
+                <input class="zoneColor" id="zoneCLR" type="color" onchange="draw()" />
+            </td>
+        </tr>
+        <tr><td id="interval"></td></tr>
+        <tr>
+            <td>
+                <label id="rasp">расписание</label><label>интервал в мин</label>
+                <input id="startTime" class="inpTime" type="time" value="@Model.Zone.StartTime" />
+                <input id="endTime" class="inpTime" type="time" value="@Model.Zone.StopTime" />
+                <select id="intervalSelector">
+                    <option>5</option>
+                    <option>15</option>
+                    <option>25</option>
+                    <option>30</option>
+                    <option>35</option>
+                    <option>40</option>
+                    <option>45</option>
+                    <option>50</option>
+                    <option>55</option>
+                    <option>60</option>
+                </select>
+            </td>
+        </tr>
+        <tr><td id="interval"></td></tr>
+        <tr>
+            <td>
+                <label>уровень детализации</label>
+                <input id="levelDetect" type="number" value="@Model.Zone.Level" />
+            </td>
+        </tr>
+        <tr><td id="interval"></td></tr>
+        <tr><td id="interval"></td></tr>
+        <tr>
+            <td>
+                <a href="##" onclick="reset()" style="float:left">сбросить зону</a>
+                <a href="##" onclick="saveZone()" style="float:right">сохранить</a>
+                <a href="##" style="padding-right: 1vw; float:right" onclick="returnToZoneList()">отмена</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+
+<!--------------------------------------------------------------------------------------------------->
+
+<script>
+    var ttName = @Html.Raw(Json.Serialize(Model.ttName));
+    var zoneColor = @Html.Raw(Json.Serialize(Model.Zone.Color));
+    var zoneInterval = @Html.Raw(Json.Serialize(Model.Zone.Interval));
+    var polyPoints = @Html.Raw(Json.Serialize(Model.Zone.PolyPoints));
+    var zoneId = @Html.Raw(Json.Serialize(Model.Zone.Id));
+    var vmsType = @Html.Raw(Json.Serialize(Model.Zone.VmsType));
+</script>
+
+<!--сохранение зоны-->
+<script>
+    function saveZone() {
+        // TT
+        camView.ttName = $('#ttSelector').val();
+        if (camView.ttName == null) {
+            alert("необходимо привязать торговую точку к камере");
+            return false;
+        }
+
+        var zone = {};
+
+        // Id зоны
+        zone.Id = zoneId;
+
+        // имя зоны
+        zone.Name = $('#zoneName').val();
+        if (zone.Name == "") {
+            alert("не заполнено имя зоны");
+            return false;
+        }
+
+        // точки полигона
+        // переасчитываем координаты точек к размеру 1248х700, под этим же размером должен выполняться анализ изображений
+        var x1 = 1248;
+        var x2 = $('#canvas').width();
+        var k = (x1 / x2).toFixed(2);
+        var kPoints = points;
+        var x = 0;
+
+        $(points).each(function () {
+            kPoints[x] = (kPoints[x] * k).toFixed();
+            x++;
+        });
+
+        zone.PolyPoints = kPoints.toString();
+        if (zone.PolyPoints == "") {
+            alert("не задан полигон");
+            return false;
+        }
+
+        // тип системы
+        zone.VmsType = vmsType;
+
+        // цвет зоны
+        var RGB = hexToRgb($('#zoneCLR').val());
+        zone.Color = RGB.r + ',' + RGB.g + ',' + RGB.b;
+
+        // уровень детекции
+        zone.Level = $('#levelDetect').val();;
+
+        // guid камеры
+        zone.CameraGuid = camView.cameraGuid;
+
+        // время начала
+        zone.StartTime = $('#startTime').val();
+
+        // время остановки
+        zone.StopTime = $('#endTime').val();
+
+        // интервал
+        zone.Interval = $('#intervalSelector').val();
+
+
+
+        camView.zones[0] = zone;
+
+        var jsn = JSON.stringify(camView);
+
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+        var req = '/Api/SaveZone/' + jsn;
+
+        var request = $.get(req, function () { });
+        request.done(function (result) {
+            if (result.ok != true) {
+                var err = result.title + ' Error message: ' + result.errorMessage + ' Exception text: ' + result.exceptionText;
+            }
+            else {
+                //$('#zonesBlock').load('@Url.Action("ShowcaseAddCamera03_zoneList", "Settings")?jsn=' + jsn);
+                //alert('успешно сохранено');
+                returnToZoneList();
+            }
+        });
+        request.fail(function (e) {
+            //alert('Ошибка отправки запроса');
+            alert(e.responseText);
+        });
+
+
+    }
+</script>
+
+<!--конвертация цвета в из HEX в RGB-->
+<script>
+    function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+</script>
+
+<!--конвертация цвета из RGB в HEX-->
+<script>
+    function rgb2hex(orig) {
+        var rgb = orig.replace(/\s/g, '').match(/^(\d+),(\d+),(\d+)/i);
+        return (rgb && rgb.length === 4) ? "#link" +
+            ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
+            ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
+            ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : orig;
+    }
+</script>
+
+<!--оторисовка полигона зоны в канвасе-->
+<script>
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    var points, activePoint, settings;
+    var $reset, $canvas, ctx, image;
+    var dragpoint;
+    var startpoint = false;
+
+    points = [];
+
+    function zonePoints(polyPoints) {
+        //var v = $(input).val().replace(/[^0-9\,]/ig, '');
+        //polyPoints = '698,24,808,43,729,213,617,153';
+        if (polyPoints.length) {
+            points = polyPoints.split(',').map(function (point) {
+                return parseInt(point, 10);
+            });
+
+            // пересчитываем координаты точек к текущему размеру канваса из исходного размера 1248х700
+            var x1 = $('#canvas').width();
+            var x2 = 1248;
+            var k = (x1 / x2).toFixed(2);
+            var x = 0;
+
+            $(points).each(function () {
+                points[x] = Math.round(points[x] * k);
+                x++;
+            });
+
+        } else {
+            points = [];
+        }
+
+        draw();
+    }
+
+    function move(e) {
+
+        if (!e.offsetX) {
+            e.offsetX = (e.pageX - $(e.target).offset().left);
+            e.offsetY = (e.pageY - $(e.target).offset().top);
+        }
+
+        points[activePoint] = Math.round(e.offsetX);
+        points[activePoint + 1] = Math.round(e.offsetY);
+
+        draw();
+    };
+
+    function moveall(e) {
+        if (!e.offsetX) {
+            e.offsetX = (e.pageX - $(e.target).offset().left);
+            e.offsetY = (e.pageY - $(e.target).offset().top);
+        }
+        if (!startpoint) {
+            startpoint = { x: Math.round(e.offsetX), y: Math.round(e.offsetY) };
+        }
+        var sdvpoint = { x: Math.round(e.offsetX), y: Math.round(e.offsetY) };
+        for (var i = 0; i < points.length; i++) {
+            points[i] = (sdvpoint.x - startpoint.x) + points[i];
+            points[++i] = (sdvpoint.y - startpoint.y) + points[i];
+        }
+        startpoint = sdvpoint;
+        draw();
+    };
+
+    function stopdrag() {
+        $(this).off('mousemove');
+        record();
+        activePoint = null;
+    };
+
+    function rightclick(e) {
+
+        e.preventDefault();
+        if (!e.offsetX) {
+            e.offsetX = (e.pageX - $(e.target).offset().left);
+            e.offsetY = (e.pageY - $(e.target).offset().top);
+        }
+        var x = e.offsetX, y = e.offsetY;
+        for (var i = 0; i < points.length; i += 2) {
+            dis = Math.sqrt(Math.pow(x - points[i], 2) + Math.pow(y - points[i + 1], 2));
+            if (dis < 6) {
+                points.splice(i, 2);
+                draw();
+                record();
+                return false;
+            }
+        }
+        return false;
+    };
+
+    function mousedown(e) {
+
+        var x, y, dis, lineDis, insertAt = points.length;
+
+        if (e.which === 3) {
+
+            return false;
+        }
+
+        e.preventDefault();
+        if (!e.offsetX) {
+            e.offsetX = (e.pageX - $(e.target).offset().left);
+            e.offsetY = (e.pageY - $(e.target).offset().top);
+        }
+        x = e.offsetX;
+        y = e.offsetY;
+
+        if (points.length >= 6) {
+            var c = getCenter();
+            ctx.fillRect(c.x - 4, c.y - 4, 8, 8);
+            dis = Math.sqrt(Math.pow(x - c.x, 2) + Math.pow(y - c.y, 2));
+            if (dis < 6) {
+                startpoint = false;
+                $(this).on('mousemove', moveall);
+                return false;
+            }
+        }
+
+        for (var i = 0; i < points.length; i += 2) {
+            dis = Math.sqrt(Math.pow(x - points[i], 2) + Math.pow(y - points[i + 1], 2));
+            if (dis < 6) {
+                activePoint = i;
+                $(this).on('mousemove', move);
+
+                return false;
+            }
+        }
+
+        for (var i = 0; i < points.length; i += 2) {
+            if (i > 1) {
+                lineDis = dotLineLength(
+                    x, y,
+                    points[i], points[i + 1],
+                    points[i - 2], points[i - 1],
+                    true
+                );
+                if (lineDis < 6) {
+                    insertAt = i;
+
+                }
+            }
+        }
+
+        points.splice(insertAt, 0, Math.round(x), Math.round(y));
+
+        activePoint = insertAt;
+        $(this).on('mousemove', move);
+
+        draw();
+        record();
+
+        return false;
+    };
+
+    function draw() {
+        ctx.canvas.width = ctx.canvas.width;
+
+        record();
+
+        if (points.length < 2) {
+
+            return;
+        }
+
+        var RGB = hexToRgb($('#zoneCLR').val());
+        var color = RGB.r + ',' + RGB.g + ',' + RGB.b;
+
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = 'rgb(255,255,255)'; // цвет точек
+        ctx.strokeStyle = 'rgb(' + color + ')'; // цвет линии
+        ctx.lineWidth = 1;
+        if (points.length >= 6) {
+
+            var c = getCenter();
+            ctx.fillRect(c.x - 4, c.y - 4, 8, 8);
+        }
+
+
+
+        ctx.beginPath();
+        ctx.moveTo(points[0], points[1]);
+        for (var i = 0; i < points.length; i += 2) {
+            ctx.fillRect(points[i] - 2, points[i + 1] - 2, 4, 4);
+            ctx.strokeRect(points[i] - 2, points[i + 1] - 2, 4, 4);
+            if (points.length > 2 && i > 1) {
+                ctx.lineTo(points[i], points[i + 1]);
+            }
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(' + color + ',0.3)'; // цвет заполнения полигона
+        ctx.fill();
+        ctx.stroke();
+
+    };
+
+    function record() {
+        //$(input).val(points.join(','));
+        //alert(points);
+    };
+
+    function getCenter() {
+
+        var ptc = [];
+        for (i = 0; i < points.length; i++) {
+            ptc.push({ x: points[i], y: points[++i] });
+        }
+        var first = ptc[0], last = ptc[ptc.length - 1];
+        if (first.x != last.x || first.y != last.y) ptc.push(first);
+        var twicearea = 0,
+            x = 0, y = 0,
+            nptc = ptc.length,
+            p1, p2, f;
+
+        for (var i = 0, j = nptc - 1; i < nptc; j = i++) {
+            p1 = ptc[i];
+            p2 = ptc[j];
+            f = p1.x * p2.y - p2.x * p1.y;
+            twicearea += f;
+            x += (p1.x + p2.x) * f;
+            y += (p1.y + p2.y) * f;
+        }
+
+        f = twicearea * 3;
+
+        return { x: x / f, y: y / f };
+    };
+
+    function reset() {
+        points = [];
+        draw();
+    };
+
+    $(document).find('#canvas').on('mousedown', mousedown);
+    $(document).find('#canvas').on('contextmenu', rightclick);
+    $(document).find('#canvas').on('mouseup', stopdrag);
+
+    var dotLineLength = function (x, y, x0, y0, x1, y1, o) {
+        function lineLength(x, y, x0, y0) {
+            return Math.sqrt((x -= x0) * x + (y -= y0) * y);
+        }
+
+        if (o && !(o = function (x, y, x0, y0, x1, y1) {
+            if (!(x1 - x0)) return { x: x0, y: y };
+            else if (!(y1 - y0)) return { x: x, y: y0 };
+            var left, tg = -1 / ((y1 - y0) / (x1 - x0));
+            return {
+                x: left = (x1 * (x * tg - y + y0) + x0 * (x * -tg + y - y1)) / (tg * (x1 - x0) + y0 - y1),
+                y: tg * left - tg * x + y
+            };
+        }(x, y, x0, y0, x1, y1), o.x >= Math.min(x0, x1) && o.x <= Math.max(x0, x1) && o.y >= Math.min(y0, y1) && o.y <= Math.max(y0, y1))) {
+            var l1 = lineLength(x, y, x0, y0), l2 = lineLength(x, y, x1, y1);
+            return l1 > l2 ? l2 : l1;
+        }
+        else {
+            var a = y0 - y1, b = x1 - x0, c = x0 * y1 - y0 * x1;
+            return Math.abs(a * x + b * y + c) / Math.sqrt(a * a + b * b);
+        }
+    };
+
+</script>
+
+<!--Отмена-->
+<script>
+    function returnToZoneList() {
+        $(document).find('#canvas').off('mousedown', mousedown);
+        $(document).find('#canvas').off('contextmenu', rightclick);
+        $(document).find('#canvas').off('mouseup', stopdrag);
+        zoneList();
+        ComparePictures();
+    }
+</script>
+
+<!------------------------------------------------------------------------------------------------>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        compareEnable = false;
+        $('#canvas').css({ "cursor": "crosshair" });
+        var color = rgb2hex(zoneColor);
+        $('#zoneCLR').val(color);
+        $('#ttSelector').val(ttName);
+        $('#intervalSelector').val(zoneInterval);
+
+        zonePoints(polyPoints);
+
+        $('#loading').hide();
+    });
+</script>

@@ -1,0 +1,515 @@
+﻿@model Portal.ViewModels.Settings_Access.GroupSettings
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows");
+
+    var display = "";
+    var disabled = "disabled";
+    var formClass = "input-group";
+    var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
+
+    if (Model.newGroup)
+    {
+        display = "d-none";
+        disabled = "";
+        formClass = "form-group";
+    }
+}
+
+<div class="row flex bg-white" style="margin:0px">
+
+    <!--данные группы-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Данные группы</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--имя группы-->
+        <label class="label-light">имя группы</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="groupName" type="text" class="form-control editElement" value="@Model.Group.Name" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--описание-->
+        <label class="label-light">описание группы</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <textarea id="groupDescription" class="form-control editElement" style="font-weight:normal; resize:none" @disabled>@Model.Group.Description</textarea>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default editHeight" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default editHeight d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default editHeight d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default editHeight d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+    </div>
+
+    <!--пользователи-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Пользователи</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор пользователей-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">селектор пользователей</label>
+            <div style="width:100%; float:left">
+                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var user in Model.Users.OrderBy(u => u.Name))
+                    {
+                        if (Model.Group.Users.FirstOrDefault(u => u.Id == user.Id) != null)
+                        {
+                            <option selected="selected" value="@user.Id">@user.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@user.Id">@user.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--роли-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Роли</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор ролей-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">селектор ролей</label>
+            <div style="width:100%; float:left">
+                <select id="roles" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var role in Model.Roles.OrderBy(r => r.Name))
+                    {
+                        if (Model.Group.Roles.FirstOrDefault(r => r.Id == role.Id) != null)
+                        {
+                            <option selected="selected" value="@role.Id">@role.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@role.Id">@role.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--кнопки сохранить/отмена-->
+    @if (Model.newGroup)
+    {
+        blockStyle += ";width:100%";
+        <div class="col-12" @blockStyle>
+            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="SaveNewItem()">Сохранить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="DataTable()">Отмена</button>
+        </div>
+    }
+
+</div>
+
+<!----------------------------скрипты----------------------------------->
+<!--высота кнопки около описания группы-->
+<script>
+    var buttonHeight = $('#groupDescription').outerHeight();
+    $('.editHeight').css("height", buttonHeight);
+</script>
+
+<!--переменные-->
+<script>
+    var newGroup = @Html.Raw(Json.Serialize(Model.newGroup));
+    var groupId = @Model.Group.Id;
+</script>
+
+<!--пользователи-->
+<script>
+    $('#users').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите пользователей..."
+    });
+</script>
+
+<!--роли-->
+<script>
+    $('#roles').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите роли..."
+    });
+</script>
+
+<!--изменение данных в селекторах-->
+<script>
+    // события изменения в селекторах
+    $('.selectors').on('select2:select', function (e) { SelectChange(this) });
+    $('.selectors').on('select2:unselect', function (e) { SelectChange(this) });
+
+    // изменение набора выделенных элементов в селекторе
+    function SelectChange(selector) {
+
+        if (!newGroup) {
+            // определяем элементы
+            var selId = '#' + $(selector).prop('id');
+            var selCont = $(selector).parent();
+            var save = $(selector).parent().parent().find('.save');
+            var cancel = $(selector).parent().parent().find('.cancel');
+
+            // включаем кнопки
+            $(save).removeClass('d-none');
+            $(cancel).removeClass('d-none');
+
+            $(selCont).css('width', 'calc(100% - 86px)');
+        }
+    }
+
+    // кнопка сохранить
+    function SaveSelect(save) {
+        
+        var cancel = $(save).parent().find('.cancel');
+        var spinner = $(save).parent().find('.saving');
+
+        var selector = $(save).parent().find('select');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var group = {};
+        group.id = groupId;
+        group.attribute = selectId;
+        group.items = [];
+
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            group.items.push(item);
+        });
+
+        var groupjsn = JSON.stringify(group);
+        groupjsn = groupjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_Access/GroupSave',
+            data: { groupjsn: groupjsn },
+            datatype: "text",
+            success: function (result) {
+
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // скрываем кнопки
+                    $(save).addClass('d-none');
+                    $(cancel).addClass('d-none');
+
+                    // меняем ширину селектора
+                    $(selCont).css('width', '100%');
+
+                    // получаем коллекцию ваыбранных элементов из бд (контроль)
+                    SelectItems(groupId, selectId);
+
+                }
+                else {
+                    ShowModal('Редактор группы', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор группы', error.responseText); }
+        });
+
+    }
+
+    // кнопка отмена
+    function CancelSelect(cancel) {
+        var save = $(cancel).parent().find('.save');
+
+        var selector = $(cancel).parent().find('select');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // получаем коллекцию ваыбранных элементов из бд
+        SelectItems(groupId, selectId);
+
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+        $(selCont).css('width', '100%');
+    }
+
+    // получение коллекций данных
+    function SelectItems(groupId, selectId) {
+
+        // снимаем выделение со всех элементов
+        $('#' + selectId + ' option').each(function () {
+            $(this).prop('selected', false);
+        });
+
+        // получаем данные из контроллера
+        $.get('/Settings_Access/GetGroupItems?groupId=' + groupId + '&selectId=' + selectId, function (selectedItems) {
+            $(selectedItems).each(function () {
+                $('#' + selectId + ' option[value=' + this.id + ']').prop('selected', true);
+            });
+
+            // ре-инициализируем select2
+            var selector = $('#' + selectId).select2();
+            selector.select2({
+                theme: "bootstrap4",
+                width: "resolve",
+                language: "ru",
+                closeOnSelect: false,
+                placeholder: "выберите..."
+            });
+        });
+    }
+
+</script>
+
+<!--изменение данных группы-->
+<script>
+    var oldValue = "";
+    // кнопка редактировать справа
+    function Edit(edit) {
+        // получаем текущие элементы
+        var save = $(edit).parent().find('.save');
+        var cancel = $(edit).parent().find('.cancel');
+        var input = $(edit).parent().parent().children('.editElement');
+
+        oldValue = $(input).val();
+
+        // меняем кнопки
+        $(edit).addClass('d-none');
+        $(save).removeClass('d-none');
+        $(cancel).removeClass('d-none');
+
+        // активируем поле ввода и ставим туда курсос
+        $(input).prop('disabled', false);
+        $(input).focus();
+    }
+
+    // кнопка сохранить справа
+    function Save(save) {
+
+        // определяем текущие элементы
+        var input = $(save).parent().parent().children('.editElement');
+        var edit = $(save).parent().find('.edit');
+        var cancel = $(save).parent().find('.cancel');
+        var spinner = $(save).parent().children('.saving');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var group = {};
+        group.id = groupId;
+        group.attribute = $(input).attr('id');
+
+        group.name = $('#groupName').val();
+        group.description = $('#groupDescription').val();
+
+        var groupjsn = JSON.stringify(group);
+        groupjsn = groupjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_Access/GroupSave',
+            data: { groupjsn: groupjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // меняем кнопку сохранить на кнопку редактировать
+                    $(save).addClass('d-none');
+                    $(edit).removeClass('d-none');
+
+                    // блокируем поле ввода
+                    $(input).prop('disabled', true);
+
+                    // обновляем заголовок страницы
+                    $('#header').text(group.name);
+                }
+                else {
+                    ShowModal('Редактор группы', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор группы', error.responseText); }
+        });
+    }
+
+    // кнопка отмена справа
+    function Cancel(cancel) {
+        // получаем текущие элементы
+        var save = $(cancel).parent().find('.save');
+        var edit = $(cancel).parent().find('.edit');
+        var input = $(cancel).parent().parent().children('.editElement');
+
+        // меняем кнопки
+        $(edit).removeClass('d-none');
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+
+        // блокируем поле ввода
+        $(input).val(oldValue);
+        $(input).prop('disabled', true);
+
+    }
+
+</script>
+
+<!--сохранить новую группу-->
+<script>
+    function SaveNewItem() {
+        
+        var group = {};
+        group.id = 0;
+
+        group.name = $('#groupName').val();
+        group.description = $('#groupDescription').val();
+
+        group.roles = DataFromSelector($('#roles'));
+        group.users = DataFromSelector($('#users'));
+
+        var groupjsn = JSON.stringify(group);
+        groupjsn = groupjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+        
+        $.ajax({
+            type: "POST",
+            url: '/Settings_Access/GroupSave',
+            data: { groupjsn: groupjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    ShowModal('Редактор группы', 'Группа успешно добавлена');
+                    //DataTable();
+
+                    $('#modalWindow').on('hidden.bs.modal', function () {
+
+                        setTimeout(function () {
+                            $('#modalWindow').remove();
+                            DataTable();
+                        }, 100);
+
+                        $('#modalWindow').off('hidden.bs.modal');
+                    });
+                }
+                else {
+                    ShowModal('Редактор группы', result.data);
+                }
+            },
+            error: function (error) { ShowModal('Редактор группы', error.responseText); }
+        });
+    }
+
+    // получение данных в селекторах
+    function DataFromSelector(selector) {
+
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            items.push(item);
+        });
+
+        return items;
+    }
+</script>
+
+<!--удаление группы-->
+<script>
+    function DeleteItem() {
+        var groupName = $('#groupName').val();
+        var confirmMessage = 'Группа "' + groupName + '" будет удалена, продолжить?';
+
+        ShowModal("Подтвердите удаление", confirmMessage, 1);
+
+        // кнопка ok в модальном окне
+        $('#ok').on('click', function () {
+            $('#ok').off('click');
+            SpinnerShow();
+            $.get('/Settings_Access/GroupDelete?groupId=' + groupId, function (result) {
+                if (result == "ok") {
+                    DataTable();
+                    //ShowModal('Редактор пользователей', 'пользователь ' + userName + ' удалён.');
+                }
+                else {
+                    ShowModal('Ошибка', result);
+                }
+            });
+        });
+    }
+</script>

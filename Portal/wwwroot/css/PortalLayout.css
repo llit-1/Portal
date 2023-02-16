@@ -1,0 +1,1873 @@
+/*Шрифты*/
+@font-face {
+font-family: PlayRegular;
+src: url('/Content/fonts/PlayRegular.ttf');
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: Consolas;
+src: url('/Content/fonts/Consolas.ttf');
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: Gothic;
+src: url('/Content/fonts/Gothic.ttf');
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+font-family: Gothic;
+src: url('/Content/fonts/GothicCoursive.ttf');
+font-weight: normal;
+font-style: italic;
+}
+/*Переменные и настройки*/
+:root {
+--background:#F2F0F2;
+--headerHeight:5vw;
+--footerHeight:1vw;
+}
+/*Анимация загрузки*/
+#loading {
+display: none;
+color: #000000;
+font-weight: bold;
+position: fixed;
+height: 20%;
+width: 10%;
+left: 50%;
+margin-left: -5%;
+top: 50%;
+margin-top: -5%;
+/*background-color: #F10000;*/
+/*opacity: 0.5;*/
+text-align: center;
+font-size: 1vw;
+z-index: 9999;
+}
+#loading > img {
+object-fit: scale-down;
+/*display: none;*/
+height: 100%;
+width: 100%;
+}
+/*Общие элементы*/
+button {
+background-color: rgba(246, 246, 246, 0);
+border: 1px none #AFAFAF;
+color: #000000;
+outline: none;
+padding: 0 !important;
+}
+button:hover {
+color: #F47920;
+}
+.FormSend {
+background-color: rgba(246, 246, 246, 0);
+border: 1px none #AFAFAF;
+color: #000000;
+outline: none;
+padding: 0 !important;
+}
+.FormSend:hover {
+color: #F47920;
+}
+h1 {
+font-family: Segoe UI Light   !important;
+font-size: 1.5vw;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+margin: -8px 0 4px;
+color: #F47920;
+}
+h2 {
+font-size: 0.8vw;
+margin: 0;
+font-weight: bold;
+padding-bottom: 0.6vw;
+color: #3A3A3A;
+letter-spacing: 0.07vw;
+}
+h4 {
+font-size: 1.2vw;
+margin-bottom: 1vw;
+}
+a {
+color: #2C2424;
+font-size: 0.9vw;
+text-decoration: underline;
+}
+a:link {
+text-decoration: underline;
+color: #2C2424;
+}
+a:hover {
+color: #EE7203;
+}
+a:visited {
+color: #2C2424;
+}
+label {
+font-weight: normal;
+display: block;
+vertical-align: bottom;
+font-size: 0.8vw;
+letter-spacing: 0.07vw;
+color: ;
+padding-left: 3px;
+}
+input {
+width: 100%;
+letter-spacing: 0.1vw;
+font-size: 1vw;
+display: block;
+background-color: #FFFFFF;
+border: 1px solid #E3E3E3;
+outline: none;
+height: 1.8vw;
+}
+select {
+width: 12vw;
+letter-spacing: 0.1vw;
+font-size: 0.8vw;
+display: block;
+background-color: #F9F9F9;
+border: 1px solid #DDDDDD;
+outline: none;
+height: 1.8vw;
+}
+.validation-summary-errors {
+font-weight: normal;
+color: #F00;
+font-size: 0.7vw;
+}
+.validation-summary-errors ul {
+list-style: none;
+margin-top: -1vw;
+padding: 0;
+}
+.input-validation-error {
+border: 1px solid #FF0606;
+background-color: #FFFFFF;
+color: #FF2626;
+}
+.arrowLink:link {
+font-size: 1.4vw;
+text-decoration: none rgba(255, 255, 255, 0);
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin: -0.7vw 1vw 0 0;
+}
+.centrGrayMessage {
+color: #CBCBCB;
+text-align: center;
+padding-top: 31.1vh;
+font-size: 2vw;
+}
+.ico {
+font-family: Glyphicons Halflings;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin: 0;
+padding: 0;
+}
+/*Разметка основного шаблона*/
+body {
+padding: 0;
+overflow-y: hidden;
+background-color:var(--background);
+/*background-color: #E9E9E9;*/
+}
+header {
+height:var(--headerHeight);
+width: 100%;
+position: relative;
+}
+header h1 {
+color: #000000;
+/*font-weight: bold;*/
+/*font-family: Segoe UI   !important;*/
+padding: 1vw 0 0 4.6vw;
+/*+placement: displace;*/
+position: absolute;
+margin-left: 0;
+margin-top: 0;
+width: 27px;
+font-size: 1.3vw;
+}
+footer {
+font-family: Segoe UI Light;
+height:var(--footerHeight);
+font-size: 0.6vw;
+text-align: center;
+padding: 0.1vw 1.5vw 0;
+}
+main {
+background-color: #FFFFFF;
+height: calc(100vh - var(--headerHeight) - var(--footerHeight));
+overflow-y: auto;
+transition: 0;
+font-family: Segoe UI Light;
+font-size: 1vw;
+}
+#LoginMain {
+background-color: #E3E3E3;
+height: 100vh;
+overflow-y: auto;
+transition: 0;
+font-family: Segoe UI Light;
+font-size: 1.3vw;
+}
+/*Горизонтальное меню основного шаблона*/
+header ul {
+margin: 0 0 0 15vw;
+padding: 1vw 0 0;
+position: absolute;
+bottom: 0;
+}
+header ul li {
+display: inline;
+font-family: Segoe UI Light;
+}
+header ul li a {
+color: #000000;
+display: inline-block;
+font-size: 1.2vw;
+text-align: center;
+padding: 0 1vw;
+}
+header ul li a:hover {
+text-decoration: none;
+color: #000000;
+background-color: #E3E3E3;
+transition: 200ms;
+}
+header a {
+text-decoration: none !important;
+color: #000000 !important;
+}
+.ActiveMenu {
+background-color: #FFFFFF;
+transition: 200ms;
+}
+.ActiveMenu:hover {
+background-color: #FFFFFF !important;
+}
+/*Вертикальное меню слева*/
+.LeftMenu {
+/*background-color: #FF0A0A;*/
+width: 15vw;
+float: left;
+height: 100%;
+overflow-y: auto;
+padding: 15px 0 0;
+background-color: #DDDDDD;
+}
+.LeftMenu a {
+text-decoration: none !important;
+}
+.LeftMenu ul {
+display: inline;
+padding: 0 0px 0px;
+}
+.LeftMenu ul li {
+font-family: Segoe UI Light;
+font-size: 1.2vw;
+padding: 0 0 5px 10px;
+}
+.LeftMenu ul li a {
+color: #4E4E4E;
+display: inline-block;
+font-size: 1vw;
+text-align: center;
+}
+.LeftMenu ul li:hover {
+background-color: #F1F1F1;
+transition: 200ms;
+}
+.LeftMenu ul li a:hover {
+text-decoration: none;
+transition: 200ms;
+}
+.ActiveVertMenu {
+background-color: #FFFFFF;
+transition: 200ms;
+}
+.ActiveVertMenu:hover {
+background-color: #FFFFFF !important;
+}
+/*Контент справа от вертикального меню*/
+.Content {
+background-color: #FFFFFF;
+height: 100%;
+overflow-y: auto;
+padding: 1vw;
+transition: 0;
+}
+.Content h1 {
+font-family: PlayRegular;
+font-size: 1.5vw;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+margin: -8px 0 4px;
+color: #F47920;
+}
+.Content .lbl {
+font-family: Gothic;
+color: #8E8B8B;
+font-size: 1vw;
+}
+.Content input {
+padding: 0px 0px 0px 10px;
+}
+.Content2Level {
+padding: 0;
+}
+.vm2 {
+background-color: #CFCFCF;
+}
+.ActiveVertMenu2 {
+background-color: #FFFFFF;
+transition: 200ms;
+}
+.vm3 {
+background-color: #F7F5F3;
+}
+.vm3 ul li:hover {
+transition: 200ms;
+background-color: #DFDFDF;
+}
+.ActiveVertMenu3 {
+background-color: #E1E1E1;
+transition: 200ms;
+}
+/*Логотипы*/
+.LogoLeft {
+height: 5.2vw;
+/*+placement: anchor-top-left -0.2vw -0.2vw;*/
+position: absolute;
+left: -0.2vw;
+top: -0.2vw;
+}
+.rknetLogo {
+/*background-color: #4B99FF;*/
+/*+placement: anchor-bottom-right 0.6vw 0vw;*/
+position: absolute;
+right: 0.6vw;
+bottom: 0vw;
+/*height: 1.2vw;*/
+}
+/*НАСТРОЙКИ - Подключение*/
+#connRk {
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+/*border: 1px solid #E9E9E9;*/
+width: 30vw;
+}
+#connRk input {
+width: 100%;
+max-width: 100vw;
+}
+#inputRef {
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+width: 70%;
+margin-right: 1vw;
+margin-bottom: 1.5vw;
+}
+#inputPort {
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+width: 25%;
+}
+#inputUser {
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+width: 45%;
+margin-right: 1vw;
+margin-bottom: 1.5vw;
+}
+#inputPassword {
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+width: 50%;
+}
+#help {
+font-family: Gothic;
+font-style: italic;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+font-size: 0.7vw;
+text-align: justify;
+color: #968B8B;
+margin-bottom: 1.5vw;
+}
+#dataSend {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+#postResult {
+font-family: Gothic;
+font-style: italic;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+font-size: 0.7vw;
+text-align: justify;
+margin-bottom: 1.5vw;
+width: 100%;
+}
+#ok {
+color: #0DE059;
+}
+#error {
+color: #DF0D0D;
+}
+/*Таблица заказов*/
+#Preorders h1 {
+margin: 0;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.ImageActionIcon {
+width: 1.5vw;
+}
+.ImageActionTable {
+margin: 0 0 1vw 0px;
+/*+placement: float-right;*/
+float: right;
+position: relative;
+left: 0;
+top: 0;
+/*background-color: #7DB5FD;*/
+}
+.ImageActionText {
+/*background-color: #FF4A4A;*/
+vertical-align: bottom;
+font-family: PlayRegular;
+font-size: 1vw;
+text-align: right;
+padding: 0px;
+color: #000000;
+}
+.ImageActionText a {
+color: #000000;
+}
+.ImageActionText a:hover {
+color: #000000;
+}
+.OrdersTable {
+height: auto;
+/*margin-top: 10px;*/
+width: 100%;
+font-size: 0.8vw;
+text-align: left;
+}
+.OrdersTable th {
+background-color: #EFEFEF;
+font-size: 0.8vw;
+padding-left: 0.5vw;
+text-align: left;
+/*border: 1px solid black;*/
+}
+.OrdersTable td {
+font-size: 0.9vw;
+padding-left: 0.5vw;
+text-align: left;
+/*border: 1px solid black;*/
+padding-top: 0.4vw;
+/*word-break: break-all;*/
+}
+.OrdersTableIcon {
+width: 1.2vw;
+}
+#preodersList {
+/*background-color: #A1A6AC;*/
+overflow-y: auto;
+height: 75vh;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+}
+/*Новый заказ*/
+.mainDataTable {
+/*background-color: #F92020;*/
+border-collapse: separate;
+border-spacing: 0.3vw;
+}
+.customerBlock {
+/*background-color: #FF9F9F;*/
+width: 34vw;
+font-family: PlayRegular;
+/*border: 0.1vw solid black;*/
+position: relative;
+}
+.customerTable {
+/*height: 13.5vh;*/
+width: 100%;
+font-size: 0.9vw;
+}
+.customerTable th {
+font-family: PlayRegular;
+vertical-align: bottom;
+font-weight: normal;
+/*font-size: 1vw;*/
+color: #8B8B8A;
+/*border: 1px solid black;*/
+/*width: 31%;*/
+padding: 0px 0px 0px 0.2vw;
+}
+.customerTable td {
+padding: 0px 0.4vw 0.5vw 0;
+width: 20%;
+/*border: 3px solid black;*/
+}
+#CustomerAdress {
+width: 100%;
+max-width: 100%;
+}
+.customerTable input {
+width: 100%;
+border: 1px solid #A9A9A9;
+height: 1.7vw;
+}
+.customerTable select {
+width: 100%;
+/*border: 1px solid #A9A9A9;*/
+/*margin: 5px 0 0;*/
+padding: 2px 0;
+height: 1.7vw;
+}
+.actionButttons {
+margin: 1.2vw 0 0;
+}
+.order_ok {
+background: #FFFFFF;
+border: 1px none black;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+font-family: PlayRegular;
+font-size: 1vw;
+height: 2vw;
+width: 8.9vw;
+text-align: left;
+padding: 0 0 0 0.2vw;
+outline: none !important;
+}
+.order_cancel {
+/*background: #F1F1F1;*/
+/*border: 1px solid black;*/
+/*(*+placement: float-right;*)
+float: right;
+position: relative;
+left: 0;
+top: 0;*/
+font-family: PlayRegular;
+font-size: 1vw;
+height: 2vw;
+width: 6vw;
+text-align: right;
+vertical-align: middle;
+outline: none;
+color: #000000;
+}
+.order_ok:hover, .order_cancel:hover {
+background-color: #FFFFFF;
+text-decoration: none;
+color: #FF7702;
+}
+.DishesBlock {
+background-color: #F3F3F3;
+height: 44vh;
+width: 99%;
+border: 0.1vw solid #D5D5D5;
+padding: 0px 0.5vw;
+/*overflow-y: auto;*/
+}
+#compositionTable {
+/*background-color: #FF7A7A;*/
+overflow-y: auto;
+overflow-x: hidden;
+width: 100%;
+height: 90%;
+}
+.orderDishes {
+/*background-color: #E54545;*/
+width: 100%;
+/*border: 1px solid #CBCBCB;*/
+}
+.orderDishes td {
+/*border: 1px solid black;*/
+}
+.dishes_h {
+font-family: PlayRegular;
+vertical-align: bottom;
+font-weight: normal;
+font-size: 1vw;
+color: #8B8B8A;
+/*border: 1px solid black;*/
+width: 50%;
+padding: 0px 0px 0px 0.2vw;
+background-color: #FFFFFF;
+margin: 0 0 5px 0;
+}
+.orderDishes th {
+color: #000000;
+border-bottom: 0.1vw solid #B7B7B7;
+font-size: 0.9vw;
+font-weight: bold;
+text-align: left;
+}
+#t_name {
+width: 56%;
+}
+.dishesTR {
+font-size: 0.8vw;
+color: #000000;
+height: 1.6vw;
+}
+.dishName {
+width: 56%;
+}
+.dishPrice {
+width: 10%;
+text-align: right;
+padding: 0 0.5vw 0 0;
+}
+.dishUpDown {
+width: 100%;
+text-align: center;
+/*border: 1px solid black;*/
+/*margin: 0px 0.7vw 0 0;*/
+background-color: #DBDBDB;
+font-weight: bold;
+}
+.dishUpDown:hover {
+text-decoration: none;
+color: #000000;
+background-color: #E8C6AE;
+}
+.dishQuantity {
+width: 64%;
+text-align: center;
+/*border: 1px solid black;*/
+margin: 0px 0 0;
+/*background-color: #FFFFFF;*/
+font-weight: bold;
+padding: 0 1px;
+}
+.dishCost {
+width: 10%;
+text-align: right;
+padding-right: 12px;
+}
+.dishDelete {
+width: 2%;
+}
+.dishDelete .ImageActionIcon {
+width: 1.4vw;
+}
+.totalSum {
+/*border-top: 0.1vw solid #B7B7B7;*/
+text-align: right;
+/*background-color: #FFAFAF;*/
+height: ;
+width: 94%;
+position: absolute;
+bottom: 3.2vh;
+font-weight: bold;
+}
+.itogo {
+width: 30%;
+/*border: 1px solid black;*/
+}
+.sum {
+width: 6%;
+/*border: 1px solid black;*/
+}
+.menuTree {
+border: 0.1vw solid #C5C5C5;
+width: 20vw;
+position: relative;
+}
+.treeTest {
+/*background-color: #F7CBCB;*/
+width: 100%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+position: absolute;
+text-decoration: none;
+font-size: 1vw;
+height: 100%;
+overflow-y: auto;
+overflow-x: hidden;
+padding: 0.1vw 0 0.1vw 0.1vw;
+}
+.menuDishes {
+/*height: 100%;*/
+width: 45%;
+position: relative;
+border: 0.1vw solid #B4B2B2;
+font-family: PlayRegular;
+font-size: 1vw;
+}
+.menuItems {
+height: 100%;
+width: 100%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+position: absolute;
+/*background-color: #E97070;*/
+overflow-y: auto;
+overflow-x: hidden;
+list-style: none;
+}
+.menuItems a {
+/*border: 1px solid black;*/
+width: 100%;
+display: block;
+}
+.menuItems li a:hover, .menuItems li a:focus, .menuItems li a.tree-item-active {
+color: #000 !important;
+background-color: #D7D7D7 !important;
+text-decoration: none;
+}
+.item {
+width: 100%;
+margin: 0.5vw 0 0;
+border-collapse: separate;
+border-spacing: 0.2vw;
+padding: 0 0.1vw;
+}
+.item td {
+/*border: 1px solid black;*/
+/*vertical-align: bottom;*/
+line-height: 0vw;
+}
+.item tr:hover {
+background-color: #E5E5E5;
+}
+.item .name {
+width: 45%;
+}
+.item .price {
+width: 4%;
+}
+.item .quant {
+width: 5%;
+text-align: center;
+border: 1px solid black;
+vertical-align: middle;
+font-size: 1vw;
+background-color: #FFFFFF;
+}
+.item .updown {
+width: 1%;
+text-align: center;
+border: 1px solid black;
+background-color: #F3F3F3;
+}
+.item .updown a {
+/*width: 18px;*/
+text-decoration: none;
+}
+.item .get {
+width: 5%;
+border: 1px solid black;
+text-align: center;
+background-color: #FFFFFF;
+}
+.preErr {
+font-family: PlayRegular;
+color: #E50000;
+}
+.preOk {
+font-family: PlayRegular;
+}
+.modal-backdrop {
+display: none !important;
+}
+/*PowerBi*/
+#biCont {
+background-color: #E6E6E6;
+padding: 0;
+}
+.biFrame {
+background-color: #FFFFFF;
+height: 99%;
+width: 100%;
+}
+.demoPic {
+width: 100%;
+}
+#fullscreenLink {
+/*background-color: #0053BD;*/
+/*+placement: anchor-top-right 0.7vw 3.2vw;*/
+position: absolute;
+right: 0.7vw;
+top: 3.2vw;
+height: ;
+/*border: 1px solid rgba(0, 0, 0, 0.410);*/
+padding: 0.2vw;
+}
+#fullscreenLink img {
+width: 0.9vw;
+opacity: 0.8;
+}
+/*Страница аутентификации*/
+#loginForm {
+height: 27vw;
+width: 18vw;
+/*+placement: margin-auto 0px 7vw;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0px;
+top: 7vw;
+font-family: Segoe Ui Light;
+background-color: #FFFFFF;
+padding: 1.4vw;
+border: 1px solid #D3D3D3;
+box-shadow: 0 0 1vw 0px #D0CDCD;
+}
+#loginForm table {
+height: 100%;
+width: 100%;
+}
+#loginLL {
+width: 3.8vw;
+padding-bottom: 1.7vw;
+}
+#loginLLTd {
+width: 27%;
+}
+#loginRknet {
+width: 0.7vw;
+padding-bottom: 0.5vw;
+margin-left: 0.2vw;
+}
+#loginRknetTd {
+vertical-align: bottom;
+}
+#loginRknetText {
+font-size: 0.4vw;
+vertical-align: bottom;
+margin-bottom: -1vw;
+}
+#loginLLText1 {
+font-size: 1.7vw;
+text-align: center;
+color: #EE7203;
+vertical-align: bottom;
+}
+#loginLLText2 {
+font-size: 0.8vw;
+text-align: center;
+vertical-align: top;
+letter-spacing: 0.05vw;
+padding-bottom: 2vw;
+}
+#loginAutorization {
+text-align: center;
+font-size: 1.5vw;
+letter-spacing: 0.2vw;
+height: 2vw;
+border-bottom: 1px solid #D1D1D1;
+border-top: 1px solid #D1D1D1;
+padding-bottom: 0.5vw;
+}
+.loginLabel {
+height: 2.5vw;
+vertical-align: bottom;
+font-size: 0.8vw;
+letter-spacing: 0.07vw;
+color: ;
+padding-left: 3px;
+}
+#loginForm input {
+width: 100%;
+letter-spacing: 0.1vw;
+font-size: 1vw;
+background-color: #FFFFFF;
+border: 1px solid #E3E3E3;
+outline: none;
+height: 1.8vw;
+}
+.loginInputTd {
+height: 1.6vw;
+}
+input[type=submit] {
+padding: 1vw 0 2vw;
+background: rgba(214, 214, 214, 0) !important;
+border: 0 none !important;
+cursor: pointer;
+color: #EE7203;
+}
+#loginSubmit {
+width: 36%;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+}
+#loginForm input.input-validation-error {
+border: 1px solid #FF8787 !important;
+/*background-color: #FEF0F0 !important;*/
+}
+#loginForm .validation {
+color: #FF1212;
+font-size: 0.7vw;
+padding-top: 13px;
+margin-bottom: -14px;
+}
+/*Блок пользователя*/
+#userDiv {
+/*+placement: float-right -1vw 1vw;*/
+float: right;
+position: relative;
+left: -1vw;
+top: 1vw;
+color: #505051;
+font-size: 0.8vw;
+text-align: right;
+}
+#userDiv a {
+font-size: 0.7vw;
+/*+placement: float-right 0 -0.5vw;*/
+float: right;
+position: relative;
+left: 0;
+top: -0.5vw;
+color: #5C5C5C !important;
+}
+#userDiv a:hover {
+color: #FE7D0F !important;
+}
+/*Настройки - Видеонаблюдение*/
+.nxSystemTable {
+height: 32px;
+width: 100%;
+margin-top: 1vw;
+}
+.nxSystemTable tr {
+border-bottom: 0.6vw solid #FFFFFF;
+height: 2.2vw;
+}
+.nxSystemTable td {
+background-color: #F5E5DC;
+padding-left: 0.4vw;
+}
+.onlineColor {
+color: #00AD12;
+}
+.offlineColor {
+color: #E50000;
+}
+.tableHead td {
+background-color: rgba(255, 51, 51, 0) !important;
+font-size: 0.7vw !important;
+font-weight: bold !important;
+}
+.connectionInput {
+width: 17.6vw;
+}
+/*Ошибки*/
+.error h2 {
+color: #FF3636;
+}
+/*Настройки - Заполнение витрин*/
+#tableAddCam td {
+padding-right: 1.5vw;
+}
+#tableAddCam {
+margin-top: 0.5vw;
+}
+/*Превью  с камер видеонаблюдения*/
+.camerasPreview {
+/*background-color: #76AFF7;*/
+padding-top: 1vw;
+width: 100%;
+align-content: center;
+}
+.camDiv {
+background-color: #DDDDDD;
+color: #000000;
+/*border: 1px solid #FFFFFF;*/
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+transition: 0.2s;
+margin: 0 0.3vw 0.3vw 0;
+z-index: 1;
+}
+.camDiv:hover {
+transform: scale(1.1);
+z-index: 2;
+background-color: #FFA65A;
+}
+.camDiv:active {
+background-color: #FFFFFF;
+}
+.camImg {
+border: 5px solid rgba(230, 230, 230, 0);
+width: 380px;
+height: 210px;
+transition: 0.2s;
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+z-index: 1;
+}
+.camImg:hover {
+/*transform: scale(1.2);*/
+cursor: pointer;
+z-index: 2;
+}
+.camDiv p {
+margin: 0;
+/*background-color: #E7E7E7;*/
+width: 300px;
+font-size: 13px;
+padding-left: 6px;
+}
+.picByInterval {
+/*background-color: #BFEBC1;*/
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin-top: 0.5vw;
+}
+.picByInterval input {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin-right: 12px;
+/*margin-bottom: 5.2vw;*/
+}
+.inpDate {
+width: 173px;
+}
+.inpTime {
+width: 115px;
+}
+.zoneSelectDiv {
+background-color: #DDDDDD;
+color: #000000;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+transition: 0.2s;
+z-index: 1;
+height: ;
+width: 70%;
+}
+.zoneSelectDiv p {
+margin: 0;
+/*background-color: #E7E7E7;*/
+width: 300px;
+font-size: 13px;
+padding-left: 6px;
+}
+.zoneSelectDiv canvas {
+height: 33vw;
+width: 100%;
+background-size: 100% 100% !important;
+/*cursor: crosshair;*/
+}
+/*Зоны*/
+#zonesBlock {
+/*background-color: #6489B9;*/
+/*+placement: float-right;*/
+float: right;
+position: relative;
+left: 0;
+top: 0;
+width: 30%;
+padding-left: 1vw;
+}
+#zonesBlock table {
+width: 100%;
+}
+#zonesBlock label {
+margin-top: 0;
+}
+#zonesBlock table {
+margin: 0;
+}
+#zonesBlock .inpTime {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin-right: 0.3vw;
+width: 7.8vw;
+}
+#intervalSelector {
+width: 7.5vw;
+}
+.zoneName {
+width: 80%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.zoneColor {
+width: 20%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+#zoneCLR {
+padding: 0;
+}
+#rasp {
+width: 16.4vw;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+#interval {
+height: 1vw;
+}
+#levelDetect {
+width: 7.8vw;
+}
+.zonesTable {
+height: 32px;
+width: 100%;
+margin-top: 1vw;
+}
+.zonesTable tr {
+border-bottom: 0.5vw solid #FFFFFF;
+height: 0vw;
+font-size: 0.8vw;
+}
+.zonesTable td {
+padding-left: 0.4vw;
+font-size: 0.8vw;
+}
+.zonesTable a {
+font-size: 0.8vw;
+}
+.zHeader td {
+background-color: #F5E5DC;
+font-size: 1vw;
+}
+.zNames {
+font-size: 0.7vw !important;
+font-weight: bold !important;
+}
+#downPreviews {
+background-color: #E7C0AE;
+height: 5vw;
+width: 70%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.downPic {
+height: 100%;
+width: 16.65%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.picOff {
+height: 100%;
+width: 100%;
+border: 0.2vw solid #FFFFFF;
+}
+.picOff:hover {
+border: 0.1vw solid #FFFFFF;
+cursor: pointer;
+}
+.picOn {
+height: 100%;
+width: 100%;
+border: 0.2vw solid #DE772F;
+cursor: pointer;
+}
+/*Натройки Пользователи, Группы, Роли*/
+.block0 {
+/*+placement: float-left 0px 0px;*/
+float: left;
+position: relative;
+left: 0px;
+top: 0px;
+height: 1vw;
+width: 1vw;
+}
+.block1 {
+/*width: 25%;*/
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.block2 {
+/*width: 30%;*/
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin-left: 1vw;
+/*background-color: #F5F5F5;*/
+height: 100%;
+border-left: double #EDEDED;
+padding-left: 1vw;
+}
+.block3 {
+height: 100%;
+/*width: 39%;*/
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+margin-left: 1vw;
+border-left: double #EDEDED;
+padding-left: 1vw;
+overflow-y: auto;
+}
+.AccesItemBlock {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+width: 9vw;
+/*background-color: #F9F1F1;*/
+margin-right: 0.5vw;
+}
+.AccesItemBlock table {
+}
+.AccesItemBlock tr {
+}
+.AccesItemBlock input {
+width: 0.8vw;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.AccesItemBlock p {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+padding-left: 0.2vw;
+margin: 2px 0 0;
+font-size: 0.8vw;
+}
+.AccesItemBlock td {
+}
+#groupDescription {
+height: 10vw;
+outline: none;
+border: 1px solid #DDDCDC;
+resize: none;
+width: 100%;
+margin-bottom: 1vw;
+}
+.blocInsideAutoscroll {
+overflow-y: auto;
+height: 93%;
+width: 100%;
+}
+.underBlocks {
+/*+placement: displace 37.7vw -1vw;*/
+position: absolute;
+margin-left: 37.7vw;
+margin-top: -1vw;
+}
+.underBlocks a {
+margin-right: 1vw;
+font-size: 0.8vw;
+}
+/*Библиотека знаний*/
+#srch {
+width: 90%;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+margin-bottom: 1vw;
+}
+.docBlock {
+height: 100%;
+width: 100%;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+}
+.docFrame {
+height: 100%;
+width: 100%;
+border: 1px none black;
+/*+placement: ;*/
+position: relative;
+left: 0;
+top: 0;
+}
+.KL {
+width: auto;
+min-width: 15vw;
+background-color: #F3F3F3;
+/*border-right: 1px double #CBCBCB;*/
+}
+.rootTree a {
+font-size: 1vw !important;
+}
+.secTree a {
+font-size: 0.7vw !important;
+}
+.word {
+color: #00306C;
+}
+.excell {
+color: #00680B;
+}
+.presentations {
+color: #C54700;
+}
+.pdf {
+color: #950000;
+}
+#videoPlayer {
+height: 90%;
+width: auto;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+margin-top: 1vw;
+}
+.docImage {
+height: 90%;
+width: auto;
+display: block;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+/*margin-top: 1vw;*/
+}
+#start_image {
+width: 20%;
+display: block;
+/*+placement: displace;*/
+position: absolute;
+margin-left: 0;
+margin-top: 0;
+}
+.LibraryImageHeader {
+width: 25%;
+display: block;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+padding-top: 3.1vw;
+}
+.docBlock h1 {
+text-align: center;
+color: #514C4C;
+padding-top: 3.1vw;
+letter-spacing: 0.3vw;
+}
+#lib_images {
+margin-top: 3.6vw;
+display: block;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+width: 93%;
+/*background-color: #E8CECE;*/
+}
+.lib_img_item {
+width: 8.9vw;
+display: inline-block;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+margin: 2.6vw;
+}
+#franch_album {
+width: 27.2vw;
+display: block;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+padding-top: 2.3vh;
+}
+.imageTooltip {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.imageTooltip:hover::after {
+content: attr(data-title);
+position: absolute;
+left: 4%;
+top: 77%;
+z-index: 1;
+background: rgba(255, 129, 74, 0.188);
+font-size: 0.7vw;
+padding: 5px 10px;
+/*border: 1px outset #C6C4C4;*/
+}
+/*Торговые точки*/
+#TTs input {
+width: 1vw;
+display: inline-block;
+height: 1vw;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+#TTs label {
+display: inline-block;
+vertical-align: middle;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+/*background-color: #E3D7D7;*/
+width: 16.3vw;
+height: 1vw;
+font-size: 1vw;
+margin-left: 0.2vw;
+margin-bottom: 0.6vw;
+}
+/*Прогноз продаж*/
+.predictionBlock {
+width: 100%;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.predictionChek {
+/*+placement: anchor-bottom-right 0px 0px;*/
+position: absolute;
+right: 0px;
+bottom: 0px;
+width: 15vw;
+height: 1vw;
+}
+.predictionChek input {
+height: 0.9vw;
+width: 0.9vw;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+}
+.predictContent {
+margin: 0;
+padding: 0.5vw;
+}
+.predictionContainer {
+overflow-y: auto;
+height: 76vh;
+}
+.predictionBlock input {
+width: 5vw;
+text-align: left;
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+}
+.predictionTable {
+background-color: #F5F5F5;
+margin: 0;
+}
+.predictionTable tr {
+border-bottom: 1px solid #FFFFFF;
+height: 1.5vw;
+}
+.predictionDate {
+font-size: 0.7vw !important;
+font-weight: bold;
+text-align: center;
+}
+.days td {
+font-size: 0.6vw !important;
+}
+.days tr {
+}
+.predictionValue {
+text-align: center;
+border: 1px solid #FFFFFF;
+width: 2.5%;
+transition-duration: 300ms;
+}
+.groupValue {
+background-color: #E3E3E2;
+}
+.predictionTTName {
+font-size: 0.8vw !important;
+background-color: #F7F2EF;
+}
+.predictionValue p {
+font-size: 0.9vw !important;
+display: inline;
+}
+.predictionMonth {
+/*+placement: margin-auto;*/
+margin-left: auto;
+margin-right: auto;
+position: relative;
+left: 0;
+top: 0;
+text-align: center;
+margin-bottom: 0.5vw;
+margin-top: -1vh;
+}
+.predictionMonth p {
+display: inline;
+padding-left: 1vw;
+padding-right: 1vw;
+font-size: 1.2vw;
+}
+.linkRow:hover {
+cursor: pointer;
+}
+.AddPrediction {
+background-color: #FFECCF;
+cursor: pointer;
+}
+.AddGroup {
+background-color: #FFCA87;
+}
+.AddPrediction p {
+font-size: 1vw;
+}
+.ChangePrediction {
+background-color: #AEECAE;
+cursor: pointer;
+}
+.ChangeGroup {
+background-color: #5EEC4D;
+}
+.AddPrediction:hover, .ChangePrediction:hover {
+background-color: #FFFFFF !important;
+}
+.holiday {
+background-color: #E6B3DA;
+}
+.TableGroup {
+background-color: #F5E5DC;
+}
+.TableGroup .ico {
+font-size: 0.9vw;
+font-weight: lighter;
+margin-top: 4px;
+}
+.TableGroup label {
+text-align: left;
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+font-size: 1vw;
+cursor: pointer;
+}
+.TableGroup .nameGroup {
+margin-left: 0.4vw;
+text-decoration: none;
+font-size: 1vw;
+display: inline-block;
+margin-top: 2px;
+}
+.TableGroup a {
+text-decoration: none;
+}
+.TableGroup a:hover {
+color: #202020;
+}
+/*Заказ Франшиза - Редактор заказа*/
+#OrdersFranch {
+overflow-y: hidden;
+}
+.OrdersF_EditBlock {
+/*+placement: float-left;*/
+float: left;
+position: relative;
+left: 0;
+top: 0;
+/*width: 20%;*/
+/*border: 1px solid black;*/
+height: 100%;
+margin-right: 0.2vw;
+/*background-color: #E1E1E1;*/
+font-size: 0.8vw;
+border-right: 1px solid #DDDDDD;
+}
+.OrdersF_EditBlock select {
+width: 5.9vw;
+font-weight: lighter;
+}
+.OrdersF_EditBlock .ico:hover {
+cursor: pointer;
+}
+.OrderF_ScrollBlock {
+overflow-y: auto;
+height: 95%;
+}
+.OrdersF_Table {
+/*border: 1px solid black;*/
+width: 100%;
+margin-top: 5px;
+}
+.OrdersF_Table tr {
+/*border: 1px solid black;*/
+}
+.OrdersF_Table th {
+background-color: #FEC594;
+padding-left: 0.5vw;
+font-size: 0.7vw;
+height: 2vw;
+/*border: 1px solid black;*/
+text-align: center;
+}
+.OrdersF_Table td {
+padding-left: 0.5vw;
+border-bottom: 5px solid #FFFFFF;
+padding-top: 0.5vw;
+}
+.fordersList td {
+/*border: 1px solid #E3E3E3;*/
+}
+.fordersList th {
+text-align: left;
+}
+.groupItem {
+}
+.groupItem td {
+border-bottom: 1px solid #DBDBDB !important;
+padding-left: 5.5vw;
+}
+.fordersList .ico {
+margin: 0 0 0 1.5vw !important;
+}
+.fordersList .ico:hover {
+cursor: pointer;
+}
+.MenuTable tr:hover {
+cursor: pointer;
+background-color: #F1F1F1;
+}
+.ActiveVertMenu2 {
+background-color: #E3E3E3;
+}
+.ActiveVertMenu2:hover {
+background-color: #E3E3E3 !important;
+}
+.OrdersF_Table .ico {
+font-size: 1.2vw;
+margin-left: 1vw;
+}
+.orderString {
+background-color: #FF8256;
+height: 5vw;
+/*border: 1px solid #838383;*/
+}
+.orderString td {
+padding-bottom: 1vw;
+}
+.orderString p {
+width: ;
+color: #FFFFFF;
+font-size: 1.1vw;
+font-weight: bold;
+display: inline-block;
+margin: 0;
+}
+.orderString label {
+}
+#SkuInOrder {
+margin-top: 4px;
+/*border-bottom: 1px solid #BDBDBD;*/
+height: auto;
+max-height: 78%;
+/*padding-top: 1vw;*/
+background-color: #FFECDB;
+margin-right: 1px;
+font-weight: bold;
+/*padding-bottom: 0.6vw;*/
+}
+#SkuInOrder td {
+padding-top: 0.5vw;
+padding-bottom: 0.5vw;
+}
+#SkuInOrder .ico {
+margin: 0 0.5vw;
+/*color: #CD0000;*/
+}
+.OrderFranch_A {
+/*+placement: float-right;*/
+float: right;
+position: relative;
+left: 0;
+top: 0;
+padding-left: 2vw;
+/*font-size: 1.4vw;*/
+padding-top: 0.5vw;
+padding-right: 0.5vw;
+}
+.itemEnabled {
+color: #01AF0A;
+}
+.itemDisabled {
+color: #F10000;
+}
+#ttSelect {
+width: 9.6vw;
+}
+#orderName {
+width: 11vw;
+font-size: 0.9vw;
+}
+#orderDate {
+width: 11.5vw;
+margin-right: 0.3vw;
+}
+#skuTables {
+height: 93%;
+}
+.selectAll {
+border-top: 1px solid #7C7C7C;
+}
+.selectAll a {
+/*+placement: float-right;*/
+float: right;
+position: relative;
+left: 0;
+top: 0;
+margin-right: 0.8vw;
+margin-top: 6px;
+font-size: 0.7vw;
+}
+.selectAll label {
+/*+placement: float-right;*/
+float: right;
+position: relative;
+left: 0;
+top: 0;
+margin-right: 2vw;
+padding-top: 7px;
+font-size: 0.7vw;
+}

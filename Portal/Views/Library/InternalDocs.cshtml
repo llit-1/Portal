@@ -1,0 +1,348 @@
+﻿<!--панель навигации-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--назад-->
+    <a href="#library" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+    <!--навигация-->
+    <div class="hidden-xs col-lg-10 cm-breadcrumb-container el-marging lib-navigation">
+        <ol class="breadcrumb">
+            <li><a href="#link" onclick="loadContent('library', '/Library/Index')">Библиотека знаний</a></li>
+            <li class="active">Внутренние документы</li>
+        </ol>
+    </div>
+
+</div>
+
+<!--внутренние документы (подразделы)-->
+<div class="row">
+
+    <!--служба персонала-->
+    @if (User.IsInRole("library_hr"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_hr" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Hr', '/Library/Hr')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/staff-people.svg" width="30px">
+                    </span>
+                    <h6>служба персонала</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/staff-people.svg" width="30px">
+                    </span>
+                    <h6>служба персонала</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отдел строительства-->
+    @if (User.IsInRole("library_build"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_build" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Build', '/Library/Build')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/crane.svg" width="30px">
+                    </span>
+                    <h6>отдел строительства</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/crane.svg" width="30px">
+                    </span>
+                    <h6>отдел строительства</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--служба эксплуатации-->
+    @if (User.IsInRole("library_explotation"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_explotation" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Explotation', '/Library/Explotation')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/customer-support.svg" width="30px">
+                    </span>
+                    <h6>служба эксплуатации</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/customer-support.svg" width="30px">
+                    </span>
+                    <h6>служба эксплуатации</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отдел маркетинга-->
+    @if (User.IsInRole("library_marketing"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_marketing" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Marketing', '/Library/Marketing')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/creativity.svg" width="30px">
+                    </span>
+                    <h6>отдел маркетинга</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/creativity.svg" width="30px">
+                    </span>
+                    <h6>отдел маркетинга</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--бухгалтерия-->
+    @if (User.IsInRole("library_buh"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_buh" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Buh', '/Library/Buh')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/calculator.svg" width="30px">
+                    </span>
+                    <h6>бухгалтерия</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/calculator.svg" width="30px">
+                    </span>
+                    <h6>бухгалтерия</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отдел бизнесс-планирования и анализа-->
+    @if (User.IsInRole("library_analytic"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_analytic" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Analytic', '/Library/Analytic')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/analytic.svg" width="30px">
+                    </span>
+                    <h6>бизнесс-планирование и анализ</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/analytic.svg" width="30px">
+                    </span>
+                    <h6>бизнесс-планирование и анализ</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отдел закупок-->
+    @if (User.IsInRole("library_shopping"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_shopping" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Shopping', '/Library/Shopping')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/packages.svg" width="30px">
+                    </span>
+                    <h6>отдел закупок</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/packages.svg" width="30px">
+                    </span>
+                    <h6>отдел закупок</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--фэо-->
+    @if (User.IsInRole("library_finance"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_finance" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Finance', '/Library/Finance')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/money.svg" width="30px">
+                    </span>
+                    <h6>финансово-экономический отдел</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/money.svg" width="30px">
+                    </span>
+                    <h6>финансово-экономический отдел</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отдел системного сопровождения-->
+    @if (User.IsInRole("library_oss"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_oss" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Oss', '/Library/Oss')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/computer.svg" width="30px">
+                    </span>
+                    <h6>IT отдел</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/computer.svg" width="30px">
+                    </span>
+                    <h6>IT отдел</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отдел развития-->
+    @if (User.IsInRole("library_rent"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_rent" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Rent', '/Library/Rent')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/deal.svg" width="30px">
+                    </span>
+                    <h6>отдел развития</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/deal.svg" width="30px">
+                    </span>
+                    <h6>отдел развития</h6>
+                </div>
+            </a>
+        </div>
+    }
+
+     <!--реквизиты юл-->
+    @if (User.IsInRole("library_rekul"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#library_rekul" class="panel panel-default thumbnail cm-thumbnail tails-panel folder" onclick="loadContent('Rekul', '/Library/Rekul')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/rekul.svg" width="30px">
+                    </span>
+                    <h6>реквизиты юл</h6>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled folder">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/subLevels/rekul.svg" width="30px">
+                    </span>
+                    <h6>реквизиты юл</h6>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+
+
+<!-------------------------------------------------------------------------------------------------->
+<!--загрузка корневой папки-->
+<script>
+    function RootFolder(id) {
+        $('#loading').show();
+        $('#LibraryContent').load('/Library/RootFolder?id=' + id);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        Alerts();
+        $('#loading').hide();
+    });
+</script>

@@ -1,0 +1,78 @@
+﻿@model Portal.ViewModels.FranchOrdersView
+
+<table class="table" id="skuTableList">
+    @foreach (var item in Model.items.OrderBy(i => i.Sku))
+    {
+    <tr class="ggg">
+        <td id="sku_@item.Article" width="40%">@item.Sku</td>
+        <td id="minCount_@item.Article" width="11%" class="text-center mobile-hide">@item.MinOrder</td>
+        @if (Model.orderType.Id == 1)
+        {
+            <td id="formingTime_@item.Article" width="11%" class="text-center mobile-hide">до @item.FormingTime</td>
+            <td id="deliveryDate_@item.Article" width="13%" class="text-center mobile-hide">@item.DeliveryDate</td>
+        }
+        <td id="ico_@item.Article" width="7%" class="text-center"><label class="md-add-circle-outline ico" onclick="AddItemToFOrder('@item.Article', '@item.Sku', this)"><br /></label></td>
+    </tr>
+    }
+</table>
+
+<!------------------------------------------------------------------------------------>
+
+<!--проверка доступности отдельно взятой позиции по времени для заказа и выделение в списке-->
+<script>
+    function timeOk(stringId, article) {
+
+        var timeOk = false;
+
+        var value = $('#' + stringId).text();
+        value = value.substr(3, value.length - 3);
+        var maxHour = parseInt(value.substr(0, 2));
+        var maxMinute = parseInt(value.substr(3, 2));
+
+        var date = new Date($.now());
+        var hour = date.getHours();
+        var minute = date.getMinutes();
+
+
+        if (hour < maxHour) timeOk = true;
+        if (hour == maxHour & minute < maxMinute) timeOk = true;
+
+
+
+        if (timeOk) {
+            $('#' + stringId).addClass('itemEnabled');
+        }
+
+        else {
+            $('#' + stringId).addClass('itemDisabled');
+            //$('#ico_' + article + ' label').removeClass('glyphicon-plus-sign')
+        }
+
+        return timeOk;
+    }
+</script>
+
+<!--проход по всем SKU в списке на предмет доступности к заказу-->
+<script>
+    function checkTimeAllSKU() {
+        $("#skuTableList td").each(function () {
+            var marker = 'formingTime_';
+            if (this.id.substr(0, marker.length) == marker) {
+                var article = this.id.substr(marker.length, this.id.length - marker.length);
+                var t = timeOk(this.id, article);
+            }
+        });
+    }
+</script>
+
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        checkTimeAllSKU();
+        $('#loading').hide();
+    });
+</script>
+
+

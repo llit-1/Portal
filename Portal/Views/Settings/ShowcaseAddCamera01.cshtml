@@ -1,0 +1,190 @@
+﻿@model Portal.ViewModels.CameraView
+
+<a class="arrowLink" href="#link" onclick="load('/Settings/Showcase', 'demo')">←</a>
+<h2>Выбор камеры для добаления зоны</h2>
+
+
+<table id="tableAddCam">
+    <tr>
+        <td><label>видеосистема</label></td>
+        <td><label>сервер</label></td>
+    </tr>
+    <tr>
+        <td>
+            <select id="systemSelect">
+                @foreach (var system in Model.NxSystems)
+                {
+                    <option>@system.Name</option>
+                }
+            </select>
+        </td>
+        <td>
+            <select id="serversList">
+            </select>
+        </td>
+        <td><a href="#link" onclick="updateCamfromServer()">обновить</a></td>
+    </tr>
+</table>
+
+
+<div class="camerasPreview"></div>
+
+
+<!------------------------------------------------------------------------------------------------------------------------------------------------------------>
+<!--Переменные для скриптов-->
+<script>
+    var camView = @Html.Raw(Json.Serialize(Model));
+
+    var servers;
+    var cameras;
+    var sysName;
+    var server;
+
+    $(document).ready(function () {
+
+
+        $("#systemSelect").trigger('change'); // генерация события для обновления списка серверов
+
+    });
+
+</script>
+
+<!--Селектор систем NX-->
+<script>
+    $('#systemSelect').on('change', function () {
+        if (camView.sysName != null) {
+            $('#systemSelect option:contains("' + camView.sysName + '")').attr("selected", "selected");;
+            sysName = camView.sysName;
+            camView.sysName = null;
+        }
+        else sysName = this.value;
+
+        $('#serversList').find('option').remove(); // очистка списка серверов
+
+
+
+        var req = '/Api/GetNxServers/' + sysName;
+
+        $.get(req, function (result) {
+
+            if (result.ok) {
+                servers = result.data;
+                $.each(servers, function () {
+                    $("#serversList").append('<option>' + this.name + '</option>');
+                });
+
+                if (camView.servName != null) {
+                    $('#serversList option:contains("' + camView.servName + '")').attr("selected", "selected");;
+                    camView.servName = null;
+                }
+                $("#serversList").trigger('change'); // генерация события для обновления превью камер
+            }
+            else {
+                alert('система недоступна');
+            }
+        });
+    });
+
+</script>
+
+<!--Селектор серверов NX и вывод превью камер-->
+<script>
+    $('#serversList').on('change', function () {
+
+        $('.camerasPreview').empty(); // очистка превью камер
+
+        var selected = this.value;
+        // находим выбранный в списке сервер
+        $.each(servers, function () {
+            if (this.name == selected) {
+                server = this;
+            }
+        });
+
+        var id = "";
+        var name = "";
+
+        // выводим коллекцию камер с сервера
+        $.each(server.cameras, function () {
+
+            id = this.cameraId;
+            name = this.cameraName;
+
+            var jsn = JSON.stringify(
+                {
+                    'cameraGuid': id,
+                    'camName': name,
+                    'sysName': sysName,
+                    'previewHeight': 300
+                });
+
+            jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+            id = id.replace('{', '');
+            id = id.replace('}', '');
+            var req = '/Api/GetImages/' + jsn;
+            // генерируем html код элемента изображения и вставляем в блок div
+            var camDiv = '<div class="camDiv">';
+
+            var camName = '<p>' + name + '</p>';
+            camDiv += camName;
+            var img = '<img class="camImg" id="' + id + '" onclick="imgLoad(this)" />';
+            camDiv += img;
+            camDiv += '</div>';
+            $('.camerasPreview').append(camDiv);
+            //$('.camerasPreview').append(img);
+            $('#' + id).attr('src', req);
+
+
+        });
+
+    });
+
+
+
+
+</script>
+
+<!--переход на шаг 2-->
+<script>
+    function imgLoad(img) {
+        $('#loading').show();
+
+        $.each(server.cameras, function () {
+            id = this.cameraId;
+            id = id.replace('{', '');
+            id = id.replace('}', '');
+            if (id == img.id) name = this.cameraName;
+        });
+
+        var jsn = JSON.stringify(
+            {
+                'cameraGuid': img.id,
+                'camName': name,
+                'sysName': server.sysName,
+                'servName': server.name
+            });
+
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+
+        $('#demo').load('@Url.Action("ShowcaseAddCamera02", "Settings")?jsn=' + jsn);
+    }
+
+
+</script>
+
+<!--обновление превью с камер-->
+<script>
+    function updateCamfromServer() {
+        $('.camerasPreview').empty();
+        $("#serversList").trigger('change');
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

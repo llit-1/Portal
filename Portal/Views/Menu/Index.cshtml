@@ -1,0 +1,284 @@
+﻿@model RKNet_Model.Account.User
+
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows"); 
+    var ttsCount = Model.TTs.Count;
+    var ttId = "";
+    var ttName = "";
+    string ttCode = "";
+    if(ttsCount == 1)
+    {
+        ttId = Model.TTs.FirstOrDefault().Id.ToString();
+        ttCode = Model.TTs.FirstOrDefault().Code.ToString();
+        ttName = Model.TTs.FirstOrDefault().Name;
+    }        
+}
+
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+
+        <!--блок заголовка-->
+        <table class="table-page-menu">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--навигация-->
+                    <td>                    
+                        <div class="hidden-xs col-lg-12 cm-breadcrumb-container el-marging lib-navigation">
+                            <ol id="navigation" class="breadcrumb" style="margin-bottom:10px">
+                                <li><a class="active" href="#menu">Меню</a></li>
+                            </ol>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--кнопки меню-->
+        <div id="tableMenu" class="col-md-12">
+            @*<input class="form-control-sm" placeholder="Поиск" id="searchDatatable" style="float:right; margin-right:20px">*@
+            <h2 id="CategoryName" style="float:left; margin-top:-10px; margin-right:10px; margin-bottom:10px;"></h2>
+
+            @if(User.IsInRole("menuDelivery_edit"))
+            {
+                <button id="editCatButton" class="catButton btn btn-xs btn-default" onclick="EditCategoryButton()" style="margin-left:10px">
+                    <i class="fa fa-fw fa-pencil"></i>
+                </button>
+
+                <button class="btn btn-xs btn-default" onclick="AddCategoryButton()" style="margin-left:20px"><i class="fa fa-fw fa-plus"></i> категория</button>
+                <button class="btn btn-xs btn-default" onclick="AddItemButton()" style="margin-right:20px"><i class="fa fa-fw fa-plus"></i> позиция</button>   
+            }  
+            
+            <div style="display:inline-block; height:10px">
+                @if(User.IsInRole("menuDelivery_stops") && ttsCount == 1)
+                {
+                    <div class="checkbox check-01" style="display:inline-block; margin-right:10px; margin-top:-10px; width:auto">
+                        <label>
+                            <input type="checkbox" id="checkDeliveryStops">
+                            <p>стопы доставки</p>
+                        </label>
+                    </div>
+
+                    <div class="checkbox check-01" style="display:inline-block; margin-right:10px; margin-top:-10px; width:auto">
+                        <label>
+                            <input type="checkbox" id="checkCashStops">
+                            <p>стопы на кассе</p>
+                        </label>
+                    </div>                
+                }
+
+                @if(User.IsInRole("menuDelivery_stops") || User.IsInRole("menuDelivery_edit"))
+                {
+                    <div class="checkbox check-01" style="display:inline-block; margin-right:10px; margin-top:-10px; width:auto">
+                        <label>
+                            <input type="checkbox" id="checkRkDisabled">
+                            <p>отключено в Р-Кипер</p>
+                        </label>
+                    </div>
+                }
+            </div>
+            <hr style="margin-top:10px; margin-bottom:15px; width:100%"/>
+        </div>       
+
+    </div>
+</div>
+
+<!--меню-->
+<div class="row">    
+    <div id="DeliveryMenu" class="col-sm-12 pre-scrollable" style="max-height: 78vh">
+        
+    </div>    
+</div>
+
+<!--окно редактора категорий-->
+<div id="categoryEditor" class="modal menuEditors" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <!--заголовок окна-->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h5 class="modal-title text-dark font-weight-bold">Редактор категории меню</h5>
+
+                <div class="hidden-xs col-lg-12 cm-breadcrumb-container lib-navigation">
+                    <ol id="catEditorPath" class="breadcrumb editorPath" style="margin-bottom:10px">
+                               
+                    </ol>
+                </div>
+
+            </div>
+
+            <!--содержание-->
+            <div class="modal-body">
+
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="DeleteCategoryButton" type="button" class="modal-buttons modal-message btn btn-sm default btn-danger" style="float:left" onclick="DeleteCategory()">Удалить</button>
+                <button type="button" class="modal-buttons modal-message btn btn-sm default btn-success" onclick="SaveCategory()">Сохранить</button>
+
+                <button type="button" class="modal-buttons modal-message btn btn-sm default btn-light" data-dismiss="modal">Закрыть</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--окно редактора позиций-->
+<div id="itemEditor" class="modal menuEditors" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <!--заголовок окна-->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h5 class="modal-title text-dark font-weight-bold">Редактор позиции меню</h5>
+
+                <div class="hidden-xs col-lg-12 cm-breadcrumb-container lib-navigation">
+                    <ol id="itemEditorPath" class="breadcrumb editorPath" style="margin-bottom:10px">
+                               
+                    </ol>
+                </div>
+
+            </div>
+
+            <!--содержание-->
+            <div class="modal-body">
+
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="DeleteItemButton" type="button" class="modal-buttons modal-message btn btn-sm default btn-danger" style="float:left" onclick="DeleteItem()">Удалить</button>
+                <button type="button" class="modal-buttons modal-message btn btn-sm default btn-success" onclick="SaveItem()">Сохранить</button>
+
+                <button type="button" class="modal-buttons modal-message btn btn-sm default btn-light" data-dismiss="modal">Закрыть</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-------------------------------------------------------->
+<script>    
+    var categoryId = 0;
+    const ttsCount = '@ttsCount';
+    const ttId = '@ttId';
+    const ttCode = '@ttCode';
+    
+    // загрузка категории
+    function LoadCategory(id)
+    {                  
+        $('#DeliveryMenu').load('/menu/MenuCategory?Id=' + id, function(){ $('#spinner').hide(); });           
+    }
+    
+    // обновление пути навигации и присваивание значений переменным по категории
+    function PathUpdate(cat, path)
+    {       
+        categoryId = cat.Id;
+        $('#navigation').empty();
+        $('#navigation').append('<li><a id="root" class="active" href="#menu">Меню</a></li>');
+        $('#back').attr('onclick', 'location.hash=""');
+        
+        var lastId = 0;
+        $.each(path, function(){
+            $('#navigation').append('<li><a href="#menu" onclick="LoadCategory(' + this.Id + ')">' + this.Name + '</a></li>');
+            lastId = this.Id;
+            
+        });
+                        
+        if(cat.Id != 0)
+        {
+            $('#root').removeClass('active');  
+        }
+        
+
+        if(cat.Name)
+        {
+            $('#CategoryName').text(cat.Name);
+            $('#navigation').append('<li class="active">' + cat.Name + '</li>'); 
+            $('#root').attr('onclick', 'LoadCategory(0)');
+            $('#back').attr('onclick', 'LoadCategory(' + lastId + ')');
+            $('.catButton').show();
+        } 
+        else
+        {
+            var ttName = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ttName));
+            if (ttName != "") {
+                $('#CategoryName').text(ttName);
+            }
+            else 
+            {
+                $('#CategoryName').text('Корневой раздел');
+            }            
+            $('.catButton').hide();
+        }
+    }    
+
+    // чек-бокс стопы доставки
+    $('#checkDeliveryStops').on('change', function () 
+    { 
+        $('#checkCashStops').prop('checked', false);
+        $('#checkRkDisabled').prop('checked', false);
+
+        var isChecked = $(this).prop('checked');
+        if(isChecked)
+        {
+            $('#DeliveryMenu').load(`/menu/DeliveryStops?ttCode=${ttCode}`, function(){ $('#spinner').hide(); });
+        }
+        else
+        {
+            LoadCategory();
+        }        
+    });
+
+    // чек-бокс стопы на кассах
+    $('#checkCashStops').on('change', function() 
+    {
+        $('#checkDeliveryStops').prop('checked', false);
+        $('#checkRkDisabled').prop('checked', false);
+
+        var isChecked = $(this).prop('checked');
+        if(isChecked)
+        {
+            $('#DeliveryMenu').load(`/menu/CashStops?ttCode=${ttCode}`, function(){ $('#spinner').hide(); });
+        }
+        else
+        {
+            LoadCategory();
+        } 
+    });
+
+    // чек-бокс отключено в Р-кипер
+    $('#checkRkDisabled').on('change', function() 
+    {
+        $('#checkCashStops').prop('checked', false);
+        $('#checkDeliveryStops').prop('checked', false);
+
+        var isChecked = $(this).prop('checked');
+        if(isChecked)
+        {
+            $('#DeliveryMenu').load(`/menu/RkDisabledItems?ttCode=${ttCode}`, function(){ $('#spinner').hide(); });
+        }
+        else
+        {
+            LoadCategory();
+        } 
+    });
+
+    // по загрузке страницы
+    $( document ).ready(function() 
+    {
+        $('.catButton').hide();    
+        $('#spinner').show();
+        LoadCategory();
+    });    
+
+</script>

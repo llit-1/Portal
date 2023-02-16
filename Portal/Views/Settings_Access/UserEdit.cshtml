@@ -1,0 +1,928 @@
+﻿@model Portal.ViewModels.Settings_Access.UserSettings
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows");
+
+    var display = "";
+    var disabled = "disabled";
+    var formClass = "userData input-group";
+    var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
+    var columnClass = "col-md-6 col-lg-3";
+
+    if (Model.newUser)
+    {
+        display = "d-none";
+        disabled = "";
+        formClass = "userData form-group";
+    }
+
+    
+}
+
+<div class="row flex bg-white" style="margin:0px">
+
+    <!--данные пользователя-->
+    <div class="@columnClass" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Данные пользователя</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--включен-->
+        <div class="pull-right" style="padding-bottom:10px">
+            <label id="switchLabel" style="margin-right:15px"></label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="userEnabled" type="checkbox" checked="@Model.User.Enabled">
+                <label for="userEnabled" class="label-warning"></label>
+            </div>
+        </div>
+
+        <br />
+        <br />
+
+        <!--пользователь AD-->
+        <div class="pull-right" style="margin-bottom:0px">
+            <label id="switchLabel" style="margin-right:15px">пользователь AD</label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="userAd" type="checkbox" checked="@Model.User.AdUser">
+                <label for="userAd" class="label-warning"></label>
+            </div>
+        </div>
+
+        <!--имя пользователя-->
+        <label class="label-light" style="width:100%">имя пользователя</label>
+        <div class="@formClass" style="margin-bottom:10px">
+            <input id="userName" type="text" class="form-control" value="@Model.User.Name" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--логин-->
+        <label class="label-light">логин</label>
+        <div class="@formClass" style="margin-bottom:10px">
+            <input id="userLogin" type="text" class="form-control" value="@Model.User.Login" style="font-weight:bold" @disabled>
+            @if(Model.User.Login != "Admin")
+            {
+                <span class="input-group-btn @display">
+                    <!--редактировать-->
+                    <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                    <!--сохранить-->
+                    <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                    <!--сохранение...-->
+                    <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                    <!--отменить-->
+                    <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+                </span>
+            }
+            
+        </div>
+
+        <!--пароль-->
+        <label class="label-light">пароль</label>
+        <div class="userData input-group" style="margin-bottom:10px">
+            <input id="userPass" type="password" value="" class="form-control" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+            @if (Model.newUser)
+            {
+            <span class="input-group-btn">
+                <!--показать пароль-->
+                <button type="button" class="eye btn btn-default"><i class="fa fa-fw fa-eye"></i></button>
+            </span>
+            }
+        </div>
+
+        <!--должность-->
+        <label class="label-light">должность</label>
+        <div class="@formClass" style="margin-bottom:10px">
+            <input id="userJob" type="text" class="form-control" value="@Model.User.JobTitle" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--почта-->
+        <label class="label-light">e-mail</label>
+        <div class="@formClass" style="margin-bottom:10px">
+            <input id="userMail" type="email" class="form-control" value="@Model.User.Mail" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--отчёт по выручке free-->
+        <label class="label-light">выручка free</label>
+        <div class="@formClass" style="margin-bottom:10px">
+            <input id="profitFree" type="text" class="form-control" value="@Model.User.Reports.ProfitFree" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--отчёт по выручке pro-->
+        <label class="label-light">выручка pro</label>
+        <div class="@formClass" style="margin-bottom:10px">
+            <input id="profitPro" type="text" class="form-control" value="@Model.User.Reports.ProfitPro" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+    </div>
+
+    <!--группы-->
+    <div class="@columnClass" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Группы</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор групп-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">селектор групп</label>
+            <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                <select id="groups" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var group in Model.Groups.OrderBy(g => g.Name))
+                    {
+                        if (Model.User.Groups.FirstOrDefault(g => g.Id == group.Id) != null)
+                        {
+                            <option selected="selected" value="@group.Id">@group.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@group.Id">@group.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--роли-->
+    <div class="@columnClass" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Роли</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор ролей-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%; max-height:500px; overflow-y:auto">селектор ролей</label>
+            <div style="width:100%; float:left">
+                <select id="roles" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var role in Model.Roles.OrderBy(r => r.Name))
+                    {
+                        if (Model.User.Roles.FirstOrDefault(r => r.Id == role.Id) != null)
+                        {
+                            <option selected="selected" value="@role.Id">@role.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@role.Id">@role.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--торговые точки-->
+    <div class="@columnClass" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Торговые точки</h5>
+
+        <!--все тт-->
+        <div class="pull-right" style="padding-top:16px">
+            <label id="switchLabel" style="margin-right:15px">все тт</label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="allTT" type="checkbox" checked="@Model.User.AllTT">
+                <label for="allTT" class="label-warning"></label>
+            </div>
+        </div>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор тт-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">селектор тт</label>
+            <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                <select id="objects" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var tt in Model.TTs.OrderBy(o => o.Name))
+                    {
+                        if (Model.User.TTs.FirstOrDefault(o => o.Id == tt.Id) != null)
+                        {
+                            <option selected="selected" value="@tt.Id">@tt.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@tt.Id">@tt.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--кнопки сохранить/отмена-->
+    @if (Model.newUser)
+    {
+        blockStyle += ";width:100%";
+        <div class="col-12" @blockStyle>
+            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="SaveNewItem()">Сохранить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="DataTable()">Отмена</button>
+        </div>
+    }
+
+</div>
+
+<!----------------------------скрипты----------------------------------->
+<!--переменные-->
+<script>
+    var newUser = @Html.Raw(Json.Serialize(Model.newUser));
+    var userId = @Model.User.Id;
+    var userAd = @Html.Raw(Json.Serialize(Model.User.AdUser));
+    var allTT = @Html.Raw(Json.Serialize(Model.User.AllTT));
+    var userLogin = @Html.Raw(Json.Serialize(Model.User.Login));
+</script>
+
+<!--группы-->
+<script>
+    $('#groups').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите группы..."
+    });
+</script>
+
+<!--роли-->
+<script>
+    $('#roles').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите роли..."
+    });
+</script>
+
+<!--торговые точки-->
+<script>
+    $('#objects').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите объекты..."
+    });
+    
+</script>
+
+<!--изменение данных в селекторах-->
+<script>
+    // события изменения в селекторах
+    $('.selectors').on('select2:select', function (e) { SelectChange(this) });
+    $('.selectors').on('select2:unselect', function (e) { SelectChange(this) });
+
+    // изменение набора выделенных элементов в селекторе
+    function SelectChange(selector) {
+
+        if (!newUser) {
+            // определяем элементы
+            //var selId = '#' + $(selector).prop('id');
+            var selCont = $(selector).parent();
+            var save = $(selector).parent().parent().find('.save');
+            var cancel = $(selector).parent().parent().find('.cancel');
+
+            // включаем кнопки
+            $(save).removeClass('d-none');
+            $(cancel).removeClass('d-none');
+
+            $(selCont).css('width', 'calc(100% - 86px)');
+        }
+    }
+
+    // кнопка сохранить
+    function SaveSelect(save) {
+
+        var cancel = $(save).parent().find('.cancel');
+        var spinner = $(save).parent().find('.saving');
+
+        var selector = $(save).parent().find('select');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var user = {};
+        user.id = userId;
+        user.attribute = selectId;
+        user.items = [];
+
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            user.items.push(item);
+        });
+
+        var userjsn = JSON.stringify(user);
+        userjsn = userjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_Access/UserSave',
+            data: { userjsn: userjsn },
+            datatype: "text",
+            success: function (result) {
+
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // скрываем кнопки
+                    $(save).addClass('d-none');
+                    $(cancel).addClass('d-none');
+
+                    // меняем ширину селектора
+                    $(selCont).css('width', '100%');
+
+                    // получаем коллекцию ваыбранных элементов из бд (контроль)
+                    SelectItems(userId, selectId);
+
+                }
+                else {
+                    ShowModal('Редактор пользователя', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
+        });
+
+    }
+
+    // кнопка отмена
+    function CancelSelect(cancel) {
+        var save = $(cancel).parent().find('.save');
+
+        var selector = $(cancel).parent().find('select');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // получаем коллекцию ваыбранных элементов из бд
+        SelectItems(userId, selectId);
+
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+        $(selCont).css('width', '100%');
+    }
+
+    // получение коллекций данных на пользователе
+    function SelectItems(userId, selectId) {
+
+        // снимаем выделение со всех элементов
+        $('#' + selectId + ' option').each(function () {
+            $(this).prop('selected', false);
+        });
+
+        // получаем данные из контроллера
+        $.get('/Settings_Access/GetUserItems?userId=' + userId + '&selectId=' + selectId, function (selectedItems) {
+            $(selectedItems).each(function () {
+                $('#' + selectId + ' option[value=' + this.id + ']').prop('selected', true);
+            });
+
+            // ре-инициализируем select2
+            var selector = $('#' + selectId).select2();
+            selector.select2({
+                theme: "bootstrap4",
+                width: "resolve",
+                language: "ru",
+                closeOnSelect: false,
+                placeholder: "выберите..."
+            });
+        });
+    }
+
+
+</script>
+
+<!--изменение данных пользователя-->
+<script>
+
+    var oldValue = "";
+    // кнопка редактировать справа
+    function Edit(edit) {
+
+        // получаем текущие элементы
+        var save = $(edit).parent().find('.save');
+        var cancel = $(edit).parent().find('.cancel');
+        var input = $(edit).parent().parent().children('input');
+
+        oldValue = $(input).val();
+
+        // меняем кнопки
+        $(edit).addClass('d-none');
+        $(save).removeClass('d-none');
+        $(cancel).removeClass('d-none');
+
+        // активируем поле ввода и ставим туда курсор
+        $(input).prop('disabled', false);
+        $(input).focus();
+    }
+
+    // кнопка сохранить справа
+    function Save(save) {
+
+        // определяем текущие элементы
+        var input = $(save).parent().parent().children('input');
+        var edit = $(save).parent().find('.edit');
+        var cancel = $(save).parent().find('.cancel');
+        var spinner = $(save).parent().children('.saving');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var user = {};
+        user.id = @Model.User.Id;
+        user.attribute = $(input).attr('id');
+
+        user.name = $('#userName').val();
+        user.login = $('#userLogin').val();
+        user.password = $('#userPass').val();
+        user.job = $('#userJob').val();
+        user.mail = $('#userMail').val();
+        user.profitFree = $('#profitFree').val();
+        user.profitPro = $('#profitPro').val();
+
+        var userjsn = JSON.stringify(user);
+        userjsn = userjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_Access/UserSave',
+            data: { userjsn: userjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // меняем кнопку сохранить на кнопку редактировать
+                    $(save).addClass('d-none');
+                    $(edit).removeClass('d-none');
+
+                    // блокируем поле ввода
+                    $(input).prop('disabled', true);
+
+                    // обновляем заголовок страницы
+                    $('#header').text(user.name);
+                }
+                else {
+                    ShowModal('Редактор пользователя', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) {
+                // меняем кнопки
+                $(spinner).addClass('d-none');
+                $(edit).removeClass('d-none');
+                $(save).addClass('d-none');
+                $(cancel).addClass('d-none');
+
+                // блокируем поле ввода
+                $(input).val(oldValue);
+                $(input).prop('disabled', true);
+
+                ShowModal('Редактор пользователя', 'Данные не были сохранены, возникла ошибка передачи: ' + error.responseText);
+            }
+        });
+    }
+
+    // кнопка отмена справа
+    function Cancel(cancel) {
+
+        // получаем текущие элементы
+        var save = $(cancel).parent().find('.save');
+        var edit = $(cancel).parent().find('.edit');
+        var input = $(cancel).parent().parent().children('input');
+
+        // меняем кнопки
+        $(edit).removeClass('d-none');
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+
+        // блокируем поле ввода
+        $(input).val(oldValue);
+        $(input).prop('disabled', true);
+
+    }
+
+</script>
+
+<!--выключатель пользователя-->
+<script>
+    // функция смены текста выключателя
+    function SwitchName(state) {
+
+        if (state)
+            $('#switchLabel').text("включён");
+        else
+            $('#switchLabel').text("отключён");
+    }
+
+    var userEnabled = @Html.Raw(Json.Serialize(Model.User.Enabled));
+    SwitchName(userEnabled);
+
+    $('#userEnabled').change(function () {
+        var enabled = $(this).is(':checked');
+
+        if (!newUser) {
+            // отправляем данные в контроллер
+            var user = {};
+            user.id = @Model.User.Id;
+            user.attribute = $(this).attr('id');
+            user.enabled = enabled;
+
+            var userjsn = JSON.stringify(user);
+            userjsn = userjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+            $.ajax({
+                type: "POST",
+                url: '/Settings_Access/UserSave',
+                data: { userjsn: userjsn },
+                datatype: "text",
+                success: function (result) {
+                    if (result.ok) {
+                        SwitchName(user.enabled);
+                    }
+                    else {
+                        alert(result.data);
+                    }
+                },
+                error: function (error) {
+                    ShowModal("Ошибка", error.responseText)
+                }
+            });
+        }
+        else {
+            SwitchName(enabled);
+        }
+    });
+
+</script>
+
+<!--выключатель AD-->
+<script>
+
+    // убираем кнопки редактировать при включенном AD
+    function EditHide(isAd) {
+        if (!newUser) {
+            if (isAd) {
+                $('.edit').each(function () {
+                    var inputId = $(this).parent().parent().find('input').attr('id');
+                    var userData = $(this).parent().parent();
+                    if (inputId != 'profitFree' & inputId != 'profitPro') {
+                        $(this).addClass('d-none');
+                        userData.removeClass('input-group');
+                    }
+                });
+            }
+            else {
+                $('.edit').removeClass('d-none');
+                $('.userData').addClass('input-group');
+            }
+        }
+        else {
+            if (isAd) {
+                //$('.userData').removeClass('form-group');
+                //$('.userData').children('input').prop('disabled', true);
+
+            }
+            else {
+                //$('.userData').addClass('form-group');
+                //$('.userData').children('input').prop('disabled', false);
+            }
+        }
+    }
+    EditHide(userAd);
+
+    $('#userAd').change(function () {
+        var isAd = $(this).is(':checked');
+
+        if (!newUser) {
+            // отправляем данные в контроллер
+            var user = {};
+            user.id = @Model.User.Id;
+            user.attribute = $(this).attr('id');
+            user.ad = isAd;
+
+            var userjsn = JSON.stringify(user);
+            userjsn = userjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+            $.ajax({
+                type: "POST",
+                url: '/Settings_Access/UserSave',
+                data: { userjsn: userjsn },
+                datatype: "text",
+                success: function (result) {
+                    if (result.ok) {
+                        EditHide(isAd);
+                    }
+                    else {
+                        alert(result.data);
+                    }
+                },
+                error: function (error) {
+                    ShowModal("Ошибка", error.responseText)
+                }
+            });
+        }
+        else {
+            EditHide(isAd);
+        }
+    });
+
+</script>
+
+<!--выключатель все тт-->
+<script>
+    // блокировка селектора
+    function ttSelectorState(allTT) {
+        if (allTT) {
+            $('#objects').prop('disabled', true);
+        }
+        else {
+            $('#objects').prop('disabled', false);
+        }
+    }
+    ttSelectorState(allTT);
+
+    // изменение положения выключателя
+    $('#allTT').change(function () {
+        var allTT = $(this).is(':checked');
+
+        if (!newUser) {
+            // отправляем данные в контроллер
+            var user = {};
+            user.id = @Model.User.Id;
+            user.attribute = $(this).attr('id');
+            user.alltt = allTT;
+
+            var userjsn = JSON.stringify(user);
+            userjsn = userjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+            $.ajax({
+                type: "POST",
+                url: '/Settings_Access/UserSave',
+                data: { userjsn: userjsn },
+                datatype: "text",
+                success: function (result) {
+                    if (result.ok) {
+                        SelectItems(userId, 'objects');
+                        ttSelectorState(allTT);
+                    }
+                    else {
+                        alert(result.data);
+                    }
+                },
+                error: function (error) {
+                    ShowModal("Ошибка", error.responseText)
+                }
+            });
+        }
+        else {
+            if (allTT)                
+            $('#objects').select2('destroy').find('option').prop('selected', true).end().select2({
+                theme: "bootstrap4",
+                language: "ru",
+                closeOnSelect: false,
+                placeholder: "выберите объекты..."
+            });
+            else
+                $('#objects').select2('destroy').find('option').prop('selected', false).end().select2({
+                    theme: "bootstrap4",
+                    language: "ru",
+                    closeOnSelect: false,
+                    placeholder: "выберите объекты..."
+                });
+            ttSelectorState(allTT);
+        }
+    });
+</script>
+
+<!--сохранить нового пользователя-->
+<script>
+    function SaveNewItem() {
+
+        var user = {};
+        user.id = 0;
+        user.enabled = $('#userEnabled').is(':checked');
+        user.ad = $('#userAd').is(':checked');
+        user.alltt = $('#allTT').is(':checked');
+
+        user.name = $('#userName').val();
+        user.login = $('#userLogin').val();
+        user.password = $('#userPass').val();
+        user.job = $('#userJob').val();
+        user.mail = $('#userMail').val();        
+        user.profitFree = $('#profitFree').val();
+        user.profitPro = $('#profitPro').val();
+
+        user.groups = DataFromSelector($('#groups'));
+        user.roles = DataFromSelector($('#roles'));
+        user.objects = DataFromSelector($('#objects'));
+
+        var userjsn = JSON.stringify(user);
+        userjsn = userjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_Access/UserSave',
+            data: { userjsn: userjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+
+                    ShowModal('Редактор пользователя', 'Пользователь успешно добавлен');
+                    //DataTable();
+
+                    $('#modalWindow').on('hidden.bs.modal', function () {
+
+                        setTimeout(function () {
+                            $('#modalWindow').remove();
+                            DataTable();
+                        }, 100);
+
+                        $('#modalWindow').off('hidden.bs.modal');
+                    });
+
+                }
+                else {
+                    ShowModal('Редактор пользователя', result.data);
+                }
+            },
+            error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
+        });
+    }
+
+    // получение данных в селекторах
+    function DataFromSelector(selector) {
+
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            items.push(item);
+        });
+
+        return items;
+    }
+</script>
+
+<!--удаление пользователя-->
+<script>
+    function DeleteItem() {
+        var userName = $('#userName').val();
+        var confirmMessage = 'Пользователь "' + userName + '" будет удален, продолжить?';
+
+        ShowModal("Подтвердите удаление", confirmMessage, 1);
+
+        // кнопка ok в модальном окне
+        $('#ok').on('click', function () {
+            $('#ok').off('click');
+            SpinnerShow();
+            $.get('/Settings_Access/UserDelete?userId=' + userId, function (result) {
+                if (result == "ok") {
+                    DataTable();
+                    //ShowModal('Редактор пользователей', 'пользователь ' + userName + ' удалён.');
+                }
+                else {
+                    ShowModal('Ошибка', result);
+                }
+            });
+        });
+    }
+</script>
+
+<!--показать пароль-->
+<script>
+    $(".eye").mousedown(function () {
+        $('#userPass').attr('type', 'text');
+    });
+
+    $(".eye").mouseup(function () {
+        $('#userPass').attr('type', 'password');
+    });
+</script>
+
+<!--убираем возможность редактировани ялогина Admin-->
+<script>
+    if (userLogin == 'Admin') {
+        var el = $('#userLogin').parent();
+        el.removeClass('input-group');
+    }
+</script>

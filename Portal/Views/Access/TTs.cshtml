@@ -1,0 +1,43 @@
+﻿@model List<RKNet_Model.TT.TT>
+
+<!--торговые точки-->
+<div class="row cm-fix-height">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">торговые точки</div>
+            <div class="panel-body pre-scrollable">
+                <div class="list-group">
+                    @foreach (var tt in Model.OrderBy(n => n.Name))
+                    {
+                        var id = "ttId_" + tt.Id.ToString();
+                        <a href="#tt" class="list-group-item list-group-item-action list-group-item-slim tts" id="@id" onclick="AjaxVert3Load('/Access/TTEdit', '#@id')">@tt.Name</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content"></div>
+
+</div>
+
+
+<!------------------------------------------------------------>
+<!--загрузка странички в область контента и выделение активного пункта вертикального меню-->
+<script>
+    function AjaxVert3Load(url, id) {
+        $('.tts').removeClass('active');
+        $(id).addClass('active');
+
+        var ttId = id.substr(6, id.length - 6);
+        url = url + '?ttId=' + ttId;
+        $('#content').load(url);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

@@ -1,0 +1,291 @@
+﻿@model Portal.ViewModels.UserRequests.RequestsListView
+<!--Назад-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <a href="#" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<!--фильтры-->
+<div class="row" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--кол-во строк на странице-->
+    <div class="col-sm-1 el-marging">
+        <select class="form-control form-control-sm" id="logsOnPage">
+            <option value="5">5</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+
+    <!--статусы-->
+    <div class="col-sm-2 el-marging">
+        <select class="form-control form-control-sm" id="stateSelector">
+            <option value="new">новые</option>
+            <option value="denied">отказано</option>
+            <option value="closed">закрытые</option>
+            <option value="">все</option>
+        </select>
+    </div>
+
+</div>
+
+<!--таблица запросов-->
+<table class="table table-sm table-no-border table-compact orange">
+
+    @foreach (var req in Model.requests.OrderByDescending(r => r.DateTime))
+    {
+        var stateName = "";
+        var color = "";
+
+        switch (req.State)
+        {
+            case "new":
+                stateName = "новый";
+                color = "green";
+                break;
+            case "closed":
+                stateName = "закрыт";
+                break;
+            case "denied":
+                stateName = "отказано";
+                color = "red";
+                break;
+        }
+
+
+
+        <tr>
+            <td><p>@req.DateTime.ToString("dd.MM")</p></td>
+            <td><p>@req.UserName</p></td>
+            <td class="mobile-hide"><p>@req.UserJobTitle</p></td>
+            <td class="mobile-hide"><p>@req.Type</p></td>
+            <td><p>@req.RoleName</p></td>
+            <td class="text-center mobile-hide"><p style="color:@color">@stateName</p></td>
+
+            @if (req.State == "new")
+            {
+                <td width="110px" class="mobile-hide">
+                    <button style="width:120px" class="btn btn-sm btn-gray pull-right" onclick="ChangeState(@req.Id, 'denied')">отказать</button>
+                </td>
+
+                <td width="110px" class="mobile-hide">
+                    <button style="width:120px" class="btn btn-sm btn-gray pull-right" onclick="ChangeState(@req.Id, 'closed')">закрыть</button>
+                </td>
+            }
+
+            @if (req.State == "denied")
+            {
+                <td colspan="2" class="mobile-hide">
+                    <button style="width:110px" class="btn btn-sm btn-gray pull-right" onclick="ChangeState(@req.Id, 'new')">возобновить</button>
+                </td>
+            }
+
+            @if (req.State == "closed")
+            {
+                <td colspan="2" class="mobile-hide"></td>
+            }
+
+
+        </tr>
+
+    }
+</table>
+
+<!--навигация по страницам-->
+<ul id="logPages" class="pagination shadowed" style="margin:0">
+    <li id="leftPages" class="ignore"><a href="#link"><span><i class="fa fa-angle-left"></i></span></a></li>
+
+    @{
+        var numPages = 6;
+        var totalPages = Model.countRows / Model.rowsOnPage;
+        var firstPage = 1;
+
+
+
+        while (firstPage <= Model.selectedPage) firstPage += numPages;
+        if (firstPage != 1) firstPage -= numPages;
+
+        var lastPage = firstPage + numPages - 1;
+        var id = "";
+        var x = 1;
+
+        for (var p = firstPage; p <= lastPage; p++)
+        {
+            if (p <= totalPages)
+            {
+                id = "id = page_" + x.ToString();
+                var active = "";
+                if (p == Model.selectedPage) active = "class = active";
+
+                <li @active><a @id href="#link">@p</a></li>
+
+                x++;
+            }
+        }
+    }
+
+    <li id="rightPages" class="ignore"><a href="#link"><span><i class="fa fa-angle-right"></i></span></a></li>
+</ul>
+
+<!-------------------------------------------------------------->
+<!--переменные-->
+<script>
+    var selectedPage = @Html.Raw(Json.Serialize(Model.selectedPage));
+    var numPages = @Html.Raw(Json.Serialize(numPages));
+    var totalPages = @Html.Raw(Json.Serialize(totalPages));
+    var firstPage = @Html.Raw(Json.Serialize(firstPage));
+    var lastPage = @Html.Raw(Json.Serialize(lastPage));
+</script>
+
+<!--навигация по страницам-->
+<script>    
+
+    // выбор номера страницы
+    $('#logPages').children('li').children('a').click(function () {
+
+        if (!$(this).parent('li').hasClass('ignore')) {
+            if (!$(this).parent('li').hasClass('active')) {
+                selectedPage = $(this).text();
+                $('#logPages').children('li').removeClass('active');
+                $(this).parent('li').addClass('active');
+
+                GetData();
+            }
+        }
+    });
+
+    // перемотка номеров вправо
+    $('#rightPages').click(function () {
+
+        if (lastPage < totalPages) {
+            let i = 1;
+            while (i <= numPages) {
+                var pageNumber = lastPage + i;
+                var id = "#page_" + i;
+                $(id).text(pageNumber);
+
+                if (pageNumber > totalPages) $(id).hide();
+                else {
+                    $(id).show();
+                    $('#logPages').children('li').removeClass('active');
+                    if (pageNumber == selectedPage + numPages) $(id).click();
+                }
+                i++;
+            }
+            firstPage = firstPage + numPages;
+            lastPage = lastPage + numPages;
+        }
+
+    });
+
+    // перемотка номеров влево
+    $('#leftPages').click(function () {
+
+        if (firstPage > 1) {
+            let i = numPages;
+            while (i >= 1) {
+                var pageNumber = firstPage - i;
+                var id = "#page_" + i;
+                $(id).text(pageNumber);
+
+                if (pageNumber < 1) $(id).hide();
+                else {
+                    $(id).show();
+                    $('#logPages').children('li').removeClass('active');
+                    if (pageNumber == selectedPage - numPages) $(id).click();
+                }
+                i--;
+            }
+            firstPage = firstPage + numPages;
+            lastPage = lastPage + numPages;
+        }
+
+    });
+
+</script>
+
+<!--изменить статус запроса-->
+<script>
+    function ChangeState(id, newState) {
+        $.get('/UserRequests/ChangeState?id=' + id, '&newState=' + newState, function (result) {
+            if (result == "ok") {
+                var state = @Html.Raw(Json.Serialize(Model.stateFilter));
+                $(contentContainer).load('/UserRequests/ReqList?state=' + state);
+            }
+            else {
+                alert(result);
+            }
+        });
+    }
+</script>
+
+<!--фильтры-->
+<script>
+
+    // кол-во строк данных на странице
+    var logsOnPage = @Html.Raw(Json.Serialize(Model.rowsOnPage));
+    $('#logsOnPage option[value=' + logsOnPage + ']').prop('selected', true);
+    $('#logsOnPage').on('change', function () { selectedPage = 1; GetData(); });
+
+    // статусы    
+    var state = @Html.Raw(Json.Serialize(Model.stateFilter));
+    if (state == "") {
+        $('#stateSelector option:contains(все)').prop('selected', true);
+    }
+    else {
+        $('#stateSelector option[value=' + state + ']').prop('selected', true);
+    }
+    $('#stateSelector').on('change', function () { selectedPage = 1; GetData(); });
+
+</script>
+
+<!--получение данных-->
+<script>
+    function GetData() {
+        var state = $('#stateSelector').val();
+        var logsOnPage = $('#logsOnPage').val();
+        
+        $('#loading').show();
+        $(contentContainer).load('/UserRequests/ReqList?state=' + state + '&selectedPage=' + selectedPage + '&logsOnPage=' + logsOnPage,);
+    }
+</script>
+
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        var orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        Alerts();       
+        $('#loading').hide();
+    });
+</script>

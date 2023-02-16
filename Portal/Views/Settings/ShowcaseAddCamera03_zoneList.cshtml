@@ -1,0 +1,234 @@
+﻿@model Portal.ViewModels.CameraView
+
+<h1>Зоны на камере</h1>
+<table class="nxSystemTable" id="zonesTable">
+    <tbody>
+        <tr class="tableHead">
+            <td class="tdHead">имя</td>
+            <td class="tdHead">уровень</td>
+            <td class="tdHead"></td>
+            <td class="tdHead"></td>
+        </tr>
+        @foreach (var zone in Model.Zones)
+        {
+            <tr>
+                <td style="background-color:rgba(@zone.Color, 0.3)">@zone.Name</td>
+                <td style="background-color:rgba(@zone.Color, 0.3)">@zone.Level</td>
+                <td style="background-color:rgba(@zone.Color, 0.3)"><a href="##" onclick="editZone('@zone.Id')">изменить</a></td>
+                <td style="background-color:rgba(@zone.Color, 0.3)"><a href="##" onclick="deleteZone('@zone.Id', '@zone.Name')">удалить</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<br />
+<a href="##" onclick="load('/Settings/Showcase', 'demo')" style="padding-right: 1vw; float:left">к списку зон</a>
+<a href="##" onclick="editZone('add')" style="padding-right: 1vw; float:left">добавить зону</a>
+<a href="##" onclick="SelectSourceImage()" style="float:right">изменить образец</a>
+
+<!------------------------------------------------------------------------------------>
+
+<script>
+    var zones = @Html.Raw(Json.Serialize(Model.Zones));
+    var camGuid = @Html.Raw(Json.Serialize(Model.cameraGuid));
+</script>
+
+<!--отрисовка зон в канвасе-->
+<script>
+    var points;
+    function drawZones() {
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.canvas.width = ctx.canvas.width;
+
+        $(zones).each(function () {
+
+            if (this.polyPoints.length) {
+
+                points = this.polyPoints.split(',').map(function (point) {
+                    return parseInt(point, 10);
+                });
+
+                // пересчитываем координаты точек к текущему размеру канваса из исходного размера 1248х700
+                var x1 = $('#canvas').width();
+                var x2 = 1248;
+                var k = (x1 / x2).toFixed(2);
+                var x = 0;
+
+                $(points).each(function () {
+                    points[x] = Math.round(points[x] * k);
+                    x++;
+                });
+
+            } else {
+                points = [];
+            }
+
+            if (points.length < 2) {
+
+                return;
+            }
+
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.strokeStyle = 'rgb(' + this.color + ')'; // цвет линии
+            ctx.lineWidth = 1;
+
+            // вывод процента заполнения
+            if (points.length >= 6) {
+                var c = getCenter();
+
+                // Текст
+                ctx.fillStyle = 'rgba(' + '0,0,0' + ',1)';
+                ctx.font = "20px Arial";
+                ctx.fillText(this.value, c.x - 17, c.y + 7);
+
+                // Фон текста
+                var w = 70;
+                var h = 30;
+                ctx.fillStyle = 'rgba(' + this.color + ',1)';
+                ctx.fillRect(c.x - w / 2, c.y - h / 2, w, h);
+
+            }
+
+            // отрисовка полигона
+            ctx.beginPath();
+            ctx.moveTo(points[0], points[1]);
+            for (var i = 0; i < points.length; i += 2) {
+                if (points.length > 2 && i > 1) {
+                    ctx.lineTo(points[i], points[i + 1]);
+                }
+            }
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(' + this.color + ',0.3)'; // цвет заполнения полигона
+            ctx.fill();
+            ctx.stroke();
+        });
+    };
+
+    function getCenter() {
+        var ptc = [];
+
+        for (var i = 0; i < points.length; i++) {
+            ptc.push({ x: points[i], y: points[++i] });
+        }
+
+        var first = ptc[0], last = ptc[ptc.length - 1];
+        if (first.x != last.x || first.y != last.y) ptc.push(first);
+        var twicearea = 0,
+            x = 0, y = 0,
+            nptc = ptc.length,
+            p1, p2, f;
+
+        for (var i = 0, j = nptc - 1; i < nptc; j = i++) {
+            p1 = ptc[i];
+            p2 = ptc[j];
+            f = p1.x * p2.y - p2.x * p1.y;
+            twicearea += f;
+            x += (p1.x + p2.x) * f;
+            y += (p1.y + p2.y) * f;
+        }
+
+        f = twicearea * 3;
+
+        return { x: x / f, y: y / f };
+    };
+</script>
+
+<!--удаление зоны-->
+<script>
+    function deleteZone(zoneId, zoneName) {
+
+        var confDel = confirm("Удалить зону " + zoneName + "?");
+
+        if (confDel) {
+            var req = '/Api/DeleteZone/' + zoneId;
+
+            var request = $.get(req, function () { });
+        request.done(function (result) {
+            if (result.ok != true) {
+                var err = result.title + ' Error message: ' + result.errorMessage + ' Exception text: ' + result.exceptionText;
+            }
+            else
+            {
+                var jsn = JSON.stringify(camView);
+                jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+                $('#zonesBlock').load('@Url.Action("ShowcaseAddCamera03_zoneList", "Settings")?jsn=' + jsn);
+            }
+        });
+        request.fail(function (e) {
+            //alert('Ошибка отправки запроса');
+            alert(e.responseText);
+        });
+        }
+    }
+</script>
+
+<!--добавление/редактирование зоны-->
+<script>
+    function editZone(Id) {
+        $('#zonesBlock').load('@Url.Action("ShowcaseAddCamera03_zoneAdd", "Settings")?Id=' + Id + '&Guid=' + camGuid);
+    }
+</script>
+
+<!--анализ заполненности-->
+<script>
+    function ComparePictures() {
+        var size = Object.keys(zones).length;
+        var x = 0;
+
+        $(zones).each(function (index) {
+            var dat = $('#zoneSelectTitle').text();
+
+            var jsn = JSON.stringify(this);
+            jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+            var req = '/Api/Compare?jsn=' + jsn + '&dat=' + dat;
+            var request = $.get(req, function () { });
+
+            request.done(function (result) {
+
+                zones[index].value = result;
+                x++;
+                if (x = size) drawZones();
+            });
+            request.fail(function (e) {
+                //alert("ошибка запроса в модуль сравнения: " + e.responseText);
+                zones[index].value = '---';
+                x++;
+                if (x = size) drawZones();
+            });
+
+        });
+
+        if (size == 0) drawZones();
+    }
+
+</script>
+
+<!--изменение образца для сравнения-->
+<script>
+    function SelectSourceImage() {
+        $('#loading').show();
+
+        var jsn = JSON.stringify(camView);
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+        $('#demo').load('@Url.Action("ShowcaseAddCamera02", "Settings")?jsn=' + jsn);
+    }
+</script>
+
+<!------------------------------------------------------------------------------------>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        //drawZones();
+        ComparePictures();
+        compareEnable = true;
+        $('#canvas').css({ "cursor": "default" });
+
+        $('#loading').hide();
+    });
+</script>

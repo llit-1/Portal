@@ -1,0 +1,13 @@
+﻿@model RKNet_Model.Result<string>
+
+    <div class="error">
+        <a href="#link" onclick="load('/Home/Index', 'main')">вернуться на главную страницу</a>
+        <p></p><br />
+        <h2>@Model.Title</h2>
+        <br />
+        <p>@Model.ErrorMessage</p>
+        <br />
+        <p>@Model.ExceptionText</p>
+    </div>
+
+    <script>$('#loading').hide();</script>

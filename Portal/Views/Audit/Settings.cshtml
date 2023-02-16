@@ -1,0 +1,127 @@
+﻿@model List<RKNet_Model.Audit.Item>
+
+
+<table id="auditTable">
+    <caption>
+        <a href="#link" onclick="jQuery('#auditTable').treetable('expandAll');  return false;">Развернуть всё</a>
+        <a href="#link" onclick="jQuery('#auditTable').treetable('collapseAll'); return false;">Свернуть всё</a>
+    </caption>
+    <thead>
+        <tr>
+            <th>Имя</th>
+            <th>доп.инфо</th>
+            <th>Id</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in Model)
+        {
+            <tr data-tt-id="@item.Id" data-tt-branch='true' class="color-orange">                
+                <td>@item.Name</td>
+                <td>@item.Scores.Count</td>
+                <td>@item.Id</td>
+            </tr> 
+        }             
+    </tbody>
+</table>
+
+
+
+
+<!--скрипты----------------------------------------------->
+
+
+<script>
+    $('#loading').hide();
+</script>
+
+
+
+<!--таблица treeTable-->
+<script>
+    var tableId = '#auditTable';
+    // инициализация
+    $(tableId).treetable({
+        expandable: true,
+        onNodeExpand: nodeExpand,
+        onNodeCollapse: nodeCollapse
+    });
+
+    // Развертывание строки с ID "1"
+    //$(tableId).treetable("reveal", '1');
+
+    // Выделение активной строки таблицы
+    $(tableId + " tbody").on("mousedown", "tr", function () {
+        alert();
+        $(".selected").not(this).removeClass("selected");
+        $(this).toggleClass("selected");
+    });
+
+    // событие развернтывания элемента
+    function nodeExpand() {
+        GetItem(this.id);
+    }
+
+    // событи свертывания элемента
+    function nodeCollapse() {
+        
+    }
+
+    // получение дочерних элементов и загрузка в таблицу
+    function GetItem(parentItemId) {
+        $.get('/Audit/GetItem?itemId=' + parentItemId, function (childItem) {
+
+            $("#loadingImage").hide();
+
+            var parentItem = $(tableId).treetable("node", parentItemId);
+            var childItems = childItem.items;
+            var childScores = childItem.scores;
+            
+            // дочерние оценки
+            if (childScores) {
+                
+                for (var i = 0; i < childScores.length; i++) {
+                    var score = childScores[i];
+                    score.id = 's' + score.id;
+                    var scoreToAdd = $(tableId).treetable("node", score.id);
+                                        
+                    if (!scoreToAdd) {
+                        
+                        // формируем строку таблицы
+                        var row;
+                        row = '<tr data-tt-id="' + score.id + '" data-tt-parent-id="' + parentItemId + '" ' + ' class="color-gray">';
+                        row += "<td>" + score.name + "</td>";
+                        row += "<td>" + '---' + "</td>";
+                        row += "<td>" + score.id + "</td>";
+                        row += "</tr>";
+                        // добавляем строку к родительскому элементу
+                        $(tableId).treetable("loadBranch", parentItem, row);
+                    }
+                }
+            }
+            // дочерние объекты
+            if (childItems) {
+
+                for (var i = 0; i < childItems.length; i++) {
+                    var item = childItems[i];
+                    var itemToAdd = $(tableId).treetable("node", item.id);
+
+                    if (!itemToAdd) {
+
+                        // формируем строку таблицы
+                        var row;
+                        row = '<tr data-tt-id="' + item.id + '" data-tt-parent-id="' + parentItemId + '" ' + 'data-tt-branch="true" class="color-gray">';
+                        row += "<td>" + item.name + "</td>";
+                        row += "<td>" + item.items.length + "</td>";
+                        row += "<td>" + item.id + "</td>";
+                        row += "</tr>";
+                        // добавляем строку к родительскому элементу
+                        $(tableId).treetable("loadBranch", parentItem, row);
+                    }
+                }
+            }
+
+        });
+    }
+
+</script>

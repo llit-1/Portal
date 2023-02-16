@@ -1,0 +1,364 @@
+﻿@using Portal.Models
+
+<!DOCTYPE html>
+<html style="overflow-y:hidden">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <title>Портал ЛЛ</title>
+
+    <!--Подключаемые стили-->
+    <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/bootstrap-clearmin.min.css" asp-append-version="true">
+    <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/roboto.css">
+    <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/material-design.css">
+    <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/small-n-flat.css">
+    <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/font-awesome.min.css">
+    <link href="~/themes/clearmin/css/portal-clearmin.css" rel="stylesheet" asp-append-version="true" />
+
+    <!--видеоплеер-->
+    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@videojs/themes@1/dist/sea/index.css" rel="stylesheet" />
+
+
+    <link href="~/js/selectCheckboxes/selectCheckboxes.css" rel="stylesheet" />
+
+
+    <!--плагин для просмотра изображений http://wordsmall.ru/demo/glightbox/index.html -->
+    <link rel="stylesheet" type="text/css" href="~/js/glightbox/dist/css/glightbox.css">
+
+    <!--плагин для древовидного меню в селекте-->
+    <link href="~/js/combo-tree-master/style.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.materialdesignicons.com/5.0.45/css/materialdesignicons.min.css">
+
+</head>
+
+<body class="cm-no-transition cm-1-navbar" id="body">
+
+    <!--Вертикальное меню-->
+    <div id="cm-menu">
+        <nav class="cm-navbar cm-navbar-primary">
+            <div class="cm-flex"><div class="cm-logo"></div></div>
+            <div class="btn btn-primary md-menu-white" data-toggle="cm-menu"></div>
+        </nav>
+
+        <!--разделы меню-->
+        <div id="cm-menu-content">
+            <div id="cm-menu-items-wrapper">
+                <div id="cm-menu-scroller">
+                    <ul class="cm-menu-items">
+                        <!--Главная страница-->
+                        <li><a id="main" class="md-home activeA" href="#">Главная</a></li>
+
+                        <!--Отчеты-->
+                        @if (User.IsInRole("reports"))
+                        {
+                            <li class="cm-submenu">
+                                <a class="md-equalizer" id="reports" onclick="selectSection('reports')">Отчёты<span class="caret"></span></a>
+                                <ul>
+                                    @if (User.IsInRole("reports_profit"))
+                                    {
+                                        <li><a id="profit" href="#profit">Выручка</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_pro"))
+                                    {
+                                        <li><a id="profitpro" href="#profitpro">Выручка Pro</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_special"))
+                                    {
+                                        <li><a id="profitall" href="#profitall">Выручка All</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_profitplan"))
+                                    {
+                                        <li><a id="profitplan" href="#profitplan">План продаж по ТТ</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_sd"))
+                                    {
+                                        <li><a id="sdreport" href="#sdreport">Сервис-деск</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_calcusage"))
+                                    {
+                                        <li><a id="calcusage" href="#calcusage">Использование калькуляторов</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_checkstime"))
+                                    {
+                                        <li><a id="checkstime" href="#checkstime">Время чеков</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_cashoperations"))
+                                    {
+                                        <li><a id="cashoperations" href="#cashoperations">Кассовые операции</a></li>
+                                    }
+                                    @if (User.IsInRole("reports_other"))
+                                    {
+                                        <li><a id="Other" href="#Other">Другие отчёты</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Меню-->
+                        @if (User.IsInRole("menuDelivery"))
+                        {
+                            <li><a id="menu" href="#menu" class="md-local-restaurant">Меню доставки</a></li>
+                        }
+
+                        <!--Заказы ТТ-->
+                        @if (User.IsInRole("ttorders"))
+                        {
+                            <li class="cm-submenu">
+                                <a id="ttorders" onclick="selectSection('ttorders')" class="md-shopping-basket">Заказы ТТ <span class="caret"></span></a>
+                                <ul>
+                                    <li><a id="weekorder" href="#weekorder">Еженедельный заказ</a></li>
+                                    <li><a id="monthorder" href="#monthorder">Ежемесячный заказ</a></li>
+                                    @if (User.IsInRole("forders"))
+                                    {
+                                        <li><a id="franchorders" href="#franchorders">Регулярные заказы</a></li>
+                                    }
+                                    @if (User.IsInRole("ttorders_prices"))
+                                    {
+                                        <li><a id="ttorders_prices" href="#ttorders_prices">Заказ ценников</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Сообщения на кассы-->
+                        @if (User.IsInRole("cashmsg"))
+                        {
+                            <li><a id="cashmsg" href="#cashmsg" class="md-dvr">Сообщения на кассы</a></li>
+                        }
+
+                        <!--Стопы на кассах-->
+                        @if (User.IsInRole("skustop"))
+                        {
+                            <li><a id="skustop" href="#skustop" class="md-block">Стопы на кассах</a></li>
+                        }
+
+                        <!--Библиотека знаний-->
+                        @if (User.IsInRole("library"))
+                        {
+                            <li class="cm-submenu">
+                                <a class="md-school" id="library" onclick="selectSection('library')">Библиотека знаний <span class="caret"></span></a>
+                                <ul>
+                                    @if (User.IsInRole("library_internal"))
+                                    {
+                                        <li><a id="InternalDocs" href="#InternalDocs">Внутренние документы</a></li>
+                                    }
+                                    @if (User.IsInRole("library_ll"))
+                                    {
+                                        <li><a id="LudiLove" href="#LudiLove">Пекарни Люди Любят</a></li>
+                                    }
+                                    @if (User.IsInRole("library_franch"))
+                                    {
+                                        <li><a id="FranchBook" href="#FranchBook">Справочник франчайзи</a></li>
+
+                                    }
+                                    @if (User.IsInRole("library_passports"))
+                                    {
+                                        <li><a id="Passports" href="#Passports">Паспорта качества</a></li>
+
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Аудиты пекарен-->
+                        @if (User.IsInRole("audit"))
+                        {
+                            <li class="cm-submenu">
+                                <a class="md-check-circle" id="Audit" onclick="selectSection('Audit')">Аудиты<span class="caret"></span></a>
+                                <ul>
+                                    @if (User.IsInRole("audit_bakery"))
+                                    {
+                                        <li><a id="AuditIndex" href="#AuditIndex">Аудиты пекарен</a></li>
+                                    }
+                                    @if (User.IsInRole("audit_settings"))
+                                    {
+                                        <li><a id="AuditSettings" href="#AuditSettings">Настройки аудитов</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Видеонаблюдение-->
+                        @if (User.IsInRole("video"))
+                        {
+                            <li class="cm-submenu">
+                                <a class="md-camera" id="video" onclick="selectSection('video')">Видеонаблюдение <span class="caret"></span></a>
+                                <ul>
+                                    <li><a id="photocam" href="#photocam">Фотоаналитика</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Калькуляторы розницы-->
+                        @if (User.IsInRole("calculators"))
+                        {
+                            <li class="cm-submenu">
+                                <a class="md-dialpad" id="calculators" onclick="selectSection('calculators')">Калькуляторы розницы<span class="caret"></span></a>
+                                <ul>
+                                    <li><a id="calc_vipechka" href="#calc_vipechka">Выпечка</a></li>
+                                    <li><a id="calc_defrost" href="#calc_defrost">Кондитерка</a></li>
+                                    <li><a id="Sandwitches" href="#Sandwitches">Сэндвичи</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Запросы пользователей-->
+                        @if (User.IsInRole("settings"))
+                        {
+                            <li><a id="userrequests" href="#userrequests" class="md-notifications-on">Запросы пользователей</a></li>
+                        }
+
+                        <!--Логи-->
+                        @if (User.IsInRole("logs"))
+                        {
+                            <li><a id="logs" href="#logs" class="md-assignment">Журнал событий</a></li>
+                        }
+
+                        <!--Настройки-->
+                        @if (User.IsInRole("settings"))
+                        {
+                            <li class="cm-submenu">
+                                <a id="settings" onclick="selectSection('settings')" class="md-settings">Настройки <span class="caret"></span></a>
+                                <ul>
+                                    <li><a id="SettingsMain" href="#SettingsMain">Общие настройки</a></li>
+                                    <li><a id="SettingsAccess" href="#SettingsAccess">Права доступа</a></li>
+                                    <li><a id="SettingsTT" href="#SettingsTT">Торговые точки</a></li>
+
+                                    <li><a id="SettingsVideo" href="#SettingsVideo">Видеонаблюдение</a></li>
+                                    <li><a id="SettingsRk" href="#SettingsRk">R-Keeper 7</a></li>
+                                    <li><a id="SettingsModules" href="#SettingsModules">Модули</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        <!--Помощь-->
+                        <li><a id="help" href="#help" class="md-help">Помощь</a></li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!--Хэдер и горизонтальное меню-->
+    <header id="cm-header">
+        <nav class="cm-navbar cm-navbar-primary">
+            <div class="btn btn-primary md-menu-white hidden-md hidden-lg" data-toggle="cm-menu" onclick="resetFooter()"></div>
+            <div class="cm-flex"><h1 id="PageHeader">Заголовок страницы</h1></div>
+
+            <h1>Имя Пользователя</h1>
+
+            <!--печать-->
+            <div class="pull-right">
+                <button class="btn btn-default md-print" onclick="javascript:(print());"></button>
+            </div>
+
+            <!--уведомления-->
+            @if (User.IsInRole("settings"))
+            {
+                <div class="dropdown pull-right">
+                    <button class="btn btn-default md-notifications" data-toggle="dropdown"> <span class="label label-danger" id="alerts_count"></span> </button>
+                    <div class="popover cm-popover bottom">
+                        <div class="arrow"></div>
+                        <div class="popover-content">
+                            <div class="list-group" id="messages">
+                                <!--сообщения уведомлений-->
+                            </div>
+                            <div style="padding:10px"><a class="btn btn-success btn-block" href="#link" onclick="loadContent('userrequests', '/UserRequests/ReqList?state=new')">показать все...</a></div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!--профиль-->
+            <div class="dropdown pull-right">
+                <button class="btn btn-primary md-label-white" data-toggle="dropdown"></button>
+                <ul class="dropdown-menu">
+                    <li class="disabled text-center">
+                        <a style="cursor:default;"><strong>@User.Identity.Name</strong></a>
+                        <p id="jobTitle" class="text-small"></p>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <a href="#link"><i class="fa fa-fw fa-user"></i> Профиль</a>
+                    </li>
+                    <li>
+                        <a href="Account/Logout"><i class="fa fa-fw fa-sign-out"></i> Выйти</a>
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+
+        <!--навигационные разделы подменю-->
+        <nav id="navTabs" class="cm-navbar cm-navbar-default cm-navbar-slideup"></nav>
+
+    </header>
+
+    <!--Контент страниц-->
+    <div id="global">
+
+        <div id="loading" class="lds-ring center-block"><div></div><div></div><div></div><div></div></div>  
+        <div id="spinner" class="lds-ring center-block"><div></div><div></div><div></div><div></div></div>
+
+        <div class="container-fluid" id="container-fluid">
+            @RenderBody()
+        </div>
+
+    </div>
+
+
+    <!--футер-->
+    <footer id="cm-footer" class="cm-footer">
+        <span class="pull-left">&copy; Люди Любят v @SettingsInternal.portalVersion</span>
+        <span class="pull-right" id="time" style="margin-right:10px"></span>
+        <span class="pull-right" style="margin-right:10px">@User.Identity.Name</span>
+    </footer>
+
+
+    <!--Подключаемые скрипты-->
+    <script src="~/themes/clearmin/js/lib/jquery-2.1.3.min.js"></script>
+    <script src="~/themes/clearmin/js/jquery.mousewheel.min.js"></script>
+    <script src="~/themes/clearmin/js/jquery.cookie.min.js"></script>
+    <script src="~/themes/clearmin/js/fastclick.min.js"></script>
+    <script src="~/themes/clearmin/js/bootstrap.min.js"></script>
+    <script src="~/themes/clearmin/js/clearmin.js" asp-append-version="true"></script>
+
+    <!--плагин для просмотра изображений http://wordsmall.ru/demo/glightbox/index.html -->
+    <script src="~/js/glightbox/dist/js/glightbox.min.js"></script>
+
+    <!--плагин для древовидного меню в селекте-->
+    <script src="~/js/combo-tree-master/comboTreePlugin.js" asp-append-version="true"></script>
+
+    <!--видеоплеер-->
+    <script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script>
+    <script src="~/js/playerjs/playerjs.js"></script>
+
+    <!--древовидные таблицы treetable-->
+    <script src="~/js/ludo-jquery-treetable-3.2.0/jquery.treetable.js"></script>
+    <link href="~/js/ludo-jquery-treetable-3.2.0/css/jquery.treetable.css" rel="stylesheet" />
+    <link href="~/js/ludo-jquery-treetable-3.2.0/css/jquery.treetable.theme.default.css" rel="stylesheet" />
+    
+    <!--таблицы данных-->
+    <script src="~/js/DataTables/datatables.js"></script>
+    <link href="~/js/DataTables/datatables.css" rel="stylesheet" />
+
+    <!--селектор Select2-->
+    <script src="~/js/Select2/select2-4.0.13/dist/js/select2.js"></script>
+    <link href="~/js/Select2/select2-4.0.13/dist/css/select2.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/js/Select2/select2-4.0.13/dist/css/select2-bootstrap4.css" rel="stylesheet" asp-append-version="true" />
+
+    <!--hashset для работы кнопки назад в браузере-->
+    <script src="~/js/hashchange/jquery.ba-hashchange.js"></script>
+
+</body>
+
+
+</html>
+
+<!--------------------------------------------------------------->
+<script src="~/ViewScripts/Shared/ClearminLayout.js" asp-append-version="true"></script>
+<script src="~/ViewScripts/Shared/VerticalMenu.js" asp-append-version="true"></script>
+<script src="~/ViewScripts/Shared/HashNavigation.js" asp-append-version="true"></script>

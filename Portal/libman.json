@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "defaultProvider": "filesystem",
+  "libraries": [
+    {
+      "library": "C:\\Users\\mvm\\Downloads\\jquery-canvas-area-draw-master",
+      "destination": "wwwroot/lib/jquery-canvas-area-draw-master/"
+    },
+    {
+      "library": "C:\\Users\\mvm\\Downloads\\polyClip-master",
+      "destination": "wwwroot/lib/polyClip-master/"
+    },
+    {
+      "library": "C:\\Users\\mvm\\Downloads\\viewerjs-0.5.8\\ViewerJS",
+      "destination": "wwwroot/js/ViewerJS/"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+﻿@model Portal.ViewModels.Settings_TT.CamerasView
+
+@{ 
+    var ttName = "Новая ТТ";
+    if (Model.SelectedTT != null)
+    {
+        ttName = Model.SelectedTT.Name;
+    }
+}
+
+<!--блок элементов сверху-->
+<div class="row video" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--Назад-->
+    <div class="col-sm-1 el-marging" style="width:100px; cursor:pointer" onclick="TTcamsPreview()">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </div>
+
+    <!--Название ТТ-->
+    <div class="col-sm-2 el-marging" style="width:270px">
+        <h2>@ttName</h2>
+    </div>
+
+    <!--системы-->
+    <div class="col-sm-2 el-marging" style="width:250px">
+        <select class="form-control form-control-sm" id="NxSystems">
+
+            <option disabled selected>выберите систему</option>
+
+            @foreach (var system in Model.NxSystems.OrderBy(s => s.Name))
+            {
+                <option id="@system.Id">@system.Name</option>
+            }
+
+        </select>
+    </div>
+
+    <!--серверы-->
+    <div class="col-sm-2 el-marging" style="width:250px">
+        <select disabled class="form-control form-control-sm" id="NxServers">
+
+            <option disabled selected>выберите сервер</option>
+
+        </select>
+    </div>
+
+</div>
+
+<!--блок превью с камер-->
+<div class="row" id="camerasPreview">
+
+</div>
+
+
+
+<!------------------------------------------------------------------------------------->
+
+<!--селектор систем-->
+<script>
+    
+    $('#NxSystems').on('change', function () {
+
+        $('#camerasPreview').empty();
+        var systemId = $('#NxSystems option:selected').attr('id');
+        $('#loading').show();
+
+        $.get('/Settings_TT/GetNxServers?systemId=' + systemId, function (servers) {
+            //alert(JSON.stringify(servers));
+
+            $('#NxServers').find('option').remove();
+            $("#NxServers").append('<option selected disabled>выберите сервер</option>');
+            $.each(servers.data, function () {
+                $("#NxServers").append('<option id="' + this.id + '">' + this.name + '</option>');
+            });
+            $('#NxServers').removeAttr('disabled');
+            $('#loading').hide();
+        });
+    });
+</script>
+
+<!--селектор серверов-->
+<script>
+    $('#NxServers').on('change', function () {
+        var systemId = $('#NxSystems option:selected').attr('id');
+        $('#camerasPreview').empty();
+        var serverId = $('#NxServers option:selected').attr('id');
+        
+        // получаем список камер с сервера
+        $('#camerasPreview').load('/Settings_TT/ServerCamsPreview?ttId=' + ttId + '&systemId=' + systemId + '&serverId=' + serverId);
+    });
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        SpinnerHide();
+    });
+</script>

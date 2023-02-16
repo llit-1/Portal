@@ -1,0 +1,111 @@
+﻿@model RKNet_Model.RKSettings
+
+<!--блок кнопок-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#settings" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<!--форма ввода-->
+<div class="row">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">настройки Р-Кипер</div>
+            <div class="panel-body">
+
+                <div class="text-danger" asp-validation-summary="All"></div>
+
+                <form class="form-horizontal">
+
+                    <!--сервер справочников-->
+                    <div class="form-group">
+                        <label for="RefServerIp" class="col-sm-12">ip сервера справочников</label>
+
+                        <div class="col-sm-12">
+                            <input type="text" class="form-control" id="RefServerIp" placeholder="0.0.0.0" value="@Model.RefServerIp">
+                        </div>
+
+                    </div>
+
+                    <!--кассовая станция-->
+                    <div class="form-group">
+                        <label for="RefServerPort" class="col-sm-12">порт сервера справочников</label>
+                        <div class="col-sm-12">
+                            <input type="number" class="form-control" id="RefServerPort" value="@Model.RefServerPort">
+                        </div>
+                    </div>
+
+                    <!--кассовая станция-->
+                    <div class="form-group">
+                        <label for="CashPort" class="col-sm-12">порт кассовых станций</label>
+                        <div class="col-sm-12">
+                            <input type="number" class="form-control" id="CashPort" placeholder="" value="@Model.CashPort">
+                        </div>
+                    </div>
+
+                    <!--пользователь-->
+                    <div class="form-group">
+                        <label for="User" class="col-sm-12">пользователь р-кипер</label>
+                        <div class="col-sm-12">
+                            <input type="text" class="form-control" id="User" placeholder="" value="@Model.User">
+                        </div>
+                    </div>
+
+                    <!--пароль-->
+                    <div class="form-group">
+                        <label for="Password" class="col-sm-12">пароль</label>
+                        <div class="col-sm-12">
+                            <input type="password" class="form-control" id="Password" placeholder="" value="@Model.Password">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--кнопки сохранить/отмена-->
+<div class="col-sm-12 text-left">
+    <button type="button" class="btn btn-success btn-sm" style="margin-right:10px" onclick="Save()">Сохранить</button>
+</div>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+<!--сохранить-->
+<script>
+    function Save() {
+
+        var rkSettings = {};
+        rkSettings.RefServerIp = $('#RefServerIp').val();
+        rkSettings.RefServerPort = $('#RefServerPort').val();
+        rkSettings.CashPort = $('#CashPort').val();
+        rkSettings.User = $('#User').val();
+        rkSettings.Password = $('#Password').val();
+
+        var jsn = JSON.stringify(rkSettings);
+        jsn = jsn.replace(/\+/g, "pp");
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings/RkSave',
+            data: { json: jsn },
+            datatype: "text",
+            success: function (result) {
+                alert(result);
+            },
+            error: function (error) { alert(error.responseText); }
+        });
+    }
+</script>
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

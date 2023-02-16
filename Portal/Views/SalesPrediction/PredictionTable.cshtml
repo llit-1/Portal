@@ -1,0 +1,345 @@
+﻿@model Portal.ViewModels.PredictionsViewModel
+
+@{
+    int daysInMonth = 0;
+    DateTime selectedMonth = DateTime.Now;
+}
+
+@try
+{
+    var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+    int month = DateTime.Today.Month;
+    int year = DateTime.Today.Year;
+
+    month = month + Model.MonthCount;
+
+
+    if (month > 12)
+    {
+        while (month > 12)
+        {
+            month = month - 12;
+            year = year + 1;
+        }
+    }
+    if (month < 1)
+    {
+        while (month < 12)
+        {
+            month = month + 12;
+            year = year - 1;
+        }
+    }
+
+    selectedMonth = new DateTime(year, month, 1);
+    daysInMonth = DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month);
+
+
+    <div class="predictionMonth">
+        <p class="linkRow" onclick="arrowMonth(-1)">←</p><p>@selectedMonth.ToString("MMMM") @selectedMonth.ToString("yyyy")</p><p class="linkRow" onclick="arrowMonth(1)">→</p>
+        <div class="form-check form-check-inline predictionChek hidden">
+            <input class="form-check-input" type="checkbox" id="holidays">
+            <label class="form-check-label" for="holidays">показать выходные и праздники</label>
+        </div>
+    </div>
+
+
+    <div class="predictionBlock">
+
+        <!--таблица заголовков-->
+        <table class="zonesTable predictionTable">
+            <tr class="zHeader">
+                <td rowspan="2" style="width:10%" class="predictionDate" id="tt">ТТ</td>
+                @for (int d = 1; d <= DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month); d++)
+                {
+                    var date = new DateTime(selectedMonth.Year, selectedMonth.Month, d);
+                    <td style="width:2.5%" class="predictionDate" id="@date.ToString("yyMMdd")">@date.ToString("dd.MM")</td>
+
+                }
+                <td style="width:1%" class="predictionDate"></td>
+            </tr>
+            <tr class="zHeader days">
+
+                @for (int d = 1; d <= DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month); d++)
+                {
+                    var date = new DateTime(selectedMonth.Year, selectedMonth.Month, d);
+                    <td style="width:2.5%" class="predictionDate" id="">@date.ToString("ddd")</td>
+
+                }
+                <td style="width:1%" class="predictionDate"></td>
+            </tr>
+        </table>
+
+        <div class="predictionContainer">
+
+            <!--таблица ТТ-->
+            <table class="zonesTable predictionTable" id="dataPrediction">
+
+                <!--группа Спальник-->
+                <tr>
+                    <td style="width:10%" class="predictionDate TableGroup"><label><input type="checkbox" class="hidden" id="sleepingCheckbox"><a class="ico glyphicon-menu-right" id="sleepingIco"></a><a class="nameGroup">Спальник</a></label></td>
+
+                    @for (int d = 1; d <= DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month); d++)
+                    {
+                        var date = new DateTime(selectedMonth.Year, selectedMonth.Month, d);
+                        var days = date.Subtract(today).TotalDays;   // количество дней вперед относительно сегодня, после которых разрешено вносить и редактировать прогноз
+                        var id = "sleeping" + "_" + date.ToString("yyyy.MM.dd").Replace(".", "-");
+                        int predValue = Model.AverageGroupValue(date, "Спальник");
+                        string text;
+
+                        if (predValue > 0)
+                        {
+                            text = predValue.ToString() + "%";
+                            if (days > 1)
+                            {
+                                <td class="predictionValue ChangePrediction ChangeGroup SleepGroup" id="@id" onclick="inputPrediction('@id', '@predValue')"><p>@text</p></td>
+                            }
+                            else
+                            {
+                                <td class="predictionValue groupValue" id="@id"><p>@text</p></td>
+                            }
+                        }
+                        else
+                        {
+                            if (days > 1)
+                            {
+                                <td class="predictionValue AddPrediction AddGroup SleepGroup" id="@id" onclick="inputPrediction('@id')"><p>+</p></td>
+                            }
+                            else
+                            {
+                                <td class="predictionValue groupValue" id="@id"><p></p></td>
+                            }
+                        }
+                    }
+                </tr>
+
+                <!--ТТ спальники-->
+                @foreach (var tt in Model.TTs.Where(t => t.Type.Name == "Спальник"))
+                {
+                    <tr class="sleepingTT hidden">
+                        <td style="width:8%" class="predictionTTName">@tt.Name</td>
+
+                        @for (int d = 1; d <= DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month); d++)
+                        {
+                            var date = new DateTime(selectedMonth.Year, selectedMonth.Month, d);
+                            var data = Model.Predictions.Where(p => p.TTCode == tt.Code & p.Date == date.ToString("yyyy.MM.dd"));
+                            int predValue;
+                            string text;
+                            var id = tt.Id + "_" + date.ToString("yyyy.MM.dd").Replace(".", "-");
+                            var days = date.Subtract(today).TotalDays;   // количество дней вперед относительно сегодня, после которых разрешено вносить и редактировать прогноз
+
+                            if (data.Count() > 0)
+                            {
+                                predValue = data.FirstOrDefault().PredictionValue;
+                                text = predValue.ToString() + "%";
+                                if (days > 1)
+                                {
+                                    <td class="predictionValue ChangePrediction" id="@id" onclick="inputPrediction('@id', '@predValue')"><p class="SleepValue">@text</p></td>
+                                }
+                                else
+                                {
+                                    <td class="predictionValue" id="@id"><p>@text</p></td>
+                                }
+                            }
+                            else
+                            {
+                                if (days > 1)
+                                {
+                                    <td class="predictionValue AddPrediction" id="@id" onclick="inputPrediction('@id')"><p class="SleepValue">+</p></td>
+                                }
+                                else
+                                {
+                                    <td class="predictionValue" id="@id"><p></p></td>
+                                }
+                            }
+                        }
+
+                    </tr>
+                }
+
+                <!--группа Центр-->
+                <tr>
+                    <td style="width:10%" class="predictionDate TableGroup"><label><input type="checkbox" class="hidden" id="centrCheckbox"><a class="ico glyphicon-menu-right" id="centrIco"></a><a onclick="sh(this)" class="nameGroup">Центр</a></label></td>
+
+                    @for (int d = 1; d <= DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month); d++)
+                    {
+                        var date = new DateTime(selectedMonth.Year, selectedMonth.Month, d);
+                        var days = date.Subtract(today).TotalDays;   // количество дней вперед относительно сегодня, после которых разрешено вносить и редактировать прогноз
+                        var id = "centr" + "_" + date.ToString("yyyy.MM.dd").Replace(".", "-");
+                        int predValue = Model.AverageGroupValue(date, "Центр");
+                        string text;
+
+                        if (predValue > 0)
+                        {
+                            text = predValue.ToString() + "%";
+                            if (days > 1)
+                            {
+                                <td class="predictionValue ChangePrediction ChangeGroup CentrGroup" id="@id" onclick="inputPrediction('@id', '@predValue')"><p>@text</p></td>
+                            }
+                            else
+                            {
+                                <td class="predictionValue groupValue" id="@id"><p>@text</p></td>
+                            }
+                        }
+                        else
+                        {
+                            if (days > 1)
+                            {
+                                <td class="predictionValue AddPrediction AddGroup CentrGroup" id="@id" onclick="inputPrediction('@id')"><p>+</p></td>
+                            }
+                            else
+                            {
+                                <td class="predictionValue groupValue" id="@id"><p></p></td>
+                            }
+                        }
+                    }
+                </tr>
+
+                <!--ТТ Центр-->
+                @foreach (var tt in Model.TTs.Where(t => t.Type.Name == "Центр"))
+                {
+                    <tr class="centrTT hidden">
+                        <td style="width:8%" class="predictionTTName">@tt.Name</td>
+
+                        @for (int d = 1; d <= DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month); d++)
+                        {
+                            var date = new DateTime(selectedMonth.Year, selectedMonth.Month, d);
+                            var data = Model.Predictions.Where(p => p.TTCode == tt.Code & p.Date == date.ToString("yyyy.MM.dd"));
+                            int predValue;
+                            string text;
+                            var id = tt.Id + "_" + date.ToString("yyyy.MM.dd").Replace(".", "-");
+                            var days = date.Subtract(today).TotalDays;   // количество дней вперед относительно сегодня, после которых разрешено вносить и редактировать прогноз
+
+                            if (data.Count() > 0)
+                            {
+                                predValue = data.FirstOrDefault().PredictionValue;
+                                text = predValue.ToString() + "%";
+                                if (days > 1)
+                                {
+                                    <td class="predictionValue ChangePrediction" id="@id" onclick="inputPrediction('@id', '@predValue')"><p class="CentrValue">@text</p></td>
+                                }
+                                else
+                                {
+                                    <td class="predictionValue" id="@id"><p>@text</p></td>
+                                }
+                            }
+                            else
+                            {
+                                if (days > 1)
+                                {
+                                    <td class="predictionValue AddPrediction" id="@id" onclick="inputPrediction('@id')"><p class="CentrValue">+</p></td>
+                                }
+                                else
+                                {
+                                    <td class="predictionValue" id="@id"><p></p></td>
+                                }
+                            }
+                        }
+
+                    </tr>
+                }
+
+            </table>
+        </div>
+    </div>
+
+
+
+}
+catch (Exception e)
+{
+    <p>Ошибка выполнения на странице:</p>
+    <p>@e.ToString()</p>
+}
+
+<!------------------------------------------------------------------>
+<!--заполнение выходных и праздничных дней-->
+<script>
+    async function Holidays() {
+            var holidays = [];
+            holidays[0] = 111;
+
+            var days = @Html.Raw(Json.Serialize(daysInMonth));
+            for (var x = 1; x <= days; x++) {
+
+                var day;
+                if (x < 10) day = "0" + x.toString();
+                else day = x.toString();
+                var date = @Html.Raw(Json.Serialize(new DateTime(selectedMonth.Year, selectedMonth.Month, selectedMonth.Day).ToString("yyMM"))) + day;
+
+                var url = "https://isdayoff.ru/" + date;
+                await $.get(url, function (data) {
+                    holidays.push(data);
+                });
+            }
+
+        $('.predictionValue').each(function () {
+            var tId = this.id.substr(1, this.id.indexOf('_') - 1);
+            var date = this.id.substr(this.id.indexOf('_') + 1, this.id.length - tId.length);
+            var id = '#' + this.id;
+            date = parseInt(date.substr(8, date.length - 8));
+
+            if (holidays[date] == 1) {
+                $(id).addClass('holiday');
+            }
+
+        });
+
+
+
+    }
+
+</script>
+
+<!--чек-бокс праздничных дней-->
+<script>
+    $('#holidays').change(function () {
+        if (this.checked) {
+            Holidays();
+        }
+        else {
+            arrowMonth(0);
+        }
+    });
+</script>
+
+<!--Спальник-->
+<script>
+    $('#sleepingCheckbox').click(function () {
+        if ($(this).is(':checked')) {
+            $('.sleepingTT').removeClass('hidden');
+            $('#sleepingIco').removeClass('glyphicon-menu-right');
+            $('#sleepingIco').addClass('glyphicon-menu-down');
+        }
+        else {
+            $('.sleepingTT').addClass('hidden');
+            $('#sleepingIco').removeClass('glyphicon-menu-down');
+            $('#sleepingIco').addClass('glyphicon-menu-right');
+        }
+    });
+</script>
+
+<!--Центр-->
+<script>
+    $('#centrCheckbox').click(function () {
+        if ($(this).is(':checked')) {
+            $('.centrTT').removeClass('hidden');
+            $('#centrIco').removeClass('glyphicon-menu-right');
+            $('#centrIco').addClass('glyphicon-menu-down');
+        }
+        else {
+            $('.centrTT').addClass('hidden');
+            $('#centrIco').removeClass('glyphicon-menu-down');
+            $('#centrIco').addClass('glyphicon-menu-right');
+        }
+    });
+</script>
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        Holidays();
+        $('#loading').hide();
+    });
+</script>

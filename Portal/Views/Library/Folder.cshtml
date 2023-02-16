@@ -1,0 +1,438 @@
+﻿@model Portal.ViewModels.Library.FolderView
+
+@{
+    var rootId = 0;
+    var test = 0;
+    if (Model.navItems[rootId].Path == "InternalDocs")
+        rootId = 1;
+
+    if (Model.navItems[rootId].Path == "InternalDocs")
+        test = 1;
+
+    test = Model.navItems[rootId].Id;
+}
+
+<!--панель навигации-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    @{
+        // экранирование двойного слэша
+        var prevPath = Model.prevPath.Replace("\\", "slashtoreplace");
+        // экранирование "плюс" и "пробел"
+        prevPath = prevPath.Replace("+", "plustoreplace");
+        prevPath = prevPath.Replace(" ", "backspacetoreplace");
+    }
+
+    <!--назад-->
+    <div class="col-lg-1 el-marging" style="width:150px; cursor:pointer" onclick="{
+        $('#loading').show();        
+        Folder('@prevPath');
+        }">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </div>
+
+    <!--навигация-->
+    <div class="hidden-xs col-lg-10 cm-breadcrumb-container el-marging lib-navigation">
+        <ol class="breadcrumb">
+            <li><a href="#link" onclick="loadContent('library', '/Library/Index')">Библиотека знаний</a></li>
+
+            @foreach (var item in Model.navItems)
+            {
+                if (item.Path == Model.curDirectory.FullName)
+                {
+                    <li class="active">@item.Name</li>
+                }
+                else
+                {
+                    // экранирование двойного слэша
+                    var path = item.Path.Replace("\\", "slashtoreplace");
+                    // экранирование "плюс" и "пробел"
+                    path = path.Replace("+", "plustoreplace");
+                    path = path.Replace(" ", "backspacetoreplace");
+
+                    <li><a href="#link" onclick="Folder('@path')">@item.Name</a></li>
+                }
+            }
+        </ol>
+    </div>
+
+</div>
+
+<!--поиск-->
+<div id="searchRow" class="row">
+
+    <div class="col-sm-offset-2 col-sm-6" style="margin-bottom:15px; padding-left:20px">
+        <div class="input-group input-group">
+            <input id="librarySearch" type="text" class="form-control" placeholder="поиск по библиотеке..." autocomplete="off" onkeyup="Search()">
+            <span class="input-group-btn">
+                <button style="z-index:2; opacity:1" class="btn btn-primary md-search-white disabled" type="button">&nbsp;&nbsp;&nbsp;&nbsp;</button>
+            </span>
+        </div>
+
+        <!--результаты поиска-->
+        <div id="searchResult" class="list-group search-list pre-scrollable"></div>
+
+    </div>
+
+</div>
+
+<!--содержимое-->
+<div class="row">
+
+    <!--блок папок и файлов-->
+    <div class="col-sm-10 pre-scrollable" style="max-height: 74vh">
+        <!--папки-->
+        @foreach (var dir in Model.curDirectory.GetDirectories().OrderBy(d => d.Name))
+        {
+            // экранирование двойного слэша
+            var path = dir.FullName.Replace("\\", "slashtoreplace");
+
+            // иконка папки
+            var icon = "/svg/library/folder-u2.svg";
+
+            var iconFile = dir.GetFiles().Where(f => f.Name.Substring(f.Name.Length-3).ToLower() == "svg").FirstOrDefault();
+            if (iconFile != null)
+            {
+                icon = "/Library/GetFile?path=" + dir.FullName.Replace("\\", "%5C").Replace(" ", "%20") + "%5C";
+                icon += iconFile.Name;
+            }
+
+            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                <a href="#folder" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="Folder('@path')">
+                    <div class="panel-body text-center folder" style="min-height: 147px;">
+                        <span class="svg-48" style="margin-bottom:10px">
+                            <img src="@icon" width="35">
+                        </span>
+                        <small>@dir.Name</small>
+                    </div>
+                </a>
+            </div>
+        }
+        <!--файлы-->
+        @foreach (var file in Model.curDirectory.GetFiles().Where(f => !f.Attributes.HasFlag(System.IO.FileAttributes.Hidden)).OrderBy(f => f.Name))
+        {
+            var canOpen = true;
+            var pic = "";
+            switch (file.Extension.ToLower())
+            {
+                case ".docx":
+                case ".doc":
+                    pic = "/svg/library/files/doc.svg";
+                    break;
+                case ".xlsx":
+                case ".xls":
+                case ".xlsb":
+                    pic = "/svg/library/files/xls.svg";
+                    break;
+                case ".pptx":
+                case ".ppt":
+                    pic = "/svg/library/files/ppt.svg";
+                    break;
+                case ".pdf":
+                    pic = "/svg/library/files/pdf.svg";
+                    break;
+                case ".avi":
+                case ".mp4":
+                case ".mov":
+                case ".mpeg":
+                case ".mkv":
+                    pic = "/svg/library/files/video2.svg";
+                    break;
+                case ".jpg":
+                case ".jpeg":
+                case ".png":
+                case ".gif":
+                    pic = "/svg/library/files/picture.svg";
+                    break;
+                default:
+                    pic = "/svg/library/file.svg";
+                    canOpen = false;
+                    break;
+            }
+
+            if (canOpen)
+            {
+                // экранирование двойного слэша
+                var path = file.FullName.Replace("\\", "slashtoreplace");
+
+                <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                    <a href="#file" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="File('@path')">
+                        <div class="panel-body text-center folder" style="min-height: 147px;">
+                            <span class="svg-48">
+                                <img src="@pic" width="30px">
+                            </span>
+                            <small>@file.Name</small>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+
+        <!--тестовый блок для встраивания редактируемого документа-->
+        @if(test == 5)
+        {
+            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                <a href="#library_oss" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="WebFile('https://1drv.ms/x/s!Ap4cx-FFYknxg8MdEVXDBFwqZXgKkQ?e=TWXZbq')">
+                    <div class="panel-body text-center folder" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="/svg/library/files/xls.svg" width="30px">
+                        </span>
+                        <small>Принтеры интеграции</small>
+                    </div>
+                </a>
+            </div>
+        }
+        
+
+    </div>
+
+    <!--блок новостей-->
+    <div class="hidden-xs col-sm-2">
+        <div id="news" href="#link" class="panel panel-default thumbnail cm-thumbnail" onclick="" style="height:calc(100vh - 250px); min-height:200px">
+            <div class="panel-heading">последние изменения</div>
+            <div class="panel-body text-center" style="min-height: 147px;">
+
+                @foreach (var file in Model.newsFiles)
+                {
+                    // экранирование двойного слэша
+                    var filePath = file.FullName.Replace("\\", "slashtoreplace");
+
+                    var rootDir = Model.navItems[rootId];
+                    var fileDir = file.FullName.Replace(file.Name, "");
+                    fileDir = fileDir.Replace(rootDir.Path, rootDir.Name);
+                    fileDir = fileDir.Replace("\\", "/");
+
+
+                    <small class="newsFiles col-lg-12">
+                        <p>@file.LastWriteTime.ToString("dd.MM.yyyy HH:mm")</p>
+
+                        <a href="#file"
+                           onclick="File('@filePath')"
+                           class="popover-portal"
+                           data-toggle="popover"
+                           data-trigger="hover"
+                           data-placement="top"
+                           data-html="true"
+                           data-content="<p>@fileDir</p>">
+                            @file.Name
+                        </a>
+
+                    </small>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!--модальное окно-->
+<div id="ModalDocViewer" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div id="modalLibrary" class="modal-dialog modal-library">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <!--<label class="ico md-print" style="margin-top: -2px; margin-right:20px" onclick="PrintDoc()"></label>-->
+                    <label class="ico md-open-in-new" style="margin-top: -2px; margin-right:20px" onclick="OpenInNew()" data-dismiss="modal"></label>
+                    <label class="ico md-fullscreen" style="margin-top: -2px; margin-right:20px" onclick="Fullscreen()"></label>
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label>
+                </div>
+                <h4 class="modal-title" id="modal-title">
+                    заголовок документа
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div id="modal-body" class="modal-body">
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-------------------------------------------------------------------------------------------------->
+<!--открытие папки-->
+<script>
+    function Folder(path) {
+        if (path == "Index") {
+            loadContent('library', '/Library/Index');
+            return false;
+        }            
+
+        // разэкранирование двойного слэша
+        path = path.replace(/slashtoreplace/g, "\\");
+        // экранирование "плюс" и "пробел"
+        path = path.replace(/\+/g, "plustoreplace");
+        path = path.replace(/ /g, "backspacetoreplace");
+
+        $('#loading').show();
+        $(contentContainer).load('/Library/Folder?path=' + path);
+    }
+</script>
+
+<!--открытие файла-->
+<script>
+    function File(filePath) {
+        // разэкранирование двойного слэша
+        filePath = filePath.replace(/slashtoreplace/g, "\\");
+        // экранирование "плюс" и "пробел"
+        filePath = filePath.replace(/\+/g, "plustoreplace");
+        filePath = filePath.replace(/ /g, "backspacetoreplace");
+
+        $('#modal-body').append('<div id="loading-inside" class="lds-ring center-block"><div></div><div></div><div></div><div></div></div>');
+        $(".modal").modal("show");
+        $("#modal-body").load('/Library/File?filePath=' + filePath);
+    }
+</script>
+
+<!--web файл-->
+<script>
+    function WebFile(link) {  
+        location.href = link;
+    }
+</script>
+
+<!--закрытие модального окна-->
+<script>
+    $("#ModalDocViewer").on('hide.bs.modal', function () {
+        $('#modalLibrary').removeClass("fullscreen");
+        $('#modal-body').empty();
+    });
+</script>
+
+<!--отображение всплывающих подсказок-->
+<script>
+    $(function () {
+        $('.tooltip-portal').tooltip();
+        $('.popover-portal').popover();
+    });
+</script>
+
+<!--поиск-->
+<script>
+    // функция живого поиска
+    function Search() {
+        var searchString = $('#librarySearch').val();
+        var rootFolderPath = @Html.Raw(Json.Serialize(Model.navItems[rootId].Path));
+        var rootName = @Html.Raw(Json.Serialize(Model.navItems[rootId].Name));
+
+        if (searchString == "")
+            $('#searchResult').empty();
+        else {
+            $.get('/Library/Search?searchString=' + searchString + '&rootFolderPath=' + rootFolderPath, function (searchResults) {
+                $('#searchResult').show();
+                $('#searchResult').empty();
+                $.each(searchResults, function () {
+                    var path = this.fullName.replace(/\\/g, 'slashtoreplace');
+                    var libpath = this.fullName.replace(rootFolderPath, rootName);
+                    libpath = libpath.replace(/\\/g, '/');
+                    libpath = libpath.replace(this.name, '');
+                    var name = this.name.replace(this.extension, "");
+                    var ext = this.extension.toLowerCase();
+
+                    var pic = "";
+                    switch (ext) {
+                        case ".docx":
+                        case ".doc":
+                            pic = "/svg/library/files/doc.svg";
+                            break;
+                        case ".xlsx":
+                        case ".xls":
+                            pic = "/svg/library/files/xls.svg";
+                            break;
+                        case ".pptx":
+                        case ".ppt":
+                            pic = "/svg/library/files/ppt.svg";
+                            break;
+                        case ".pdf":
+                            pic = "/svg/library/files/pdf.svg";
+                            break;
+                        case ".avi":
+                        case ".mp4":
+                        case ".mov":
+                        case ".mpeg":
+                        case ".mkv":
+                            pic = "/svg/library/files/video2.svg";
+                            break;
+                        case ".jpg":
+                        case ".jpeg":
+                        case ".png":
+                        case ".gif":
+                            pic = "/svg/library/files/picture.svg";
+                            break;
+                        default:
+                            pic = "/svg/library/file.svg";
+                            break;
+                    }
+
+                    var item = '<a href="#link"';
+                    item += ' class="list-group-item"';
+                    item += ' onclick="File(\'' + path + '\')"';
+                    item += ' >';
+
+                    item += '<img src="' + pic + '" width="30px">';
+                    item += '<p>' + name + '</p>';
+                    item += '<small>' + libpath + '</small>';
+
+                    item += '</a>';
+
+                    $('#searchResult').append(item);
+                });
+            });
+        }
+    }
+
+    // скрываем и показываем результаты поиска в зависимости от действий пользователя
+    $('#librarySearch').focus(function () {
+        $('#searchResult').show();
+    });
+
+    $(window).click(function () {
+        $('#searchResult').hide();
+    });
+
+    $('#librarySearch').click(function (event) {
+        event.stopPropagation();
+    });
+
+
+
+</script>
+
+<!--полноэкранный режим-->
+<script>
+    function Fullscreen() {
+        if ($('#modalLibrary').hasClass("fullscreen")) {
+            $('#modalLibrary').removeClass("fullscreen");
+        }
+        else {
+            $('#modalLibrary').addClass("fullscreen");
+        }
+    }
+</script>
+
+<!--открыть в новой вкладке-->
+<script>
+    function OpenInNew() {
+        var src = $('#docFrame').attr("src");
+        window.open(src, '_blank');
+    }
+</script>
+
+<!--печать документа-->
+<script>
+    function PrintDoc() {
+
+    }       
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        Alerts();
+        $('#loading').hide();
+    });
+</script>

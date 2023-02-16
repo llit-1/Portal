@@ -1,0 +1,170 @@
+﻿@model List<Portal.Models.MSSQL.PhotoCam>
+
+    <!--таблица фото-->
+<div class="table-responsive">
+    <table class="table" id="fOrdersTable">
+
+        <tbody>
+            @if (Model.Count() > 0)
+            {
+                // получаем коллекцию уникальных времен снимков
+                var times = new List<string>();
+                var tts = new List<RKNet_Model.TT.TT>();
+
+                foreach (var photo in Model)
+                {
+                    var time = photo.dateTime.ToString("HH:mm");
+                    if (!times.Contains(time)) times.Add(time);
+
+                    if (tts.Where(t => t.Code == photo.TTCode).Count() == 0)
+                    {
+                        tts.Add(new RKNet_Model.TT.TT
+                        {
+                            Code = photo.TTCode,
+                            Name = photo.TTName
+                        });
+                    }
+                }
+
+
+                foreach (var time in times.OrderBy(t => t).ToList())
+                {
+
+                    var idTime = time.Replace(":", "");
+                    <!--времена-->
+                    <tr class="row-group-01">
+                        <td width="175px"><label><input class="hidden" type="checkbox" id="@idTime">@time</label></td>
+                        <td width="150px"></td>
+                    </tr>
+
+                    <!--сгруппированные тт-->
+                    foreach (var tt in tts.OrderBy(t => t.Name))
+                    {
+                        <!--ТТ-->
+                        var photosByTime = Model.Where(t => t.TTCode == tt.Code && t.dateTime.ToString("HH:mm") == time);
+
+                        if (photosByTime.Count() > 0)
+                        {
+                            var group2Id = idTime + tt.Code.ToString();
+                            <tr class="row-group-02 hidden items_@idTime">
+                                <td><label><input class="hidden" type="checkbox" id="@group2Id">@tt.Name</label></td>
+                                <td>@time</td>
+                            </tr>
+
+                            <tr class="hidden items_@group2Id">
+                                <td colspan="2">
+
+                                    <!--фото с камер-->
+                                    @foreach (var camGroup in photosByTime.GroupBy(p => p.camId))
+                                    {
+                                        foreach (var photo in camGroup.OrderBy(p => p.dateTime))
+                                        {
+                                            var srcOriginal = "/Video/GetPhoto?photoId=" + photo.Id.ToString();
+                                            var srcResized = "/Video/GetPhoto?photoId=" + photo.Id.ToString() + "&resized=true";
+                                            var title = photo.dateTime.ToString("dd.MM.yy dddd HH:mm");
+                                            var description = "    " + photo.camName;
+
+                                            <div class="col-sm-3">
+                                            <div class="panel panel-default panel-videocam">
+                                                <div class="panel-heading panel-cams-heading">@photo.camName</div>
+                                                <div class="panel-body">
+
+                                                    <a class="glightbox"
+                                                       href="@srcOriginal"
+                                                       data-title="@title"
+                                                       data-description="@description"
+                                                       data-desc-position="top"
+                                                       data-type="image"
+                                                       data-effect="fade"
+                                                       data-width="900px"
+                                                       data-height="auto"
+                                                       data-zoomable="true"
+                                                       data-draggable="true">                                                       
+                                                        <img class="camResponsive camClickable" alt="image">
+                                                    </a>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                }
+            }
+        </tbody>
+
+    </table>
+</div>
+    
+
+    <!---------------------------------------------------------------------------------------------------->
+    <!--группировка 01-->
+    <script>
+    $('.row-group-01').click(function () {
+
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.items_' + $(check).attr('id');
+
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(items).each(function () {
+                var check01 = $(this).children('td').children('label').children('input');
+                var items01 = '.items_' + $(check01).attr('id');
+                if ($(check01).prop('checked')) {
+                    $(check01).prop('checked', false);
+                    $(items01).addClass('hidden');
+                }
+            });
+
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+    </script>
+
+    <!--группировка 02-->
+    <script>
+    $('.row-group-02').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.items_' + $(check).attr('id');
+
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+
+            // загружаем картинку
+            var preview = $(items).children().children();
+            $(preview).each(function () {
+                var picture = $(this).children().children().children('a');
+                var src = $(picture).attr('href');
+                var img = $(picture).children('img');
+                
+                $(img).attr('src', src);
+            });
+        }
+        else {
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+    </script>
+
+    <!--плагин просмотра фото glightbox-->
+    <script>
+        var lightbox = GLightbox();
+
+    </script>
+
+
+    <!--по загрузке страницы-->
+    <script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+    </script>

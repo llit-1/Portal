@@ -1,0 +1,189 @@
+﻿@model Portal.ViewModels.SkuStop.AddBlockView
+<!--форма добавления блокировки-->
+<form class="form">
+
+    <!--выбор позиции-->
+    <div class="form-group col-md-12">
+        <label for="sku" class="control-label">позиция</label>
+        <input id="sku" type="text" placeholder="начните вводить для поиска..." autocomplete="off">
+    </div>
+
+    <!--список тт-->
+    <div class="form-group col-md-12">
+        <label for="tts" class="control-label">торговые точки</label>
+
+        <div class="checkselect" id="tts">
+            <label><input id="alltt" class="ignore" type="checkbox" name="brands[]" value="all" checked>все</label>
+            @foreach (var tt in Model.TTs.OrderBy(n => n.Name))
+            {
+                var check = "";
+
+                <label><input class="checkElement" type="checkbox" name="brands[]" value="@tt.Id" @check>@tt.Name</label>
+            }
+        </div>
+    </div>
+
+    <!--селектор периода блокировки-->
+    <div class="form-group col-md-6">
+        <label for="periodSelector" class="control-label">период блокировки</label>
+        <select id="periodSelector" class="form-control">
+            <option value="1">до конца текущего дня</option>
+            <option value="2">до определенного времени</option>
+        </select>
+    </div>
+
+    <!--календарь-->
+    <div id="calendar" class="form-group col-md-6">
+        @{
+            var now = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+            var defExpiration = DateTime.Now.ToString("yyyy-MM-ddT23:00");
+        }
+        <label for="expiration" class="control-label">выберите дату и время</label>
+        <input id="expiration" type="datetime-local" class="form-control" min="@now" value="@defExpiration">
+    </div>
+
+    <br />
+
+    <!--причина блокировки-->
+    <div class="form-group col-md-12">
+        <textarea id="reason" class="form-control" placeholder="укажите причину блокировки позиции" rows="7" style="resize:none"></textarea>
+    </div>
+
+    <!--форматирование окошка-->
+    <div class="input-group col-md-12"></div>
+
+</form>
+
+<!--кнопки-->
+<div class="modal-footer">
+    <button id="changeCash" type="button" class="btn btn-sm btn-danger" onclick="SaveBlock()">заблокировать</button>
+    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">отмена</button>
+</div>
+
+
+<!-------------------------------------------------------------------------------------------------->
+<!--скрипт псевдоселектора для чекбоксов внутри (выбор тт)-->
+<script src="~/js/selectCheckboxes/selectCheckboxes.js"></script>
+
+<!--Селектор позиции (Combo-Tree)-->
+<script>
+
+    var menuTree = $('#sku').comboTree({
+        source: @Html.Raw(Json.Serialize(Model.MenuItems.OrderBy(m => m.title))),
+        isMultiple: false,
+        collapse: true
+    });
+
+</script>
+
+<!--Селектор ТТ-->
+<script>
+    function selectAll() {
+        var checked = $('#alltt').prop('checked');
+        $('#tts').find("input[type='checkbox']").prop('checked', checked);
+
+        // обновляем количество выбранных тт в селекторе
+        var target = $('#tts');
+        var checked = $(target).find("input[type='checkbox']:checked").length;
+        var ignore = $(target).find("input[type='checkbox']:checked").filter(function () {
+            return $(this).hasClass('ignore');
+        }).length;
+
+        checked = checked - ignore;
+
+        if (checked) {
+            $(target).find('select option:first').html('Выбрано: ' + checked);
+        } else {
+            $(target).find('select option:first').html('Выберите из списка');
+        }
+    }
+
+    // отметка чекбокса "все тт"
+    $('#alltt').change(function () { selectAll() });
+
+    // отметка чекбокса одной точки
+    $('.checkElement').change(function () {
+        var isCheked = $(this).prop('checked');
+        if (!isCheked)
+            $('#alltt').prop('checked', false);
+    });
+
+</script>
+
+<!--Селектор периода-->
+<script>
+    function selectPeriod() {
+        var value = $('#periodSelector').val();
+        if (value == "1") {
+            $('#calendar').hide();
+        }
+        if (value == "2") {
+            $('#calendar').show();
+        }
+    }
+
+    $('#periodSelector').change(function () { selectPeriod() });
+</script>
+
+<!--Кнопка Заблокировать-->
+<script>
+    function SaveBlock() {
+        // собираем данные с формы
+        var skuStop = {};
+
+        if (menuTree.getSelectedNames()) {
+            skuStop.skuName = menuTree.getSelectedNames();
+            skuStop.skuRkCode = menuTree.getSelectedIds()[0];
+        }
+        else {
+            skuStop.skuName = "";
+            skuStop.skuRkCode = "";
+        }
+        skuStop.reason = $('#reason').val();
+        skuStop.expiration = $('#expiration').val();
+
+        var TTs = [];
+        $('#tts').find("input[type='checkbox']:checked").each(function () {
+            if ($(this).val() != "all") {
+                TTs.push($(this).val());
+            }
+        });
+
+        skuStop.ttIds = TTs;
+
+        // формируем строку json из объекта
+        var jsn = JSON.stringify(skuStop);
+        jsn = jsn.replace(/\+/g, "pp");
+
+        // отправляем данные пост-запросом в контроллер
+        $.ajax({
+            type: "POST",
+            url: '/SkuStop/SaveBlock',
+            data: { json: jsn },
+            datatype: "text",
+            success: function (result) {
+                if (result == "ok") {
+                    alert('Позиция "' + skuStop.skuName + '" поставлена на блокировку');
+                    $(".modal").modal("hide");
+                    setTimeout(function () {
+                        //loadContent('skustop', '/SkuStop/Index?finished=0');
+                        GetData();
+                    }, 500);
+                }
+                else {
+                    alert(result);
+                }
+            },
+            error: function (error) { alert(error.responseText); }
+        });
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        selectAll();
+        selectPeriod();
+        $('#loading').hide();
+    });
+</script>

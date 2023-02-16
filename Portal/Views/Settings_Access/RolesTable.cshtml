@@ -1,0 +1,95 @@
+﻿@model List<RKNet_Model.Account.Role>
+<!--таблица ролей-->
+<div class="panel panel-default" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Роль</th>
+                                    <th>Группы</th>
+                                    <th>Пользователи</th>
+                                    <th>Код</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var role in Model.OrderBy(r => r.Name))
+                                {
+                                <tr id="@role.Id" class="activeRow" onclick="">
+                                    <td>
+                                        <p class="list-item-heading roleName">@role.Name</p>
+                                    </td>
+                                    <td>
+                                        <p class="text-muted">@role.Groups.Count</p>
+                                    </td>
+                                    <td>
+                                        <p class="text-muted">@role.Users.Count</p>
+                                    </td>
+                                    <td>
+                                        <p class="text-muted">@role.Code</p>
+                                    </td>
+                                </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!----------------------------------------------------------------------->
+<!--вычисление высоты таблицы-->
+<script>
+    var height = $('#global').height();
+
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+<script>
+
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
+</script>
+
+<!--клик по строке-->
+<script>
+    $('.activeRow').click(function () {
+        var itemId = this.id;
+        var itemName = $(this).find('.roleName').text();
+        EditItem(itemName, itemId);
+    });
+</script>
+

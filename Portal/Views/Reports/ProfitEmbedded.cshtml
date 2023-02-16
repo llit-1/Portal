@@ -1,0 +1,62 @@
+﻿
+<a id="fullscreenLink" href="#link" onclick="fullscreen()"><img src="~/ico/fullscreen.png"></a>
+
+<!------------------------------------------------------------------------------------------------------------->
+
+<script src="https://npmcdn.com/es6-promise@3.2.1"></script>
+<script src="~/js/powerbi.min.js"></script>
+
+<div id="reportContainer" class="biFrame"></div>
+
+<script>
+    // Read embed application token from Model
+    var accessToken = "@Model.EmbedToken.Token";
+
+    // Read embed URL from Model
+    var embedUrl = "@Html.Raw(Model.EmbedUrl)";
+
+    // Read report Id from Model
+    var embedReportId = "@Model.Id";
+
+    // Get models. models contains enums that can be used.
+    var models = window['powerbi-client'].models;
+
+    // Embed configuration used to describe the what and how to embed.
+    // This object is used when calling powerbi.embed.
+    // This also includes settings and options such as filters.
+    // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
+    var config = {
+        type: 'report',
+        tokenType: models.TokenType.Embed,
+        accessToken: accessToken,
+        embedUrl: embedUrl,
+        id: embedReportId,
+        permissions: models.Permissions.All,
+        settings: {
+            filterPaneEnabled: true,
+            navContentPaneEnabled: false
+        }
+    };
+
+</script>
+
+<!--Разворачиание во весь экран-->
+<script type="text/javascript">
+    function fullscreen() {
+        var embedContainer = $('#reportContainer')[0];
+        report = powerbi.get(embedContainer);
+        report.fullscreen();
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        // Get a reference to the embedded report HTML element
+        var reportContainer = $('#reportContainer')[0];
+
+        // Embed the report and display it within the div container.
+        powerbi.embed(reportContainer, config);
+        $('#loading').hide();
+    });
+</script>

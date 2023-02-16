@@ -1,0 +1,300 @@
+﻿@model Portal.ViewModels.Access.TTEditView
+<!--пользователи-->
+<div class="col-sm-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">пользователи</div>
+        <div class="panel-body pre-scrollable" id="ttList">
+            @foreach (var user in Model.Users.OrderBy(n => n.Name))
+            {
+                var id = "user_" + user.Id.ToString();
+                var check = false;
+                if (user.TTs.Contains(Model.TT)) check = true;
+
+                <div class="checkbox">
+                    <label>
+                        <input class="users" id="@id" type="checkbox" checked="@check">
+                        @user.Name
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!--группы-->
+<div class="col-sm-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">группы</div>
+        <div class="panel-body pre-scrollable" id="groups">
+
+        </div>
+    </div>
+</div>
+
+<!--кассы-->
+<div class="col-sm-3">
+    <div class="panel panel-default">
+
+        <!--заголовок-->
+        <div class="panel-heading">
+            кассы
+            <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-add-box" style="margin-top: -2px" onclick="AddCash()"></label></div>
+        </div>
+
+        <!--список касс-->
+        <div class="panel-body" id="cashes">
+            @foreach (var cash in Model.TT.CashStations.OrderBy(n => n.Name))
+            {
+                var id = "cash_" + cash.Id.ToString();
+                var idip = "caship_" + cash.Id;
+
+                <a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="@id">
+                    <div class="cashName" style="display:inline">@cash.Name</div>
+                    <div class="cashIp hidden">@cash.Ip</div>
+
+                    <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-edit" style="margin-top: -2px" onclick="EditCash(this)"></label></div>
+                </a>
+
+            }
+        </div>
+
+    </div>
+</div>
+
+
+<!--кнопка сохранить-->
+<div class="col-sm-12">
+    <div class="form-group" id="userForm">
+        <div class="col-sm-10 text-left">
+            <button type="button" class="btn btn-success btn-sm" style="margin-right:10px" onclick="Save()">Сохранить</button>
+            <button type="button" class="btn btn-default btn-sm" onclick="$(contentContainer).load('/Access/TTs')">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!--модальное окно: добавление кассы-->
+<div id="addCashModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
+                <h4 class="modal-title" id="myModalLabel">
+                    добавление кассы
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div class="modal-body">
+                <form class="form-horizontal">
+
+                    <!--ip адрес-->
+                    <label for="cashIp" class="col-sm-4 control-label">ip адрес</label>
+                    <div class="input-group col-sm-5">
+                        <input type="text" class="form-control" id="cashIp" placeholder="0.0.0.0">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" onclick="cashConnect()"><i class="fa fa-fw fa-plug"></i></button>
+                        </span>
+                    </div>
+
+                    <!--ожидание загрузки-->
+                    <div class="input-group col-sm-12 hidden" id="cashLoading">
+                        <p class="color-red" style="text-align:center; font-weight:bold; margin-top:10px">подключение к кассе...</p>
+                    </div>
+
+                    <!--имя кассы-->
+                    <div id="nameForm">
+                        <br />
+                        <label for="cashName" class="col-sm-4 control-label">имя кассы</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="cashName">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="deleteCash" type="button" class="btn btn-sm btn-danger" onclick="deleteCash()" style="float:left">удалить</button>
+                <button id="saveCash" type="button" class="btn btn-sm btn-success" onclick="saveCash()">добавить</button>
+                <button id="changeCash" type="button" class="btn btn-sm btn-success" onclick="changeCash()">сохранить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">отмена</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!---------------------------------------------------------------------------->
+<!--переменные-->
+<script>
+    var cashElement;
+</script>
+
+<!--добавление кассы-->
+<script>
+    // вызов модального окна добавления кассы
+    function AddCash() {
+        $("#cashIp").val(null);
+        $("#cashName").val(null);
+
+        $('#myModalLabel').text('добавление кассы');
+        $('#saveCash').hide();
+        $('#nameForm').hide();
+
+        $('#changeCash').hide();
+        $('#deleteCash').hide();
+
+        $(".modal").modal("show");
+    }
+
+    // кнопка модального окна добавить кассу
+    function saveCash() {
+        var cashIp = $("#cashIp").val();
+        var cashName = $("#cashName").val();
+
+        if (!cashIp) {
+            alert('введите ip адресс кассы');
+            return false;
+        }
+
+        if (!cashName) {
+            alert('введите имя кассы');
+            return false;
+        }
+
+        var id = "cash_" + "0";
+
+        var newCashHtml = '<a href="#link" class="list-group-item list-group-item-slim list-group-item-noaction" id="';
+        newCashHtml += id + '">' + '<div class="cashName" style="display:inline">' + cashName + '</div>';
+        newCashHtml += '<div class="cashIp hidden">' + cashIp + '</div>';
+        newCashHtml += '<div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-edit" style="margin-top: -2px" onclick="EditCash(this)"></label></div></a>';
+
+        $('#cashes').append(newCashHtml);
+
+        $(".modal").modal("hide");
+    }
+</script>
+
+<!--подключение к кассе и запрос названия-->
+<script>
+    function cashConnect() {
+        var cashIp = $("#cashIp").val();
+        $('#cashLoading').removeClass('hidden');
+
+        $.get('/Access/GetCashName?cashIp=' + cashIp, function (result) {
+            $('#cashLoading').addClass('hidden');
+
+            if (result.ok) {
+                $('#nameForm').show();
+                $('#cashName').val(result.data);
+                $('#saveCash').show();                               
+            }
+            else {
+                alert(result.errorMessage);
+            }            
+        });
+    }
+</script>
+
+<!--редактирование кассы-->
+<script>
+    // иконка "редактировать"
+    function EditCash(el) {
+        //var cashId = $(el).parent().parent().attr('id');
+        //cashId = cashId.substr(5, cashId.length - 5);
+
+        cashElement = $(el).parent().parent();
+        var cashName = $(el).parent().parent().children('.cashName').text();
+        var cashIp = $(el).parent().parent().children('.cashIp').text();
+        
+        EditCashModal(cashIp, cashName);
+    }
+
+    // вызов модального окна редактирования кассы
+    function EditCashModal(ip, name) {
+        $("#cashIp").val(ip);
+        $("#cashName").val(name);
+
+        $('#myModalLabel').text('редактирование кассы');
+        $('#nameForm').show();
+        $('#saveCash').hide();
+        $('#changeCash').show();
+        $('#deleteCash').show();
+        $(".modal").modal("show");
+    }
+
+    // кнопка модального окна сохранить кассу
+    function changeCash() {
+
+        cashElement.children('.cashName').text($("#cashName").val());
+        cashElement.children('.cashIp').text($("#cashIp").val());
+        $(".modal").modal("hide");
+    }
+
+    // кнопка модального окна удалить кассу
+    function deleteCash() {
+        cashElement.remove();
+        $(".modal").modal("hide");
+    }
+
+</script>
+
+<!--сохранить настройки тт-->
+<script>
+    function Save() {
+
+        var tt = {};
+        tt.ttId = @Html.Raw(Json.Serialize(Model.TT.Id));
+        tt.usersIds = [];
+        tt.cashes = [];
+
+        // формируем список пользователей на точке
+        $('.users').each(function () {
+            if (this.checked) {
+                var id = this.id.substr(5, this.id.length - 5);
+                tt.usersIds.push(id);
+            }
+        });
+
+        // формируем список касс на точке
+        $('#cashes').children('a').each(function () {
+            var cashId = $(this).attr('id');
+            cashId = cashId.substr(5, cashId.length - 5);
+
+            var cashName = $(this).children('.cashName').text();
+            var cashIp = $(this).children('.cashIp').text();
+
+            var cash = {};
+            cash.Id = cashId;
+            cash.Name = cashName;
+            cash.Ip = cashIp;
+
+            tt.cashes.push(cash);            
+        });
+
+        var jsn = JSON.stringify(tt);
+
+        jsn = jsn.replace(/ /g, "pp");
+        var url = '/Access/TTSave?jsn=' + jsn;
+
+        var request = $.get(url, function () { });
+        request.done(function (result) {
+            alert(result);
+        });
+        request.fail(function (e) {
+            alert(e.responseText);
+        });
+
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $('#loading').hide();
+</script>
+

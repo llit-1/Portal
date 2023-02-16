@@ -1,0 +1,144 @@
+﻿@model RKNet_Model.Result<System.IO.DirectoryInfo[]>
+
+
+
+<div class="LeftMenu KL">
+
+    <form role="search">
+        <input type="text" id="srch" class="form-control" placeholder="поиск по библиотеке" />
+    </form>
+
+    <div id="jstree_div">
+        @Portal.Helpers.RecursiveDirectoryMenu.JSTreeMenu(Model.Data[0], "Библиотека знаний", "vm", "vmItem", "glyphicon glyphicon-education", true)
+        @Portal.Helpers.RecursiveDirectoryMenu.JSTreeMenu(Model.Data[1], "Справочник франчайзи", "vm", "vmItem", "glyphicon glyphicon-education", false)
+    </div>
+
+</div>
+
+
+<div class="Content" id="demo">
+
+
+
+
+    <div class="docBlock" id="docBlock">
+
+
+
+    </div>
+
+
+</div>
+
+
+<!------------------------------------------------------------------------------------------------>
+<!--дерево папок-->
+<script>
+    $.jstree.defaults.core.themes.dots = false;
+    $.jstree.defaults.core.themes.responsive = true;
+
+    //$.jstree.defaults.search.show_only_matches = true;
+    //$.jstree.defaults.search.show_only_matches_children = true;
+    //$.jstree.defaults.search.search_leaves_only = true;
+
+    $('#jstree_div').jstree({
+        "plugins": ["search"]
+    });
+
+    // поиск по каталогу
+    var to = false;
+    $('#srch').keyup(function () {
+
+        if (to) { clearTimeout(to); }
+        to = setTimeout(function () {
+            var v = $('#srch').val();
+            $('#jstree_div').jstree(true).search(v);
+        }, 250);
+    });
+
+
+    // обработка нажатий на элементы дерева
+    $('#jstree_div')
+        // listen for event
+        .on('changed.jstree', function (e, data) {
+            var i, j, r = [];
+            for (i = 0, j = data.selected.length; i < j; i++) {
+                r.push(data.instance.get_node(data.selected[i]).text);
+            }
+
+            if (r == "Библиотека знаний") {
+                $('#srch').val("");
+                $('#srch').keyup();
+                $('#docBlock').load('@Url.Action("Welcome", "Knowledge")');
+            }
+            if (r == "Справочник франчайзи") {
+                $('#srch').val("");
+                $('#srch').keyup();
+                $('#docBlock').load('@Url.Action("Franch", "Knowledge")');
+            }
+
+        })
+        // create the instance
+        .jstree();
+
+</script>
+
+<!--выбор файла-->
+<script>
+    function selectFile(filepath, ext) {
+
+        $('#docBlock').empty();
+        filepath = filepath.replace(/slashtoreplace/g, "\\");
+        filepath = filepath.replace(/\+/g, "plustoreplace");
+
+        var dt = new Date();
+        var random = dt.getSeconds();
+
+        filepath = filepath + '&random=' + random;
+
+        var domainName = window.location.origin;
+
+        // скачать
+        //$('#docBlock').append('<a href="/Home/KnowledgeGetFile?filepath=' + filepath + '">скачать</a>');
+
+        // просмотрщик Microsoft
+        if (ext == ".xls" || ext == ".xlsx" || ext == ".doc" || ext == ".docx") {
+            $('#docBlock').append('<iframe class="docFrame" src="https://view.officeapps.live.com/op/embed.aspx?src=' + domainName + '/Home/KnowledgeGetFile?filepath=' + filepath + '"></iframe>');
+        }
+
+        // просмотрщик Google
+        if (ext == ".ppt" || ext == ".pptx") {
+            $('#docBlock').append('<iframe class="docFrame" src="https://docs.google.com/viewer?url=' + domainName + '/Home/KnowledgeGetFile?filepath=' + filepath + '&embedded=true"></iframe>');
+        }
+
+        // документы PDF
+        if (ext == ".pdf") {
+
+            $('#docBlock').append('<iframe class="docFrame" src="/Home/KnowledgeGetFile?filepath=' + filepath + '"></iframe>');
+        }
+
+        // изображения
+        if (ext == ".jpeg" || ext == ".jpg" || ext == ".png" || ext == ".gif") {
+            $('#docBlock').append('<img class="docImage" src="/Home/KnowledgeGetFile?filepath=' + filepath + '" />');
+        }
+
+        // видео
+        if (ext == ".mov" || ext == ".mp4" || ext == ".mpeg" || ext == ".avi") {
+            $('#docBlock').append('<video id="videoPlayer" class="video-js vjs-theme-sea" controls preload="auto"><source  src="/Home/KnowledgeGetFile?filepath=' + filepath + '"></source></video>');
+        }
+
+    };
+</script>
+
+<!--загрузка контента по умолчанию в центральную область-->
+<script>
+    $('#docBlock').load('@Url.Action("Welcome", "Knowledge")');
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+        Alerts();
+    });
+</script>

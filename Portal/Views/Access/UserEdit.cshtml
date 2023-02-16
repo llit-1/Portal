@@ -1,0 +1,369 @@
+﻿@model Portal.ViewModels.UserRights
+<!--данные пользователя-->
+<div class="col-sm-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">Настройки пользователя <a class="md-access-alarm" href="#link"></a></div>
+        <div class="panel-body">
+
+            <form class="form-horizontal">
+
+                <!--имя пользователя-->
+                <div class="form-group">
+                    <label for="userName" class="col-sm-2 control-label">Имя</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="userName" placeholder="имя пользователя" value="@Model.User.Name">
+                    </div>
+                </div>
+
+                <!--логин-->
+                <div class="form-group">
+                    <label for="userLogin" class="col-sm-2 control-label">Логин</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="userLogin" placeholder="логин" value="@Model.User.Login">
+                    </div>
+                </div>
+
+                <!--пользователь AD-->
+                <div class="form-group">
+
+                    <div class="col-sm-10" style="float:right">
+                        <li class="list-group-item">
+                            <label>пользователь AD</label>
+                            <div class="material-switch pull-right">
+                                <input class="slider" id="adUser" type="checkbox" checked="@Model.User.AdUser" />
+                                <label for="adUser" class="label-warning"></label>
+                            </div>
+                        </li>
+                    </div>
+                </div>
+
+                <!--должность-->
+                <div class="form-group">
+                    <label for="job" class="col-sm-2 control-label">Должность</label>
+                    <div class="col-sm-10">
+                        <input type="tel" class="form-control" id="job" placeholder="должность" value="@Model.User.JobTitle" disabled="@Model.User.AdUser" />
+                    </div>
+                </div>
+
+                <!--пароль-->
+                <div class="form-group">
+                    <label for="userPass" class="col-sm-2 control-label">Пароль</label>
+                    <div class="col-sm-10">
+                        <input type="password" class="form-control" id="userPass" placeholder="пароль" value="@Model.User.Password" disabled="@Model.User.AdUser" />
+                    </div>
+                </div>
+
+                <!--почта-->
+                <div class="form-group">
+                    <label for="userMail" class="col-sm-2 control-label">Почта</label>
+                    <div class="col-sm-10">
+                        <input type="email" class="form-control" id="userMail" placeholder="email" value="@Model.User.Mail" disabled="@Model.User.AdUser">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--группы-->
+<div class="col-sm-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">Группы</div>
+        <div class="panel-body pre-scrollable">
+            @foreach (var group in Model.Groups)
+            {
+                var id = "grup_" + group.Id;
+                var chek = "";
+                if (!Model.newItem) if (Model.User.Groups.Contains(group)) chek = "checked";
+
+                <div class="checkbox">
+                    <label>
+                        <input id="@id" type="checkbox" @chek>
+                        @group.Name
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!--роли-->
+<div class="col-sm-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">Роли</div>
+        <div class="panel-body pre-scrollable">
+            @foreach (var role in Model.Roles.OrderBy(r => r.Name))
+            {
+                var id = "role_" + role.Id;
+                var chek = "";
+                if (!Model.newItem) if (Model.User.Roles.Contains(role)) chek = "checked";
+
+                <div class="checkbox">
+                    <label>
+                        <input id="@id" type="checkbox" @chek>
+                        @role.Name
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!--тт-->
+@{
+    var move = "";
+    //if (!Model.newItem) move = "col-sm-push-9";
+}
+<div class="col-sm-3 @move">
+    <div class="panel panel-default">
+        <div class="panel-heading">торговые точки</div>
+        <div class="panel">
+
+            <div class="checkbox" style="margin-left:20px">
+                <label>
+                    @{ var cheked = Model.User.AllTT; }
+                    <input id="All" type="checkbox" checked="@cheked">
+                    Все ТТ
+                </label>
+            </div>
+
+        </div>
+        <div class="panel-body pre-scrollable" id="ttList">
+            @foreach (var tt in Model.TTs.OrderBy(n => n.Name))
+            {
+                var ttInside = Model.TTs.Where(t => t.Id == tt.Id);
+                var id = "ttid_" + tt.Id.ToString();
+
+                <div class="checkbox">
+                    <label>
+                        @if (Model.User.TTs.Contains(tt))
+                        {
+                            <input id="@id" type="checkbox" onclick="notAll()" checked>
+                        }
+                        else
+                        {
+                            <input id="@id" class="" type="checkbox" onclick="notAll()">
+                        }
+                        @tt.Name
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!--отчёты пользователя-->
+@{
+    move = "";
+    if (!Model.newItem) move = "col-sm-push-3";
+    var free = "";
+    var pro = "";
+    if(Model.User.Reports != null)
+    {
+        free = Model.User.Reports.ProfitFree;
+        pro = Model.User.Reports.ProfitPro;
+    }
+}
+<div class="col-sm-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">отчёты</div>        
+        <div class="panel-body" id="reports">
+
+            <form class="form">
+
+                <!--выручка free-->
+                <div class="form-group">
+                    <label for="profitFree" class="control-label">выручка Free</label>
+                    <input type="text" class="form-control" id="profitFree" placeholder="ссылка на отчет Power Bi" value="@free">
+                </div>
+
+                <!--выручка pro-->
+                <div class="form-group">
+                    <label for="profitPro" class="control-label">выручка Pro</label>
+                    <input type="text" class="form-control" id="profitPro" placeholder="ссылка на отчет Power Bi" value="@pro">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--кнопки сохранить/удалить-->
+@{
+    if (Model.newItem) move = "col-sm-12";
+    else move = "col-sm-3 col-sm-pull-3";
+    move = "col-sm-12";
+}
+<div class="@move">
+    <div class="form-group" id="userForm">
+        <div class="col-sm-10 text-left">
+            <button type="button" class="btn btn-success btn-sm" style="margin-right:10px" onclick="saveUser()">Сохранить</button>
+
+            @if (!Model.newItem)
+            {
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser()">Удалить</button>
+                <button type="button" class="btn btn-default btn-sm" onclick="$('#settAccess').click()" style="margin-left:50px">Отмена</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-default btn-sm" onclick="$('#settAccess').click()">Отмена</button>
+            }
+
+
+        </div>
+    </div>
+</div>
+
+
+
+<!------------------------------------------------------------>
+<script>
+    var alltt = @Html.Raw(Json.Serialize(Model.User.AllTT));
+    var userId = @Html.Raw(Json.Serialize(Model.User.Id));
+</script>
+<!--сохранить-->
+<script>
+    function saveUser() {
+
+        var user = {};
+        user.id = @Model.User.Id;
+
+        user.aduser = $('#adUser').is(':checked');
+
+        user.name = $('#userName').val();
+        if (user.name == "") {
+            alert("не заполнено имя пользовтеля");
+            return false;
+        }
+
+        user.login = $('#userLogin').val();
+        if (user.login == "") {
+            alert("не введен логин");
+            return false;
+        }
+
+        user.password = $('#userPass').val();
+        if (user.password == "" & !user.aduser) {
+            alert("пароль не может быть пустым");
+            return false;
+        }
+
+        user.mail = $('#userMail').val();
+        user.job = $('#job').val();
+
+        var roles = [];
+        var groups = [];
+        var tts = [];
+
+        $('input[type=checkbox]').each(function () {
+            if (this.checked) {
+                var id = $(this).attr('id');
+                var pref = id.substr(0, 5);
+                id = id.substr(5, id.length - 5);
+
+                if (pref == "role_") roles.push(id);
+                if (pref == "grup_") groups.push(id);
+                if (pref == "ttid_") tts.push(id);
+            }
+        });
+
+        user.roles = roles;
+        user.groups = groups;
+        user.tts = tts;
+        user.alltt = alltt;
+        user.profitFree = $('#profitFree').val();
+        user.profitPro = $('#profitPro').val();
+
+        var jsn = JSON.stringify(user);
+        jsn = jsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+       
+        $.ajax({
+            type: "POST",
+            url: '/Access/UserSave',
+            data: { json: jsn },
+            datatype: "text",
+            success: function (result) {
+                alert(result);                
+            },
+            error: function (error) { alert(error.responseText); }
+        });
+    }
+</script>
+
+<!--удалить-->
+<script>
+    function deleteUser() {
+        var userName = @Html.Raw(Json.Serialize(Model.User.Name));
+        var userId = @Html.Raw(Json.Serialize(Model.User.Id));
+        var confDel = confirm("Удалить пользователя " + userName + "?");
+
+        if (confDel) {
+            var req = '/Access/UserDelete?Id=' + userId;
+
+            var request = $.get(req, function () { });
+            request.done(function (result) {
+                //alert(result);
+                //$('#settAccess').click();
+                $(contentContainer).load('/Access/Users');
+            });
+            request.fail(function (e) {
+                alert(e.responseText);
+            });
+        }
+    }
+</script>
+
+<!--слайдер Пользователь AD-->
+<script>
+    $('#adUser').click(function () {
+        if ($(this).is(':checked')) {
+            $('#userPass').attr('disabled', 'true');
+            $('#userMail').attr('disabled', 'true');
+            $('#job').attr('disabled', 'true');
+        }
+        else {
+            $('#userPass').removeAttr('disabled');
+            $('#userMail').removeAttr('disabled');
+            $('#job').removeAttr('disabled');
+        }
+    });
+</script>
+
+<!--чекбоксы-->
+<script>
+    function selectAll(all) {
+
+        if (all) {
+            $('#ttList').find('input[type=checkbox]').each(function () {
+                this.checked = true;
+            });
+
+            $('#ttList').hide();
+
+        }
+        else {
+            $('#ttList').find('input[type=checkbox]').each(function () {
+                this.checked = false;
+            });
+
+            $('#ttList').show();
+        }
+
+        alltt = all;
+    }
+
+    $('#All').change(function () {
+        selectAll(this.checked)
+    });
+
+    function notAll() {
+        $('#All').prop('checked', false);
+        alltt = false;
+    }
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    if (alltt) selectAll(alltt);
+    $('#loading').hide();
+</script>

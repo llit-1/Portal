@@ -1,0 +1,287 @@
+﻿
+<div class="panel panel-default">
+
+    <div class="Content predictContent" id="predictContent"></div>
+
+</div>
+
+
+
+
+
+<!---------------------------------------------------------------------------------------------------->
+<!--загрузка таблицы-->
+<script>
+    var monthCount = 0;
+    var url = "/SalesPrediction/PredictionTable?monthCount=" + monthCount;
+    $('#predictContent').load(url);
+
+</script>
+
+<!--ввод прогноза продаж-->
+<script>
+    var classes;
+
+    // показываем поле ввода прогноза
+    function inputPrediction(id, val) {
+        id = '#' + id;
+        classes = $(id).children('p').attr("class");
+        val = parseInt($(id).children('p').text());
+
+        $(id).removeAttr("onclick");
+        $(id).empty();
+        $(id).html(' <input id="activeInput" class="inpPredict" type="number" onblur="inputtedData()"/>');
+
+        var onblur = "inputtedData('" + id + "')";
+
+        $('#activeInput').attr("onblur", onblur);
+        $('#activeInput').attr("onkeyup", "checkInput(event)");
+        $('#activeInput').val(val);
+        $('#activeInput').focus();
+    }
+
+    // обрабатываем введенные данные после окончания ввода (потеря фокуса)
+    function inputtedData(id) {
+        var data = $('#activeInput').val();
+        var value = parseInt(data);
+
+        if (isNaN(value) || value == 0) data = "+";
+        else {
+            if (value < 0) value = Math.abs(value);
+            data = value + "%";
+        }
+
+        data = "<p class=\"" + classes + "\">" + data + "</p>";
+        var onclick = "inputPrediction('" + id.substr(1, id.length - 1) + "', '" + value + "')";
+
+        $(id).attr("onclick", onclick);
+        $(id).empty();
+        $(id).append(data);
+
+        SavePrediction(id, value);
+    }
+
+    // обработка нажатия клавиш во время ввода
+    function checkInput(e) {
+        // Enter
+        if (e.which == 13 || e.keyCode == 13) {
+            $('#activeInput').blur();
+        }
+        // Escape
+        if (e.which == 27 || e.keyCode == 27) {
+            $('#activeInput').blur();
+        }
+    }
+</script>
+
+<!--запись в БД и разметка таблицы-->
+<script>
+    function SavePrediction(id, value) {
+
+        var userLogin = @Html.Raw(Json.Serialize(User.Claims.First(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value.ToLower()));
+        var tId = id.substr(1, id.indexOf('_') - 1);
+        var date = id.substr(id.indexOf('_') + 1, id.length - tId.length);
+
+
+        var url = '/SalesPrediction/SavePrediction?userLogin=' + userLogin + '&tId=' + tId + '&date=' + date + '&value=' + value;
+
+        var request = $.get(url, function () { });
+        request.done(function (result) {
+            //alert(result);
+        });
+        request.fail(function (e) {
+            alert(e.responseText);
+        });
+
+        if (value > 0) {
+            $(id).removeAttr("class");
+            $(id).attr("class", "predictionValue ChangePrediction");
+
+
+            if (tId == 'sleeping') {
+
+                $('.predictionValue').each(function () {
+                    var blockId = this.id;
+                    var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                    var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                    if (blockDate == date) {
+                        $(this).children('.SleepValue').text(value + '%');
+
+                        if ($(this).children('.SleepValue').text() == value + '%') {
+                            $(this).removeAttr("class");
+                            $(this).attr("class", "predictionValue ChangePrediction");
+                        }
+                    }
+                });
+                $(id).removeAttr("class");
+                $(id).attr("class", "predictionValue ChangePrediction ChangeGroup SleepGroup");
+                Holidays();
+            }
+
+            if (tId == 'centr') {
+
+                $('.predictionValue').each(function () {
+                    var blockId = this.id;
+                    var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                    var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                    if (blockDate == date) {
+                        $(this).children('.CentrValue').text(value + '%');
+
+                        if ($(this).children('.CentrValue').text() == value + '%') {
+                            $(this).removeAttr("class");
+                            $(this).attr("class", "predictionValue ChangePrediction");
+                        }
+                    }
+                });
+
+                $(id).removeAttr("class");
+                $(id).attr("class", "predictionValue ChangePrediction ChangeGroup CentrGroup");
+                Holidays();
+            }
+        }
+        else {
+            $(id).removeAttr("class");
+            $(id).attr("class", "predictionValue AddPrediction");
+
+            if (tId == 'sleeping') {
+
+                $('.predictionValue').each(function () {
+                    var blockId = this.id;
+                    var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                    var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                    if (blockDate == date) {
+                        $(this).children('.SleepValue').text('+');
+
+                        if ($(this).children('.SleepValue').text() == '+') {
+                            $(this).removeAttr("class");
+                            $(this).attr("class", "predictionValue AddPrediction");
+                        }
+                    }
+                });
+
+                $(id).removeAttr("class");
+                $(id).attr("class", "predictionValue AddPrediction AddGroup SleepGroup");
+                Holidays();
+            }
+
+            if (tId == 'centr') {
+
+                $('.predictionValue').each(function () {
+                    var blockId = this.id;
+                    var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                    var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                    if (blockDate == date) {
+                        $(this).children('.CentrValue').text('+');
+
+                        if ($(this).children('.CentrValue').text() == '+') {
+                            $(this).removeAttr("class");
+                            $(this).attr("class", "predictionValue AddPrediction");
+                        }
+                    }
+                });
+                $(id).removeAttr("class");
+                $(id).attr("class", "predictionValue AddPrediction AddGroup CentrGroup");
+                Holidays();
+            }
+        }
+
+        if ($(id).children('p').hasClass('SleepValue')) {
+
+            var grpValue = 0;
+            var count = 0;
+
+            $('.predictionValue').each(function () {
+                var blockId = this.id;
+                var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                var data = parseInt($(this).children('.SleepValue').text());
+                if (!isNaN(data) & blockDate == date) {
+                    grpValue += parseInt(data);
+                    count += 1;
+                }
+            });
+
+
+
+            $('.SleepGroup').each(function () {
+                var blockId = this.id;
+                var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                if (blockDate == date) {
+                    if (grpValue == 0) {
+                        $(this).children('p').text('+');
+                        $(this).removeAttr("class");
+                        $(this).attr("class", "predictionValue AddPrediction AddGroup SleepGroup")
+                    }
+                    else {
+                        grpValue = Math.round(grpValue / count);
+                        $(this).children('p').text(grpValue + '%');
+                        $(this).removeAttr("class");
+                        $(this).attr("class", "predictionValue ChangePrediction ChangeGroup SleepGroup")
+                    }
+                }
+            });
+
+            Holidays();
+        }
+
+        if ($(id).children('p').hasClass('CentrValue')) {
+
+            var grpValue = 0;
+            var count = 0;
+
+            $('.predictionValue').each(function () {
+                var blockId = this.id;
+                var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                var data = parseInt($(this).children('.CentrValue').text());
+                if (!isNaN(data) & blockDate == date) {
+                    grpValue += parseInt(data);
+                    count += 1;
+                }
+            });
+
+
+
+            $('.CentrGroup').each(function () {
+                var blockId = this.id;
+                var tId = blockId.substr(1, blockId.indexOf('_') - 1);
+                var blockDate = blockId.substr(blockId.indexOf('_') + 1, blockId.length - tId.length);
+                if (blockDate == date) {
+                    if (grpValue == 0) {
+                        $(this).children('p').text('+');
+                        $(this).removeAttr("class");
+                        $(this).attr("class", "predictionValue AddPrediction AddGroup CentrGroup")
+                    }
+                    else {
+                        grpValue = Math.round(grpValue / count);
+                        $(this).children('p').text(grpValue + '%');
+                        $(this).removeAttr("class");
+                        $(this).attr("class", "predictionValue ChangePrediction ChangeGroup CentrGroup")
+                    }
+                }
+            });
+
+            Holidays();
+        }
+
+    }
+</script>
+
+<!--изменение месяца-->
+<script>
+    function arrowMonth(count) {
+        monthCount = monthCount + count;
+
+        var url = "/SalesPrediction/PredictionTable?monthCount=" + monthCount;
+        $('#predictContent').load(url);
+    }
+</script>
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

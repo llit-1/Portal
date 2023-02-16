@@ -1,0 +1,159 @@
+﻿<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<div class="row">
+
+    @if (User.IsInRole("reports_profit"))
+    {
+        <!--выручка-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#profit" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/profit.svg" width="20px">
+                    </span>
+                    <h4>Выручка</h4>
+                </div>
+            </a>
+        </div>
+
+        <!--выручка pro-->
+        @if (User.IsInRole("reports_pro"))
+        {
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#profitpro" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/profit-pro.svg" width="20px">
+                        </span>
+                        <h4>Выручка Pro</h4>
+                    </div>
+                </a>
+            </div>
+        }
+
+        <!--выручка all-->
+        @if (User.IsInRole("reports_special"))
+        {
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#profitall" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/diagram.svg" width="20px">
+                        </span>
+                        <h4>Выручка All</h4>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+
+    <!--план продаж по тт-->
+    @if (User.IsInRole("reports_profitplan"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#profitplan" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/plan1.svg" width="20px">
+                    </span>
+                    <h4>План продаж по ТТ</h4>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--сервис-деск-->
+    @if (User.IsInRole("reports_sd"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#sdreport" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/sd.svg" width="20px">
+                    </span>
+                    <h4>Сервис-деск</h4>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отчёт по использованию калькуляторов-->
+    @if (User.IsInRole("reports_calcusage"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#calcusage" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/statistics.svg" width="20px">
+                    </span>
+                    <h4>Использование калькуляторов</h4>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--отчёт по использованию калькуляторов-->
+    @if (User.IsInRole("reports_checkstime"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#checkstime" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/receipt.svg" width="20px">
+                    </span>
+                    <h4>Время чеков</h4>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--кассовые операции-->
+    @if (User.IsInRole("reports_cashoperations"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#cashoperations" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/cash.svg" width="20px">
+                    </span>
+                    <h4>Кассовые операции</h4>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--другие отчёты-->
+    @if (User.IsInRole("reports_other"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#Other" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/bar-graph.svg" width="20px">
+                    </span>
+                    <h4>Другие отчёты</h4>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+
+
+
+<!---------------------------------------------------------------------------------------------------------------------------->
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+        Alerts();
+    });
+</script>

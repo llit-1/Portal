@@ -1,0 +1,154 @@
+﻿@model List<RKNet_Model.TT.TT>
+<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <div class="col-sm-1 el-marging" style="width:100px; cursor:pointer" onclick="location.hash = '#cashmsg'">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </div>
+
+</div>
+
+<div class="row">
+    <!--форма ввода сообщения-->
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">Сообщение на кассы<a class="md-access-alarm" href="#link"></a></div>
+            <div class="panel-body">
+
+                <form class="form-horizontal">
+
+                    <!--заголовок-->
+                    <div class="form-group">
+                        <label for="messageName">заголовок сообщения</label>
+                        <input type="text" class="form-control" id="messageName" placeholder="введите заголовок" value="">
+                    </div>
+
+                    <!--список тт-->
+                    <div class="form-group">
+                        <label for="tts">торговые точки</label>
+                        <div class="checkselect" id="tts">
+
+                            <label><input id="alltt" class="ignore" type="checkbox" name="brands[]" value="all" checked>все</label>
+
+                            @foreach (var tt in Model.OrderBy(n => n.Name))
+                            {
+                                var check = "";
+
+                                <label><input class="checkElement" type="checkbox" name="brands[]" value="@tt.Id" @check>@tt.Name</label>
+                            }
+
+                        </div>
+                    </div>
+
+                    <!--сообщение-->
+                    <div class="form-group">
+                        <label for="messageText" control-label">текст сообщения</label>
+                        <div>
+                            <textarea class="form-control" id="messageText" placeholder="введите текст сообщения" rows="7" style="resize:none"></textarea>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!--кнопки-->
+    <div class="col-lg-12">
+        <div class="form-group">
+            <div class="col-lg-4 text-center">
+                <button type="button" class="btn btn-success" onclick="SendMessage()">Отправить на кассы</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!------------------------------------------------------------>
+<!--скрипт псевдоселектора для чекбоксов внутри (выбор тт)-->
+<script src="~/js/selectCheckboxes/selectCheckboxes.js"></script>
+
+<!--Селектор ТТ-->
+<script>
+    function selectAll() {
+        var checked = $('#alltt').prop('checked');
+        $('#tts').find("input[type='checkbox']").prop('checked', checked);
+
+        // обновляем количество выбранных тт в селекторе
+        var target = $('#tts');
+        var checked = $(target).find("input[type='checkbox']:checked").length;
+        var ignore = $(target).find("input[type='checkbox']:checked").filter(function () {
+            return $(this).hasClass('ignore');
+        }).length;
+
+        checked = checked - ignore;
+
+        if (checked) {
+            $(target).find('select option:first').html('Выбрано: ' + checked);
+        } else {
+            $(target).find('select option:first').html('Выберите из списка');
+        }
+    }
+
+    // отметка чекбокса "все тт"
+    $('#alltt').change(function () { selectAll() });
+
+    // отметка чекбокса одной точки
+    $('.checkElement').change(function () {
+        var isCheked = $(this).prop('checked');
+        if (!isCheked)
+            $('#alltt').prop('checked', false);
+    });
+
+</script>
+
+<!--отправить-->
+<script>
+    function SendMessage() {
+
+        var cashMessage = {};
+        cashMessage.Name = $('#messageName').val();
+        cashMessage.Text = $('#messageText').val();
+
+        var TTs = [];
+        $('#tts').find("input[type='checkbox']:checked").each(function () {
+            if ($(this).val() != "all") {
+                TTs.push($(this).val());
+            }
+        });
+
+        cashMessage.ttIds = TTs;
+
+        var jsn = JSON.stringify(cashMessage);
+        jsn = jsn.replace(/\+/g, "pp");
+
+        $.ajax({
+            type: "POST",
+            url: '/CashMessages/SaveMessage',
+            data: { json: jsn },
+            datatype: "text",
+            success: function (result) {
+                if (result == "ok") {
+                    alert("сообщение принято к отправлению");
+                    loadContent('cashmsg', '/CashMessages/Index?finished=0');
+                }
+                else {
+                    alert(result);
+                }
+            },
+            error: function (error) { alert(error.responseText); }
+        });
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        location.hash = "inputCashMessage";
+        selectAll();
+        $('#loading').hide();
+    });
+</script>

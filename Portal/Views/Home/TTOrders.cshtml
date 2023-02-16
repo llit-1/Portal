@@ -1,0 +1,108 @@
+﻿<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<div class="row">
+
+    @if (User.IsInRole("ttorders"))
+    {
+        <!--еженедельный заказ-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="loadContent('weekorder', '/ttOrders/OrdersList?orderTypeId=2')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/week.svg" width="20px">
+                    </span>
+                    <h4>Еженедельный заказ</h4>
+                </div>
+            </a>
+        </div>
+
+        <!--ежемесячный заказ-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="loadContent('monthorder', '/ttOrders/OrdersList?orderTypeId=3')">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/calendar.svg" width="20px">
+                    </span>
+                    <h4>Ежемесячный заказ</h4>
+                </div>
+            </a>
+        </div>
+
+        <!--регулярные заказы-->
+        @if (User.IsInRole("forders"))
+        {
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="loadContent('franchorders', '/ttOrders/OrdersList?orderTypeId=1')">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/delivery-truck.svg" width="20px">
+                        </span>
+                        <h4>Регулярные заказы</h4>
+                    </div>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel tails-disabled">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/delivery-truck.svg" width="20px">
+                        </span>
+                        <h4>Регулярные заказы</h4>
+                    </div>
+                </a>
+            </div>
+        }
+
+        <!--ценники-->
+        @if (User.IsInRole("ttorders_prices"))
+        {
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="loadContent('ttorders_prices', '/ttOrders/OrdersList?orderTypeId=4')">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/price.svg" width="20px">
+                        </span>
+                        <h4>Заказы ценнников</h4>
+                    </div>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel tails-disabled">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/price.svg" width="20px">
+                        </span>
+                        <h4>Заказы ценнников</h4>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+
+</div>
+
+
+
+
+<!---------------------------------------------------------------------------------------------------------------------------->
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+        Alerts();
+    });
+</script>

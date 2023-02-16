@@ -1,0 +1,95 @@
+﻿@model Portal.ViewModels.Settings_TT.CamerasView
+
+@foreach (var cam in Model.ServerCams.OrderBy(c => c.cameraName))
+{
+    var switchState = "";
+    var ttcamGuids = Model.CamList.Select(c => c.Guid).ToList();
+
+    if (Model.SelectedTT != null)
+    {
+        if (ttcamGuids.Contains(cam.cameraId))
+        {
+            switchState = "checked";
+        }
+    }
+
+    var panelId = "panel_" + cam.cameraId.ToString();
+    <div id="@panelId" class="col-sm-3">
+        <div class="panel panel-default panel-campreview">
+            <div class="panel-heading panel-cams-heading">
+                <div class="name">@cam.cameraName</div>
+                <div class="material-switch pull-right">
+                    <input class="slider" id="switch_@cam.cameraId" type="checkbox" @switchState onclick="Slider(this)" />
+                    <label for="switch_@cam.cameraId" class="label-warning"></label>
+                </div>
+            </div>
+            <div class="panel-body ">
+                <img class="camResponsive" src="/Settings_TT/GetCamPreview?systemId=@Model.NxSystemId&cameraId=@cam.cameraId" />
+            </div>
+        </div>
+    </div>
+}
+
+
+<!--слайдеры-->
+<script>
+    function Slider(sw) {
+
+        var enabled = false;
+        if ($(sw).is(':checked')) {
+            enabled = true;
+        }
+
+        var camId = sw.id.substr(7, sw.id.length - 7);
+        var camName = $(sw).parent().parent().find('.name').text();
+
+        if (ttId) {
+            $.get('/Settings_TT/CameraChange?ttId=' + ttId + '&systemId=@Model.NxSystemId' + '&camName=' + camName + '&camGuid=' + camId+ '&enabled=' + enabled, function (result) {
+                if (!result.ok) {
+                    $(sw).prop('checked', false);
+                    alert(result.exceptionText);
+                }
+            });
+        }
+        else {
+            var curCams = ttCams;
+            ttCams = [];
+
+            var cam = {};
+            cam.name = camName;
+            cam.id = camId;
+            cam.systemId = @Model.NxSystemId;
+
+            $.each(curCams, function () {
+                if (this.id != cam.id) {
+                    ttCams.push(this);
+                }
+            });
+
+            if (enabled) {
+                ttCams.push(cam);
+            }
+
+            
+            
+        }
+    };
+
+    function NewTT() {
+        
+        $('.slider').each(function () {
+            var slider = this;
+            var camId = slider.id.substr(7, slider.id.length - 7);
+            $.each(ttCams, function () {
+                if (this.id == camId) {
+                    $(slider).prop('checked', true);
+                }
+            });
+        });
+    }
+
+    if (!ttId) {
+        NewTT();
+    }
+</script>
+

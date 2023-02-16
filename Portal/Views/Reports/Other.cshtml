@@ -1,0 +1,244 @@
+﻿@model Portal.ViewModels.Library.FolderView
+
+@{ 
+    var foldersShow = false;
+}
+
+<!--панель навигации-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    @{
+        // экранирование двойного слэша
+        var prevPath = Model.prevPath.Replace("\\", "slashtoreplace");
+        // экранирование "плюс" и "пробел"
+        prevPath = prevPath.Replace("+", "plustoreplace");
+        prevPath = prevPath.Replace(" ", "backspacetoreplace");
+    }
+
+    <!--назад-->
+    <div class="col-lg-1 el-marging" style="width:150px; cursor:pointer" onclick="{
+        $('#loading').show();
+        Folder('@prevPath');
+        }">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </div>
+
+    <!--навигация-->
+    <div class="hidden-xs col-lg-10 cm-breadcrumb-container el-marging lib-navigation">
+        <ol class="breadcrumb">
+            @if(Model.navItems.Count > 1)
+            @foreach (var item in Model.navItems)
+            {
+                if (item.Path == Model.curDirectory.FullName)
+                {
+                    <li class="active">@item.Name</li>
+                }
+                else
+                {
+                    // экранирование двойного слэша
+                    var path = item.Path.Replace("\\", "slashtoreplace");
+                    // экранирование "плюс" и "пробел"
+                    path = path.Replace("+", "plustoreplace");
+                    path = path.Replace(" ", "backspacetoreplace");
+
+                    <li><a href="#link" onclick="Folder('@path')">@item.Name</a></li>
+                }
+            }
+        </ol>
+    </div>
+
+</div>
+
+<!--содержимое-->
+<div class="row">
+
+    <!--блок папок и файлов-->
+    <div class="col-sm-12 pre-scrollable" style="max-height: 74vh">
+        <!--папки-->
+        @if(foldersShow)
+        @foreach (var dir in Model.curDirectory.GetDirectories().OrderBy(d => d.Name))
+        {
+            // экранирование двойного слэша
+            var path = dir.FullName.Replace("\\", "slashtoreplace");
+
+            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                <a href="#link" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="Folder('@path')">
+                    <div class="panel-body text-center folder" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/library/folder-u2.svg" width="35px">
+                        </span>
+                        <small>@dir.Name</small>
+                    </div>
+                </a>
+            </div>
+        }
+        <!--файлы-->
+        @foreach (var file in Model.curDirectory.GetFiles()
+       .Where(f => !f.Attributes.HasFlag(System.IO.FileAttributes.Hidden)).OrderBy(f => f.Name))
+        {
+            var canOpen = true;
+            var pic = "";
+            switch (file.Extension.ToLower())
+            {
+                case ".docx":
+                case ".doc":
+                    pic = "/svg/library/files/doc.svg";
+                    break;
+                case ".xlsx":
+                case ".xls":
+                    pic = "/svg/library/files/xls.svg";
+                    break;
+                case ".pptx":
+                case ".ppt":
+                    pic = "/svg/library/files/ppt.svg";
+                    break;
+                case ".pdf":
+                    pic = "/svg/library/files/pdf.svg";
+                    break;
+                case ".avi":
+                case ".mp4":
+                case ".mov":
+                case ".mpeg":
+                case ".mkv":
+                    pic = "/svg/library/files/video2.svg";
+                    break;
+                case ".jpg":
+                case ".jpeg":
+                case ".png":
+                case ".gif":
+                    pic = "/svg/library/files/picture.svg";
+                    break;
+                default:
+                    pic = "/svg/library/file.svg";
+                    canOpen = false;
+                    break;
+            }
+
+            if (canOpen)
+            {
+                // экранирование двойного слэша
+                var path = file.FullName.Replace("\\", "slashtoreplace");
+
+                <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" style="cursor:pointer">
+                    <div class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="File('@path')">
+                        <div class="panel-body text-center folder" style="min-height: 147px;">
+                            <span class="svg-48">
+                                <img src="@pic" width="30px">
+                            </span>
+                            <small>@file.Name</small>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    
+</div>
+
+<!--модальное окно-->
+<div id="ModalDocViewer" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div id="modalLibrary" class="modal-dialog modal-library">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-open-in-new" style="margin-top: -2px; margin-right:20px" onclick="OpenInNew()" data-dismiss="modal"></label>
+                    <label class="ico md-fullscreen" style="margin-top: -2px; margin-right:20px" onclick="Fullscreen()"></label>
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label>
+                </div>
+                <h4 class="modal-title" id="modal-title">
+                    заголовок документа                    
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div id="modal-body" class="modal-body">
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-------------------------------------------------------------------------------------------------->
+<!--открытие папки-->
+<script>
+    function Folder(path) {
+        
+        if (path == "Reports") {
+            loadContent('reports', '/Home/Reports');
+            return false;
+        }
+        
+        // разэкранирование двойного слэша
+        path = path.replace(/slashtoreplace/g, "\\");
+        // экранирование "плюс" и "пробел"
+        path = path.replace(/\+/g, "plustoreplace");
+        path = path.replace(/ /g, "backspacetoreplace");
+
+        $('#loading').show();
+        $(contentContainer).load('/Reports/Folder?path=' + path);
+    }
+</script>
+
+<!--открытие файла-->
+<script>
+    function File(filePath) {
+        // разэкранирование двойного слэша
+        filePath = filePath.replace(/slashtoreplace/g, "\\");
+        // экранирование "плюс" и "пробел"
+        filePath = filePath.replace(/\+/g, "plustoreplace");
+        filePath = filePath.replace(/ /g, "backspacetoreplace");
+
+        $('#modal-body').append('<div id="loading-inside" class="lds-ring center-block"><div></div><div></div><div></div><div></div></div>');
+        $(".modal").modal("show");
+        $("#modal-body").load('/Library/File?filePath=' + filePath);        
+    }
+</script>
+
+<!--закрытие модального окна-->
+<script>
+    $("#ModalDocViewer").on('hide.bs.modal', function () {
+        $('#modalLibrary').removeClass("fullscreen");
+        $('#modal-body').empty();
+    });
+</script>
+
+<!--отображение всплывающих подсказок-->
+<script>
+    $(function () {
+        $('.tooltip-portal').tooltip();
+        $('.popover-portal').popover();
+    });
+</script>
+
+<!--полноэкранный режим-->
+<script>
+    function Fullscreen() {
+        if($('#modalLibrary').hasClass("fullscreen"))
+        {
+            $('#modalLibrary').removeClass("fullscreen");
+        }
+        else {
+            $('#modalLibrary').addClass("fullscreen");
+        }
+    }
+</script>
+
+<!--открыть в новой вкладке-->
+<script>
+    function OpenInNew() {
+        var src = $('#docFrame').attr("src");
+        window.open(src, '_blank');
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        Alerts();
+        $('#loading').hide();
+    });
+</script>

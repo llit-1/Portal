@@ -1,0 +1,23 @@
+﻿@model List<RKNet_Model.VMS.NX.NxCamera>
+
+<button class="btn btn-sm btn-success" onclick="AddCam()">добавить камеру</button>
+
+<div class="row" id="camerasPreview" style="margin-top:20px">
+    @foreach (var cam in Model.OrderBy(c => c.Name))
+    {
+        var panelId = "panel_" + cam.Id.ToString();
+        <div id="@panelId" class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading panel-cams-heading">
+                    @cam.Name
+                    <div class="pull-right" style="margin-right:10px; height:10px">
+                        <button class="btn btn-xs btn-danger" style="margin-top: -2px" onclick="CamDelete(@cam.Id, ttId, '@cam.Guid', this)">удалить</button>
+                    </div>
+                </div>
+                <div class="panel-body ">
+                    <img class="camResponsive" src="/Settings_TT/GetCamPreview?systemId=@cam.NxSystem.Id&cameraId=@cam.Guid" />
+                </div>
+            </div>
+        </div>
+    }
+</div>

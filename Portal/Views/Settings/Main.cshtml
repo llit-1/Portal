@@ -1,0 +1,86 @@
+﻿@model Portal.Models.PortalSettings
+<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#settings" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<!--время сессии до выброса-->
+<div class="row">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">настройки портала</div>
+            <div class="panel-body">
+
+                <div class="text-danger" asp-validation-summary="All"></div>
+
+                <form class="">
+
+                    <!--время сессии в минутах-->
+                    <div class="form-group">
+                        <label for="session" class="col-sm-12 control-label">время сессии на портале в минутах</label>
+                        <div class="col-sm-12">
+                            <select class="form-control" id="session">
+                                <option value="1">1 минута</option>
+                                <option value="15">15 минут</option>
+                                <option value="30">30 минут</option>
+                                <option value="60">1 час</option>
+                                <option value="120">2 часа</option>
+                                <option value="240">4 часа</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--кнопки сохранить/отмена-->
+<div class="col-sm-12 text-left">
+    <button type="button" class="btn btn-success btn-sm" style="margin-right:10px" onclick="Save()">Сохранить</button>
+</div>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+<!--сохранить-->
+<script>
+    function Save() {
+
+        var settings = {};
+        settings.SessionTime = $('#session').val();
+
+        var jsn = JSON.stringify(settings);
+        jsn = jsn.replace(/\+/g, "pp");
+        
+        $.ajax({
+            type: "POST",
+            url: '/Settings/SaveSettings',
+            data: { json: jsn },
+            datatype: "text",
+            success: function (result) {
+                alert(result);
+            },
+            error: function (error) { alert(error.responseText); }
+        });
+    }
+</script>
+
+<!--устанавливаем текущие значения в полях ввода-->
+<script>
+    // время сессии
+    var session = @Html.Raw(Json.Serialize(Model.SessionTime));
+    $('#session').val(session);
+</script>
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

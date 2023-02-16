@@ -1,0 +1,53 @@
+﻿ <!--модальное сообщение-->
+<div class="modal" id="modalWindow" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <!--заголовок окна-->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <!--режим: сообщение-->
+                <h5 class="modal-title modal-message text-dark font-weight-bold"></h5>
+                <!--режим: удаление-->
+                <h5 class="modal-title modal-delete text-danger font-weight-bold"></h5>                
+            </div>
+
+            <!--текст сообщения-->
+            <div class="modal-body">
+                
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <!--режим: сообщение-->
+                <button type="button" class="modal-buttons modal-message btn default btn-light" data-dismiss="modal">Закрыть</button>
+                <!--режим: удаление-->
+                <button id="ok" type="button" class="modal-buttons modal-delete btn default btn-danger" data-dismiss="modal">Удалить</button>
+                <button id="cancel" type="button" class="modal-buttons modal-delete btn default btn-light" data-dismiss="modal">Отмена</button>                
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // модальное сообщение
+    function ShowModal(title, message, mode) {
+        $('#modalWindow').find('.modal-title').hide();
+        $('#modalWindow').find('.modal-buttons').hide();
+
+        $('#modalWindow').find('.modal-title').text(title);               
+        $('#modalWindow').modal('show');
+
+        // сообщение
+        if (mode == 0 | mode == null) {
+            $('#modalWindow').find('.modal-body').text(message);
+            $('.modal-message').show();
+        }
+        // удаление
+        if (mode == 1) {
+            $('#modalWindow').find('.modal-body').text(message);
+            $('.modal-delete').show();
+        }        
+    }
+</script>

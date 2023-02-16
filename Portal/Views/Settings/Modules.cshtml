@@ -1,0 +1,59 @@
+﻿@model List<Portal.Models.Settings.Module>
+
+<div class="row cm-fix-height">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">Модули</div>
+            <div class="panel-body">
+
+                @foreach(var module in Model)
+                {
+                    if (module.Id != 1)
+                    {
+                        var enabled = "";
+                        if (module.Enabled) enabled = "checked";
+
+                    <li class="list-group-item">
+                        @module.Description
+                        <div class="material-switch pull-right">
+                            <input class="slider" id="@module.Id" type="checkbox" @enabled/>
+                            <label for="@module.Id" class="label-warning"></label>
+                        </div>
+                    </li>
+                    }
+                }
+
+            </div>
+        </div>
+    </div>
+
+    <div id="content"></div>
+
+</div>
+
+
+
+
+<!------------------------------------------------------------------------------------->
+
+<!--переключатели-->
+<script>
+    $('.slider').click(function () {
+        var enabled = false;
+        if ($(this).is(':checked')) {
+            enabled = true;
+        } 
+        
+        $.get('/Settings/ModuleChange?id=' + this.id + '&enabled=' + enabled, function (result) {
+            if (!result.ok) alert(result.exceptionText);
+        });
+
+    });
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

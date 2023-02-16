@@ -1,0 +1,159 @@
+﻿@model Portal.ViewModels.Settings_TT.CashClientsView
+
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows"); 
+
+    var isChecked = "";
+    if (Model.isAutoUpdate)
+        isChecked = "checked";
+}
+
+
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+
+        <!--блок заголовка-->
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--заголовок-->
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                    <!--обновить-->
+                    <td style="">
+                        <img src="/themes/clearmin/img/md/dark/autorenew.svg" height="38" width="30" onclick="DataTable()" style="cursor:pointer">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--меню таблицы-->
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+            
+            <select id="updateAllSelector" class="form-control-sm" style="min-width:70px; height:28px; margin-left:20px">
+                @foreach(var ver in Model.Versions.OrderByDescending(v => v.Version))
+                {
+                    if (ver.isActual)
+                    {
+                        <option selected>@ver.Version</option>
+                    }
+                    else
+                    {
+                        <option>@ver.Version</option>
+                    }                                                                                                                
+                }                                           
+            </select>
+
+            <button class="btn btn-sm btn-gray" onclick="">скачать дистрибутив</button>
+
+            <div class="checkbox check-01" style="margin-left:20px; display:inline">
+                <label>
+                    <input id="AutoUpdateCheck" type="checkbox" @isChecked>
+                    <p>обновлять автоматически</p>
+                </label>                
+            </div>
+
+            <button class="btn btn-sm btn-danger" onclick="UpdateAll()" style="margin-left:20px; display:inline">обновить все</button>
+            
+        </div>
+
+        <!--меню редактора-->
+        <div id="editMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+            <a href="#DeleteTT" class="btn btn-sm btn-danger" onclick="DeleteItem()">удалить</a>
+        </div>
+
+        <!--меню добавления -->
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+
+        </div>
+
+    </div>
+</div>
+
+<div id="page" style="margin-top:15px"></div>
+
+
+<!------------------------------------------------------------------------------------------------------------------->
+<!--загрузка таблицы-->
+<script>
+    function DataTable() {
+        //location.hash = "#SettingsTTs";
+        $('#header').text('Кассовые клиенты');
+
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#settings" });
+
+        $('#tableMenu').show();
+        $('#editMenu').hide();
+        $('#addMenu').hide();
+
+        $('#page').empty();
+        SpinnerShow();
+        $('#page').load('/Settings_TT/ClientsTable', function () { SpinnerHide(); });
+    }
+    DataTable();
+</script>
+
+<!--загрузка формы добавления-->
+<script>
+    function AddItem() {
+        location.hash = "#AddTT";
+        $('#header').text('Добавление торговой точки');
+
+        $('#back').unbind('click');
+        $('#back').click(function () { DataTable(); });
+
+        $('#tableMenu').hide();
+        $('#editMenu').hide();
+        $('#addMenu').show();
+
+        $('#page').empty();
+        SpinnerShow();
+        $('#page').load('/Settings_TT/TTEdit?ttId=0', function () { SpinnerHide() });
+    }
+</script>
+
+<!--загрузка редактора-->
+<script>
+    function EditItem(itemName, itemId) {
+        location.hash = "#AccessEditor";
+        $('#header').text(itemName);
+
+        $('#back').unbind('click');
+        $('#back').click(function () { DataTable(); });
+
+        $('#tableMenu').hide();
+        $('#editMenu').show();
+        $('#addMenu').hide();
+
+        $('#page').empty();
+        SpinnerShow();
+        $('#page').load('/Settings_TT/TTEdit?ttId=' + itemId, SpinnerHide());
+    }
+</script>
+
+<!--чекбокс автообновления-->
+<script>
+    $('#AutoUpdateCheck').on('change', function(){
+        var isEnabled = $(this).is(':checked');
+        $.get('/Settings_TT/CashClientsAutoUpdate?isEnabled=' + isEnabled, function(result){ 
+            if(!result.ok)
+            {
+                ShowModal('Обновление кассовых клиентов', result.errorMessage);
+            }
+            else
+            {
+                ShowModal('Обновление кассовых клиентов', result.data);
+            }
+        });
+    });
+</script>

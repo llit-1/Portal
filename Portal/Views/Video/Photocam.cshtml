@@ -1,0 +1,75 @@
+﻿@model List<RKNet_Model.VMS.CamGroup>
+@{
+    var today = DateTime.Now.ToString("yyyy-MM-dd");
+}
+
+<!--фильтры-->
+<div class="panel" style="background:none; border:none; box-shadow:none">
+    <form class="form-horizontal">
+        <div class="form-group">
+
+            <!--Назад-->
+            <a href="#video" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+                <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+            </a>
+
+            <!--период 1-->
+            <label class="col-md-1 control-label" for="period01" style="width:40px">с</label>
+            <div class="col-md-2">
+                <input type="date" value="@today" class="form-control refresh" id="period01">
+            </div>
+
+            <!--период 2-->
+            <label class="col-md-1 control-label" for="period02" style="width:40px">по</label>
+            <div class="col-md-2">
+                <input type="date" value="@today" class="form-control refresh" id="period02">
+            </div>
+
+            <!--группа камер-->
+            <label class="col-md-1 control-label" for="camgroup">группа камер</label>
+            <div class="col-md-2">
+                <select disabled class="form-control refresh" id="camgroup">
+                    <option selected value="0">все</option>
+                    @foreach (var group in Model)
+                    {
+                        <option value="@group.Id">@group.Name</option>
+                    }
+                </select>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<!--блок фото-->
+<div class="panel panel-default" id="photoBlock">
+
+</div>
+
+
+
+<!---------------------------------------------------------------------------------------------------->
+
+<!--обновление камер по фильтрам-->
+<script>
+    function RefreshCams() {
+        var period01 = $('#period01').val();
+        var period02 = $('#period02').val();
+        var camgroupId = $('#camgroup option:selected').val();
+        
+        $('#photoBlock').empty();
+        $('#loading').show();
+        $('#photoBlock').load('/Video/PhotoByFilters?period01=' + period01 + '&period02=' + period02 + '&camgroupId=' + camgroupId);
+    }
+
+    $('.refresh').change(function () { RefreshCams(); });
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+        $("#camgroup option[value=0]").attr("selected", "selected"); // блокируем выбор группы камер
+        RefreshCams();
+    });
+</script>

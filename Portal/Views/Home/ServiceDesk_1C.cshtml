@@ -1,0 +1,45 @@
+﻿
+<div class="panel panel-default">
+    <iframe id="frame"
+            src="https://1c.ludilove.ru/zayavki/en_US/"
+            frameborder="0"
+            allowFullScreen="true">
+    </iframe>
+</div>
+
+<!-------------------------------------------------------------------->
+
+<script>
+
+    var curOrient = '';
+
+    // автозагрузка вертикальной или горизонтальной версии
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('#frame').css("height", "84vh");
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('#frame').css("height", "69vh");
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });    
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        $('#loading').hide();
+    });
+</script>

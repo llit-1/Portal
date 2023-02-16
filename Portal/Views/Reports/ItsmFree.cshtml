@@ -1,0 +1,77 @@
+﻿@model Portal.ViewModels.Reports.ReportsView
+@{
+    var login = User.Claims.First(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value.ToLower();
+    var src = "";
+
+    if (Model.AllReports != null)
+    {
+        src = Model.AllReports.ItsmFree;
+    }
+}
+
+<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#reports" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<!--фрейм для вывода отчёта-->
+@if (src != "")
+{
+    <div class="panel panel-default" id="panel" style="height:100px">
+        <iframe id="frame"
+                src="@src"
+                frameborder="0"
+                allowFullScreen="true">
+        </iframe>
+    </div>
+}
+else
+{
+    <p>нет доступных отчетов Power Bi для отображения</p>
+}
+
+<!-------------------------------------------------------------------->
+
+<script>
+
+    var curOrient = '';
+
+    // автозагрузка вертикальной или горизонтальной версии
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            var src = "https://app.powerbi.com/view?r=eyJrIjoiNzg4ZDc5MGYtYjIzOC00YTczLTllZmEtNjI3YzBlMzEyNzEyIiwidCI6ImIyMWI4OTc1LTc2NWEtNDI3My04MzUyLTVjNzU4Y2ViZjc5MSIsImMiOjl9";
+            $('#frame').attr('src', src);
+            $('#frame').css("height", "84vh");
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            var src = "https://app.powerbi.com/view?r=eyJrIjoiOTZhNGFmY2ItOTVhMC00MTliLWIxNTctMjgzNDEwNDc3Yzk5IiwidCI6ImIyMWI4OTc1LTc2NWEtNDI3My04MzUyLTVjNzU4Y2ViZjc5MSIsImMiOjl9";
+            $('#frame').attr('src', src);
+            $('#frame').css("height", "69vh");
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        $('#loading').hide();
+    });
+</script>

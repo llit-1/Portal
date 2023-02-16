@@ -1,0 +1,45 @@
+﻿@model List<RKNet_Model.Account.Group>
+<!--список групп-->
+<div class="row cm-fix-height">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">Группы</div>
+            <div class="panel-body">
+                <ul class="list-group pre-scrollable">
+                    @foreach (var group in Model)
+                    {
+                        var id = "group_" + group.Id.ToString();
+                        <li id="@id" onclick="AjaxVert3Load('/Access/GroupEdit', '#@id')"><a class="list-group-item list-group-item-action" href="#link">@group.Name</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="content"></div>
+
+</div>
+
+
+<!------------------------------------------------------------>
+<!--загрузка странички в область контента и выделение активного пункта вертикального меню-->
+<script>
+    function AjaxVert3Load(url, id) {
+        $(id).parent().children('li').each(function () {
+            $(this).children('a').removeClass('active');
+        });
+        $(id).children('a').addClass('active');
+
+        var groupId = id.substr(7, id.length - 7);
+        url = url + '?groupId=' + groupId;
+        $('#content').load(url);
+    }
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

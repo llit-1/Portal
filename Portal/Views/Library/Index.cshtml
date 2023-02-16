@@ -1,0 +1,147 @@
+﻿<!--панель навигации-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--на главную-->
+    <div class="col-lg-1 el-marging" style="width:150px; cursor:pointer" onclick="{
+        $('#loading').show();
+        loadContent('main', '/Home/Index');
+        }">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">на главную</label>
+    </div>
+
+</div>
+
+
+<!--Корневые разделы Библиотеки Знаний-->
+<div class="row">
+
+    <!--Внутренние документы-->
+    @if (User.IsInRole("library_internal"))
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a href="#InternalDocs" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/folder.svg" width="30px">
+                    </span>
+                    <h4>Внутренние документы</h4>
+                    <small>материалы для сотрудников</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/library/main/folder.svg" width="30px">
+                    </span>
+                    <h4>Внутренние документы</h4>
+                    <small>материалы для сотрудников</small>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--Пекарни Люди Любят-->
+    @if (User.IsInRole("library_ll"))
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a href="#LudiLove" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height:147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/u-circle-bw3.svg" width="30px">
+                    </span>
+                    <h4>Пекарни Люди Любят</h4>
+                    <small>материалы для продавцов</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height:147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/u-circle-bw3.svg" width="30px">
+                    </span>
+                    <h4>Пекарни Люди Любят</h4>
+                    <small>материалы для продавцов</small>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--Справочник Франчайзи-->
+    @if (User.IsInRole("library_franch"))
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a href="#FranchBook" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/network.svg" width="30px">
+                    </span>
+                    <h4>Справочник Франчайзи</h4>
+                    <small>материалы для партнёров</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/network.svg" width="30px">
+                    </span>
+                    <h4>Справочник Франчайзи</h4>
+                    <small>материалы для партнёров</small>
+                </div>
+            </a>
+        </div>
+    }
+
+    <!--паспорта качества-->
+    @if (User.IsInRole("library_passports"))
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a href="#Passports" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/passport.svg" width="30px">
+                    </span>
+                    <h4>Паспорта качества</h4>
+                    <small>нормативная документация</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/passport.svg" width="30px">
+                    </span>
+                    <h4>Паспорта качества</h4>
+                    <small>нормативная документация</small>
+                </div>
+            </a>
+        </div>
+    }
+
+</div>
+
+<!-------------------------------------------------------------------------------------------------->
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        Alerts();
+        $('#loading').hide();
+    });
+</script>

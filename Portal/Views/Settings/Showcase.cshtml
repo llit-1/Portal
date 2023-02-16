@@ -1,0 +1,56 @@
+﻿@model List<Portal.ViewModels.TTZone>
+
+<div class="Content" id="demo">
+
+    <h2>Модуль видеоаналитики: анализ заполнения витрин</h2>
+
+    <a href="#link" onclick="load('/Settings/ShowcaseAddCamera01', 'demo')">добавить камеру для анализа</a>
+
+    <div>
+        <table class="zonesTable">
+
+            @foreach (var tt in Model)
+            {
+                <tr class="zHeader"><td>@tt.TTName</td> <td class="zNames">начало периода</td> <td class="zNames">конец периода</td> <td class="zNames">интервал</td> <td class="zNames">уровень детализации</td></tr>
+
+                @foreach (var z in tt.Zones)
+                {
+                    <tr><td><a href="#link" onclick="linkZone('@Html.Raw(Json.Serialize(z.VmsType))', '@z.CameraGuid')">@z.Name</a></td> <td>@z.StartTime</td> <td>@z.StopTime</td> <td>@z.Interval</td> <td>@z.Level</td></tr>
+                }
+            }
+
+
+
+        </table>
+    </div>
+
+
+
+</div>
+
+
+
+
+<!------------------------------------------------------------------------------------------------------>
+<!--переход к редактированию зон-->
+<script>
+    function linkZone(Vms, Guid) {
+
+        var jsn = JSON.stringify(
+            {
+                'cameraGuid': Guid,
+                'vmsType': Vms,
+                'previewHeight': 700
+            });
+
+        $('#demo').load('@Url.Action("ShowcaseAddCamera03", "Settings")?jsn=' + jsn);
+    }
+</script>
+
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

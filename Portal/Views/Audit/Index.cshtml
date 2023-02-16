@@ -1,0 +1,168 @@
+﻿<!--панель навигации-->
+<div id="nav" class="row" style="margin: 0px">
+
+    <!--назад-->
+    <a href="#" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+    <!--навигация-->
+    <div class="hidden-xs col-lg-10 cm-breadcrumb-container el-marging lib-navigation" style="display:inline-block">
+        <ol class="breadcrumb" style="margin:0px">
+            <li><a href="#link">Начало</a></li>
+
+
+            <li><a href="#link">другой объект</a></li>
+            <li class="active">текущий объект</li>
+
+        </ol>
+    </div>
+
+</div>
+
+<!--блок контента-->
+<div class="row" style="margin:0px">
+
+    <div id="mainPanel" class="col-lg-12 panel panel-default audit">
+        <div class="panel-body">
+
+            <!--чек-боксы-->
+            <div class="row hidden">
+                <h4 style="margin-top:0">Объект 01 <span class="digit-01" style="float:right">54%</span></h4>
+                <hr>
+
+                @{
+                    var col = "col-xs-6 col-sm-4 col-md-3 col-lg-3";
+                }
+
+                <div class="@col checkbox check-02">
+                    <label>
+                        <input type="checkbox">
+                        <p>элемент оценки</p>
+                    </label>
+                </div>
+
+                <div class="@col checkbox check-02">
+                    <label>
+                        <input type="checkbox">
+                        <p>элемент оценки</p>
+                    </label>
+                </div>
+
+                <div class="@col checkbox check-02">
+                    <label>
+                        <input type="checkbox">
+                        <p>элемент оценки</p>
+                    </label>
+                </div>
+
+                <div class="@col checkbox check-02">
+                    <label>
+                        <input type="checkbox">
+                        <p>элемент оценки</p>
+                    </label>
+                </div>
+
+                <div class="@col checkbox check-02">
+                    <label>
+                        <input type="checkbox">
+                        <p>элемент оценки</p>
+                    </label>
+                </div>
+
+                <div class="@col checkbox check-02">
+                    <label>
+                        <input type="checkbox">
+                        <p>элемент оценки</p>
+                    </label>
+                </div>
+
+            </div>
+
+            <!--заголовок-->
+            <div id="header">
+                <h4 style="margin-top:0">
+                    <div class="col-sm-10">
+                        Объект 01 длинный заголовок объекта
+                    </div>
+                    
+                    <div class="col-sm-2">
+                        <button class="btn btn-success" style="float:right; margin-right:10px; margin-top:-8px">чек-лист <span style="font-size:16px">54%</span></button>
+                    </div>
+                    <!--<span class="digit-01" style="float:right">54%</span>-->
+                    
+                </h4>
+                <hr>
+            </div>
+
+            <!--плитки объектов-->
+            <div id="scroll" style="overflow-y:auto">
+
+                @{
+                    var icoSrc = "/svg/icons/checklist.svg";
+                    var icoWidth = "30px";
+                    var tailSize = "col-xs-12 col-sm-6 col-md-4 col-lg-3";
+                }
+
+                @for (int x = 1; x <= 10; x++)
+                {
+                    // плитки с чек-боксами
+                    <div class="@tailSize hidden">
+                        <!--чек-боксы-->
+                        <a href="#link" class="panel panel-default thumbnail  tails-panel" style="width:60px; display:inline-block" onclick="">
+                            <div class="panel-body text-center" style="min-height: 147px;">
+                                <img src="@icoSrc">
+
+                            </div>
+                        </a>
+                        <!--объект-->
+                        <a href="#link" class="panel panel-default thumbnail  tails-panel" style="width:calc(100% - 65px); display:inline-block" onclick="">
+                            <div class="panel-body text-center" style="min-height: 147px;">
+
+                                <h5>Объект оценки длинный текст</h5>
+                            </div>
+                        </a>
+                    </div>
+
+                    // объект
+                    <div class="@tailSize">                        
+                        <a href="#link" class="panel panel-default thumbnail  tails-panel" style="width:100%; height:80px; display:inline-block" onclick="">
+                            <div class="panel-body text-center" style="min-height: 147px;">
+                                <img src="@icoSrc" style="width:50px">
+                                <div class="check-text">
+                                    <h5 style="margin-left:10px; margin-top:12px">Объект оценки: длинный текст, который не вмещается на одну строку</h5>
+                                </div>
+                                
+                            </div>
+                        </a>
+                    </div>
+                }
+
+                <!--неактивная плитка-->
+                <div class="@tailSize hidden">
+                    <!--чек-боксы-->
+                    <a href="#link" class="panel panel-default thumbnail  tails-panel" style="width:60px; display:inline-block" onclick="">
+                        <div class="panel-body text-center" style="min-height: 147px;">
+                            <img src="@icoSrc">
+
+                        </div>
+                    </a>
+                    <!--объект-->
+                    <a href="#link" class="panel panel-default thumbnail  tails-panel tails-disabled" style="width:calc(100% - 65px); display:inline-block" onclick="">
+                        <div class="panel-body text-center" style="min-height: 147px;">
+
+                            <h5>Объект оценки длинный текст</h5>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+<!--скрипты-------------------------------------------->
+<script src="~/ViewScripts/Audit/Index.js" asp-append-version="true"></script>

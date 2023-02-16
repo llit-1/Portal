@@ -1,0 +1,279 @@
+﻿@model RKNet_Model.Menu.Category
+
+<div id="menuCatEditor" class="row editorsContent">    
+    
+    <div class="col-md-6" id="image" ></div>
+    
+    <div class="col-md-6">
+        <label>наименование категории меню</label>
+        <input id="name" type="text" class="form-control" placeholder="название категории">        
+
+
+        <label style="margin-top:20px">горизонтальное изображение, не более 3мб</label>
+
+        <!--кнопка загрузить изображение-->
+        <div id="loadButton" class="example-2">
+            <div class="form-group">
+                <input type="file" accept=".jpg,.jpeg,.png" name="file" id="fileUpload" class="input-file">
+                <label for="file" class="btn btn-tertiary js-labelFile">
+                    <i class="icon fa fa-check"></i>
+                    <span class="js-fileName">Загрузить изображение</span>
+                </label>   
+                <!--ссылка очистить-->
+                <div class="clear">                    
+                    <a onclick="ImageClear()"><i class="icon fa fa-trash"></i>очистить</a>
+                </div>
+            </div>
+        </div>
+
+        <!--индикатор загрузки-->
+        <div id="progressBar" class="progress">
+            <div class="progress-bar progress-bar-warning" style="width: 0%">0%</div>
+        </div>
+    </div>
+        
+</div>
+
+<!--------------------------------------------------------------------------->
+
+<script>
+    
+    var imageUpdated = false;
+    cat.Image = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Image));
+
+    // по загрузки страницы
+    $(document).ready(function() 
+    {        
+        $('#name').val(cat.Name);
+        $('#image').css('background-image', 'url("data:image/jpg;base64,' + cat.Image + '")');
+        
+        //var image = `url('/menu/categorysImages/category${cat.Id}.jpg'`;
+        //$('#image').css('background-image', image);
+    
+        $('#catEditorPath').empty();
+        $('#catEditorPath').append('<li><a>Меню</a></li>');
+        $.each(path, function(){
+            $('#catEditorPath').append('<li><a>' + this.Name + '</a></li>');        
+        });
+        if(cat.Id == 0)
+            $('#catEditorPath').append('<li><a>' + parentName + '</a></li>');
+        $('#catEditorPath').append('<li><a>' + cat.Name + '</a></li>');
+
+        $('#progressBar').hide();
+
+        if(cat.Id == 0)
+        {
+            $('#DeleteCategoryButton').hide();
+        }
+        else
+        {
+             $('#DeleteCategoryButton').show();
+        }
+        
+    });        
+
+    // кнопка загрузить изображение
+    $('.js-labelFile').click(function(){
+        $('#fileUpload').click();
+    });
+
+
+    // загрузка изображения
+    $('#fileUpload').change(function()
+    {                
+        var fileName = '';
+        var files = $('#fileUpload').prop("files");
+
+        var filename = $("#fileUpload").val();
+        var extension = filename.replace(/^.*\./, '');
+
+        if (extension == filename) {
+            extension = '';
+        } 
+        else {            
+            extension = extension.toLowerCase();
+        }
+
+        
+        if(extension != 'jpg' & extension != 'jpeg' & extension != 'png')
+        {
+            ShowModal('Редактор категории', 'Недопустимый тип файла. Можно загружать только изображения в jpeg или png формате');   
+            return false;
+        }               
+
+        if(!validateSize(this, 3))
+        {
+            ShowModal('Редактор категории', "Размер загружаемого файла не должен превышать 3Мб");
+            return false;
+        }
+
+        // получаем файл изображения
+        let reader = new FileReader();
+              
+        // начало загрузки
+        reader.onloadstart = function(event) 
+        {            
+            $('#progressBar').children('div').text('0%');
+            $('#progressBar').children('div').css('width', '0%');
+            $('#progressBar').show();
+            $('#loadButton').hide();            
+        }
+        // ход загрузки
+        reader.onprogress = function(event) 
+        {
+            if (event.lengthComputable) 
+            {
+                // индикатор хода загрузки
+                var level = parseInt((event.loaded/event.total)*100);                
+                $('#progressBar').children('div').text(level + '%');
+                $('#progressBar').children('div').css('width', level + '%');
+            }
+        };
+        // по факту загрузки
+        reader.onload = function(event)
+        {         
+            var error = event.target.error;
+            if (error != null) 
+            {
+                ShowModal('Редактор категории',"Ошибка загрузки файла:" + error.message);
+            }
+            else
+            {                   
+                $('#progressBar').hide();
+                $('#loadButton').show();
+                ImageResize(event.target.result);
+            }            
+        }  
+
+        // старт процесса загрузки 
+        reader.readAsDataURL(files[0]);        
+    });      
+
+    // очистка изображения
+    function ImageClear()
+    {
+        $('#image').css('background-image', '');
+        imageUpdated = true;
+    }
+
+    // изменение размера картинки    
+    function ImageResize(baseImage)
+    {        
+        $.ajax({            
+            type: "POST",
+            url: 'Menu/ResizeImage',
+            data: { data: baseImage },
+            datatype: 'application/json',
+            success: function (result) 
+            {              
+                $('#image').css('background-image', 'url("data:image/jpg;base64,' + result + '")');
+                imageUpdated = true;
+            },
+            error: function (error) 
+            { 
+                ShowModal('Редактор категории', 'error:  ' + error.responseText); 
+            }
+        });
+    }
+
+    // сохранить/добавить категорию
+    function SaveCategory()
+    {
+        var newImage = $('#image').css('background-image');
+        newImage = newImage.replace('url("data:image/jpg;base64,', '');
+        newImage = newImage.replace('")', '');                  
+        
+        var editedCat = cat;        
+        editedCat.name = $('#name').val(); 
+        
+        if(newImage == 'none' | newImage == 'null' | newImage == null)
+            editedCat.Image = null;
+        else
+            editedCat.Image = newImage;
+
+        if(imageUpdated)
+            editedCat.ImageUpdated = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(DateTime.Now.ToString("yyy-MM-ddTHH:mm:ss.ffffff+03:00")));
+        
+        var jsn = JSON.stringify(editedCat);                 
+        
+        jsn = jsn.replace(/\+/g, "%pp%");
+        jsn = jsn.replace(/ /g, "%bkspc%");
+
+        var url = 'Menu/EditCategory';
+        if(cat.Id == 0)
+            url = 'Menu/AddCategory';
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { json: jsn },
+            datatype: "application/json",
+            success: function (result) {  
+                //alert(JSON.stringify(result));
+                if(result.ok)
+                {                    
+                    $("#categoryEditor").modal("hide");
+                    if(editedCat.Id != 0)
+                        LoadCategory(editedCat.Id);
+                    else
+                        LoadCategory(editedCat.ParentCategoryId);
+                }
+                else
+                {
+                    ShowModal('Редактор категории', result.errorMessage);
+                }
+            },
+            error: function (error) { alert(error.responseText); }
+         });         
+    }
+
+    // удаление категории
+    function DeleteCategory()
+    {
+        var confirmMessage = "Категория \"" + cat.Name + "\" со всеми входящими в неё подкатегориями и позициями будет удалена, продолжить?";
+        ShowModal("Подтвердите удаление", confirmMessage, 1);
+
+        // кнопка ok в модальном окне
+        $('#ok').on('click', function () {
+            $('#ok').off('click');
+            $.get('/Menu/DeleteCategory?Id=' + cat.Id, function(result)
+            {
+                //ShowModal('Редактор категории', JSON.stringify(result));
+                if(result.ok)
+                {                    
+                    $("#categoryEditor").modal("hide");
+                    LoadCategory(cat.ParentCategoryId);
+                }
+                else
+                {
+                    ShowModal('Редактор категории', result.errorMessage);
+                }
+            });
+        });
+
+        
+    }
+
+    // определение размера файла
+    function validateSize(fileInput,size) 
+    {
+        var fileObj, oSize;
+        if ( typeof ActiveXObject == "function" ) 
+        { // IE
+            fileObj = (new ActiveXObject("Scripting.FileSystemObject")).getFile(fileInput.value);
+        }
+        else 
+        {
+            fileObj = fileInput.files[0];
+        }
+ 
+        oSize = fileObj.size; // Size returned in bytes.
+        if(oSize > size * 1024 * 1024)
+        {
+            return false
+        }
+        return true;
+    }
+   
+</script>
+

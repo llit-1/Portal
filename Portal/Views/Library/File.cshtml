@@ -1,0 +1,109 @@
+﻿@model Portal.ViewModels.Library.FileView
+<!--<p id="temp"></p>-->
+<iframe id="docFrame"></iframe>
+
+<!-------------------------------------------------------------------------------------------------->
+<!--просмотрщики документов-->
+<script>
+    // данные модели
+    var fileName = @Html.Raw(Json.Serialize(Model.fileName));
+    var ext = @Html.Raw(Json.Serialize(Model.fileExt));
+    var rootFolderId = @Html.Raw(Json.Serialize(Model.rootFolderId));
+    var fileIndex = @Html.Raw(Json.Serialize(Model.fileIndex));
+    var filePath = @Html.Raw(Json.Serialize(Model.filePath));
+
+    // заголовок окна
+    $('#modal-title').text(fileName);
+
+    // размер окна в зависимоти от типа устройства
+    if (isMobile())
+        $('#docFrame').addClass("docMobile");
+    else
+        $('#docFrame').addClass("docDesktop");
+
+    // ссылка на файл
+    var domainName = window.location.origin;
+    //var fileUrl = domainName + '/Library/GetFileByIndex?fileIndex=' + fileIndex + '&rootFolderId=' + rootFolderId;
+    //var fileUrl = domainName + '/Library/GetFileByName?fileName=' + fileName + ext + '&rootFolderId=' + rootFolderId;
+    //var fileUrl = domainName + '/Library/GetFile?path=' + filePath;
+
+    var fileView = {};
+    fileView.rootFolderId = rootFolderId;
+    fileView.fileIndex = fileIndex;
+
+    var jsn = JSON.stringify(fileView);
+    var fileUrl = domainName + '/Library/GetFileByIndex?json=' + jsn;
+
+    var src = "";
+
+    $('#temp').text(fileUrl);
+
+    // просмотрщик Microsoft
+    if (ext == ".xls" || ext == ".xlsx" || ext == ".xlsb" || ext == ".doc" || ext == ".docx") {
+        src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + fileUrl + '&action=embedview&wdbipreview=true';
+        if (isMobile()) {
+            window.open(src, '_blank');
+            $('.modal').modal('toggle');
+        }
+    }
+
+    // просмотрщик Google
+    if (ext == ".ppt" || ext == ".pptx") {
+        src = 'https://docs.google.com/viewer?url=' + fileUrl + '&embedded=true';
+        if (isMobile()) {
+            window.open(src, '_blank');
+            $('.modal').modal('toggle');
+        }
+    }
+
+    // документы PDF
+    if (ext == ".pdf") {
+        if (isMobile()) {
+            src = 'https://docs.google.com/viewer?url=' + fileUrl + '&embedded=true';
+            window.open(src, '_blank');
+            $('.modal').modal('toggle');
+        }
+        else
+            src = '/Library/GetFile?path=' + filePath;
+    }
+
+    // изображения
+    if (ext == ".jpeg" || ext == ".jpg" || ext == ".png" || ext == ".gif") {
+        fileUrl = '/Library/GetFile?path=' + filePath;
+        if (isMobile()) {
+            src = '/Library/GetFile?path=' + filePath;
+            window.open(src, '_blank');
+            $('.modal').modal('toggle');
+        }
+        else {
+            $('#docFrame').hide();
+            $('#modal-body').append('<img id="docImage" class="docImage" src="' + fileUrl + '" />');
+        }
+    }
+
+    // видео
+    if (ext == ".mov" || ext == ".mp4" || ext == ".mpeg" || ext == ".avi") {
+        fileUrl = '/Library/GetFile?path=' + filePath;
+        //videoUrl = '/Library/GetVideo?url=' + fileUrl;
+        if (isMobile()) {
+            src = '/Library/GetFile?path=' + filePath;
+            window.open(src, '_blank');
+            $('.modal').modal('toggle');
+        }
+        else {
+            $('#docFrame').hide();
+            //$('#modal-body').append('<video id="docVideo" class="video-js vjs-theme-sea docVideo" controls preload="auto"><source  src="' + fileUrl + '"></source></video>');
+            $('#modal-body').append('<div id="playerjs"></div>');
+            var player = new Playerjs({ id: "playerjs", file: fileUrl });
+        }
+    }
+
+    $('#docFrame').attr("src", src);
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    Alerts();
+    $('#loading').hide();
+</script>

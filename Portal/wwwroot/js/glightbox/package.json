@@ -1,0 +1,55 @@
+{
+  "name": "glightbox",
+  "version": "2.0.4",
+  "description": "Pure Javascript lightbox",
+  "main": "dist/js/glightbox.min.js",
+  "scripts": {
+    "watch": "node development/watcher.js"
+  },
+  "author": "MC Studios",
+  "keywords": [
+    "lightbox",
+    "javascript",
+    "gallery",
+    "popup"
+  ],
+  "license": "MIT",
+  "homepage": "https://glightbox.mcstudios.com.mx",
+  "repository": {
+    "url": "https://github.com/mcstudios/glightbox",
+    "type": "git"
+  },
+  "bugs": "https://github.com/mcstudios/glightbox/issues",
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "@babel/register": "^7.0.0",
+    "archiver": "^3.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "chokidar": "^3.0.2",
+    "clean-css": "^4.2.1",
+    "core-js": "^2.6.4",
+    "css-mqpacker": "^7.0.0",
+    "fs-extra": "^8.1.0",
+    "fs-jetpack": "^2.2.2",
+    "install": "^0.13.0",
+    "node-notifier": "^5.4.0",
+    "npm": "^6.11.2",
+    "postcss": "^7.0.14",
+    "postcss-nested": "^4.1.1",
+    "postcss-preset-env": "^6.5.0",
+    "postcss-prettify": "^0.3.4",
+    "postcss-smart-import": "^0.7.6",
+    "rollup": "^1.19.4",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "save-dev": "^2.0.0",
+    "temporary": "^1.0.1",
+    "terser": "^4.2.1",
+    "uninstall": "0.0.0"
+  },
+  "dependencies": {}
+}

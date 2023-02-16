@@ -1,0 +1,166 @@
+﻿@model Portal.ViewModels.Settings.RkRequestsView
+<!--меню кнопок-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+    <div class="col-md-12 el-marging">
+
+        <table class="table-page-menu">
+            <tr>
+                <td style="text-align:left; width:100px; cursor:pointer" onclick="{ location.hash = '#settings'; }">
+                    <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                    <label style="margin-left:10px; cursor:pointer">назад</label>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+<div class="row">
+
+    <!--запрос-->
+    <div class="col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-heading">запрос</div>
+            <div class="panel-body">
+
+                <form class="form-horizontal">
+                    <div class="form-group">
+
+                        <!--селектор ip адресов-->
+                        <div class="col-md-8">
+                            <label for="ipSelect" class="control-label">кассы и сервера</label>
+                            <select class="form-control" id="ipSelect">
+                                <option>ввести вручную</option>
+                                <option value="10.140.31.85">Касса IT Отдел</option>
+                                <option value="@Model.RefIp">Сервер справочников Р-Кипер</option>
+                                @foreach (var cash in Model.Cashes)
+                                {
+                                    <option value="@cash.Ip">@cash.Name</option>
+
+                                }
+                            </select>
+                        </div>
+
+                        <!--ip адрес-->
+                        <div class="col-md-4">
+                            <label for="ipInput" class="control-label">ip адрес</label>
+                            <input class="form-control" type="text" id="ipInput" />
+                        </div>
+
+                        <!--селектор запросов-->
+                        <div class="col-md-12">
+                            <label for="reqSelect" class="control-label">типовые запросы</label>
+                            <select class="form-control" id="reqSelect">
+                                <option>ввести вручную</option>
+                                <option value='<?xml version="1.0" encoding="UTF-8"?><RK7Query><RK7CMD CMD="GetFunctions"></RK7CMD></RK7Query>'>GetFunctions</option>
+                                <option value='<?xml version="1.0" encoding="UTF-8"?><RK7Query><RK7CMD CMD="GetSystemInfo2"></RK7CMD></RK7Query>'>GetSystemInfo2</option>
+                                <option value='<?xml version="1.0" encoding="UTF-8"?><RK7Query><RK7CMD CMD="GetDishRests"></RK7CMD></RK7Query>'>GetDishRests</option>
+                                <option value='<?xml version="1.0" encoding="utf-8"?><RK7Query><RK7CMD CMD="GetRefData" RefName="CATEGLIST" OnlyActive="true" WithMacroProp="1" MacroPropTags="0" WithChildItems="3" PropMask="RIChildItems.(Code, Name, RIChildItems.Code, RIChildItems.Name, RIChildItems.PRICETYPES*, RIChildItems.(Code, Name, RIChildItems.Code, RIChildItems.Name, RIChildItems.PRICETYPES*, RIChildItems.(Code, Name, RIChildItems.Code, RIChildItems.Name, RIChildItems.PRICETYPES*)))" /></RK7Query>'>GetRefData CATEGLIST</option>
+                            </select>
+                        </div>
+
+                        <!--запрос-->
+                        <div class="col-md-12">
+                            <label for="reqInput" class="control-label">запрос</label>
+                            <div>
+                                <textarea class="form-control" id="reqInput" placeholder="введите xml запрос" rows="20" style="resize:none"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+
+                <!--кнопка отправить-->
+                <button class="btn btn-default" onclick="Send()">отправить</button>
+
+            </div>
+        </div>
+    </div>
+    
+    <!--ответ-->
+    <div class="col-md-7">
+        <div class="panel panel-default">
+            <div class="panel-heading">ответ</div>
+            <div class="panel-body">
+
+                <!--ответ-->
+                <div class="col-md-12">
+                    <label for="response" class="control-label">ответ</label>
+                    <div>
+                        <textarea class="form-control" id="response" placeholder="ответ в формате xml" rows="29" style="resize:none" disabled></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!---------------------------------------------------------------------------------------------->
+<!--селектор ip адреса-->
+<script>
+    $('#ipSelect').change(function () {
+        var ip = $(this).val();
+
+        if (ip == "ввести вручную") {
+            $('#ipInput').val(null);
+            $('#ipInput').removeAttr('disabled');
+        }
+        else {
+            $('#ipInput').val(ip);
+            $('#ipInput').attr('disabled', true);
+        }
+    });
+</script>
+
+<!--селектор запросов-->
+<script>
+    $('#reqSelect').change(function () {
+        var req = $(this).val();
+        if (req == "ввести вручную")
+            $('#reqInput').val(null);
+        else
+            $('#reqInput').val(req);
+    });
+</script>
+
+<!--отправка запроса-->
+<script>
+    function Send() {
+        $('#response').val(null);
+        $('#response').attr('disabled', true);
+
+        var data = {};
+        data.ip = $('#ipInput').val();
+        data.xml_request = $('#reqInput').val();//.replace(/\+/g, "pp");
+
+        var jsn = JSON.stringify(data);
+
+        $.ajax({
+            type: "POST",
+            url: 'Settings/Rk_SendRequest/',
+            data: { json: jsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {                
+                    $('#response').val(result.data);
+                    $('#response').attr('disabled', false);
+                }
+                else {
+                    alert(result.errorMessage);
+                }
+            },
+            error: function (error) { alert(error.responseText); }
+        });
+    }
+
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        Alerts();
+        $('#loading').hide();
+    });
+</script>

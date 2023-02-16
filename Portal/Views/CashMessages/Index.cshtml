@@ -1,0 +1,470 @@
+﻿@model Portal.ViewModels.CashMessages.IndexView
+<!--меню кнопок-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+    <div class="col-md-12 el-marging">
+
+        <table class="table-page-menu">
+            <tr>
+                <td style="text-align:left; width:100px; cursor:pointer" onclick="{ location.hash = '#' }">
+                    <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                    <label style="margin-left:10px; cursor:pointer">назад</label>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default" onclick="loadUrl('/CashMessages/InputMessage')">новое сообщение</button>
+                </td>
+                <td style="text-align:right; width:70px">
+                    <img src="~/themes/clearmin/img/md/dark/autorenew.svg" height="38" width="24" onclick="GetData()" style="cursor:pointer">
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+<!--фильтры-->
+<div class="row" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--кол-во строк на странице-->
+    <div class="col-sm-1 el-marging">
+        <select class="form-control form-control-sm" id="rowsOnPage">
+            <option value="5">5</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+
+    <!--даты отправки-->
+    <div class="col-sm-2 el-marging">
+        <select class="form-control form-control-sm" id="createdDates">
+            <option value="">все даты отправки</option>
+            @foreach (var date in Model.createdDates)
+            {
+                <option value="@date">@date</option>
+            }
+        </select>
+    </div>
+
+    <!--отправители-->
+    <div class="col-sm-2 el-marging">
+        <select class="form-control form-control-sm" id="userNames">
+            <option value="">все пользователи</option>
+            @foreach (var user in Model.userNames.OrderBy(n => n))
+            {
+                <option value="@user">@user</option>
+            }
+        </select>
+    </div>
+
+    <!--статусы-->
+    <div class="col-sm-2 el-marging">
+        <select class="form-control form-control-sm" id="states">            
+            <option value="">все статусы</option>            
+            @foreach (var state in Model.states)
+            {
+                var selected = false;
+                if (state == Model.state) selected = true;
+                <option value="@state" selected="@selected">@state</option>                
+            }
+        </select>
+    </div>
+
+    <!--завершенные / незавершенные-->
+    <div class="col-sm-2 el-marging">
+        <div class="checkbox check-01">
+            <label>
+                <input type="checkbox" id="active">
+                <p>только активные</p>
+            </label>
+        </div>
+    </div>
+
+</div>
+
+<!--таблица данных-->
+<table class="table table-sm table-no-border table-compact">
+    <thead>
+        <tr>
+            <td>дата</td>
+            <td>заголовок</td>
+            <td class="mobile-hide">отправитель</td>
+            <td class="mobile-hide">текст сообщения</td>
+            <td class="mobile-hide">получено кассами</td>
+            <td>статус</td>
+        </tr>
+    </thead>
+
+    @foreach (var msg in Model.cashMessages.OrderByDescending(d => d.Created))
+    {
+        // определяем количество касс, получивших сообщение и общее кол-во касс
+        var cashStates = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Portal.Models.MSSQL.CashMsgState>>(msg.CashMsgStates);
+        var totalCashes = cashStates.Count;
+        var sendedCashes = cashStates.Where(s => s.sended).Count();
+        var cashResult = sendedCashes.ToString() + "/" + totalCashes.ToString();
+        var waitingCashes = cashStates.Where(c => !c.sended);
+
+        // ограничиваем длину предпросмотра сообщения
+                var length = 100;
+        var message = msg.Text;
+        if (message.Length >= length) message = message.Substring(0, length) + "...";
+
+        // цвет в зависимости от статуса
+        var stateColorClass = "";
+        switch (msg.State)
+        {
+            case "ожидает отправки":
+                stateColorClass = "color-gray";
+                break;
+            case "доставляется...":
+                stateColorClass = "color-yellow";
+                break;
+            case "доставлено":
+                stateColorClass = "color-green";
+                break;
+            case "частично доставлено":
+                stateColorClass = "color-yellow";
+                break;
+            case "не доставлено":
+                stateColorClass = "color-red";
+                break;
+        }
+
+        <tr class="@stateColorClass">
+            
+            <!--дата создания-->
+            <td><p>@msg.Created.ToString("dd.MM.yy HH:mm")</p></td>
+
+            <!--заголовок сообщения-->
+            <td>
+                <p class="popover-portal"
+                   data-toggle="popover"
+                   data-trigger="hover"
+                   data-placement="top"
+                   title=""
+                   data-original-title="текст сообщения"
+                   data-html="true"
+                   data-content="@msg.Text">
+                    @msg.Name
+                </p>
+            </td>
+
+            <!--пользователь-->
+            <td class="mobile-hide"><p>@msg.UserName</p></td>
+
+            <!--текст сообщения-->
+            <td class="mobile-hide">
+                <p class="popover-portal"
+                   data-toggle="popover"
+                   data-trigger="hover"
+                   data-placement="left"
+                   title=""
+                   data-original-title="текст сообщения"
+                   data-html="true"
+                   data-content="@msg.Text">
+                    @message
+                </p>
+            </td>
+
+            <!--кассы-->
+            <td class="mobile-hide">
+                @if (waitingCashes.Count() > 0)
+                {
+                    <p class="popover-portal @stateColorClass"
+                       data-toggle="popover"
+                       data-trigger="hover"
+                       data-placement="left"
+                       title=""
+                       data-original-title=""
+                       data-html="true"
+                       data-content="@foreach (var cash in waitingCashes)
+                       {
+                           var color = "class='color-red'";
+                           if (cash.sended) color = "class='color-green'";
+
+                                        <p @color style='display:inline; margin-right:10px'>●</p>
+                                        <p style='display:inline'>@cash.CashName</p>
+                                        <br>
+                       }">
+                        @cashResult
+                    </p>
+                }
+                else
+                {
+                    <p class="popover-portal @stateColorClass"
+                       data-toggle="popover"
+                       data-trigger="hover"
+                       data-placement="left"
+                       title=""
+                       data-original-title=""
+                       data-html="true"
+                       data-content="<p>доставлено на все кассы</p>">
+                        @cashResult
+                    </p>
+                }
+            </td>
+
+            <!--статус-->
+            <td width="10%">
+                
+                 @switch (msg.State)
+                 {
+                     case "доставлено":
+                         var finishedTime = "неизвестно";
+                         if (msg.FinishedTime != null)
+                             finishedTime = msg.FinishedTime.Value.ToString("dd.MM.yy HH:mm")
+                                 ;
+                        <p class="popover-portal @stateColorClass"
+                           data-toggle="popover"
+                           data-trigger="hover"
+                           data-placement="left"
+                           title=""
+                           data-original-title="время доставки"
+                           data-html="true"
+                           data-content="<p>@finishedTime</p>">
+                            @msg.State
+                        </p>
+                        break;
+
+                    default:
+                        <p>@msg.State</p>
+                        break;
+                 }
+
+            </td>
+
+        </tr>
+
+    }
+</table>
+
+<!--навигация по страницам-->
+<ul id="logPages" class="pagination shadowed" style="margin:0">
+    <li id="leftPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-left"></i></span></a></li>
+
+    @{
+        var numPages = 6;
+        var totalPages = Model.countRows / Model.rowsOnPage;
+        var firstPage = 1;
+
+
+
+        while (firstPage <= Model.selectedPage) firstPage += numPages;
+        if (firstPage != 1) firstPage -= numPages;
+
+        var lastPage = firstPage + numPages - 1;
+        var id = "";
+        var x = 1;
+
+        for (var p = firstPage; p <= lastPage; p++)
+        {
+            if (p <= totalPages)
+            {
+                id = "id = page_" + x.ToString();
+                var active = "";
+                if (p == Model.selectedPage) active = "class = active";
+
+                <li @active style="cursor:pointer"><a id="@id">@p</a></li>
+
+                x++;
+            }
+        }
+    }
+
+    <li id="rightPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-right"></i></span></a></li>
+</ul>
+
+<!-------------------------------------------------------------------------------------------------->
+<!--переменные-->
+<script>
+    var selectedPage = @Html.Raw(Json.Serialize(Model.selectedPage));
+    var numPages = @Html.Raw(Json.Serialize(numPages));
+    var totalPages = @Html.Raw(Json.Serialize(totalPages));
+    var firstPage = @Html.Raw(Json.Serialize(firstPage));
+    var lastPage = @Html.Raw(Json.Serialize(lastPage));
+</script>
+
+<!--фильтры-->
+<script>
+    // кол-во строк на странице
+    var rowsOnPage = @Html.Raw(Json.Serialize(Model.rowsOnPage));
+    $('#rowsOnPage option[value=' + rowsOnPage + ']').prop('selected', true);
+    $('#rowsOnPage').on('change', function () { selectedPage = 1; GetData(); });
+
+    // даты отправки
+    var createDate = @Html.Raw(Json.Serialize(Model.createDate));
+    if (createDate == "") {
+        $('#createdDates option:contains(все даты отправки)').prop('selected', true);
+    }
+    else {
+        $('#createdDates option:contains(' + createDate + ')').prop('selected', true);
+    }
+    $('#createdDates').on('change', function () { selectedPage = 1; GetData(); });
+
+    // пользователи
+    var userName = @Html.Raw(Json.Serialize(Model.userName));
+    if (userName == "") {
+        $('#userNames option:contains(все пользователи)').prop('selected', true);
+    }
+    else {
+        $('#userNames option:contains(' + userName + ')').prop('selected', true);
+    }
+    $('#userNames').on('change', function () { selectedPage = 1; GetData(); });
+
+    // статусы
+    var state = @Html.Raw(Json.Serialize(Model.state));
+    if (state == "") {
+        $('#states option:contains(все статусы)').prop('selected', true);
+    }
+    else {
+        //$('#states option:contains(' + state + ')').prop('selected', true);
+    }
+    $('#states').on('change', function () { selectedPage = 1; GetData(); });
+
+    // только активные сообщения
+    var active = @Html.Raw(Json.Serialize(Model.finished));
+    if (active == "") {
+        $('#active').prop('checked', false);
+    }
+    if (active == "0") {
+        $('#active').prop('checked', true);
+    }
+    $('#active').on('change', function () { selectedPage = 1; GetData(); });
+
+</script>
+
+<!--навигация по страницам-->
+<script>
+
+    // выбор номера страницы
+    $('#logPages').children('li').children('a').click(function () {
+
+        if (!$(this).parent('li').hasClass('ignore')) {
+            if (!$(this).parent('li').hasClass('active')) {
+                selectedPage = $(this).text();
+                $('#logPages').children('li').removeClass('active');
+                $(this).parent('li').addClass('active');
+
+                GetData();
+            }
+        }
+    });
+
+    // перемотка номеров вправо
+    $('#rightPages').click(function () {
+
+        if (lastPage < totalPages) {
+            let i = 1;
+            while (i <= numPages) {
+                var pageNumber = lastPage + i;
+                var id = "#page_" + i;
+                $(id).text(pageNumber);
+
+                if (pageNumber > totalPages) $(id).hide();
+                else {
+                    $(id).show();
+                    $('#logPages').children('li').removeClass('active');
+                    if (pageNumber == selectedPage + numPages) $(id).click();
+                }
+                i++;
+            }
+            firstPage = firstPage + numPages;
+            lastPage = lastPage + numPages;
+        }
+
+    });
+
+    // перемотка номеров влево
+    $('#leftPages').click(function () {
+
+        if (firstPage > 1) {
+            let i = numPages;
+            while (i >= 1) {
+                var pageNumber = firstPage - i;
+                var id = "#page_" + i;
+                $(id).text(pageNumber);
+
+                if (pageNumber < 1) $(id).hide();
+                else {
+                    $(id).show();
+                    $('#logPages').children('li').removeClass('active');
+                    if (pageNumber == selectedPage - numPages) $(id).click();
+                }
+                i--;
+            }
+            firstPage = firstPage + numPages;
+            lastPage = lastPage + numPages;
+        }
+
+    });
+
+</script>
+
+<!--получение данных-->
+<script>
+
+    function GetData() {
+
+        var rowsOnPage = $('#rowsOnPage').val();
+        var createDate = $('#createdDates').val();
+
+        var userName = $('#userNames').val();
+        userName = userName.replace(/\+/g, "pp");
+        userName = userName.replace(/\ /g, "bb");
+
+        var state = $('#states').val();
+        state = state.replace(/\+/g, "pp");
+        state = state.replace(/\ /g, "bb");
+
+        var finished = "";
+        var check = $('#active').prop('checked');
+        if (check) finished = "0";        
+        
+        $('#loading').show();
+        $(contentContainer).load('/CashMessages/Index?selectedPage=' + selectedPage + '&rowsOnPage=' + rowsOnPage + '&createDate=' + createDate + '&userName=' + userName + '&state=' + state + '&finished=' + finished, function () { $('#loading').hide(); });
+    }
+
+</script>
+
+<!--отображение всплывающих подсказок-->
+<script>
+    $(function () {
+        $('.tooltip-portal').tooltip();
+        $('.popover-portal').popover();
+    });
+</script>
+
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        var orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        Alerts();
+        $('#loading').hide();
+    });
+</script>

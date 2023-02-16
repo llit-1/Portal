@@ -1,0 +1,165 @@
+﻿@using Portal.Models
+@model RKNet_Model.Account.User
+@using Microsoft.AspNetCore.Authorization;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Портал @ViewBag.Title</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link href="~/css/PortalLayout.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/js/JsTree/themes/default/style.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@videojs/themes@1/dist/sea/index.css" rel="stylesheet" />
+</head>
+
+<body>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script type="text/javascript" src="https://c64.assets-yammer.com/assets/platform_embed.js"></script>
+    <script src="~/js/JsTree/jstree.min.js"></script>
+    <script src="https://vjs.zencdn.net/7.10.2/video.min.js"></script>
+
+
+
+
+
+    @RenderSection("Scripts", required: false)
+
+    <div id="loading">
+
+        <img src="~/gif/ZNeT.gif" />
+        <p>подождите...</p>
+    </div>
+
+    <header>
+
+        <img class="LogoLeft" src="~/pic/logo_named.png" />
+        <h1>Корпоративный Портал</h1>
+
+        <ul class="mmItem">
+
+            @{
+                //Горизонтальное меню
+
+                <li onclick="AjaxLoad('/Home/Reports', '#reports');"><a id="reports" href="#">Отчёты</a></li>
+
+
+
+                if (User.IsInRole("qlik"))
+                {
+                    <li onclick="AjaxLoad('/Home/Qlik', '#qlik');"><a id="qlik" href="#">Qlik View</a></li>
+                }
+
+                if (User.IsInRole("salesprediction"))
+                {
+                    <li onclick="AjaxLoad('/Home/SalesPrediction', '#SalesPrediction');"><a id="SalesPrediction" href="#">Прогноз продаж</a></li>
+                }
+
+                if (User.IsInRole("1c"))
+                {
+                    <li onclick="AjaxLoad('/Home/Demo2', '#demo2');"><a id="demo2" href="#">1c</a></li>
+                }
+
+                if (User.IsInRole("yammer"))
+                {
+                    <li onclick="AjaxLoad('/Home/Yammer', '#yammer');"><a id="yammer" href="#">Мессенджер</a></li>
+                }
+
+                if (User.IsInRole("knowledge"))
+                {
+                    <li onclick="AjaxLoad('/Home/Knowledge', '#Knowledge');"><a id="Knowledge" href="#">Библиотека знаний</a></li>
+                }
+
+                if (User.IsInRole("forders"))
+                {
+                    <li onclick="AjaxLoad('/Home/OrdersF', '#OrdersF');"><a id="OrdersF" href="#">Заказ продукции</a></li>
+                }
+
+                if (User.IsInRole("settings"))
+                {
+                    <li onclick="AjaxLoad('/Home/Settings', '#settings');"><a id="settings" href="#">Настройки</a></li>
+                }
+
+                if (User.IsInRole(""))
+                {
+
+                }
+            }
+
+        </ul>
+
+        <script>
+            // загрузка странички в область контента и выделение активной вкладки
+            function AjaxLoad(url, id) {
+                $('#loading').show();
+                $('#main').load(url);
+
+                $('.mmItem a').each(function () {
+                    $(this).removeClass('ActiveMenu');
+                });
+
+                $(id).addClass('ActiveMenu');
+            }
+        </script>
+
+        <div id="userDiv">
+            <p>@User.Identity.Name</p>
+            @Html.ActionLink("выйти", "Logout", "Account")
+        </div>
+
+    </header>
+
+    <main id="main">
+        @RenderBody()
+    </main>
+
+    <footer>
+        <p>&copy; @DateTime.Now.Year Информационный портал ЛюдиЛюбят v.@SettingsInternal.portalVersion</p>
+        <img class="rknetLogo" src="~/pic/rknet_small.png" />
+    </footer>
+
+
+
+</body>
+</html>
+
+<!--автовыход на страницу авторизации по истечению куки сессии-->
+<script>
+    var timer = 60 * 100; //время в секундах
+    setInterval(function () { UserState(); }, timer);
+
+    function UserState() {
+        var requestUrl = '/Api/UserState';
+        var loginUrl = '/Account/Login';
+
+        $.get(requestUrl, function (userState) {
+            if (userState != "True") window.location.replace(loginUrl);
+        });
+    }
+</script>
+
+<!--Запуск анимации загрузки (отключается скриптом на загружаемой странице)-->
+<script>$('#loading').show();</script>
+
+<!--Загрузка частичного представления в указанную область-->
+<script>
+    function load(url, id) {
+        $('#loading').show();
+        id = '#' + id;
+        $(id).load(url);
+    }
+</script>
+
+<!--атоматическая загрузка первого раздела горизонтального меню-->
+<script>
+    $(document).ready(function () {
+        $('.mmItem li:first')[0].click();
+    });
+</script>

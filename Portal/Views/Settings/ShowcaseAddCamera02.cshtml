@@ -1,0 +1,120 @@
+﻿@model Portal.ViewModels.CameraView
+
+<a class="arrowLink" href="#link" onclick="ShowCaseFrom2to1()">←</a>
+<h2>Выбор образца для сравнения (в случае с витриной, она должна быть пустой)</h2>
+
+<div class="picByInterval">
+    <input id="date" class="inpDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+    <input id="time" class="inpTime" type="time" value="06:30" />
+    <a href="#link" onclick="updateCamByInterval()">обновить</a>
+
+    <div class="camerasPreview"></div>
+
+</div>
+
+<!--Переменные-->
+<script>
+    var camView = @Html.Raw(Json.Serialize(Model));
+
+</script>
+
+<!--Загрузка превью с камер-->
+<script>
+    loadPicByInterval();
+
+    function loadPicByInterval() {
+        var date = $('#date').val();
+        var time = $('#time').val();
+
+        var hour = time.substr(0, 2);
+        var minute = time.substr(3, 2);
+
+        var h = parseInt(hour);
+        var m = parseInt(minute);
+
+        var x = 0;
+        while (x < 12) {
+            if (h < 10) hour = '0' + h.toString(); else hour = h.toString();
+            if (m < 10) minute = '0' + m.toString(); else minute = m.toString();
+
+            var dateTime = date + 'T' + hour + ':' + minute;
+            //alert(dateTime);
+
+            var jsn = JSON.stringify(
+                {
+                    'cameraGuid': camView.cameraGuid,
+                    'camName': camView.camName,
+                    'sysName': camView.sysName,
+                    'previewHeight': 300,
+                    'dateTime': dateTime
+                });
+
+            jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+            var req = '/Api/GetImages/' + jsn;
+            var name = camView.camName;
+            // генерируем html код блока элементов изображения
+            var camDiv = '<div class="camDiv" onclick="toStep03(this)">';
+            var camDate = date.substr(8, 2) + '.' + date.substr(5, 2) + '.' + date.substr(0, 4);
+            var camName = '<p>' + name + ' ' + camDate + ' ' + hour + ':' + minute + '</p>';
+            var img = '<img class="camImg" id="' + x + '" />';
+            camDiv += camName;
+            camDiv += img;
+            camDiv += '</div>';
+            $('.camerasPreview').append(camDiv);
+            $('#' + x).attr('src', req);
+
+            m += 5;
+            if (m >= 60) {
+                m = m - 60;
+                h++;
+            }
+            if (h >= 24) h = h - 24;
+            x++;
+        }
+    }
+
+</script>
+
+<!--обновление превью с камеры-->
+<script>
+    function updateCamByInterval() {
+        $('.camerasPreview').empty();
+        loadPicByInterval();
+    }
+</script>
+
+<!--переход на шаг 3-->
+<script>
+    function toStep03(dv) {
+        $('#loading').show();
+
+        camView.dateTime = $(dv).find('p').text();
+        camView.dateTime = camView.dateTime.substr(camView.camName.length + 1, camView.dateTime.length - camView.camName.length);
+
+        var jsn = JSON.stringify(camView);
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+        $('#demo').load('@Url.Action("ShowcaseAddCamera03", "Settings")?jsn=' + jsn);
+
+    }
+</script>
+
+<!--возврат на предыдущий шаг-->
+<script>
+    function ShowCaseFrom2to1() {
+        $('#loading').show();
+
+        var jsn = JSON.stringify(camView);
+        jsn = jsn.replace(/ /g, "pp"); //заменяем пробелы на %
+
+        $('#demo').load('@Url.Action("ShowcaseAddCamera01", "Settings")?jsn=' + jsn);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>

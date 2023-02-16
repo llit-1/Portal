@@ -1,0 +1,45 @@
+﻿@model List<RKNet_Model.Account.User>
+<!--список пользователей-->
+<div class="row cm-fix-height">
+    <div class="col-sm-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">Пользователи</div>
+            <div class="panel-body pre-scrollable">
+                <div class="list-group">
+                    @foreach (var user in Model)
+                    {
+                        var id = "user_" + user.Id.ToString();
+                        <a href="#link" class="list-group-item list-group-item-action list-group-item-slim users" id="@id" onclick="AjaxVert3Load('/Access/UserEdit', '#@id')">@user.Name</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content"></div>
+
+</div>
+
+
+
+<!------------------------------------------------------------>
+<!--загрузка странички в область контента и выделение активного пункта вертикального меню-->
+<script>
+    function AjaxVert3Load(url, id) {
+        $('.users').removeClass('active');        
+        $(id).addClass('active');
+
+        var userId = id.substr(6, id.length - 6);
+        url = url + '?userId=' + userId;
+        $('#content').load(url);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        $('#loading').hide();
+    });
+</script>
+
+

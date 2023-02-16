@@ -1,0 +1,1405 @@
+﻿@model Portal.ViewModels.Settings_TT.TTSettings
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows");
+
+    var display = "";
+    var disabled = "disabled";
+    var formClass = "input-group";
+    var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
+
+    var openDate = "";
+    var closeDate = "";
+    var ttCode = $"value={@Model.TT.Code}";
+
+    if (Model.TT.OpenDate != null)
+    {
+        openDate = Model.TT.OpenDate.Value.ToString("yyyy-MM-dd");
+    }
+
+    if (Model.TT.CloseDate != null)
+    {
+        closeDate = Model.TT.CloseDate.Value.ToString("yyyy-MM-dd");
+    }
+
+
+    if (Model.newTT)
+    {
+        display = "d-none";
+        disabled = "";
+        formClass = "form-group";
+    }
+}
+
+<div class="row flex bg-white" style="margin:0px">
+
+    <!--данные тт-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Данные ТТ</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--имя тт-->
+        <label class="label-light">имя тт</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ttName" type="text" class="form-control" value="@Model.TT.Name" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--адрес тт-->
+        <label class="label-light">адрес тт</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ttAddress" type="text" class="form-control" value="@Model.TT.Address" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--организация-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">организация</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="ttOrganization" class="form-control selectors" data-width="100%">
+                    <option></option>
+                    @foreach (var organization in Model.Organizations.OrderBy(o => o.Name))
+                    {
+                        if (Model.TT.Organization != null)
+                        {
+                            if (Model.TT.Organization.Id == organization.Id)
+                            {
+                                <option selected="selected" value="@organization.Id">@organization.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@organization.Id">@organization.Name</option>
+                            }
+                        }
+                        else
+                        {
+                            <option value="@organization.Id">@organization.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--редактировать-->
+            <button type="button" class="edit btn btn-default" onclick="SelectChange($('#ttOrganization'))" style="float:left"><i class="fa fa-fw fa-pencil"></i></button>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>    
+
+        <!--код тт-->        
+        @if (Model.newTT)
+        {
+            ttCode = "";
+        }
+
+        <label class="label-light">код тт</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ttCode" type="number" class="form-control" @ttCode style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--код обд-->
+        <label class="label-light">код обд</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ttObd" type="number" class="form-control" value="@Model.TT.Obd" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--тип тт-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">тип тт</label>
+            <div style="width:100%; float:left">
+                <select id="ttType" class="form-control selectors" data-width="100%">
+                    <option></option>
+                    @foreach (var type in Model.TTtypes.OrderBy(t => t.Name))
+                    {
+                        if (Model.TT.Type != null)
+                        {
+                            if (Model.TT.Type.Id == type.Id)
+                            {
+                                <option selected="selected" value="@type.Id">@type.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@type.Id">@type.Name</option>
+                            }
+                        }
+                        else
+                        {
+                            <option value="@type.Id">@type.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+            <!--редактировать-->
+            <button type="button" class="edit btn btn-default" onclick="SelectChange($('#ttType'))" style="float:left"><i class="fa fa-fw fa-pencil"></i></button>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+
+        <hr />
+
+        <!--дата открытия-->
+        <label class="label-light">дата открытия</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="openDate" type="date" class="form-control" value="@openDate" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--дата закрытия-->
+        <label class="label-light">дата закрытия</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="closeDate" type="date" class="form-control" value="@closeDate" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+            
+
+    </div>
+
+    <!--пользователи-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">Пользователи</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор пользователей-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">селектор пользователей</label>
+            <div style="width:100%; float:left">
+                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
+
+                    @foreach (var user in Model.Users.OrderBy(u => u.Name))
+                    {
+                        if (Model.TT.Users.FirstOrDefault(u => u.Id == user.Id) != null)
+                        {
+                            <option selected="selected" value="@user.Id">@user.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@user.Id">@user.Name</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+    </div>
+
+    <!--кассы, камеры, интеграции-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--кассы-->
+        <h5 class="pull-left">Кассы</h5>
+        <div class="pull-right" style="margin-right:0px; height:10px"><button class="btn btn-xs" style="margin-top: 13px" onclick="AddCash()">добавить</button></div>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--список касс-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">подключенные кассы</label>
+            <div id="cashes" style="width:100%; float:left">
+
+                @foreach (var cash in Model.TT.CashStations.OrderBy(n => n.Name))
+                {
+                    var id = "cash_" + cash.Id.ToString();
+                    var idip = "caship_" + cash.Id;
+
+                    <a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="@id">
+                        <div class="cashName" style="display:inline">@cash.Name</div>
+                        <div class="cashIp hidden">@cash.Ip</div>
+
+                        <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCash(this)"></label></div>
+                    </a>
+
+                }
+
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+
+        <!--камеры-->
+        <h5 class="pull-left" style="margin-top:50px">Камеры</h5>
+        <div class="pull-right" style="margin-right:0px; height:10px"><button class="btn btn-xs" style="margin-top: 53px" onclick="CamEdit()">изменить</button></div>        
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--список камер-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">подключенные камеры</label>
+            <div id="cameras" style="width:100%; float:left">
+
+                @foreach (var cam in Model.TT.NxCameras.OrderBy(c => c.Name))
+                {
+                    <div id="@cam.Id" class="list-group-item list-group-item-slim list-group-item-noaction">
+                        <div style="display:inline">@cam.Name</div>
+                        <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCamProps(this)"></label></div>
+                    </div>
+
+                    
+                }
+
+            </div>
+
+            <!--сохранить-->
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+        </div>
+
+         <!--интеграции-->
+        <h5 class="pull-left" style="margin-top:50px">Интеграции</h5>        
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--яндекс еда-->
+        <div class="pull-right" style="padding-bottom:10px; width:100%">
+            <label id="switchLabel" style="margin-right:15px">Яндекс Еда</label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="yandexEda" type="checkbox" checked="@Model.TT.YandexEda">
+                <label for="yandexEda" class="label-warning"></label>
+            </div>
+        </div>
+
+        <!--деливери клаб-->
+        <div class="pull-right" style="padding-bottom:10px; width:100%">
+            <label id="switchLabel" style="margin-right:15px">Delivery Club</label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="deliveryClub" type="checkbox" checked="@Model.TT.DeliveryClub">
+                <label for="deliveryClub" class="label-warning"></label>
+            </div>
+        </div>
+
+    </div>
+
+    <!--кнопки сохранить/отмена-->
+    @if (Model.newTT)
+    {
+        blockStyle += ";width:100%";
+        <div class="col-12" @blockStyle>
+            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="SaveNewItem()">Сохранить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="DataTable()">Отмена</button>
+        </div>
+    }
+
+</div>
+
+
+<!--модальное окно: добавление кассы-->
+<div id="addCashModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
+                <h4 class="modal-title" id="myModalLabel">
+                    добавление кассы
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div class="modal-body">
+                <form class="form-horizontal">
+
+                    <!--ip адрес-->
+                    <label for="cashIp" class="col-sm-4 control-label">ip адрес</label>
+                    <div class="input-group col-sm-5">
+                        <input type="text" class="form-control" id="cashIp" placeholder="0.0.0.0">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" onclick="cashConnect()"><i class="fa fa-fw fa-plug"></i></button>
+                        </span>
+                    </div>
+
+                    <!--ожидание загрузки-->
+                    <div class="input-group col-sm-12 hidden" id="cashLoading">
+                        <p class="color-red" style="text-align:center; font-weight:bold; margin-top:10px">подключение к кассе...</p>
+                    </div>
+
+                    <!--имя кассы-->
+                    <div id="nameForm">
+                        <br />
+                        <label for="cashName" class="col-sm-4 control-label">имя кассы</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="cashName">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="deleteCash" type="button" class="btn btn-sm btn-danger" onclick="deleteCash()" style="float:left">удалить</button>
+                <button id="saveCash" type="button" class="btn btn-sm btn-success" onclick="saveCash()">добавить</button>
+                <button id="changeCash" type="button" class="btn btn-sm btn-success" onclick="changeCash()">сохранить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">отмена</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--модальное окно: добавление камер-->
+<div id="camModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="camModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" style="width:80%">
+        <div class="modal-content" style="height:90vh">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
+                <h4 class="modal-title" id="camModalLabel">
+                    Камеры на ТТ
+                    <a class="anchorjs-link" href="#camModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div id="camBody" class="modal-body bg-gray" style="height:calc(100% - 130px)">
+
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer" style="position:absolute; bottom:10px; width:100%">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="camListUpdate()">закрыть</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--модальное окно: редактирования свойств камеры-->
+<div id="camPropsModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
+                <h4 class="modal-title" id="myModalLabel">
+                    настройка камеры
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div class="modal-body">
+                <form class="form-horizontal">
+                   
+                    <!--ожидание загрузки-->
+                    <div class="input-group col-sm-12 hidden" id="cashLoading">
+                        <p class="color-red" style="text-align:center; font-weight:bold; margin-top:10px">подключение к кассе...</p>
+                    </div>
+
+                    <!--имя камеры-->
+                    <div id="camNameForm">
+                        <br />
+                        <label for="camName" class="col-sm-4 control-label">имя камеры</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="camName" disabled>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <!--группа камер-->                  
+                    <label for="camGroupSelector" class="col-sm-4 control-label">группа</label>
+                    <div class="input-group col-sm-5">
+                        <select id="camGroupSelector" class="form-control" >
+                            
+                        </select>
+                    </div>
+
+                </form>
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="changeCash" type="button" class="btn btn-sm btn-success" onclick="SaveCamProps()">сохранить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">отмена</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!----------------------------скрипты----------------------------------->
+<!--переменные-->
+<script>
+    var newTT = @Html.Raw(Json.Serialize(Model.newTT));
+    var ttId = @Model.TT.Id;
+    var mode = '';
+    var ttCams = [];
+    var camId = 0;
+</script>
+
+<!--пользователи-->
+<script>
+    $('#users').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите пользователей..."
+    });
+</script>
+
+<!--тип тт-->
+<script>
+    $('#ttType').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: true,
+        placeholder: "выберите тип..."
+    });
+
+    if (!newTT) {
+        $('#ttType').parent().css('width', 'calc(100% - 43px)');
+        $("#ttType").prop("disabled", true);
+    }
+    else {
+        $("#ttType").parent().parent().find('.edit').addClass('d-none');
+    }
+</script>
+
+<!--организация-->
+<script>
+    $('#ttOrganization').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите организацию..."
+    });
+
+    if (!newTT) {
+        $('#ttOrganization').parent().css('width', 'calc(100% - 43px)');
+        $("#ttOrganization").prop("disabled", true);
+    }
+    else {
+        $("#ttOrganization").parent().parent().find('.edit').addClass('d-none');
+    }
+</script>
+
+<!--изменение данных в селекторах-->
+<script>
+    // события изменения в селекторах
+    $('.selectors').on('select2:select', function (e) { SelectChange(this) });
+    $('.selectors').on('select2:unselect', function (e) { SelectChange(this) });
+
+    // изменение набора выделенных элементов в селекторе
+    function SelectChange(selector) {
+
+        if (!newTT) {
+
+            // определяем элементы
+            var multiple = $(selector).prop('multiple');
+            var selId = '#' + $(selector).prop('id');
+            var selCont = $(selector).parent();
+            var edit = $(selector).parent().parent().find('.edit');
+            var save = $(selector).parent().parent().find('.save');
+            var cancel = $(selector).parent().parent().find('.cancel');
+
+            // одиночные селекторы
+            if (!multiple) {
+                selector.prop("disabled", false);
+                edit.addClass('d-none');
+            }
+
+            // включаем кнопки
+            $(save).removeClass('d-none');
+            $(cancel).removeClass('d-none');
+
+            $(selCont).css('width', 'calc(100% - 86px)');
+        }
+    }
+
+    // кнопка сохранить
+    function SaveSelect(save) {
+
+        var cancel = $(save).parent().find('.cancel');
+        var edit = $(save).parent().find('.edit');
+        var spinner = $(save).parent().find('.saving');
+
+        var selector = $(save).parent().find('select');
+        var multiple = $(selector).prop('multiple');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var tt = {};
+        tt.id = ttId;
+        tt.attribute = selectId;
+        tt.items = [];
+
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            tt.items.push(item);
+        });
+
+        var ttjsn = JSON.stringify(tt);
+        ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TTSave',
+            data: { ttjsn: ttjsn },
+            datatype: "text",
+            success: function (result) {
+
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // скрываем кнопки
+                    $(save).addClass('d-none');
+                    $(cancel).addClass('d-none');
+
+                    // меняем ширину селектора
+                    $(selCont).css('width', '100%');
+
+                    // получаем коллекцию ваыбранных элементов из бд (контроль)
+                    SelectItems(ttId, selectId);
+
+                    // включаем кнопку редактировать
+                    if (!multiple) {
+                        selector.parent().css('width', 'calc(100% - 43px)');
+                        $(edit).removeClass('d-none');
+                        selector.prop("disabled", true);
+                    }
+                }
+                else {
+                    ShowModal('Редактор ТТ', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
+        });
+
+    }
+
+    // кнопка отмена
+    function CancelSelect(cancel) {
+        var save = $(cancel).parent().find('.save');
+        var edit = $(cancel).parent().find('.edit');
+
+        var selector = $(cancel).parent().find('select');
+        var multiple = $(selector).prop('multiple');
+        var selCont = $(selector).parent();
+        var selectId = $(selector).prop('id');
+
+        // получаем коллекцию ваыбранных элементов из бд
+        SelectItems(ttId, selectId);
+
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+        $(selCont).css('width', '100%');
+
+        // включаем кнопку редактировать
+        if (!multiple) {
+            $(selCont).css('width', 'calc(100% - 43px)');
+            $(edit).removeClass('d-none');
+            selector.prop("disabled", true);
+        }
+    }
+
+    // получение коллекций данных
+    function SelectItems(ttId, selectId) {
+
+        // снимаем выделение со всех элементов
+        $('#' + selectId + ' option').each(function () {
+            $(this).prop('selected', false);
+        });
+
+        // получаем данные из контроллера
+        $.get('/Settings_TT/GetTTItems?ttId=' + ttId + '&selectId=' + selectId, function (selectedItems) {
+            $(selectedItems).each(function () {
+                $('#' + selectId + ' option[value=' + this.id + ']').prop('selected', true);
+            });
+
+            // ре-инициализируем select2
+            var selector = $('#' + selectId).select2();
+            selector.select2({
+                theme: "bootstrap4",
+                width: "resolve",
+                language: "ru",
+                closeOnSelect: false,
+                placeholder: "выберите..."
+            });
+        });
+    }
+
+</script>
+
+<!--изменение данных тт-->
+<script>
+    var oldValue = "";
+    // кнопка редактировать справа
+    function Edit(edit) {
+        // получаем текущие элементы
+        var save = $(edit).parent().find('.save');
+        var cancel = $(edit).parent().find('.cancel');
+        var input = $(edit).parent().parent().children('input');
+
+        oldValue = $(input).val();
+
+        // меняем кнопки
+        $(edit).addClass('d-none');
+        $(save).removeClass('d-none');
+        $(cancel).removeClass('d-none');
+
+        // активируем поле ввода и ставим туда курсос
+        $(input).prop('disabled', false);
+        $(input).focus();
+    }
+
+    // кнопка сохранить справа
+    function Save(save) {
+
+        // определяем текущие элементы
+        var input = $(save).parent().parent().children('input');
+        var edit = $(save).parent().find('.edit');
+        var cancel = $(save).parent().find('.cancel');
+        var spinner = $(save).parent().children('.saving');
+
+        // убираем кнопку "отмена"
+        $(cancel).addClass('d-none');
+
+        // включаем спиннер на кнопке
+        $(save).addClass('d-none');
+        $(spinner).removeClass('d-none');
+
+        // отправляем данные в контроллер
+        var tt = {};
+        tt.id = ttId;
+        tt.attribute = $(input).attr('id');
+
+        tt.name = $('#ttName').val();
+        tt.address = $('#ttAddress').val();
+        tt.code = $('#ttCode').val();
+        tt.obd = $('#ttObd').val();
+        tt.openDate = $('#openDate').val();
+        tt.closeDate = $('#closeDate').val();
+
+        var ttjsn = JSON.stringify(tt);
+        ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TTSave',
+            data: { ttjsn: ttjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    // выключаем спиннер на кнопке
+                    $(spinner).addClass('d-none');
+
+                    // меняем кнопку сохранить на кнопку редактировать
+                    $(save).addClass('d-none');
+                    $(edit).removeClass('d-none');
+
+                    // блокируем поле ввода
+                    $(input).prop('disabled', true);
+
+                    // обновляем заголовок страницы
+                    $('#header').text(tt.name);
+                }
+                else {
+                    ShowModal('Редактор ТТ', result.data);
+
+                    // выключаем спиннер на кнопке и возвращаем кнопки
+                    $(spinner).addClass('d-none');
+                    $(save).removeClass('d-none');
+                    $(cancel).removeClass('d-none');
+                }
+            },
+            error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
+        });
+    }
+
+    // кнопка отмена справа
+    function Cancel(cancel) {
+        // получаем текущие элементы
+        var save = $(cancel).parent().find('.save');
+        var edit = $(cancel).parent().find('.edit');
+        var input = $(cancel).parent().parent().children('input');
+
+        // меняем кнопки
+        $(edit).removeClass('d-none');
+        $(save).addClass('d-none');
+        $(cancel).addClass('d-none');
+
+        // блокируем поле ввода
+        $(input).val(oldValue);
+        $(input).prop('disabled', true);
+
+    }
+
+</script>
+
+<!--сохранить новую тт-->
+<script>
+    function SaveNewItem() {
+
+        var tt = {};
+        tt.id = 0;
+        tt.name = $('#ttName').val();
+        tt.address = $('#ttAddress').val();
+        tt.code = $('#ttCode').val();
+        tt.obd = $('#ttObd').val();
+        tt.openDate = $('#openDate').val();
+        tt.closeDate = $('#closeDate').val();
+
+        tt.users = DataFromSelector($('#users'));
+        tt.type = $('#ttType').select2('val');
+        tt.organization = $('#ttOrganization').select2('val');        
+
+        tt.yandexEda = $('#yandexEda').prop('checked');
+        tt.deliveryClub = $('#deliveryClub').prop('checked');
+
+        tt.cashes = [];
+
+        $('#cashes').children('a').each(function () {
+            var cashId = $(this).attr('id');
+            cashId = cashId.substr(5, cashId.length - 5);
+
+            var cashName = $(this).children('.cashName').text();
+            var cashIp = $(this).children('.cashIp').text();
+
+            var cash = {};
+            cash.Id = cashId;
+            cash.Name = cashName;
+            cash.Ip = cashIp;
+
+            tt.cashes.push(cash);
+        });
+
+        tt.cameras = ttCams;
+
+        /*
+        $('#cameras').children().each(function () {
+            var camId = $(this).attr('id');
+            var camName = $(this).text();            
+            
+            var cam = {};
+            cam.Id = camId;
+            cam.Name = camName;
+            
+            tt.cameras.push(cam);
+        });
+        */
+
+        var ttjsn = JSON.stringify(tt);
+        ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TTSave',
+            data: { ttjsn: ttjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    ShowModal('Редактор ТТ', 'Торговая точка успешно добавлена');
+                    //DataTable();
+
+                    $('#modalWindow').on('hidden.bs.modal', function () {
+
+                        setTimeout(function () {
+                            $('#modalWindow').remove();
+                            DataTable();
+                        }, 100);
+
+                        $('#modalWindow').off('hidden.bs.modal');
+                    });
+                }
+                else {
+                    ShowModal('Редактор ТТ', result.data);
+                }
+            },
+            error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
+        });
+    }
+
+    // получение данных в селекторах
+    function DataFromSelector(selector) {
+
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+
+            var item = {};
+            item.id = this.id;
+            item.text = this.text;
+            items.push(item);
+        });
+
+        return items;
+    }
+</script>
+
+<!--удаление тт-->
+<script>
+    function DeleteItem() {
+        var ttName = $('#ttName').val();
+        var confirmMessage = 'Торговая точка "' + ttName + '" будет удалена, продолжить?';
+
+        ShowModal("Подтвердите удаление", confirmMessage, 1);
+
+        // кнопка ok в модальном окне
+        $('#ok').on('click', function () {
+            $('#ok').off('click');
+            SpinnerShow();
+            $.get('/Settings_TT/TTDelete?ttId=' + ttId, function (result) {
+                if (result == "ok") {
+                    DataTable();
+                }
+                else {
+                    ShowModal('Ошибка', result);
+                }
+            });
+        });
+    }
+</script>
+
+<!--добавление кассы-->
+<script>
+    // вызов модального окна добавления кассы
+    function AddCash() {
+        mode = 'add';
+        $("#cashIp").val(null);
+        $("#cashName").val(null);
+
+        $('#myModalLabel').text('добавление кассы');
+        $('#saveCash').hide();
+        $('#nameForm').hide();
+
+        $('#changeCash').hide();
+        $('#deleteCash').hide();
+
+        $("#addCashModal").modal("show");
+
+        //ShowModal('111', '222');
+    }
+
+    // кнопка модального окна добавить кассу
+    function saveCash() {
+        var cashIp = $("#cashIp").val();
+        var cashName = $("#cashName").val();
+
+        if (!cashIp) {
+            alert('введите ip адресс кассы');
+            return false;
+        }
+
+        if (!cashName) {
+            alert('введите имя кассы');
+            return false;
+        }
+
+        var id = "cash_" + "0";
+
+        var newCashHtml = '<a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="';
+        newCashHtml += id + '">' + '<div class="cashName" style="display:inline">' + cashName + '</div>';
+        newCashHtml += '<div class="cashIp hidden">' + cashIp + '</div>';
+        newCashHtml += '<div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCash(this)"></label></div></a>';
+
+        $('#cashes').append(newCashHtml);
+        SaveTTCashes('add');
+
+        //$("#addCashModal").modal("hide");
+    }
+</script>
+
+<!--подключение к кассе и запрос названия-->
+<script>
+    function cashConnect() {
+        var cashIp = $("#cashIp").val();
+        $('#cashLoading').removeClass('hidden');
+
+        $.get('/Settings_TT/GetCashName?cashIp=' + cashIp, function (result) {
+            $('#cashLoading').addClass('hidden');
+
+            if (result.ok) {
+                $('#nameForm').show();
+                $('#cashName').val(result.data);
+
+                if (mode == 'add') {
+                    $('#saveCash').show();
+                    mode == '';
+                }
+            }
+            else {
+                alert(result.errorMessage);
+            }
+        });
+    }
+</script>
+
+<!--редактирование кассы-->
+<script>
+    var oldName;
+    var oldIp;
+
+    // иконка "редактировать"
+    function EditCash(el) {
+        //var cashId = $(el).parent().parent().attr('id');
+        //cashId = cashId.substr(5, cashId.length - 5);
+        mode = 'edit';
+        cashElement = $(el).parent().parent();
+        var cashName = $(el).parent().parent().children('.cashName').text();
+        var cashIp = $(el).parent().parent().children('.cashIp').text();
+
+        EditCashModal(cashIp, cashName);
+    }
+
+    // вызов модального окна редактирования кассы
+    function EditCashModal(ip, name) {
+        $("#cashIp").val(ip);
+        $("#cashName").val(name);
+
+        $('#myModalLabel').text('редактирование кассы');
+        $('#nameForm').show();
+        $('#saveCash').hide();
+        $('#changeCash').show();
+        $('#deleteCash').show();
+        $("#addCashModal").modal("show");
+    }
+
+    // кнопка модального окна сохранить кассу
+    function changeCash() {
+        oldName = cashElement.children('.cashName').text();
+        oldIp = cashElement.children('.cashIp').text();
+
+        cashElement.children('.cashName').text($("#cashName").val());
+        cashElement.children('.cashIp').text($("#cashIp").val());
+
+        SaveTTCashes('edit');
+    }
+
+    function oldCashValues() {
+        cashElement.children('.cashName').text(oldName);
+        cashElement.children('.cashIp').text(oldIp);
+    }
+
+    // кнопка модального окна удалить кассу
+    function deleteCash() {
+        cashElement.remove();
+        SaveTTCashes('delete');
+    }
+
+</script>
+
+<!--запись изменений касс на точке в БД-->
+<script>
+    function SaveTTCashes(mode) {
+
+        if (newTT) {
+            $("#addCashModal").modal("hide");
+            return false;
+        }
+        var tt = {};
+        tt.id = ttId;
+        tt.attribute = "cashes";
+        tt.cashes = [];
+
+        // список касс на точке
+        $('#cashes').children('a').each(function () {
+            var cashId = $(this).attr('id');
+            cashId = cashId.substr(5, cashId.length - 5);
+
+            var cashName = $(this).children('.cashName').text();
+            var cashIp = $(this).children('.cashIp').text();
+
+            var cash = {};
+            cash.Id = cashId;
+            cash.Name = cashName;
+            cash.Ip = cashIp;
+
+            tt.cashes.push(cash);
+        });
+
+        var ttjsn = JSON.stringify(tt);
+        ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TTSave',
+            data: { ttjsn: ttjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    $("#addCashModal").modal("hide");
+                }
+                else {
+                    ShowModal('Редактор ТТ', result.data);
+                    if (mode == 'edit') {
+                        oldCashValues();
+                    }
+                    if (mode == 'add') {
+                        $('#cash_0').remove();
+                    }
+                }
+            },
+            error: function (error) {
+                ShowModal('Редактор ТТ', error.responseText);
+            }
+        });
+    }
+</script>
+
+<!--выключатель Яндекс Еда-->
+<script>
+
+    $('#yandexEda').change(function () {
+        var enabled = $(this).is(':checked');
+
+        if (!newTT) {
+            // отправляем данные в контроллер
+            var tt = {};
+            tt.id = ttId;
+            tt.attribute = "yandexEda";
+            tt.yandexEda = enabled;
+
+            var ttjsn = JSON.stringify(tt);
+            ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+            $.ajax({
+                type: "POST",
+                url: '/Settings_TT/TTSave',
+                data: { ttjsn: ttjsn },
+                datatype: "text",
+                success: function (result) {
+                    if (result.ok) {
+                        
+                    }
+                    else {
+                        ShowModal("Ошибка", result.data)
+                    }
+                },
+                error: function (error) {
+                    ShowModal("Ошибка", error.responseText)
+                }
+            });
+        }
+    });
+</script>
+
+<!--выключатель Delivery Club-->
+<script>
+
+    $('#deliveryClub').change(function () {
+        var enabled = $(this).is(':checked');
+
+        if (!newTT) {
+            // отправляем данные в контроллер
+            var tt = {};
+            tt.id = ttId;
+            tt.attribute = "deliveryClub";
+            tt.deliveryClub = enabled;
+
+            var ttjsn = JSON.stringify(tt);
+            ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+
+            $.ajax({
+                type: "POST",
+                url: '/Settings_TT/TTSave',
+                data: { ttjsn: ttjsn },
+                datatype: "text",
+                success: function (result) {
+                    if (result.ok) {
+                        
+                    }
+                    else {
+                        ShowModal("Ошибка", result.data)
+                    }
+                },
+                error: function (error) {
+                    ShowModal("Ошибка", error.responseText)
+                }
+            });
+        }
+    });
+</script>
+
+<!--видеонаблюдение----------------------------------------------------------------------->
+<!--кнопка изменить камеры-->
+<script>
+    function CamEdit() {
+        $("#camModal").modal("show");
+        TTcamsPreview();
+    }
+</script>
+
+<!--превью с камер ТТ-->
+<script>
+    function TTcamsPreview() {
+        $('#camBody').empty();
+        if (ttId) {
+            $('#camBody').load('/Settings_TT/TTCamsPreview?ttId=' + ttId);
+        }
+        else {                        
+            var jsn = JSON.stringify(ttCams); 
+            
+            jsn = jsn.replace(/\+/g, "%pp%");
+            jsn = jsn.replace(/ /g, "%bkspc%");
+
+            $('#camBody').load('/Settings_TT/TTCamsPreview?jsn=' + jsn);
+        }
+    }
+</script>
+
+<!--добавление камеры-->
+<script>
+    function AddCam() {
+        $('#camBody').load('/Settings_TT/AddTTCam?ttId=' + ttId);
+    }
+</script>
+
+<!--закрытие модального окна-->
+<script>
+    $("#camModal").on('hidden.bs.modal', function () {
+        $('#cameras').empty();
+        var camList = [];
+        if (ttId) {
+            $.get('/Settings_TT/GetTTCams?ttId=' + ttId, function (ttCamList) {
+                $.each(ttCamList, function () {
+                    var cam = {};
+                    cam.id = this.id;
+                    cam.name = this.name;
+                    camList.push(cam);                    
+                });
+                CamsRefresh(camList);
+            });
+        }
+        else {
+            camList = ttCams;
+            CamsRefresh(camList);
+        }        
+    });
+
+    function CamsRefresh(camList) {
+        $.each(camList, function () {
+            var camHtml = `<div id="${this.id}" class="list-group-item list-group-item-slim list-group-item-noaction">`;
+            camHtml += `<div style="display:inline">${this.name}</div>`;
+            camHtml += `<div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCamProps(this)"></label></div>`;
+            camHtml += `</div>`;
+            $('#cameras').append(camHtml);
+        });
+    };
+</script>
+
+<!--удаление камеры-->
+<script>
+    function CamDelete(camId, ttId, camGuid, el) {               
+        if(camId == 0)
+        {       
+            $(el).parent().parent().parent().parent().remove();
+             var temp = [];
+             
+             $.each(ttCams, function () {
+                if (this.id != camGuid) {
+                    temp.push(this);
+                }
+             });
+             ttCams = temp;
+        }
+        else
+        {
+            $.get('/Settings_TT/RemoveCamFromTT?camId=' + camId + '&ttId=' + ttId, function (result) {
+            if (result.ok) {
+                $('#panel_' + camId).remove();
+            }
+            else {
+                ShowModal('Редактор ТТ', result.data);
+            }
+        });
+        }        
+    }
+</script>
+
+<!--редактирование свойств камеры-->
+<script>
+    function EditCamProps(el)
+    {
+        camId = $(el).parent().parent().attr('id');
+
+        var groupSelector = $('#camGroupSelector');
+        groupSelector.empty();
+        groupSelector.append(`<option selected disabled>выберите группу</option>`);
+
+        // получаем данные камеры
+        $.get(`/Settings_TT/GetCam?camId=${camId}`, function(cam)
+        {
+            $('#camName').val(cam.name);
+
+            // получаем список групп камер в селектор
+            $.get('/Settings_TT/GetCamGroupList', function(camGroupList) 
+            {
+                $.each(camGroupList, function(index, camGroup){
+                    if (cam.camGroup != null) 
+                    {                        
+                        if (camGroup.id == cam.camGroup.id)
+                        {
+                            groupSelector.append(`<option value="${camGroup.id}" selected>${camGroup.name}</option>`);
+                        }
+                        else 
+                        {
+                            groupSelector.append(`<option value="${camGroup.id}">${camGroup.name}</option>`);
+                        }
+                        
+                    }
+                    else 
+                    {
+                        groupSelector.append(`<option value="${camGroup.id}">${camGroup.name}</option>`);
+                    }
+                                     
+                });
+            });  
+        });  
+                
+        $("#camPropsModal").modal("show");
+    }
+    
+    function SaveCamProps()
+    {        
+        var groupId = $('#camGroupSelector').val();
+        
+        $.get(`/Settings_TT/SaveCamProps?camId=${camId}&groupId=${groupId}`, function(result) 
+        { 
+            if (result.ok == true) 
+            {
+                $("#camPropsModal").modal("hide");
+            }
+            else 
+            {
+                ShowModal('Ошибка', result.errorMessage);
+            }
+        });
+    }
+</script>
+
+<!---------------------------------------------------------------------------------------->
+<!--подсказка кода тт при добавлении новой точки-->
+<script>
+    function GetNewTTCode()
+    {        
+        $.get('/Settings_TT/NewTTCode', function(newTTCode) 
+        {
+            $('#ttCode').attr('placeholder', newTTCode);
+        });        
+    }    
+    GetNewTTCode();
+</script>
