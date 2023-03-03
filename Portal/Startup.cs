@@ -95,15 +95,14 @@ namespace Portal
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                ApiRequest.Host = "https://localhost:5224";
-                //ApiRequest.Host = "https://api.ludilove.ru";
+                ApiRequest.Host = "https://localhost:44340";
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
-                ApiRequest.Host = "https://api.ludilove.ru";
+                ApiRequest.Host = Configuration.GetSection("Host")["default"];
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
