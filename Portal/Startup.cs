@@ -1,27 +1,19 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Razor.Runtime;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Portal.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace Portal
 {
     public class Startup
     {
+        public bool IsTest { get; set; }
         // Запуск приложения
         public Startup(IConfiguration configuration)
         {
@@ -37,33 +29,38 @@ namespace Portal
                 log.Save();
             }
             log.Name = "Портал запущен";
-            log.Save();                           
+            log.Save();
         }
-
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            IsTest = Configuration.GetSection("TestMode")["test"] != "0";
             var SessionMinutes = 60; // время в минутах
             // CookieAuthenticationOptions
             //services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromSeconds(10));
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options => 
+                .AddCookie(options =>
                 {
                     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
                     options.LogoutPath = new Microsoft.AspNetCore.Http.PathString("/Account/Logout");
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(SessionMinutes); // время истечения срока действия куки
-                    options.SlidingExpiration = true;                    
+                    options.SlidingExpiration = true;
                 });
 
             services.AddControllersWithViews()
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddRazorPages().AddRazorRuntimeCompilation();
-
+            if (IsTest)
+            { services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssqltest")), ServiceLifetime.Transient); }
+            else
+            {
+                services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssql")), ServiceLifetime.Transient);
+            }
             services.AddDbContext<DB.SQLiteDBContext>(options => options.UseSqlite(Configuration.GetConnectionString("sqlite")));
-            services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssql")), ServiceLifetime.Transient);
+
 
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
@@ -71,7 +68,7 @@ namespace Portal
                 options.Cookie.Name = ".PortalLL.Session";
                 options.IdleTimeout = TimeSpan.FromMinutes(SessionMinutes);
                 options.Cookie.IsEssential = true;
-                options.Cookie.HttpOnly = false;                
+                options.Cookie.HttpOnly = false;
             });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -92,18 +89,26 @@ namespace Portal
         {
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                ApiRequest.Host = "https://localhost:44340";
-            }
-            else
-            {
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //    ApiRequest.Host = "https://localhost:44340";
+            //}
+            //else
+            //{
                 app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
-                ApiRequest.Host = Configuration.GetSection("Host")["default"];
-            }
+                if (IsTest)
+                {
+                    ApiRequest.Host = Configuration.GetSection("Host")["test"];
+                }
+                else
+                {
+                    ApiRequest.Host = Configuration.GetSection("Host")["default"];
+                }
+
+            //}
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseResponseCaching();
@@ -124,7 +129,7 @@ namespace Portal
                     name: "Audits",
                   pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
             });
-            
+
         }
 
         // Остановка приложения

@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Portal.ViewModels.Settings_TT;
+using RKNet_Model.Account;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Portal.ViewModels.Settings_TT;
-using Microsoft.AspNetCore.Authorization;
-using Newtonsoft.Json;
-using RKNet_Model.Account;
-using System.Net;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Net;
 
 namespace Portal.Controllers
 {
@@ -40,6 +39,10 @@ namespace Portal.Controllers
         // Таблица ТТ
         public IActionResult TTsTable()
         {
+            if (db.TTs is null)
+            {
+                return Ok();
+            }
             var tts = db.TTs
                 .Include(t => t.Users)
                 .Include(t => t.CashStations)
@@ -81,7 +84,7 @@ namespace Portal.Controllers
             try
             {
                 ttjsn = ttjsn.Replace("%bkspc%", " ");
-                var ttJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.tt>(ttjsn);                
+                var ttJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.tt>(ttjsn);
 
                 // существующая тт
                 if (ttJsn.id != 0)
@@ -115,8 +118,12 @@ namespace Portal.Controllers
                             }
                             break;
 
+                        case "ttRestaurantSifr":
+                            tt.Restaurant_Sifr = ttJsn.restaurant_Sifr;
+                            break;
+
                         case "ttAddress":
-                            if(!string.IsNullOrEmpty(ttJsn.address))
+                            if (!string.IsNullOrEmpty(ttJsn.address))
                             {
                                 tt.Address = ttJsn.address;
                             }
@@ -236,11 +243,12 @@ namespace Portal.Controllers
                             break;
 
                         case "cashes":
+                            var a = tt.CashStations;
                             // обновляем кассы
-
                             // удаляем кассы из БД, которые были откреплены от ТТ
                             var cashesDelete = tt.CashStations.Where(c => !ttJsn.cashes.Select(i => i.Id).Contains(c.Id)).ToList();
                             db.CashStations.RemoveRange(cashesDelete);
+
 
                             foreach (var item in ttJsn.cashes)
                             {
@@ -254,8 +262,8 @@ namespace Portal.Controllers
                                     result.Data = "для кассы " + item.Name + " указан некорректный ip адрес";
                                     return new ObjectResult(result);
                                 }
-                                
-                                if(string.IsNullOrEmpty(item.Name))
+
+                                if (string.IsNullOrEmpty(item.Name))
                                 {
                                     result.Ok = false;
                                     result.Data = "Имя кассы не можеть быть пустым";
@@ -268,17 +276,19 @@ namespace Portal.Controllers
                                     // проверяем есть ли уже касса с таким ip в бд
                                     var cashExist = db.CashStations.Where(c => c.Ip == ip.ToString()).Count();
                                     if (cashExist > 0)
-                                    {
+                                    {                                        
                                         var existCash = db.CashStations.Include(t => t.TT).FirstOrDefault(c => c.Ip == ip.ToString());
                                         result.Ok = false;
                                         result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
                                         return new ObjectResult(result);
+
                                     }
 
                                     // добавляем кассу в бд
                                     cash.Name = item.Name;
                                     cash.Ip = ip.ToString();
                                     cash.TT = tt;
+                                    cash.Midserver = item.Midserver;
                                     db.CashStations.Add(cash);
                                 }
                                 // существующая касса
@@ -286,21 +296,22 @@ namespace Portal.Controllers
                                 {
                                     cash = db.CashStations.FirstOrDefault(c => c.Id == item.Id);
                                     cash.Name = item.Name;
+                                    cash.Midserver = item.Midserver;
                                     cash.Ip = ip.ToString();
                                     db.CashStations.Update(cash);
                                 }
                             }
                             break;
-                        /*
-                        case "cameras":
-                            tt.NxCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
-                            foreach (var item in ttJsn.items)
-                            {
-                                var camera = db.NxCameras.FirstOrDefault(c => c.Id == item.id);
-                                tt.NxCameras.Add(camera);
-                            }
-                            break;
-                        */
+                            /*
+                            case "cameras":
+                                tt.NxCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
+                                foreach (var item in ttJsn.items)
+                                {
+                                    var camera = db.NxCameras.FirstOrDefault(c => c.Id == item.id);
+                                    tt.NxCameras.Add(camera);
+                                }
+                                break;
+                            */
                     }
 
                     db.TTs.Update(tt);
@@ -310,7 +321,7 @@ namespace Portal.Controllers
                 else
                 {
                     var tt = new RKNet_Model.TT.TT();
-                    var ttUsers = new List<User>();                    
+                    var ttUsers = new List<User>();
                     var ttCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
                     var ttCashes = new List<RKNet_Model.Rk7XML.CashStation>();
 
@@ -350,6 +361,10 @@ namespace Portal.Controllers
                         result.Data = "Торговая точка с именем \"" + existName.Name + "\" уже существует, введите другое имя.";
                         return new ObjectResult(result);
                     }
+
+                    // код RK
+                    tt.Restaurant_Sifr = ttJsn.restaurant_Sifr;
+
 
                     // Адрес ТТ
                     if (!string.IsNullOrEmpty(ttJsn.address))
@@ -468,8 +483,9 @@ namespace Portal.Controllers
 
                             // добавляем кассу в бд
                             cash.Name = item.Name;
-                            cash.Ip = ip.ToString();                            
-                            db.CashStations.Add(cash);                            
+                            cash.Ip = ip.ToString();
+                            cash.Midserver = item.Midserver;
+                            db.CashStations.Add(cash);
                         }
                     }
 
@@ -483,7 +499,7 @@ namespace Portal.Controllers
                         nxCamera.NxSystem = db.NxSystems.FirstOrDefault(s => s.Id == cam.systemId);
                         ttCameras.Add(nxCamera);
                     }
-                    
+
 
                     tt.Users = ttUsers;
                     tt.NxCameras = ttCameras;
@@ -500,7 +516,7 @@ namespace Portal.Controllers
                     }
                     db.TTs.Update(ttt);
                     db.SaveChanges();
-                }                                               
+                }
             }
             catch (Exception e)
             {
@@ -523,7 +539,7 @@ namespace Portal.Controllers
                     .Include(t => t.Organization)
                     .FirstOrDefault(t => t.Id == ttId);
 
-                if(tt.CashStations != null)
+                if (tt.CashStations != null)
                     db.CashStations.RemoveRange(tt.CashStations);
                 if (tt.NxCameras != null)
                     db.NxCameras.RemoveRange(tt.NxCameras);
@@ -608,7 +624,7 @@ namespace Portal.Controllers
                 if (xml_result.Ok)
                 {
                     var systemInfo2 = RKNet_Model.Rk7XML.Response.GetSystemInfo2Response.RK7QueryResult.DeSerializeQueryResult(xml_result.Data).systemInfo;
-                    requestResult.Data = "Касса, " + systemInfo2.restaurant.name;
+                    requestResult.Data = $"{{\"Id\" : \"{systemInfo2.restaurant.id}\",\"Name\" : \"Касса, {systemInfo2.restaurant.name}\",\"Midserver\" : \"{systemInfo2.cashGroup.id}\"}}";
                 }
                 else
                 {
@@ -633,7 +649,7 @@ namespace Portal.Controllers
             var newTTCode = 0;
             var lastTT = db.TTs.OrderBy(t => t.Code).LastOrDefault();
 
-            if(lastTT != null)
+            if (lastTT != null)
             {
                 newTTCode = lastTT.Code + 1;
             }
@@ -713,7 +729,7 @@ namespace Portal.Controllers
                                 result.Data = "Организация с названием \"" + existName.Name + "\" уже существует, введите другое имя.";
                                 return new ObjectResult(result);
                             }
-                            break;                        
+                            break;
 
                         case "tts":
                             organization.TTs = new List<RKNet_Model.TT.TT>();
@@ -724,48 +740,48 @@ namespace Portal.Controllers
                             }
                             break;
 
-                        //case "yandexClient":
-                        //    if (!string.IsNullOrEmpty(orgJsn.yandexClient))
-                        //    {
-                        //        organization.YandexLogin = orgJsn.yandexClient;
-                        //    }
-                        //    else
-                        //    {
-                        //        organization.YandexLogin = null;
-                        //    }
-                        //    break;
+                            //case "yandexClient":
+                            //    if (!string.IsNullOrEmpty(orgJsn.yandexClient))
+                            //    {
+                            //        organization.YandexLogin = orgJsn.yandexClient;
+                            //    }
+                            //    else
+                            //    {
+                            //        organization.YandexLogin = null;
+                            //    }
+                            //    break;
 
-                        //case "yandexSecret":
-                        //    if (!string.IsNullOrEmpty(orgJsn.yandexSecret))
-                        //    {
-                        //        organization.YandexPassword = orgJsn.yandexSecret;
-                        //    }
-                        //    else
-                        //    {
-                        //        organization.YandexPassword = null;
-                        //    }
-                        //    break;
-                        //case "deliveryClubClient":
-                        //    if (!string.IsNullOrEmpty(orgJsn.deliveryClubClient))
-                        //    {
-                        //        organization.DeliveryClubLogin = orgJsn.deliveryClubClient;
-                        //    }
-                        //    else
-                        //    {
-                        //        organization.DeliveryClubLogin = null;
-                        //    }
-                        //    break;
+                            //case "yandexSecret":
+                            //    if (!string.IsNullOrEmpty(orgJsn.yandexSecret))
+                            //    {
+                            //        organization.YandexPassword = orgJsn.yandexSecret;
+                            //    }
+                            //    else
+                            //    {
+                            //        organization.YandexPassword = null;
+                            //    }
+                            //    break;
+                            //case "deliveryClubClient":
+                            //    if (!string.IsNullOrEmpty(orgJsn.deliveryClubClient))
+                            //    {
+                            //        organization.DeliveryClubLogin = orgJsn.deliveryClubClient;
+                            //    }
+                            //    else
+                            //    {
+                            //        organization.DeliveryClubLogin = null;
+                            //    }
+                            //    break;
 
-                        //case "deliveryClubSecret":
-                        //    if (!string.IsNullOrEmpty(orgJsn.deliveryClubSecret))
-                        //    {
-                        //        organization.DeliveryClubPassword = orgJsn.deliveryClubSecret;
-                        //    }
-                        //    else
-                        //    {
-                        //        organization.DeliveryClubPassword = null;
-                        //    }
-                        //    break;
+                            //case "deliveryClubSecret":
+                            //    if (!string.IsNullOrEmpty(orgJsn.deliveryClubSecret))
+                            //    {
+                            //        organization.DeliveryClubPassword = orgJsn.deliveryClubSecret;
+                            //    }
+                            //    else
+                            //    {
+                            //        organization.DeliveryClubPassword = null;
+                            //    }
+                            //    break;
                     }
 
                     db.Organizations.Update(organization);
@@ -1076,7 +1092,7 @@ namespace Portal.Controllers
             try
             {
                 var moduleNx = new module_NX.NX();
-                var nxSystem = db.NxSystems.FirstOrDefault(s => s.Id == systemId);                
+                var nxSystem = db.NxSystems.FirstOrDefault(s => s.Id == systemId);
                 var getCamPicture = moduleNx.GetCameraPicture(nxSystem, DateTime.Now, cameraId, 300);
 
                 if (getCamPicture.Ok)
@@ -1119,33 +1135,33 @@ namespace Portal.Controllers
                     db.SaveChanges();
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 result.Ok = false;
-                result.Data = e.Message; 
+                result.Data = e.Message;
             }
 
             return new ObjectResult(result);
-        }    
+        }
         public IActionResult TTCamsPreview(int ttId, string jsn)
         {
             var camList = new List<RKNet_Model.VMS.NX.NxCamera>();
 
             var tt = db.TTs.Include(t => t.NxCameras).FirstOrDefault(t => t.Id == ttId);
-            if(tt != null)
+            if (tt != null)
             {
-                foreach(var cam in tt.NxCameras)
+                foreach (var cam in tt.NxCameras)
                 {
                     camList.Add(db.NxCameras.Include(c => c.NxSystem).FirstOrDefault(c => c.Id == cam.Id));
                 }
             }
             else
-            {                
+            {
                 jsn = jsn.Replace("%pp%", "+");
                 jsn = jsn.Replace("%bkspc%", " ");
 
                 var ttcams = JsonConvert.DeserializeObject<List<ViewModels.Settings_TT.json.ttcams>>(jsn);
-                foreach(var ttcam in ttcams)
+                foreach (var ttcam in ttcams)
                 {
                     var cam = new RKNet_Model.VMS.NX.NxCamera();
                     cam.Name = ttcam.name;
@@ -1156,7 +1172,7 @@ namespace Portal.Controllers
                 }
             }
             return PartialView(camList);
-        }        
+        }
         public IActionResult AddTTCam(int ttId)
         {
             var camView = new CamerasView();
@@ -1169,7 +1185,7 @@ namespace Portal.Controllers
         }
         public IActionResult GetNxServers(int systemId)
         {
-            var result = new RKNet_Model.Result<List<module_NX.NX.FullInfo.server>>();            
+            var result = new RKNet_Model.Result<List<module_NX.NX.FullInfo.server>>();
             try
             {
                 // запрос списка серверов NX системы
@@ -1231,9 +1247,9 @@ namespace Portal.Controllers
             nxRequest = nx.GetFullInfo(nxSystem);
             if (nxRequest.Ok)
             {
-                camView.ServerCams = nxRequest.Data.cameraUserAttributesList.Where(c => c.preferredServerId == serverId).ToList();                               
+                camView.ServerCams = nxRequest.Data.cameraUserAttributesList.Where(c => c.preferredServerId == serverId).ToList();
             }
-            
+
             return PartialView(camView);
         }
         public IActionResult CameraChange(int ttId, int systemId, string camName, string camGuid, bool enabled)
@@ -1260,7 +1276,7 @@ namespace Portal.Controllers
                     else
                     {
                         cam.TT = tt;
-                        db.NxCameras.Update(cam);                        
+                        db.NxCameras.Update(cam);
                     }
                 }
                 else
@@ -1329,7 +1345,7 @@ namespace Portal.Controllers
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
                 result.ExceptionText = ex.ToString();
-            }            
+            }
 
             return new ObjectResult(result);
         }
@@ -1356,11 +1372,11 @@ namespace Portal.Controllers
 
         // Таблица клиентов
         public IActionResult ClientsTable()
-        {                       
+        {
             var result = Models.ApiRequest.GetCashClients();
             var clientsView = new CashClientsView();
 
-            if(result.Ok)
+            if (result.Ok)
             {
                 clientsView.Clients = result.Data;
 
@@ -1372,14 +1388,14 @@ namespace Portal.Controllers
 
                 //var versions = db.CashClientVersions.Select(v => new { v.Version, v.isActual } ).ToList();
                 var resultVersions = Models.ApiRequest.GetCashClientsVersions();
-                
-                if(resultVersions.Ok)
-                {                    
-                    if(resultVersions.Data != null)
+
+                if (resultVersions.Ok)
+                {
+                    if (resultVersions.Data != null)
                     {
                         clientsView.Versions = resultVersions.Data;
                     }
-                }                
+                }
             }
             return PartialView(clientsView);
         }
@@ -1393,13 +1409,13 @@ namespace Portal.Controllers
             }
 
             var result = Models.ApiRequest.UpdateAllClients(version);
-            
+
             if (result.Ok)
                 return new ObjectResult(result.Data);
             else
                 return new ObjectResult(result.ErrorMessage);
         }
-    
+
         // Обновить один клиент
         public IActionResult UpdateOneClient(string clientId, string version)
         {
@@ -1408,12 +1424,12 @@ namespace Portal.Controllers
                 return new ObjectResult("Ошибка: версия обновления указана некорректно");
             }
 
-            if(string.IsNullOrEmpty(clientId))
+            if (string.IsNullOrEmpty(clientId))
             {
                 return new ObjectResult("Ошибка: Id клиента передан некорректно: " + clientId);
             }
 
-            var result = Models.ApiRequest.UpdateOneClient(clientId, version);            
+            var result = Models.ApiRequest.UpdateOneClient(clientId, version);
 
             if (result.Ok)
                 return new ObjectResult("ok");
@@ -1431,12 +1447,12 @@ namespace Portal.Controllers
             else
                 return new ObjectResult(result.ErrorMessage);
         }
-    
+
         // Автообновление
         public IActionResult CashClientsAutoUpdate(bool isEnabled)
         {
             var result = Models.ApiRequest.CashClientsAutoUpdate(isEnabled);
-            return new ObjectResult(result);            
+            return new ObjectResult(result);
         }
     }
 }

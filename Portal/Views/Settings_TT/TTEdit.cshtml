@@ -37,7 +37,6 @@
     <div class="col-md-4 col-lg-4" @blockStyle>
         <!--заголовок-->
         <h5 class="pull-left">Данные ТТ</h5>
-
         <!--разделитель-->
         <hr style="width:100%" />
 
@@ -50,6 +49,22 @@
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
                 <!--сохранить-->
                 <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <!--код RK тт-->
+        <label class="label-light">код RK</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ttRestaurantSifr" type="number" class="form-control" value="@Model.TT.Restaurant_Sifr" style="font-weight:bold" disabled ="true">
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)" id="saveRestSifrButton"><i class="fa fa-fw fa-save"></i></button>
                 <!--сохранение...-->
                 <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
                 <!--отменить-->
@@ -286,12 +301,11 @@
                 @foreach (var cash in Model.TT.CashStations.OrderBy(n => n.Name))
                 {
                     var id = "cash_" + cash.Id.ToString();
-                    var idip = "caship_" + cash.Id;
-
+                    /*var idip = "caship_" + cash.Id;*/
                     <a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="@id">
                         <div class="cashName" style="display:inline">@cash.Name</div>
                         <div class="cashIp hidden">@cash.Ip</div>
-
+                        <div class="cashMidserver hidden">@cash.Midserver</div>
                         <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCash(this)"></label></div>
                     </a>
 
@@ -423,6 +437,24 @@
                         </div>
                     </div>
 
+                    <!--Midserver-->
+                    <div id="midserverForm">
+                        <br />
+                        <label for="midserver" class="col-sm-4 control-label">Midserver(RK7)</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="midserver">
+                        </div>
+                    </div>
+
+                    <!--ID ресторана-->
+                    <div id="restForm">
+                        <br />
+                        <label for="restSifr" class="col-sm-4 control-label">ID ресторана(RK7)</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="restSifr">
+                        </div>
+                    </div>
+
                 </form>
             </div>
 
@@ -526,6 +558,7 @@
 <script>
     var newTT = @Html.Raw(Json.Serialize(Model.newTT));
     var ttId = @Model.TT.Id;
+    var ttRkSifr = @Model.TT.Restaurant_Sifr;
     var mode = '';
     var ttCams = [];
     var camId = 0;
@@ -767,7 +800,6 @@
 
     // кнопка сохранить справа
     function Save(save) {
-
         // определяем текущие элементы
         var input = $(save).parent().parent().children('input');
         var edit = $(save).parent().find('.edit');
@@ -787,16 +819,19 @@
         tt.attribute = $(input).attr('id');
 
         tt.name = $('#ttName').val();
+        tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
         tt.address = $('#ttAddress').val();
         tt.code = $('#ttCode').val();
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
 
+
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
 
         $.ajax({
+            async: "false",
             type: "POST",
             url: '/Settings_TT/TTSave',
             data: { ttjsn: ttjsn },
@@ -861,6 +896,7 @@
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
+        tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
 
         tt.users = DataFromSelector($('#users'));
         tt.type = $('#ttType').select2('val');
@@ -877,12 +913,13 @@
 
             var cashName = $(this).children('.cashName').text();
             var cashIp = $(this).children('.cashIp').text();
+            var cashMidserver = $(this).children('.cashMidserver').text();
 
             var cash = {};
             cash.Id = cashId;
             cash.Name = cashName;
             cash.Ip = cashIp;
-
+            cash.Midserver = cashMidserver;
             tt.cashes.push(cash);
         });
 
@@ -985,20 +1022,21 @@
         $('#myModalLabel').text('добавление кассы');
         $('#saveCash').hide();
         $('#nameForm').hide();
-
+        $('#restForm').hide();
+        $('#midserverForm').hide();
         $('#changeCash').hide();
         $('#deleteCash').hide();
 
         $("#addCashModal").modal("show");
-
-        //ShowModal('111', '222');
     }
 
     // кнопка модального окна добавить кассу
     function saveCash() {
         var cashIp = $("#cashIp").val();
         var cashName = $("#cashName").val();
-
+        var cashMidserver = $('#midserver').val();
+        var restaurantSifr = $('#restSifr').val();
+        ttRkSifr = restaurantSifr;
         if (!cashIp) {
             alert('введите ip адресс кассы');
             return false;
@@ -1014,10 +1052,16 @@
         var newCashHtml = '<a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="';
         newCashHtml += id + '">' + '<div class="cashName" style="display:inline">' + cashName + '</div>';
         newCashHtml += '<div class="cashIp hidden">' + cashIp + '</div>';
+        newCashHtml += '<div class="cashMidserver hidden">' + cashMidserver + '</div>';
         newCashHtml += '<div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCash(this)"></label></div></a>';
 
         $('#cashes').append(newCashHtml);
-        SaveTTCashes('add');
+        $('#ttRestaurantSifr').val(restaurantSifr); //добавляем значение в ячейку кода РК торговой точки
+        SaveTTCashes('add'); 
+        if(mode =='edit') { setTimeout(() => Save(document.getElementById('saveRestSifrButton')), 500); }//принудительно вызываем нажатие кнопки сохранить в ячейке кода РК торговой точки если мы редактируем данную ТТ
+
+        
+
 
         //$("#addCashModal").modal("hide");
     }
@@ -1034,8 +1078,12 @@
 
             if (result.ok) {
                 $('#nameForm').show();
-                $('#cashName').val(result.data);
-
+                $('#midserverForm').show();
+                $('#restForm').show();
+                var resultCash = JSON.parse(result.data)
+                $('#restSifr').val(resultCash.Id);
+                $('#cashName').val(resultCash.Name);
+                $('#midserver').val(resultCash.Midserver);
                 if (mode == 'add') {
                     $('#saveCash').show();
                     mode == '';
@@ -1061,17 +1109,20 @@
         cashElement = $(el).parent().parent();
         var cashName = $(el).parent().parent().children('.cashName').text();
         var cashIp = $(el).parent().parent().children('.cashIp').text();
-
-        EditCashModal(cashIp, cashName);
+        var cashMidserver = $(el).parent().parent().children('.cashMidserver').text();
+        EditCashModal(cashIp, cashName, cashMidserver);
     }
 
     // вызов модального окна редактирования кассы
-    function EditCashModal(ip, name) {
+    function EditCashModal(ip, name, midserver) {
         $("#cashIp").val(ip);
         $("#cashName").val(name);
-
+        $("#midserver").val(midserver)
+        $("#restSifr").val(ttRkSifr)
         $('#myModalLabel').text('редактирование кассы');
         $('#nameForm').show();
+        $('#midserverForm').show();
+        $('#restForm').show();
         $('#saveCash').hide();
         $('#changeCash').show();
         $('#deleteCash').show();
@@ -1080,13 +1131,16 @@
 
     // кнопка модального окна сохранить кассу
     function changeCash() {
-        oldName = cashElement.children('.cashName').text();
-        oldIp = cashElement.children('.cashIp').text();
-
+      /*  oldName = cashElement.children('.cashName').text();
+        oldIp = cashElement.children('.cashIp').text(); */
+        ttRkSifr = $("#restSifr").val()
+        $('#ttRestaurantSifr').val(ttRkSifr);
+        cashElement.children('.cashMidserver').text($("#midserver").val());
         cashElement.children('.cashName').text($("#cashName").val());
-        cashElement.children('.cashIp').text($("#cashIp").val());
-
+        cashElement.children('.cashIp').text($("#cashIp").val());        
+        cashElement.children()
         SaveTTCashes('edit');
+        if (mode == 'edit') { setTimeout(() => Save(document.getElementById('saveRestSifrButton')), 500); }
     }
 
     function oldCashValues() {
@@ -1122,12 +1176,12 @@
 
             var cashName = $(this).children('.cashName').text();
             var cashIp = $(this).children('.cashIp').text();
-
+            var cashMidserver = $(this).children('.cashMidserver').text();
             var cash = {};
             cash.Id = cashId;
             cash.Name = cashName;
             cash.Ip = cashIp;
-
+            cash.Midserver = cashMidserver
             tt.cashes.push(cash);
         });
 

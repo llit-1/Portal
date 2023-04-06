@@ -8,6 +8,8 @@ namespace Portal.ViewModels.Settings_Access.json
     public class tt
     {
         public int id;
+        public int restaurant_Sifr;
+        public int Midserver;
         public string name;
         public string address;
         public string code;
