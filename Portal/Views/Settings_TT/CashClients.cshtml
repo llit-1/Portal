@@ -52,8 +52,9 @@
                     }                                                                                                                
                 }                                           
             </select>
-
-            <button class="btn btn-sm btn-gray" onclick="">скачать дистрибутив</button>
+            
+            <button class="btn btn-sm btn-gray" onclick="DownloadDistr()">скачать</button>
+            <button class="btn btn-sm btn-success" onclick="UploadVersion()">добавить версию</button>
 
             <div class="checkbox check-01" style="margin-left:20px; display:inline">
                 <label>
@@ -76,6 +77,66 @@
 
         </div>
 
+    </div>
+</div>
+
+
+<!--Окно: создание новой версии-->
+<div id="addVersionModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
+                <h4 class="modal-title" id="myModalLabel">
+                    добавить новую версию
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div class="modal-body">
+                @using (Html.BeginForm("UploadNewVersion", "Settings_TT", FormMethod.Post, new { enctype = "multipart/form-data", id = "versionForm"}))
+                {
+                    <!--Версия-->
+                        <br />
+                        <label for="versionName" class="col-sm-4 control-label">версия</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="versionName" required="required" name="version">
+                        </div>
+
+                    <!--Zip архив-->
+                    <label for="zipForm" class="col-sm-4 control-label">zip архив</label>
+                    <div class="input-group col-sm-5">
+                        <input id="openFile" class="hidden" type="file" accept=".zip" onchange="pathChange()" name="file"/>
+                        <input class="form-control" id="zipForm" disabled="disabled" required="required">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" onclick="openWinDialog()"><i class="fa fa-fw fa-upload"></i></button>
+                        </span>
+                    </div>
+
+                    <!--Актуальность-->
+                    <label id="switchLabel" class="col-sm-4 control-label">актуальная версия</label>
+                    <div class="material-switch input-group col-sm-6" style="margin-top:7px">
+                        <input class="slider" id="actual" type="checkbox" checked="checked" name="actual">
+                        <label for="actual" class="label-warning"></label>
+                    </div>
+
+                    <!--ожидание загрузки-->
+                    <div class="input-group col-sm-12 hidden" id="cashLoading">
+                        <p class="color-red" style="text-align:center; font-weight:bold; margin-top:10px">подключение к кассе...</p>
+                    </div>
+                }
+            </div>
+            
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="saveCash" type="button" class="btn btn-sm btn-success" onclick="SaveVersion()">добавить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">отмена</button>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -156,4 +217,74 @@
             }
         });
     });
+</script>
+
+<!--кнопка скачать дистрибутив-->
+<script>
+    function DownloadDistr(){
+        let sel = document.getElementById('updateAllSelector');
+        let version = sel.options[sel.selectedIndex].value;
+        let url = '/Settings_TT/DownloadDistr?version=' + version;
+         $.ajax({
+            type: "GET",
+            url: url,
+            success:(function(){
+                window.location = url
+            }),
+            error: (function () {
+                alert("Версия " + version + " отсутствует в БД");
+            })
+        });
+    }
+</script>
+
+<!--кнопка добавить версию-->
+<script>
+    function UploadVersion() {
+        let sel = document.getElementById('updateAllSelector');
+        let version = sel.options[sel.selectedIndex].value;
+        document.getElementById('versionName').value = version;
+         $('#addVersionModal').modal("show");
+    }
+
+    function openWinDialog() {
+        let openFile = document.getElementById('openFile');
+        openFile.value = '';
+        document.getElementById('zipForm').value = '';
+        openFile.click();
+    }
+
+    
+    function pathChange() {
+        let path = document.getElementById('openFile');
+        document.getElementById('zipForm').value = path.files[0].name;
+    }
+
+    function SaveVersion() {
+       let form = document.getElementById('versionForm');
+        /* form.submit();*/
+      let data = new FormData(form);
+       $.ajax({
+           type: "POST",
+           enctype:'multipart/form-data',
+            url: "/Settings_TT/UploadNewVersion",
+            data:data,
+            processData:false,
+            contentType: false,
+            chache: false,
+            timeout: 10000,
+            success: function(result){
+                if (result.ok) {
+                    $('#addVersionModal').modal('hide');
+                    loadUrl('/Settings_TT/CashClients');
+                }
+                else {
+                    ShowModal("Ошибка", result.data);
+                }
+            },
+            error: function (error) {
+                ShowModal("Ошибка", error.responseText);
+            }
+         });
+    }
 </script>

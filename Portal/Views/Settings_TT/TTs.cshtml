@@ -1,7 +1,6 @@
 ﻿<!--шапка-->
 <div id="headMenu" class="row" style="margin:0px">
-    <div class="col-12">
-
+    <div class="col-12" style="display:inline-block">
         <!--блок заголовка-->
         <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
             <tbody>
@@ -32,9 +31,25 @@
 
         <!--меню добавления -->
         <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-
+        </div>        
+    </div>
+    <!--Отображать закрытые точки -->
+    <div style="float:right; display:inline-block">
+        <div class="pull-right" style="padding-bottom:10px; padding-top:10px; width:100%">
+            <label id="closedTTSwitch" style="margin-right:15px">Отображать закрытые точки</label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="closedTT" type="checkbox" onchange="loadTTTable()" checked="checked">
+                <label for="closedTT" class="label-warning"></label>
+            </div>
         </div>
-
+        <!--Отображать УЦ-->
+        <div class="pull-right" style="padding-bottom:10px; width:100%">
+            <label id="ecTTSwitch" style="margin-right:15px">Отображать УЦ</label>
+            <div class="material-switch pull-right">
+                <input class="slider" id="ecTT" type="checkbox" onchange="loadTTTable()" checked="checked">
+                <label for="ecTT" class="label-warning"></label>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -43,6 +58,16 @@
 
 <!------------------------------------------------------------------------------------------------------------------->
 <!--загрузка таблицы-->
+<script>
+    function loadTTTable() {
+        let closedTT = document.getElementById('closedTT').checked;
+        let ecTT = document.getElementById('ecTT').checked;
+        SpinnerShow();
+        $('#page').load('/Settings_TT/TTsTable?closedTT=' + closedTT + '&ecTT=' + ecTT, function () { SpinnerHide(); });
+    }
+</script>
+
+<!--загрузка окна-->
 <script>
     function DataTable() {
         //location.hash = "#SettingsTTs";
@@ -54,10 +79,8 @@
         $('#tableMenu').show();
         $('#editMenu').hide();
         $('#addMenu').hide();
-
-        $('#page').empty();
-        SpinnerShow();
-        $('#page').load('/Settings_TT/TTsTable', function () { SpinnerHide(); });
+        $('#page').empty();        
+        loadTTTable();
     }
     DataTable();
 </script>
@@ -99,3 +122,5 @@
         $('#page').load('/Settings_TT/TTEdit?ttId=' + itemId, SpinnerHide());
     }
 </script>
+
+

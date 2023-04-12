@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Portal.ViewModels.Settings_TT;
+using RKNet_Model;
 using RKNet_Model.Account;
+using RKNet_Model.CashClient;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -37,7 +40,7 @@ namespace Portal.Controllers
         }
 
         // Таблица ТТ
-        public IActionResult TTsTable()
+        public IActionResult TTsTable(bool closedTT, bool ecTT)
         {
             if (db.TTs is null)
             {
@@ -51,6 +54,8 @@ namespace Portal.Controllers
                 .Include(t => t.Organization)
                 .Where(t => !t.Closed)
                 .ToList();
+            if (closedTT==false) { tts.RemoveAll(item => item.CloseDate != null); }
+            if (ecTT==false) { tts.RemoveAll(item => item.Type?.Name == "УЦ"); }
             return PartialView(tts);
         }
 
@@ -276,7 +281,7 @@ namespace Portal.Controllers
                                     // проверяем есть ли уже касса с таким ip в бд
                                     var cashExist = db.CashStations.Where(c => c.Ip == ip.ToString()).Count();
                                     if (cashExist > 0)
-                                    {                                        
+                                    {
                                         var existCash = db.CashStations.Include(t => t.TT).FirstOrDefault(c => c.Ip == ip.ToString());
                                         result.Ok = false;
                                         result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
@@ -1454,5 +1459,87 @@ namespace Portal.Controllers
             var result = Models.ApiRequest.CashClientsAutoUpdate(isEnabled);
             return new ObjectResult(result);
         }
+
+        // Скачать версию кассового клиента
+
+        public FileContentResult DownloadDistr(string version)
+        {
+            var clientVersion = db.CashClientVersions.FirstOrDefault(v => v.Version == version);
+            if (clientVersion != null && clientVersion.UpdateFile != null)
+            {
+                HttpContext.Response.ContentType = "application/zip";
+                HttpContext.Response.Headers.Add("Content-Disposition", "attachment");
+                return File(clientVersion.UpdateFile, "application/zip", $"CashClient v{version}.zip");
+            }
+            return null;
+        }
+
+        //Загрузка новой версии кассового клиента в БД
+        [HttpPost]
+        public IActionResult UploadNewVersion(IFormFile file, string version, string actual)
+        {
+            Result<string> result = new Result<string>();
+            // Проверки входных данных
+            if (file == null)
+            {
+                result.Ok = false;
+                result.Data = "Необходимо загрузить файл";
+                return new ObjectResult(result);
+            }
+            if (version == null || version == "")
+            {
+                result.Ok = false;
+                result.Data = "Необходимо указать версию";
+                return new ObjectResult(result);
+            }
+            ClientVersion alreadyExist = db.CashClientVersions.FirstOrDefault(v => v.Version == version);
+            if (alreadyExist != null)
+            {
+                result.Ok = false;
+                result.Data =  $"Версия {version} уже существует в БД";
+                return new ObjectResult(result);
+            }
+            if (actual != "on" && actual != null)
+            {
+                result.Ok = false;
+                result.Data = "Неверно передаётся параметр actual";
+                return new ObjectResult(result);
+            }
+
+            //Создание новой записи в БД
+            try
+            {
+                ClientVersion clientVersion = new RKNet_Model.CashClient.ClientVersion();
+                clientVersion.Version = version;
+                using Stream fileStream = file.OpenReadStream();
+                byte[] bytes = new byte[fileStream.Length];
+                fileStream.Read(bytes, 0, bytes.Length);
+                clientVersion.UpdateFile = bytes;
+                switch (actual)
+                {
+                    case "on":
+                        foreach (var item in db.CashClientVersions)
+                        {
+                            item.isActual = false;
+                        }
+                        clientVersion.isActual = true;
+                        break;
+                    default:
+                        clientVersion.isActual = false;
+                        break;
+                }
+                db.CashClientVersions.Add(clientVersion);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.Data = ex.Message;
+                return new ObjectResult(result);
+            }           
+            result.Data = $"версия {version} успешно добавлена";
+            return new ObjectResult(result);
+        }
     }
 }
+
