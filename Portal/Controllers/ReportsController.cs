@@ -99,6 +99,13 @@ namespace Portal.Controllers
             return PartialView();
         }
 
+        // Чат GPT
+        //[Authorize(Roles = "reports_calcusage")]
+        public IActionResult GPT()
+        {
+            return PartialView();
+        }
+
         // Кассовые операции
         [Authorize(Roles = "reports_cashoperations")]
         public IActionResult CashOperations()

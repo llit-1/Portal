@@ -19,6 +19,7 @@ $(function () {
         if (hash == '#checkstime') loadContent(hash.replace('#', ''), '/Reports/ChecksTime');               // отчёты -> время чеков
         if (hash == '#cashoperations') loadContent(hash.replace('#', ''), '/Reports/CashOperations');       // отчёты -> кассовые опреации
         if (hash == '#Other') loadContent(hash.replace('#', ''), '/Reports/Other');                         // отчёты -> другие отчёты
+        if (hash == '#GPT') loadContent(hash.replace('#', ''), '/Reports/GPT');                             // отчёты -> чат GPT
 
         // Заказы ТТ
         if (hash == '#ttorders') loadContent(hash.replace('#', ''), '/Home/TTOrders');                         // заказы -> плитка

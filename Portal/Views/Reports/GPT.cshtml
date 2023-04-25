@@ -1,0 +1,67 @@
+﻿<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#reports" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+<!--фрейм для вывода отчёта-->
+    <iframe id="frame"
+            src="https://aibuddy.ru/"
+            frameborder="0"
+            allowFullScreen="true">
+    </iframe>
+
+
+<div id="Unavailable"></div>
+
+
+
+<!-------------------------------------------------------------------->
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        // горизонтальная ориентация
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('#frame').css("height", "84vh");
+            $('#panel').show();
+            $('#Unavailable').hide();
+        }
+
+        // вертикальная ориентация
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('#frame').css("height", "69vh");
+            $('#panel').hide();
+            $('#Unavailable').show();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+
+    $('#Unavailable').load('/Home/RotateToHorizontal');
+    autoScreenLoad();
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        SpinnerHide();
+    });
+</script>
+
+
+
