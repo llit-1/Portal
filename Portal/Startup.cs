@@ -54,10 +54,14 @@ namespace Portal
 
             services.AddRazorPages().AddRazorRuntimeCompilation();
             if (IsTest)
-            { services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssqltest")), ServiceLifetime.Transient); }
+            { 
+                services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssqltest")), ServiceLifetime.Transient);
+                services.AddDbContext<DB.CalculatorDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("calculatortest")), ServiceLifetime.Transient);
+            }
             else
             {
                 services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssql")), ServiceLifetime.Transient);
+                services.AddDbContext<DB.CalculatorDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("calculator")), ServiceLifetime.Transient);
             }
             services.AddDbContext<DB.SQLiteDBContext>(options => options.UseSqlite(Configuration.GetConnectionString("sqlite")));
 

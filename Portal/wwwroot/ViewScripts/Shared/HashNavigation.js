@@ -9,17 +9,18 @@ $(function () {
         if (hash == '') loadContent('main', '/Home/Index');                                                 
 
         // Отчёты
-        if (hash == '#reports') loadContent(hash.replace('#', ''), '/Home/Reports');                        // отчёты -> плитка
-        if (hash == '#profit') loadContent(hash.replace('#', ''), '/Reports/ProfitFree');                   // отчёты -> выручка
-        if (hash == '#profitpro') loadContent(hash.replace('#', ''), '/Reports/ProfitPro');                 // отчёты -> выручка pro
-        if (hash == '#profitall') loadContent(hash.replace('#', ''), '/Reports/ProfitAll');                 // отчёты -> выручка all
-        if (hash == '#profitplan') loadContent(hash.replace('#', ''), '/Reports/ProfitPlan');               // отчёты -> план продаж по тт
-        if (hash == '#sdreport') loadContent(hash.replace('#', ''), '/Reports/ItsmFree');                   // отчёты -> сервис-деск
-        if (hash == '#calcusage') loadContent(hash.replace('#', ''), '/Reports/CalcUsage');                 // отчёты -> использование калькуляторов
-        if (hash == '#checkstime') loadContent(hash.replace('#', ''), '/Reports/ChecksTime');               // отчёты -> время чеков
-        if (hash == '#cashoperations') loadContent(hash.replace('#', ''), '/Reports/CashOperations');       // отчёты -> кассовые опреации
-        if (hash == '#Other') loadContent(hash.replace('#', ''), '/Reports/Other');                         // отчёты -> другие отчёты
-        if (hash == '#GPT') loadContent(hash.replace('#', ''), '/Reports/GPT');                             // отчёты -> чат GPT
+        if (hash == '#reports') loadContent(hash.replace('#', ''), '/Home/Reports');                          // отчёты -> плитка
+        if (hash == '#profit') loadContent(hash.replace('#', ''), '/Reports/ProfitFree');                     // отчёты -> выручка
+        if (hash == '#profitpro') loadContent(hash.replace('#', ''), '/Reports/ProfitPro');                   // отчёты -> выручка pro
+        if (hash == '#profitall') loadContent(hash.replace('#', ''), '/Reports/ProfitAll');                   // отчёты -> выручка all
+        if (hash == '#profitplan') loadContent(hash.replace('#', ''), '/Reports/ProfitPlan');                 // отчёты -> план продаж по тт
+        if (hash == '#sdreport') loadContent(hash.replace('#', ''), '/Reports/ItsmFree');                     // отчёты -> сервис-деск
+        if (hash == '#calcusage') loadContent(hash.replace('#', ''), '/Reports/CalcUsage');                   // отчёты -> использование калькуляторов
+        if (hash == '#checkstime') loadContent(hash.replace('#', ''), '/Reports/ChecksTime');                 // отчёты -> время чеков
+        if (hash == '#cashoperations') loadContent(hash.replace('#', ''), '/Reports/CashOperations');         // отчёты -> кассовые опреации
+        if (hash == '#Other') loadContent(hash.replace('#', ''), '/Reports/Other');                           // отчёты -> другие отчёты
+        if (hash == '#GPT') loadContent(hash.replace('#', ''), '/Reports/GPT');                               // отчёты -> чат GPT
+        if (hash == '#TemperatureSensors') loadContent(hash.replace('#', ''), '/Reports/TemperatureSensors'); // отчёты -> Датчики температуры СХЗ
 
         // Заказы ТТ
         if (hash == '#ttorders') loadContent(hash.replace('#', ''), '/Home/TTOrders');                         // заказы -> плитка
@@ -58,6 +59,10 @@ $(function () {
         if (hash == '#calc_vipechka') loadContent(hash.replace('#', ''), '/Calculator/Vipechka');           // калькуляторы -> выпечка
         if (hash == '#calc_defrost') loadContent(hash.replace('#', ''), '/Calculator/Conditerka');          // калькуляторы -> кондитерка
         if (hash == '#Sandwitches') loadContent(hash.replace('#', ''), '/Calculator/Sandwitches');          // калькуляторы -> сэндвичи
+        if (hash == '#calc_bakery') loadContent(hash.replace('#', ''), '/Calculator/Calculate?tupeGuid=573B9B93-41A1-4ACA-B740-A98CEF77E935');  // калькуляторы -> выпечка 2
+        if (hash == '#calc_confectionery') loadContent(hash.replace('#', ''), '/Calculator/Calculate?tupeGuid=9FA5B2FC-91F1-4771-BF06-F7C3E7E37359');    // калькуляторы -> кондитерка 2
+        if (hash == '#Sandwitch') loadContent(hash.replace('#', ''), '/Calculator/Calculate?tupeGuid=9C42DDD0-3ABE-4105-AFA1-BFDA989C3836');             // калькуляторы -> сэндвичи 2
+
 
         // Запросы пользователей
         if (hash == '#userrequests') loadContent(hash.replace('#', ''), '/UserRequests/ReqList?state=new');

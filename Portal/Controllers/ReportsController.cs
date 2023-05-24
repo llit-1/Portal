@@ -106,6 +106,13 @@ namespace Portal.Controllers
             return PartialView();
         }
 
+        // Датчики температуры
+        //[Authorize(Roles = "reports_calcusage")]
+        public IActionResult TemperatureSensors()
+        {
+            return PartialView();
+        }
+
         // Кассовые операции
         [Authorize(Roles = "reports_cashoperations")]
         public IActionResult CashOperations()

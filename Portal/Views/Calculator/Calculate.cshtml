@@ -1,0 +1,92 @@
+﻿@model Portal.Models.Calculator.CalculatorInformation
+<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+
+    <div style="height: 700px" class="calculator-mainbar">
+    <div class="calculator-leftbar">
+        <div class="calculator-bar">
+            @Model.Name
+        </div>
+        <div class="calculator-bar">
+            @Model.TT.Name
+        </div>
+        <div class="calculator-bar">
+            @Model.User
+        </div>
+        <div class="calculator-bar">
+            @Model.Date
+        </div>
+        <img class="calculator-img" src='@Url.Content(Model.PicturePath)'>
+    </div>
+    <div class="calculator-rightbar">
+        <table class="calculator-table">
+            <thread>
+                <tr>
+                    <th>№</th>
+                    <th>Наименование</th>
+                    <th>Осталось</th>
+                    <th>План</th>
+                    <th>Факт</th>
+                </tr>
+            </thread>
+            <tbody>
+                @for (int i = 0; i < Model.Items.Count; i++)
+                {                                                                                        
+                <tr>
+                    <td>@(i+1)</td>
+                    <td>@Model.Items[i].ItemOnTT.Item.Name</td>
+                    <td>
+                        <input type="text" size='4' oninput="calculate(this)">
+                    </td>
+                    <td class="answer" style="text-align: center" id=@i>0</td>
+                    <td class="hidden">
+                            <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
+                            <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
+                            <input class="itemOnTTCoef" value="@Model.Items[i].ItemOnTT.Coefficient">
+                            <input class="itemCoef" value="@Model.Items[i].ItemOnTT.Item.Coefficient">
+                            <input class="thisPeriodCoefficient" value="@Model.ThisPeriodCoefficient">
+                            <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
+                    </td>
+                    <td>
+                        <input type="text" size='4'>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>      
+    </div>
+
+
+    <script>
+       function calculate(inputObject){
+        inputObject.value = inputObject.value.replace(/[^\d.]/g, '');
+        let trObject = inputObject.parentNode.parentNode;
+        let answerObject = trObject.querySelector('.answer');
+        let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
+        let averageNextPer = trObject.querySelector('.averageNextPer').value.replace(/(,)/, ".");
+        let itemOnTTCoef = trObject.querySelector('.itemOnTTCoef').value.replace(/(,)/, ".");
+        let itemCoef = trObject.querySelector('.itemCoef').value.replace(/(,)/, ".");
+        let thisPeriodCoefficient = trObject.querySelector('.thisPeriodCoefficient').value.replace(/(,)/, ".");
+        let nextPeriodCoefficient = trObject.querySelector('.nextPeriodCoefficient').value.replace(/(,)/, ".");      
+        switch (@Model.Reaction)
+         {
+            case 1:               
+                answerObject.textContent = Math.round(averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value);
+                break;
+            case 2:
+                answerObject.textContent = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient - (inputObject.value - averageRestOfThisPeriod));
+                break;
+         }            
+       }
+    </script>
+
+<!-------------------------------------------------------------------->
