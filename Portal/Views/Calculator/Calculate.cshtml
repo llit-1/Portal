@@ -44,7 +44,7 @@
                     <td>@(i+1)</td>
                     <td>@Model.Items[i].ItemOnTT.Item.Name</td>
                     <td>
-                        <input type="text" size='4' oninput="calculate(this)">
+                            <input class="inputObject" type="text" size='4' oninput="calculate(this)">
                     </td>
                     <td class="answer" style="text-align: center" id=@i>0</td>
                     <td class="hidden">
@@ -53,10 +53,13 @@
                             <input class="itemOnTTCoef" value="@Model.Items[i].ItemOnTT.Coefficient">
                             <input class="itemCoef" value="@Model.Items[i].ItemOnTT.Item.Coefficient">
                             <input class="thisPeriodCoefficient" value="@Model.ThisPeriodCoefficient">
+                            <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">                           
                             <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
+                            <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
+                            <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
                     </td>
                     <td>
-                        <input type="text" size='4'>
+                            <input class="fact" type="text" size='4' oninput="factChange(this)">
                     </td>
                 </tr>
                 }
@@ -76,17 +79,68 @@
         let itemOnTTCoef = trObject.querySelector('.itemOnTTCoef').value.replace(/(,)/, ".");
         let itemCoef = trObject.querySelector('.itemCoef').value.replace(/(,)/, ".");
         let thisPeriodCoefficient = trObject.querySelector('.thisPeriodCoefficient').value.replace(/(,)/, ".");
-        let nextPeriodCoefficient = trObject.querySelector('.nextPeriodCoefficient').value.replace(/(,)/, ".");      
+        let nextPeriodCoefficient = trObject.querySelector('.nextPeriodCoefficient').value.replace(/(,)/, ".");
+        let itemCode = trObject.querySelector('.itemCode').value;
+        let itemName = trObject.querySelector('.itemName').value;
+
+        let resp
         switch (@Model.Reaction)
          {
-            case 1:               
-                answerObject.textContent = Math.round(averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value);
+            case 1:
+                resp = Math.round(averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value);
                 break;
             case 2:
-                answerObject.textContent = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient - (inputObject.value - averageRestOfThisPeriod));
+                resp = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient - (inputObject.value - averageRestOfThisPeriod));
                 break;
-         }            
+         }
+        if (resp < 0) {resp = 0}
+        answerObject.textContent = resp;
+
+        var log = {};
+        log.UserName = '@Html.Raw(Model.User)';
+        log.ItemCode = itemCode;
+        log.ItemName = itemName;
+        log.TTCode = '@Html.Raw(Model.TT.Restaurant_Sifr)';
+        log.TTName = '@Html.Raw(Model.TT.Name)';
+        log.Rest = inputObject.value;
+        log.Result = answerObject.textContent;
+        WriteLog(log);
        }
     </script>
+
+<script>
+        function factChange(factObject){
+        factObject.value = factObject.value.replace(/[^\d.]/g, '');
+        let trObject = factObject.parentNode.parentNode;
+        let itemCode = trObject.querySelector('.itemCode').value;
+        let itemName = trObject.querySelector('.itemName').value;
+        let answerObject = trObject.querySelector('.answer');
+        let inputObject = trObject.querySelector('.inputObject');
+        var log = {};
+        log.UserName = '@Html.Raw(Model.User)';
+        log.ItemCode = itemCode;
+        log.ItemName = itemName;
+        log.TTCode = '@Html.Raw(Model.TT.Restaurant_Sifr)';
+        log.TTName = '@Html.Raw(Model.TT.Name)';
+        log.Rest = inputObject.value;
+        log.Result = answerObject.textContent;
+        log.Fact = factObject.value;
+        WriteLog(log);
+    }
+</script>
+
+<script>
+    function WriteLog(log){
+            var logjsn = JSON.stringify(log);
+            logjsn = logjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+            $.ajax({
+                type: "POST",
+                url: '/Calculator/LogSave',
+                data: { logjsn: logjsn },
+                datatype: "text",
+                error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
+            });        
+    }
+</script>
 
 <!-------------------------------------------------------------------->

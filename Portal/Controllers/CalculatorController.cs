@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Portal.Models;
 using Portal.Models.Calculator;
+using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Calculator;
 using System;
 using System.Collections.Generic;
@@ -16,13 +18,15 @@ namespace Portal.Controllers
     public class CalculatorController : Controller
     {
 
-        DB.CalculatorDBContext CalculatorDb;
+        private DB.CalculatorDBContext CalculatorDb;
         private DB.SQLiteDBContext db;
+        private DB.MSSQLDBContext dbSql;
 
-        public CalculatorController(DB.CalculatorDBContext calculatorDbContext, DB.SQLiteDBContext context)
+        public CalculatorController(DB.CalculatorDBContext calculatorDbContext, DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
             CalculatorDb = calculatorDbContext;
             db = context;
+            dbSql = dbSqlContext;
         }
 
 
@@ -83,7 +87,7 @@ namespace Portal.Controllers
                 default:
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }
-            
+
             calculatorInformation.ItemsGroup = Guid.Parse(tupeGuid);
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
             RKNet_Model.Account.User user = db.Users.Include(c => c.TTs)
@@ -127,7 +131,7 @@ namespace Portal.Controllers
 
 
             List<Items> items = CalculatorDb.Items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup)
-                                                  .OrderBy(c=> c.Sequence)  // сортировка для таблицы
+                                                  .OrderBy(c => c.Sequence)  // сортировка для таблицы
                                                   .ToList();
             calculatorInformation.Items = new List<CalculatorItem>();
 
@@ -157,5 +161,28 @@ namespace Portal.Controllers
             }
             return PartialView(calculatorInformation);
         }
+
+        public IActionResult LogSave(string logjsn)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                logjsn = logjsn.Replace("%bkspc%", " ");
+                CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
+                calculatorLog.Date = DateTime.Now;
+                dbSql.CalculatorLogs.Add(calculatorLog);
+                dbSql.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+            return new ObjectResult(result);
+        }
+
+
     }
+
 }

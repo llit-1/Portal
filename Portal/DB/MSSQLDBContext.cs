@@ -19,6 +19,7 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.UserRequest> UserRequests { get; set; } // запросы пользователей
         public DbSet<Models.MSSQL.CashMessage> CashMessages { get; set; } // сообщения на кассы
         public DbSet<RKNet_Model.MSSQL.SkuStop> SkuStops { get; set; } // стоп-листы продаж (блокировка позиций на кассах)
+        public DbSet<Models.MSSQL.CalculatorLog> CalculatorLogs { get; set; } // логи калькулятора
 
     }
 }
