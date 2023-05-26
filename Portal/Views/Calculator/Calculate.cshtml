@@ -10,13 +10,17 @@
 </div>
 
 
+    
+
     <div style="height: 700px" class="calculator-mainbar">
-    <div class="calculator-leftbar">
+     @if (Model.TTs.Count == 1)
+        {
+        <div class="calculator-leftbar">
         <div class="calculator-bar">
             @Model.Name
         </div>
         <div class="calculator-bar">
-            @Model.TT.Name
+            @Model.TTs[0].Name
         </div>
         <div class="calculator-bar">
             @Model.User
@@ -26,50 +30,61 @@
         </div>
         <img class="calculator-img" src='@Url.Content(Model.PicturePath)'>
     </div>
-    <div class="calculator-rightbar">
-        <table class="calculator-table">
-            <thread>
-                <tr>
-                    <th>№</th>
-                    <th>Наименование</th>
-                    <th>Осталось</th>
-                    <th>План</th>
-                    <th>Факт</th>
-                </tr>
-            </thread>
-            <tbody>
-                @for (int i = 0; i < Model.Items.Count; i++)
-                {                                                                                        
-                <tr>
-                    <td>@(i+1)</td>
-                    <td>@Model.Items[i].ItemOnTT.Item.Name</td>
-                    <td>
-                            <input class="inputObject" type="text" size='4' oninput="calculate(this)">
-                    </td>
-                    <td class="answer" style="text-align: center" id=@i>0</td>
-                    <td class="hidden">
-                            <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
-                            <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
-                            <input class="itemOnTTCoef" value="@Model.Items[i].ItemOnTT.Coefficient">
-                            <input class="itemCoef" value="@Model.Items[i].ItemOnTT.Item.Coefficient">
-                            <input class="thisPeriodCoefficient" value="@Model.ThisPeriodCoefficient">
-                            <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">                           
-                            <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
-                            <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
-                            <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
-                    </td>
-                    <td>
-                            <input class="fact" type="text" size='4' oninput="factChange(this)">
-                    </td>
-                </tr>
-                }
-            </tbody>
-        </table>
-    </div>      
-    </div>
+        <div class="calculator-rightbar">
+            <table class="calculator-table">
+                <thread>
+                    <tr>
+                        <th>№</th>
+                        <th>Наименование</th>
+                        <th>Осталось</th>
+                        <th>План</th>
+                        <th>Факт</th>
+                    </tr>
+                </thread>
+                <tbody>
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@Model.Items[i].ItemOnTT.Item.Name</td>
+                            <td>
+                                <input class="inputObject" type="text" size='4' oninput="calculate(this)">
+                            </td>
+                            <td class="answer" style="text-align: center" id=@i>0</td>
+                            <td class="hidden">
+                                <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
+                                <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
+                                <input class="itemOnTTCoef" value="@Model.Items[i].ItemOnTT.Coefficient">
+                                <input class="itemCoef" value="@Model.Items[i].ItemOnTT.Item.Coefficient">
+                                <input class="thisPeriodCoefficient" value="@Model.ThisPeriodCoefficient">
+                                <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
+                                <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
+                                <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
+                                <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
+                            </td>
+                            <td>
+                                <input class="fact" type="text" size='4' oninput="factChange(this)">
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div>
+            @for (int i = 0; i < Model.TTs.Count; i++)
+            {
+                
+                <button class="ttbut" id=@Model.TTs[i].Restaurant_Sifr onclick="ttbutClick(this)">@Model.TTs[i].Name</button>
+            }
+        </div>
+    } 
+</div>
+    
 
-
-    <script>
+<script>
        function calculate(inputObject){
         inputObject.value = inputObject.value.replace(/[^\d.]/g, '');
         let trObject = inputObject.parentNode.parentNode;
@@ -100,13 +115,13 @@
         log.UserName = '@Html.Raw(Model.User)';
         log.ItemCode = itemCode;
         log.ItemName = itemName;
-        log.TTCode = '@Html.Raw(Model.TT.Restaurant_Sifr)';
-        log.TTName = '@Html.Raw(Model.TT.Name)';
+        log.TTCode = '@Html.Raw(Model.TTs[0].Restaurant_Sifr)';
+        log.TTName = '@Html.Raw(Model.TTs[0].Name)';
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
         WriteLog(log);
        }
-    </script>
+</script>
 
 <script>
         function factChange(factObject){
@@ -120,8 +135,8 @@
         log.UserName = '@Html.Raw(Model.User)';
         log.ItemCode = itemCode;
         log.ItemName = itemName;
-        log.TTCode = '@Html.Raw(Model.TT.Restaurant_Sifr)';
-        log.TTName = '@Html.Raw(Model.TT.Name)';
+        log.TTCode = '@Html.Raw(Model.TTs[0].Restaurant_Sifr)';
+        log.TTName = '@Html.Raw(Model.TTs[0].Name)';
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
         log.Fact = factObject.value;
@@ -142,5 +157,10 @@
             });        
     }
 </script>
-
+<script>
+    function ttbutClick(thisBut){
+     let butref = '/Calculator/Calculate?typeGuid=' + '@Html.Raw(Model.ItemsGroup)' + '&tt=' + thisBut.id
+     loadContent(location.hash.replace('#', ''), butref)
+    }
+</script>
 <!-------------------------------------------------------------------->

@@ -67,10 +67,10 @@ namespace Portal.Controllers
         }
 
 
-        public IActionResult Calculate(string tupeGuid)
+        public IActionResult Calculate(string typeGuid, string tt)
         {
             CalculatorInformation calculatorInformation = new CalculatorInformation();
-            switch (tupeGuid)
+            switch (typeGuid.ToUpper())
             {
                 case "573B9B93-41A1-4ACA-B740-A98CEF77E935":
                     calculatorInformation.Name = "Калькулятор Выпечки";
@@ -88,13 +88,28 @@ namespace Portal.Controllers
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }
 
-            calculatorInformation.ItemsGroup = Guid.Parse(tupeGuid);
+            calculatorInformation.ItemsGroup = Guid.Parse(typeGuid);
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
-            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs)
+            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3))
                                                     .FirstOrDefault(c => c.Login == userLogin);
             calculatorInformation.User = User.Identity.Name;
             calculatorInformation.Date = DateTime.Now;
-            calculatorInformation.TT = user.TTs.FirstOrDefault();
+            if (String.IsNullOrEmpty(tt))
+            {
+                calculatorInformation.TTs = user.TTs.ToList();
+            }
+            else
+            {
+                calculatorInformation.TTs = user.TTs.Where(c => c.Restaurant_Sifr == int.Parse(tt)).ToList();
+            }
+            if (calculatorInformation.TTs.Count == 0)
+            {
+                throw new Exception($"В БД отсутствует ТТ с кодом {tt}");
+            }
+            if (calculatorInformation.TTs.Count != 1)
+            {
+                return PartialView(calculatorInformation);
+            }
             calculatorInformation.Reaction = CalculatorDb.CalculatorReaction.FirstOrDefault(c => c.ItemsGroup == calculatorInformation.ItemsGroup &&
                                                                                                   c.FirstHour <= calculatorInformation.Date.Hour &&
                                                                                                   c.LastHour >= calculatorInformation.Date.Hour).Reaction;
@@ -119,12 +134,13 @@ namespace Portal.Controllers
                     {
                         calculatorInformation.NextTimeDayGroup = timeDayGroups[i + 1];
                     }
+                    break;
                 }
             }
             calculatorInformation.ThisPeriodCoefficient = CalculatorDb.ItemsGroupTimeTT_Coefficient.FirstOrDefault(c => c.TimeGroup == calculatorInformation.ThisTimeDayGroup.TimeGroup &&
-                                                                                                                        c.TTCODE == calculatorInformation.TT.Restaurant_Sifr).Coefficient;
+                                                                                                                        c.TTCODE == calculatorInformation.TTs[0].Restaurant_Sifr).Coefficient;
             calculatorInformation.NextPeriodCoefficient = CalculatorDb.ItemsGroupTimeTT_Coefficient.FirstOrDefault(c => c.TimeGroup == calculatorInformation.NextTimeDayGroup.TimeGroup &&
-                                                                                                                        c.TTCODE == calculatorInformation.TT.Restaurant_Sifr).Coefficient;
+                                                                                                                        c.TTCODE == calculatorInformation.TTs[0].Restaurant_Sifr).Coefficient;
             calculatorInformation.ThisPeriodCoefficient = Math.Round(calculatorInformation.ThisPeriodCoefficient, 2);
             calculatorInformation.NextPeriodCoefficient = Math.Round(calculatorInformation.NextPeriodCoefficient, 2);
 
@@ -138,7 +154,7 @@ namespace Portal.Controllers
             foreach (var item in items)
             {
                 CalculatorItem thisItem = new CalculatorItem();
-                thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TT.Restaurant_Sifr);
+                thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
                 double thisPeriodRestSalesSum = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.ThisTimeDayGroup.Guid &&
                                                                                                         c.ItemOnTT == thisItem.ItemOnTT.Guid &&
                                                                                                         c.Hour > calculatorInformation.Date.Hour)

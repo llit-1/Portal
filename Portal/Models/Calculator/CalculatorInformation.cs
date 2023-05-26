@@ -17,7 +17,7 @@ namespace Portal.Models.Calculator
         public TimeDayGroups NextTimeDayGroup { get; set; }
         public double ThisPeriodCoefficient { get; set; }
         public double NextPeriodCoefficient { get; set; }
-        public RKNet_Model.TT.TT TT { get; set; }
+        public List<RKNet_Model.TT.TT> TTs { get; set; }
         public DateTime Date { get; set; }
         public List<CalculatorItem> Items { get; set; }
     }

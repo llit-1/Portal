@@ -2,9 +2,10 @@
     margin-right: 10%;
     margin-left: 10%;
 }
-
-.calculator-leftbar {
-    float: left;
+@media screen and (orientation: landscape) {
+    .calculator-leftbar {
+        float: left;
+    }
 }
 
 .calculator-bar {
@@ -44,4 +45,11 @@
 
 .calculator-table tbody tr:hover td {
     background: #f47a1a;
+}
+
+.ttbut {
+    background: #F4A460;
+    width: 170px;
+    height: 30px;
+    margin: 5px;
 }
