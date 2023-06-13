@@ -13,6 +13,7 @@ namespace Portal.DB
         }
 
         public DbSet<Models.MSSQL.Calculator.AverageSalesPerHour> AverageSalesPerHour { get; set; } // таблица с данными средних значений
+        public DbSet<Models.MSSQL.Calculator.ItemsGroups> ItemsGroups { get; set; } //таблица с группами товаров
         public DbSet<Models.MSSQL.Calculator.Items> Items { get; set; } //продукция
         public DbSet<Models.MSSQL.Calculator.ItemOnTT> ItemOnTT { get; set; } //продукция на точке
         public DbSet<Models.MSSQL.Calculator.TimeGroups> TimeGroups { get; set; } //Группы времени

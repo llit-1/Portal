@@ -78,7 +78,7 @@ namespace Portal
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddHostedService<HostedServices.AIShocaseService>();
-            services.AddHostedService<HostedServices.PhotoCamService>();
+           // services.AddHostedService<HostedServices.PhotoCamService>();
             services.AddHostedService<HostedServices.CashMessagesService>();
             services.AddHostedService<HostedServices.SkuStopService>();
 

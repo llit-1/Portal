@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using IdentityModel.Client;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -88,7 +89,7 @@ namespace Portal.Controllers
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }
 
-            calculatorInformation.ItemsGroup = Guid.Parse(typeGuid);
+            calculatorInformation.ItemsGroup = CalculatorDb.ItemsGroups.FirstOrDefault(c=> c.Guid == Guid.Parse(typeGuid));
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
             RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3))
                                                     .FirstOrDefault(c => c.Login == userLogin);
@@ -110,43 +111,89 @@ namespace Portal.Controllers
             {
                 return PartialView(calculatorInformation);
             }
-            calculatorInformation.Reaction = CalculatorDb.CalculatorReaction.FirstOrDefault(c => c.ItemsGroup == calculatorInformation.ItemsGroup &&
+            calculatorInformation.Reaction = CalculatorDb.CalculatorReaction.FirstOrDefault(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid &&
                                                                                                   c.FirstHour <= calculatorInformation.Date.Hour &&
                                                                                                   c.LastHour >= calculatorInformation.Date.Hour).Reaction;
-            List<TimeDayGroups> timeDayGroups = CalculatorDb.TimeDayGroups.Include(c => c.DayGroup)
-                                                                          .Include(c => c.TimeGroup)
-                                                                          .Where(c => c.TimeGroup.ItemsGroup == calculatorInformation.ItemsGroup)
-                                                                          .OrderBy(c => c.DayGroup.FirstDay)
-                                                                          .ThenBy(c => c.TimeGroup.FirstHour)
-                                                                          .ToList();
+            List<TimeGroups> timeGroups = CalculatorDb.TimeGroups.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)
+                                                                 .OrderBy(c => c.FirstHour)
+                                                                 .ToList();
+            List<DayGroups> dayGroups = CalculatorDb.DayGroups.OrderBy(c => c.FirstDay)
+                                                              .ToList();
+            TimeGroups thisTimeGroup = new TimeGroups();
+            TimeGroups nextTimeGroup = new TimeGroups();
+            TimeGroups nextSecondTimeGroup = new TimeGroups();
 
+            DayGroups thisDayGroup = new DayGroups();
+            DayGroups nextDayGroup = new DayGroups();
 
-            for (int i = 0; i < timeDayGroups.Count; i++)
+            for (int i = 0; i < dayGroups.Count; i++)
             {
-                if (timeDayGroups[i].DayGroup.FirstDay <= (int)calculatorInformation.Date.DayOfWeek && timeDayGroups[i].DayGroup.LastDay >= (int)calculatorInformation.Date.DayOfWeek && timeDayGroups[i].TimeGroup.FirstHour <= calculatorInformation.Date.Hour && timeDayGroups[i].TimeGroup.LastHour >= calculatorInformation.Date.Hour)
+                if (dayGroups[i].FirstDayUS <= (int)calculatorInformation.Date.DayOfWeek && dayGroups[i].LastDayUS >= (int)calculatorInformation.Date.DayOfWeek)
                 {
-                    calculatorInformation.ThisTimeDayGroup = timeDayGroups[i];
-                    if (i + 1 == timeDayGroups.Count)
+                    thisDayGroup = dayGroups[i];
+                    if (thisDayGroup.LastDayUS != (int)calculatorInformation.Date.DayOfWeek)
                     {
-                        calculatorInformation.NextTimeDayGroup = timeDayGroups[0];
+                        nextDayGroup = dayGroups[i];
+                        break;
                     }
-                    else
+                    if (dayGroups.Count == i + 1)
                     {
-                        calculatorInformation.NextTimeDayGroup = timeDayGroups[i + 1];
+                        nextDayGroup = dayGroups[0];
+                        break;
                     }
+                    nextDayGroup = dayGroups[i+1];
                     break;
                 }
+            }
+
+            for (int i = 0; i < timeGroups.Count; i++)
+            {
+                if ( timeGroups[i].FirstHour <= calculatorInformation.Date.Hour && timeGroups[i].LastHour >= calculatorInformation.Date.Hour)
+                {
+                    thisTimeGroup = timeGroups[i];
+                    calculatorInformation.ThisTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == thisTimeGroup && c.DayGroup == thisDayGroup);
+
+                    if (timeGroups.Count == i + 1)
+                    {
+                        nextTimeGroup = timeGroups[0];
+                        nextSecondTimeGroup = timeGroups[1];
+                        calculatorInformation.NextTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextTimeGroup && c.DayGroup == nextDayGroup);
+                        calculatorInformation.NextSecondTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextSecondTimeGroup && c.DayGroup == nextDayGroup);
+                        break;
+                    }
+                    if (timeGroups.Count == i + 2)
+                    {
+                        nextTimeGroup = timeGroups[i+1];
+                        nextSecondTimeGroup = timeGroups[0];
+                        calculatorInformation.NextTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextTimeGroup && c.DayGroup == thisDayGroup);
+                        calculatorInformation.NextSecondTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextSecondTimeGroup && c.DayGroup == nextDayGroup);
+                        break;
+                    }
+                    nextTimeGroup = timeGroups[i + 1];
+                    nextSecondTimeGroup = timeGroups[i + 2];
+                    calculatorInformation.NextTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextTimeGroup && c.DayGroup == thisDayGroup);
+                    calculatorInformation.NextSecondTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextSecondTimeGroup && c.DayGroup == thisDayGroup);
+                    break;
+                }
+            }
+
+            if (calculatorInformation.ThisTimeDayGroup == null)
+            {
+                throw new Exception("Период отсутствует в БД");
             }
             calculatorInformation.ThisPeriodCoefficient = CalculatorDb.ItemsGroupTimeTT_Coefficient.FirstOrDefault(c => c.TimeGroup == calculatorInformation.ThisTimeDayGroup.TimeGroup &&
                                                                                                                         c.TTCODE == calculatorInformation.TTs[0].Restaurant_Sifr).Coefficient;
             calculatorInformation.NextPeriodCoefficient = CalculatorDb.ItemsGroupTimeTT_Coefficient.FirstOrDefault(c => c.TimeGroup == calculatorInformation.NextTimeDayGroup.TimeGroup &&
                                                                                                                         c.TTCODE == calculatorInformation.TTs[0].Restaurant_Sifr).Coefficient;
+            calculatorInformation.NextSecondPeriodCoefficient = CalculatorDb.ItemsGroupTimeTT_Coefficient.FirstOrDefault(c => c.TimeGroup == calculatorInformation.NextSecondTimeDayGroup.TimeGroup &&
+                                                                                                                        c.TTCODE == calculatorInformation.TTs[0].Restaurant_Sifr).Coefficient;
             calculatorInformation.ThisPeriodCoefficient = Math.Round(calculatorInformation.ThisPeriodCoefficient, 2);
             calculatorInformation.NextPeriodCoefficient = Math.Round(calculatorInformation.NextPeriodCoefficient, 2);
+            calculatorInformation.NextSecondPeriodCoefficient = Math.Round(calculatorInformation.NextSecondPeriodCoefficient, 2);
 
 
 
-            List<Items> items = CalculatorDb.Items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup)
+            List<Items> items = CalculatorDb.Items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)
                                                   .OrderBy(c => c.Sequence)  // сортировка для таблицы
                                                   .ToList();
             calculatorInformation.Items = new List<CalculatorItem>();
@@ -155,14 +202,23 @@ namespace Portal.Controllers
             {
                 CalculatorItem thisItem = new CalculatorItem();
                 thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
-                double thisPeriodRestSalesSum = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.ThisTimeDayGroup.Guid &&
+
+                List<AverageSalesPerHour> thisPeriodRestSales = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.ThisTimeDayGroup.Guid &&
                                                                                                         c.ItemOnTT == thisItem.ItemOnTT.Guid &&
                                                                                                         c.Hour > calculatorInformation.Date.Hour)
-                                                                                             .ToList()
-                                                                                             .Select(c => c.Quantity)
-                                                                                             .DefaultIfEmpty(0)
-                                                                                             .Sum();
+                                                                                                .ToList();
+                double thisPeriodRestSalesSum = thisPeriodRestSales.Select(c => c.Quantity)
+                                                                   .DefaultIfEmpty(0)
+                                                                   .Sum();
+                double productionPeriodSum = thisPeriodRestSales.Where(c => c.Hour < calculatorInformation.Date.Hour + calculatorInformation.ItemsGroup.HourForProduction)
+                                                                .Select(c => c.Quantity)
+                                                                .DefaultIfEmpty(0)
+                                                                .Sum();
+
                 thisItem.AverageRestOfThisPeriod = thisPeriodRestSalesSum
+                                                   / (4 * (calculatorInformation.ThisTimeDayGroup.DayGroup.LastDay - calculatorInformation.ThisTimeDayGroup.DayGroup.FirstDay + 1));
+
+                thisItem.AverageProductionPeriod = productionPeriodSum
                                                    / (4 * (calculatorInformation.ThisTimeDayGroup.DayGroup.LastDay - calculatorInformation.ThisTimeDayGroup.DayGroup.FirstDay + 1));
 
                 double nextPeriodSalesSum = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.NextTimeDayGroup.Guid &&
@@ -197,8 +253,6 @@ namespace Portal.Controllers
             }
             return new ObjectResult(result);
         }
-
-
     }
 
 }

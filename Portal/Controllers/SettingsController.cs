@@ -25,7 +25,7 @@ namespace Portal.Controllers
         private DB.SQLiteDBContext db;
 
         IHostedService aishowcaseService = null;
-        IHostedService photocamService = null;
+       // IHostedService photocamService = null;
         IHostedService cashMessages = null;
         IHostedService skuStopService = null;
 
@@ -33,7 +33,7 @@ namespace Portal.Controllers
         {
             db = context;
             aishowcaseService = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.AIShocaseService)).FirstOrDefault();
-            photocamService = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.PhotoCamService)).FirstOrDefault();
+        //    photocamService = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.PhotoCamService)).FirstOrDefault();
             cashMessages = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.CashMessagesService)).FirstOrDefault();
             skuStopService = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.SkuStopService)).FirstOrDefault();
         }
@@ -678,12 +678,12 @@ namespace Portal.Controllers
                         else
                             aishowcaseService.StopAsync(new System.Threading.CancellationToken());
                         break;
-                    case 2:
-                        if (module.Enabled)
-                            photocamService.StartAsync(new System.Threading.CancellationToken());
-                        else
-                            photocamService.StopAsync(new System.Threading.CancellationToken());
-                        break;
+                    //case 2:
+                    //    if (module.Enabled)
+                    //        photocamService.StartAsync(new System.Threading.CancellationToken());
+                    //    else
+                    //        photocamService.StopAsync(new System.Threading.CancellationToken());
+                    //    break;
                     case 4:
                         if (module.Enabled)
                             cashMessages.StartAsync(new System.Threading.CancellationToken());
@@ -738,13 +738,13 @@ namespace Portal.Controllers
                         aishowcaseService.StartAsync(new System.Threading.CancellationToken());
                     }
                     break;
-                case 2:
-                    if (module.Enabled)
-                    {
-                        photocamService.StopAsync(new System.Threading.CancellationToken());
-                        photocamService.StartAsync(new System.Threading.CancellationToken());
-                    }
-                    break;
+                //case 2:
+                //    if (module.Enabled)
+                //    {
+                //        photocamService.StopAsync(new System.Threading.CancellationToken());
+                //        photocamService.StartAsync(new System.Threading.CancellationToken());
+                //    }
+                //    break;
                 case 4:
                     if (module.Enabled)
                     {

@@ -13,5 +13,7 @@ namespace Portal.Models.MSSQL.Calculator
         public string Name { get; set; }
         public int FirstDay { get; set; }
         public int LastDay { get; set; }
+        public int FirstDayUS { get; set; }
+        public int LastDayUS { get; set; }
     }
 }

@@ -11,12 +11,14 @@ namespace Portal.Models.Calculator
         public string Name { get; set; }
         public string User { get; set; }
         public int Reaction { get; set; }
-        public Guid ItemsGroup { get; set; }
+        public ItemsGroups ItemsGroup { get; set; }
         public string PicturePath { get; set; }
         public TimeDayGroups ThisTimeDayGroup { get; set; }
         public TimeDayGroups NextTimeDayGroup { get; set; }
+        public TimeDayGroups NextSecondTimeDayGroup { get; set; }
         public double ThisPeriodCoefficient { get; set; }
         public double NextPeriodCoefficient { get; set; }
+        public double NextSecondPeriodCoefficient { get; set; }
         public List<RKNet_Model.TT.TT> TTs { get; set; }
         public DateTime Date { get; set; }
         public List<CalculatorItem> Items { get; set; }

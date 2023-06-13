@@ -1,4 +1,4 @@
-﻿@model Portal.Models.Calculator.CalculatorInformation
+@model Portal.Models.Calculator.CalculatorInformation
 <!--блок элементов сверху-->
 <div class="row" style="margin-top: 0px; margin-bottom:10px">
 
@@ -12,7 +12,7 @@
 
     
 
-    <div style="height: 700px" class="calculator-mainbar">
+<div style="height: 700px" class="calculator-mainbar">
      @if (Model.TTs.Count == 1)
         {
         <div class="calculator-leftbar">
@@ -28,7 +28,9 @@
         <div class="calculator-bar">
             @Model.Date
         </div>
-        <img class="calculator-img" src='@Url.Content(Model.PicturePath)'>
+        <div class="div-img">
+            <img class="calculator-img" src='@Url.Content(Model.PicturePath)'>
+        </div>
     </div>
         <div class="calculator-rightbar">
             <table class="calculator-table">
@@ -54,13 +56,15 @@
                             <td class="hidden">
                                 <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
                                 <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
+                                <input class="averageSecondNextPer" value="@Model.Items[i].AverageSecondNextPer">
+                                <input class="averageProductionPeriod" value="@Model.Items[i].AverageProductionPeriod">
                                 <input class="itemOnTTCoef" value="@Model.Items[i].ItemOnTT.Coefficient">
                                 <input class="itemCoef" value="@Model.Items[i].ItemOnTT.Item.Coefficient">
                                 <input class="thisPeriodCoefficient" value="@Model.ThisPeriodCoefficient">
                                 <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
                                 <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
                                 <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
-                                <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
+                                <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">                               
                             </td>
                             <td>
                                 <input class="fact" type="text" size='4' oninput="factChange(this)">
@@ -91,21 +95,39 @@
         let answerObject = trObject.querySelector('.answer');
         let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
         let averageNextPer = trObject.querySelector('.averageNextPer').value.replace(/(,)/, ".");
+        let averageSecondNextPer = trObject.querySelector('.averageSecondNextPer').value.replace(/(,)/, ".");
+        let averageProductionPeriod = trObject.querySelector('.averageProductionPeriod').value;
         let itemOnTTCoef = trObject.querySelector('.itemOnTTCoef').value.replace(/(,)/, ".");
         let itemCoef = trObject.querySelector('.itemCoef').value.replace(/(,)/, ".");
         let thisPeriodCoefficient = trObject.querySelector('.thisPeriodCoefficient').value.replace(/(,)/, ".");
         let nextPeriodCoefficient = trObject.querySelector('.nextPeriodCoefficient').value.replace(/(,)/, ".");
         let itemCode = trObject.querySelector('.itemCode').value;
         let itemName = trObject.querySelector('.itemName').value;
+        
 
         let resp
         switch (@Model.Reaction)
          {
             case 1:
+                if(inputObject.value < averageProductionPeriod){
+                    resp = Math.round((averageRestOfThisPeriod - averageProductionPeriod) * itemCoef * itemOnTTCoef * thisPeriodCoefficient)
+                    break;
+                }
                 resp = Math.round(averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value);
                 break;
             case 2:
-                resp = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient - (inputObject.value - averageRestOfThisPeriod));
+                if (inputObject.value < averageProductionPeriod) {
+                    resp = Math.round((averageNextPer + averageRestOfThisPeriod - averageProductionPeriod) * itemCoef * itemOnTTCoef * thisPeriodCoefficient)
+                    break;
+                }
+                resp = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * nextPeriodCoefficient - inputObject.value));
+                break;
+            case 3:
+                if (inputObject.value < averageProductionPeriod) {
+                    resp = Math.round((averageSecondNextPer + averageNextPer + averageRestOfThisPeriod - averageProductionPeriod) * itemCoef * itemOnTTCoef * thisPeriodCoefficient)
+                    break;
+                }
+                resp = Math.round((averageSecondNextPer + averageNextPer) * itemCoef * itemOnTTCoef * nextPeriodCoefficient + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * nextPeriodCoefficient - inputObject.value));
                 break;
          }
         if (resp < 0) {resp = 0}
@@ -159,7 +181,7 @@
 </script>
 <script>
     function ttbutClick(thisBut){
-     let butref = '/Calculator/Calculate?typeGuid=' + '@Html.Raw(Model.ItemsGroup)' + '&tt=' + thisBut.id
+     let butref = '/Calculator/Calculate?typeGuid=' + '@Html.Raw(Model.ItemsGroup.Guid)' + '&tt=' + thisBut.id
      loadContent(location.hash.replace('#', ''), butref)
     }
 </script>
