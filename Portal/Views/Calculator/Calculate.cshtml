@@ -62,7 +62,7 @@
                                 <input class="itemCoef" value="@Model.Items[i].ItemOnTT.Item.Coefficient">
                                 <input class="thisPeriodCoefficient" value="@Model.ThisPeriodCoefficient">
                                 <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
-                                <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
+                                <input class="nextSecondPeriodCoefficient" value="@Model.NextSecondPeriodCoefficient">
                                 <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">                               
                             </td>
@@ -96,15 +96,14 @@
         let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
         let averageNextPer = trObject.querySelector('.averageNextPer').value.replace(/(,)/, ".");
         let averageSecondNextPer = trObject.querySelector('.averageSecondNextPer').value.replace(/(,)/, ".");
-        let averageProductionPeriod = trObject.querySelector('.averageProductionPeriod').value;
+        let averageProductionPeriod = trObject.querySelector('.averageProductionPeriod').value.replace(/(,)/, ".");;
         let itemOnTTCoef = trObject.querySelector('.itemOnTTCoef').value.replace(/(,)/, ".");
         let itemCoef = trObject.querySelector('.itemCoef').value.replace(/(,)/, ".");
         let thisPeriodCoefficient = trObject.querySelector('.thisPeriodCoefficient').value.replace(/(,)/, ".");
         let nextPeriodCoefficient = trObject.querySelector('.nextPeriodCoefficient').value.replace(/(,)/, ".");
+        let nextSecondPeriodCoefficient = trObject.querySelector('.nextSecondPeriodCoefficient').value.replace(/(,)/, ".");
         let itemCode = trObject.querySelector('.itemCode').value;
         let itemName = trObject.querySelector('.itemName').value;
-        
-
         let resp
         switch (@Model.Reaction)
          {
@@ -117,17 +116,17 @@
                 break;
             case 2:
                 if (inputObject.value < averageProductionPeriod) {
-                    resp = Math.round((averageNextPer + averageRestOfThisPeriod - averageProductionPeriod) * itemCoef * itemOnTTCoef * thisPeriodCoefficient)
+                    resp = Math.round((averageNextPer * nextPeriodCoefficient + (averageRestOfThisPeriod - averageProductionPeriod) * thisPeriodCoefficient) * itemCoef * itemOnTTCoef)
                     break;
                 }
-                resp = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * nextPeriodCoefficient - inputObject.value));
+                resp = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value));
                 break;
             case 3:
                 if (inputObject.value < averageProductionPeriod) {
-                    resp = Math.round((averageSecondNextPer + averageNextPer + averageRestOfThisPeriod - averageProductionPeriod) * itemCoef * itemOnTTCoef * thisPeriodCoefficient)
+                    resp = Math.round((averageSecondNextPer * nextSecondPeriodCoefficient + averageNextPer * nextPeriodCoefficient + (averageRestOfThisPeriod - averageProductionPeriod) * thisPeriodCoefficient) * itemCoef * itemOnTTCoef)
                     break;
                 }
-                resp = Math.round((averageSecondNextPer + averageNextPer) * itemCoef * itemOnTTCoef * nextPeriodCoefficient + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * nextPeriodCoefficient - inputObject.value));
+                resp = Math.round((averageSecondNextPer * nextSecondPeriodCoefficient + averageNextPer * nextPeriodCoefficient) * itemCoef * itemOnTTCoef + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value));
                 break;
          }
         if (resp < 0) {resp = 0}

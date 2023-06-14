@@ -85,6 +85,10 @@ namespace Portal.Controllers
                     calculatorInformation.Name = "Калькулятор Дефроста";
                     calculatorInformation.PicturePath = "~/svg/color_panels/cake.svg";
                     break;
+                case "43E2F47F-8729-49C6-8507-64DFEDBC6BBC":
+                    calculatorInformation.Name = "Калькулятор Хлеба";
+                    calculatorInformation.PicturePath = "~/svg/color_panels/breads.svg";
+                    break;
                 default:
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }
@@ -229,6 +233,16 @@ namespace Portal.Controllers
                                                                                              .Sum();
                 thisItem.AverageNextPer = nextPeriodSalesSum
                                                    / (4 * (calculatorInformation.NextTimeDayGroup.DayGroup.LastDay - calculatorInformation.NextTimeDayGroup.DayGroup.FirstDay + 1));
+
+                double nextSecondPeriodSalesSum = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.NextSecondTimeDayGroup.Guid &&
+                                                                                                        c.ItemOnTT == thisItem.ItemOnTT.Guid)
+                                                                                             .ToList()
+                                                                                             .Select(c => c.Quantity)
+                                                                                             .DefaultIfEmpty(0)
+                                                                                             .Sum();
+                thisItem.AverageSecondNextPer = nextSecondPeriodSalesSum
+                                                   / (4 * (calculatorInformation.NextSecondTimeDayGroup.DayGroup.LastDay - calculatorInformation.NextSecondTimeDayGroup.DayGroup.FirstDay + 1));
+
                 calculatorInformation.Items.Add(thisItem);
             }
             return PartialView(calculatorInformation);
