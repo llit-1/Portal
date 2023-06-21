@@ -205,9 +205,12 @@
                             <li class="cm-submenu">
                                 <a class="md-dialpad" id="calculators" onclick="selectSection('calculators')">Калькуляторы розницы<span class="caret"></span></a>
                                 <ul>
-                                    <li><a id="calc_vipechka" href="#calc_vipechka">Выпечка</a></li>
-                                    <li><a id="calc_defrost" href="#calc_defrost">Кондитерка</a></li>
-                                    <li><a id="Sandwitches" href="#Sandwitches">Сэндвичи</a></li>
+                                    @if (!User.IsInRole("anti_old_calculate"))
+                                    {
+                                        <li><a id="calc_vipechka" href="#calc_vipechka">Выпечка</a></li>
+                                        <li><a id="calc_defrost" href="#calc_defrost">Кондитерка</a></li>
+                                        <li><a id="Sandwitches" href="#Sandwitches">Сэндвичи</a></li>
+                                    }
                                     @if (User.IsInRole("test_role"))
                                     {
 

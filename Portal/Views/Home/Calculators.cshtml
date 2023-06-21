@@ -9,7 +9,9 @@
 </div>
 
 <div class="row">
-
+    
+    @if (!User.IsInRole("anti_old_calculate"))
+    {
     <!--выпечка-->
     <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
         <a href="#calc_vipechka" class="panel panel-default thumbnail cm-thumbnail tails-panel">
@@ -45,7 +47,7 @@
             </div>
         </a>
     </div>
-
+    }
 
     <!--хлеб-->
      @if (User.IsInRole("test_role"))
