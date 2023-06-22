@@ -489,6 +489,10 @@
 
             var maxCount = minCount * 100;
 
+            var group = document.getElementById('group_' + article).innerHTML;
+            if(group == "Картриджи")
+            {maxCount = minCount}
+
             for (var x = minCount; x <= maxCount; x += minCount) {
                 $('#sel' + article).append($('<option>').text(x));
             }

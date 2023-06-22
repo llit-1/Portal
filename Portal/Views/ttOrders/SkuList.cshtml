@@ -10,6 +10,7 @@
         {
             <td id="formingTime_@item.Article" width="11%" class="text-center mobile-hide">до @item.FormingTime</td>
             <td id="deliveryDate_@item.Article" width="13%" class="text-center mobile-hide">@item.DeliveryDate</td>
+            <td class = "hiden" id="group_@item.Article" width="13%">@item.Group</td>
         }
         <td id="ico_@item.Article" width="7%" class="text-center"><label class="md-add-circle-outline ico" onclick="AddItemToFOrder('@item.Article', '@item.Sku', this)"><br /></label></td>
     </tr>
