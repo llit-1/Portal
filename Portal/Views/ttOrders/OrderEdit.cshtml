@@ -488,10 +488,10 @@
             }
 
             var maxCount = minCount * 100;
-
+            if (orderType == 1){
             var group = document.getElementById('group_' + article).innerHTML;
-            if(group == "Картриджи")
-            {maxCount = minCount}
+            if(group == "Картриджи") { maxCount = minCount }
+            }
 
             for (var x = minCount; x <= maxCount; x += minCount) {
                 $('#sel' + article).append($('<option>').text(x));
