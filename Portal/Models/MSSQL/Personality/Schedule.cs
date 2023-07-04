@@ -1,0 +1,16 @@
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System;
+
+namespace Portal.Models.MSSQL.Personality
+{
+    [ComplexType]
+    public class Schedule
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Guid { get; set; }
+        public string Name { get; set; }
+        public TimeSpan BeginTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+    }
+}
