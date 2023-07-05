@@ -488,9 +488,10 @@
             }
 
             var maxCount = minCount * 100;
-            if (orderType == 1){
-            var group = document.getElementById('group_' + article).innerHTML;
-            if(group == "Картриджи") { maxCount = minCount }
+            var groupEl = document.getElementById('group_' + article);
+            if (groupEl != null) {
+            var group = groupEl.innerHTML;
+            if(group == "Картриджи") { maxCount = minCount; }
             }
 
             for (var x = minCount; x <= maxCount; x += minCount) {

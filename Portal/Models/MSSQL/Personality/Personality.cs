@@ -16,8 +16,8 @@ namespace Portal.Models.MSSQL.Personality
         public JobTitle JobTitle { get; set; }
         public Location.Location Location { get; set; }
         public DateTime HireDate { get; set; }
-        public DateTime DismissalsDate { get; set; }
-        public Schedule Schedule { get; set; }
+        public DateTime? DismissalsDate { get; set; }
+        public Schedule? Schedule { get; set; }
         public int Actual { get; set; }
     }
 }

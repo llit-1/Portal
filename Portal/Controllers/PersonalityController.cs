@@ -12,6 +12,11 @@ namespace Portal.Controllers
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
 
+        public PersonalityController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
+        {
+            db = context;
+            dbSql = dbSqlContext;
+        }
 
         public IActionResult PersonalityTable(int showUnActual)
         {
