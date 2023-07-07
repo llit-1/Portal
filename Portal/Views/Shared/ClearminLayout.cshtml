@@ -14,6 +14,8 @@
     <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/small-n-flat.css">
     <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="~/themes/clearmin/css/calculator.css">
+    <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/icons.css">
+    <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/AllUsers.css">
     <link href="~/themes/clearmin/css/portal-clearmin.css" rel="stylesheet" asp-append-version="true" />
 
     <!--видеоплеер-->
@@ -226,7 +228,19 @@
                         <!--Запросы пользователей-->
                         @if (User.IsInRole("settings"))
                         {
-                            <li><a id="userrequests" href="#userrequests" class="md-notifications-on">Запросы пользователей</a></li>
+                            <li><a id="userrequests" href="#userrequests" class="userrequest-icon">Запросы пользователей</a></li>
+                        }
+
+                        <!--Учет пользователей-->
+                        @if (User.IsInRole("HR"))
+                        {
+                            <li class="cm-submenu">
+                                <a class="md-tablet" id="person" onclick="selectSection('person')">Учет сотрудников<span class="caret"></span></a>
+                                <ul>
+                                    <li><a id="" href="#"><s>Учет пользователей</s></a></li>
+                                    <li><a id='Personality' href="#Personality">Пользователи</a></li>
+                                </ul>
+                             </li>
                         }
 
                         <!--Логи-->
@@ -246,6 +260,7 @@
                                     <li><a id="SettingsTT" href="#SettingsTT">Торговые точки</a></li>
 
                                     <li><a id="SettingsVideo" href="#SettingsVideo">Видеонаблюдение</a></li>
+                                    
                                     <li><a id="SettingsRk" href="#SettingsRk">R-Keeper 7</a></li>
                                     <li><a id="SettingsModules" href="#SettingsModules">Модули</a></li>
                                 </ul>
@@ -265,7 +280,8 @@
     <!--Хэдер и горизонтальное меню-->
     <header id="cm-header">
         <nav class="cm-navbar cm-navbar-primary">
-            <div class="btn btn-primary md-menu-white hidden-md hidden-lg" data-toggle="cm-menu" onclick="resetFooter()"></div>
+            <div class="btn btn-primary md-menu-white hidden-md hidden-lg" data-toggle="cm-menu" ></div>
+            @* onclick="resetFooter()" *@
             <div class="cm-flex"><h1 id="PageHeader">Заголовок страницы</h1></div>
 
             <h1>Имя Пользователя</h1>

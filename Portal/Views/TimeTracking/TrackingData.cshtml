@@ -1,0 +1,107 @@
+<link rel="stylesheet" href="/Portal/Views/TimeTracking/TrackingData.css">
+
+
+<style>
+
+    .container-fluid {
+        width: 96vw;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        justify-content: center;
+        align-items: top;
+    }
+
+    .table_settings {
+        width: 90vw;
+        height: 15vh;
+        background-color: burlywood;
+        margin-bottom: 20px
+    }
+
+    .table {
+        border: 1px solid black;
+        margin-left: auto;
+        width: 100vw;
+    }
+
+    .td_center {
+        text-align: center;
+    }
+
+    .button{
+        width: 10px;
+        height: 10px;
+        outline: none;
+        
+    }
+
+    .add{
+        background-color: rgb(118, 184, 118);
+    }
+
+</style>
+
+<script defer>
+    const data = {
+        users: {
+            0: {
+                name: 'Vladislav',
+                jobTitle: 'check',
+                otherInfo: '??',
+                workMode: 'day',
+                time: '08:00 - 17:00'
+            },
+            1: {
+                name: 'Nikolay',
+                jobTitle: 'check',
+                otherInfo: '??',
+                workMode: 'night',
+                time: '17:00 - 02:00',
+            }
+        }
+    }
+
+    // Сворачиваем\разворачиваем таблицу в зависимости от меню 
+    const table = document.querySelector('.table');
+    const menu = document.querySelector('.btn[data-toggle="cm-menu"]');
+
+    !body.classList.contains('cm-menu-toggled') ? table.style.width = '80vw' : table.style.width = '100vw';
+
+    menu.addEventListener('click', function() {
+        !body.classList.contains('cm-menu-toggled') ? table.style.width = '80vw' : table.style.width = '100vw';    
+    });
+    // -------------------------------------------------------
+
+
+
+
+</script>
+
+<div class="table_settings"></div>
+
+<table class="table">
+    <tr>
+        <th>Имя</th>
+        <th>Должность</th>
+        <th>Остальная информация</th>
+        <th>Режим работы</th>
+        <th>Смена</th>
+        <th>Смена</th>
+        <th>Смена</th>
+        <th>Смена</th>
+        <th class="td_center">Добавить график</th>
+    </tr>
+
+    <tr>
+        <td>Кургузов Владислав Сергеевич</td>
+        <td>Стажер</td>
+        <td>Пропуск</td>
+        <td>Пропуск</td>
+        <td>Пропуск</td>
+        <td>Пропуск</td>
+        <td>Пропуск</td>
+        <td>Пропуск</td>
+        <td class="td_center"><button class="button add"></button></td>
+    </tr>
+</table>

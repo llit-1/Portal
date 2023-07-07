@@ -1,4 +1,4 @@
-﻿@model List<Portal.Models.MSSQL.UserRequest>
+@model List<Portal.Models.MSSQL.UserRequest>
 @{ 
     var roles = Model.Select(r => r.RoleName).ToList();
     var classTails = "col-xs-6 col-sm-4 col-md-3 col-lg-2";
@@ -525,6 +525,7 @@
             </a>
         </div>
     }
+    
 
     <!--логи-->
     @if (User.IsInRole("logs"))
@@ -541,6 +542,72 @@
             </a>
         </div>
     }
+
+    <!--Учет пользователей #staff--> 
+    @if (User.IsInRole("HR"))
+    {
+        <div class="@classTails">
+            @* Сюда ссылку на страницу *@   
+            <a href="#staff" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/table.svg" width="20px">
+                    </span>
+                    <h4>Учет сотрудников</h4>
+                    <small>*ожидается описание*</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="@classTails">
+            @* Сюда ссылку на страницу *@
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/table.svg" width="20px">
+                    </span>
+                    <h4>Учет сотрудников</h4>
+                    <small>*ожидается описание*</small>
+                </div>
+
+        @{
+            var role = "HR";
+            var req = Model.FirstOrDefault(r => r.RoleCode == role);
+        }
+
+        @if (req == null)
+        {
+            <div class="tailsReq">
+                <label class="fa fa-unlock-alt ico"></label>
+                <p></p>
+                <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
+            </div>
+        }
+        else
+        {
+            if (req.State != "denied")
+            {
+                <div class="tailsReq">
+                    <label class="fa fa-unlock-alt ico"></label>
+                    <p></p>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
+                </div>
+            }
+            else
+            {
+                <div class="tailsReq tailsWork">
+                    <label class="fa fa-lock ico"></label>
+                    <p>отказано</p>
+                </div>
+            }
+        }
+            </a>
+        </div>
+    }
+
+
 
     <!--настройки-->
     @if (User.IsInRole("settings"))

@@ -20,14 +20,22 @@
         </table>
 
         <!--меню таблицы-->
-        <div id="tableMenu" class="col-md-12" style="padding:0px">
-            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <a href="#AddUser" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
-        </div>
+        <div class="tableMenu" id="tableMenu">
+            
+            <div id="tableMenu1" class="col-md-12" style="padding:0px">
+                <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+                <a href="#AddPerson" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
+            </div>
 
-        <!--меню редактора пользователя-->
-        <div id="editMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-            <a href="#DeleteUser" class="btn btn-sm btn-danger" onclick="DeleteItem()">удалить</a>
+
+            <div class="userActive">
+                <span class="textForCheckbox">Показать неактивных пользователей</span>
+                <label class="switch">
+                    <input type="checkbox" class="switch__input" id="closedPersonality" checked onchange="loadPersonalityTable()">
+                    <span class="switch__slider"></span>
+                </label>
+            </div>
+
         </div>
 
         <!--меню добавления пользователя-->
@@ -44,52 +52,72 @@
 <!------------------------------------------------------------------------------------------------------------------->
 <!--загрузка таблицы пользователей-->
 <script>
+    function loadPersonalityTable() {
+        let closedPersonality = document.getElementById('closedPersonality').checked;
+        if(closedPersonality){
+            SpinnerShow();
+            $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
+        } else {
+            SpinnerShow();
+            $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
+        }
+        
+    }
+</script>
+
+<script>
     function DataTable() {
         //location.hash = "#SettingsUsers";
         $('#header').text('Пользователи');
-
         $('#back').unbind('click');
-        $('#back').click(function () { location.hash = "#settings" });
-
+        $('#back').click(function () { location.hash = "#staff" });
         $('#tableMenu').show();
         $('#editMenu').hide();
         $('#addMenu').hide();
-
         $('#page').empty();
-        SpinnerShow();
-        $('#page').load('/Settings_Access/UsersTable', function () { SpinnerHide(); });
-        
+        loadPersonalityTable();
     }
     DataTable();
 </script>
 
+
+
+
 <!--загрузка формы добавления пользователя-->
 <script>
     function AddItem() {
-        location.hash = "#AddUser";
+        // Ссылка на страницу 
+        location.hash = "#AddPerson";
+        // Редактируем header
         $('#header').text('Добавление пользователя');
 
+        // Вешаем на кнопку возврат к таблице
         $('#back').unbind('click');
-        $('#back').click(function () { DataTable(); });
-
+        $('#back').click(function () { 
+            checkbox.style.display = 'flex'
+            DataTable(); });
+        
+        // Скрываем все лишнее
         $('#tableMenu').hide();
         $('#editMenu').hide();
         $('#addMenu').show();
 
-        $('#page').empty();
+        @* $('#page').empty(); *@
         SpinnerShow();
-        $('#page').load('/Settings_Access/UserEdit?userId=0', function () { SpinnerHide() });
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=0', function () { SpinnerHide() });
     }
 </script>
 
 <!--загрузка редактора пользователя-->
 <script>
-    function EditItem(itemName, itemId) {
-        location.hash = "#AccessEditor";
+    function EditItem(itemName, typeGuid) {
+        location.hash = "#EditPerson";
         $('#header').text(itemName);
 
         $('#back').unbind('click');
-        $('#back').click(function () { DataTable(); });
+        $('#back').click(function () { 
+            DataTable();
+         });
 
         $('#tableMenu').hide();
         $('#editMenu').show();
@@ -97,6 +125,6 @@
 
         $('#page').empty();
         SpinnerShow();
-        $('#page').load('/Settings_Access/UserEdit?userId=' + itemId, function () { SpinnerHide() });
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=' + typeGuid, function () { SpinnerHide() });
     }
 </script>
