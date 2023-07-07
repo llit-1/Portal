@@ -85,6 +85,14 @@ namespace Portal.Controllers
             return PartialView();
         }
 
+        // Учет сотрудников
+        [Authorize(Roles = "HR")]
+        public IActionResult Staff()
+        {
+            return PartialView();
+        }
+
+
         // Библиотека знаний (старая)
         [Authorize(Roles = "knowledge")]
         public IActionResult Knowledge()

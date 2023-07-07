@@ -1,4 +1,5 @@
-@model List<RKNet_Model.Account.User>
+﻿@model List<RKNet_Model.Account.User>
+
 
 <!--таблица пользователей-->
 <div class="panel panel-default" style="margin-bottom:0px">
@@ -10,8 +11,8 @@
                         <table class="data-table nowrap">
                             <thead>
                                 <tr>
-                                    <th>Имя</th>
-                                    <th>Должность</th>
+                                    <th>Проверка</th>
+                                    <th>Еще проверка</th>
                                     <th>ТТ</th>
                                     <th>Тип пользователя</th>
                                     <th>Состояние</th>
@@ -75,7 +76,7 @@
 <script>
     var height = $('#global').height();
 
-    height -= $('#cm-header').height();
+    height -= $('#cm-header').height() + 40;
     height -= $('#headMenu').height();
 </script>
 

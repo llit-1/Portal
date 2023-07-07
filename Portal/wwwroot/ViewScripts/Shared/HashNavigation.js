@@ -64,6 +64,8 @@ $(function () {
         if (hash == '#calc_confectionery') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=9FA5B2FC-91F1-4771-BF06-F7C3E7E37359');    // калькуляторы -> кондитерка 2
         if (hash == '#Sandwitch') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=9C42DDD0-3ABE-4105-AFA1-BFDA989C3836');             // калькуляторы -> сэндвичи 2
 
+        // Учет рабочего времени
+        if (hash == '#staff') loadContent(hash.replace('#', ''), '/Home/Staff');
 
         // Запросы пользователей
         if (hash == '#userrequests') loadContent(hash.replace('#', ''), '/UserRequests/ReqList?state=new');
@@ -72,16 +74,17 @@ $(function () {
         if (hash == '#logs') loadContent(hash.replace('#', ''), '/Log/Index');
 
         // Настройки
-        if (hash == '#settings') loadContent(hash.replace('#', ''), '/Home/Settings');                      // настройки -> плитка
-        if (hash == '#SettingsMain') loadContent(hash.replace('#', ''), '/Settings/Main');                  // настройки -> общие
-        if (hash == '#SettingsAccess') loadTabMenu(hash.replace('#', ''), '/Settings_Access/TabMenu');      // настройки -> права доступа       
-        if (hash == '#SettingsTT') loadTabMenu(hash.replace('#', ''), '/Settings_TT/TabMenu');              // настройки -> торговые точки
-        if (hash == '#SettingsVideo') loadTabMenu(hash.replace('#', ''), '/Settings/Video');                // настройки -> видеонаблюдение
-        if (hash == '#SettingsRk') loadTabMenu(hash.replace('#', ''), '/Settings/Rk');                      // настройки -> р-кипер
-        if (hash == '#SettingsModules') loadContent(hash.replace('#', ''), '/Settings/Modules');            // настройки -> модули
+        if (hash == '#settings') loadContent(hash.replace('#', ''), '/Home/Settings');                                  // настройки -> плитка
+        if (hash == '#SettingsMain') loadContent(hash.replace('#', ''), '/Settings/Main');                              // настройки -> общие
+        if (hash == '#SettingsAccess') loadTabMenu(hash.replace('#', ''), '/Settings_Access/TabMenu');                  // настройки -> права доступа       
+        if (hash == '#SettingsTT') loadTabMenu(hash.replace('#', ''), '/Settings_TT/TabMenu');                          // настройки -> торговые точки
+        if (hash == '#SettingsVideo') loadTabMenu(hash.replace('#', ''), '/Settings/Video');                            // настройки -> видеонаблюдение
+        if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');                     // настройки -> Пользователи
+        if (hash == '#SettingsRk') loadTabMenu(hash.replace('#', ''), '/Settings/Rk');                                  // настройки -> р-кипер
+        if (hash == '#SettingsModules') loadContent(hash.replace('#', ''), '/Settings/Modules');                        // настройки -> модули
 
         // Помощь
-        if (hash == '#help') loadContent(hash.replace('#', ''), '/Help/Index');                             // помощь
+        if (hash == '#help') loadContent(hash.replace('#', ''), '/Help/Index');                                         // помощь
 
     })
     $(window).hashchange();

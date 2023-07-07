@@ -1,0 +1,284 @@
+@model Portal.Models.PersonalityEditModel
+
+<!--таблица пользователей-->
+<div class="panel panel-default panel-default-person"  id="personTable" style="margin-bottom:0px">
+    <div class="titlePersontable">
+        <h3>Данные пользователя</h3>
+        @if (Model.Personality == null)
+            {
+                <div class="userActive statePersonData">
+                    <span class="textForCheckbox">Уволен</span>
+                    <label class="switch">
+                        <input type="checkbox" class="switch__input" id="closedPersonality">
+                        <span class="switch__slider"></span>
+                    </label>
+                </div>
+            }
+            else if (Model.Personality.Actual == 1)
+            {
+                <div class="userActive statePersonData">
+                    <span class="textForCheckbox">Уволен</span>
+                    <label class="switch">
+                        <input type="checkbox" class="switch__input" id="closedPersonality">
+                        <span class="switch__slider"></span>
+                    </label>
+                </div>
+            }
+            else
+            {
+                <div class="userActive statePersonData">
+                    <span class="textForCheckbox">Уволен</span>
+                    <label class="switch">
+                        <input type="checkbox" class="switch__input inputPersonData" id="closedPersonality" checked="checked">
+                        <span class="switch__slider"></span>
+                    </label>
+                </div>
+           
+            }
+    </div> 
+        <hr>
+    <div class="personData">
+        
+        <div class="leftBlockPersonData">
+            @if(Model.Personality != null)
+            {   
+                <label class="label-light">Имя</label>
+                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.Personality.Name">
+                <label class="label-light">Фамилия</label>
+                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.Personality.Surname">
+                <label class="label-light">Отчество</label>
+                <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.Personality.Patronymic">
+                <label class="label-light">Дата рождения</label>
+                <input type="date" class="inputPersonData" id="birthDatePerson" value="@Model.Personality.BirthDate.ToString("yyyy-MM-dd")">
+                <label class="label-light">Должность</label>
+                <input type="text" class="inputPersonData hiddenPerson" placeholder="Введите отчество" id="patronymicPerson" value="@Model.Personality.Guid">
+
+
+                @* Выбор должности *@
+                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                    <select id="groups" class="inputPersonData" data-width="100%" value="@Model.Personality.JobTitle.Name">
+                        @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
+                        {
+                            if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                            {
+                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <label class="label-light">Имя</label>
+                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">
+                <label class="label-light">Фамилия</label>
+                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" >
+                <label class="label-light">Отчество</label>
+                <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
+                <label class="label-light">Дата рождения</label>
+                <input type="date" class="inputPersonData" id="birthDatePerson">
+                <label class="label-light">Должность</label>
+
+                @* Выбор должности *@
+                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                    <select id="groups" class="inputPersonData" data-width="100%">
+                        @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
+                        {
+                            if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                            {
+                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+
+        </div>
+        @if(Model.Personality != null)
+        {
+            <div class="rightBlockPersonData">
+                <label class="label-light">ТТ</label>
+                @* Выбор ТТ *@
+                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                    <select id="groups" class="inputPersonData" data-width="100%" value="@Model.Personality.Location.Name">
+                        @foreach (var location in Model.Locations.OrderBy(g => g.Name))
+                        {
+                            if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
+                            {
+                                <option selected="selected" value="@location.Guid">@location.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@location.Guid">@location.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <label class="label-light">Дата приема на работу</label>
+                <input type="date" class="inputPersonData" value="@Model.Personality.HireDate.ToString("yyyy-MM-dd")">
+                <label class="label-light">Дата увольнения</label>
+                <input type="date" class="inputPersonData" value="@Model.Personality.DismissalsDate?.ToString("yyyy-MM-dd")">
+
+                <label class="label-light">Смена</label>
+                @* Выбор смены *@
+                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                    <select id="groups" class="inputPersonData" data-width="100%" value="@Model.Personality.Schedule.Name">
+                        @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
+                        {
+                            if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                            {
+                                <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                            }
+                            else
+                            {   
+                                <option value="@schedule.Guid">@schedule.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                 <div class="buttonAddPerson">
+                    <button class="buttonAddPersonData" onclick="allValidation()">СОХРАНИТЬ</button>
+                    <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                    <button class="buttonAddPersonData buttonDeletePersonData" onclick="alert('Пока недоступно')">УДАЛИТЬ</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="rightBlockPersonData">
+                <label class="label-light">ТТ</label>
+                @* Выбор ТТ *@
+                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                    <select id="groups" class="inputPersonData" data-width="100%">
+                        @foreach (var location in Model.Locations.OrderBy(g => g.Name))
+                        {
+                            if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
+                            {
+                                <option selected="selected" value="@location.Guid">@location.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@location.Guid">@location.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <label class="label-light">Дата приема на работу</label>
+                <input type="date" class="inputPersonData">
+                <label class="label-light">Дата увольнения</label>
+                <input type="date" class="inputPersonData">
+
+                <label class="label-light">Смена</label>
+                @* Выбор смены *@
+                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                    <select id="groups" class="inputPersonData" data-width="100%">
+                        @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
+                        {
+                            if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                            {
+                                <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@schedule.Guid">@schedule.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="buttonAddPerson">
+                    <button class="buttonAddPersonData" onclick="allValidation()" >ДОБАВИТЬ</button>
+                    @* allValidation() *@
+                    
+                    <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                </div>
+            </div>
+        }
+    </div>
+        
+    
+</div>
+
+
+<script>
+
+    // Возврат к таблице
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#Personality" });
+
+
+    function clearInputs() {
+        // Получаем все элементы input на странице и очищаем их значение
+        document.querySelectorAll(".inputPersonData").forEach(input => input.value = "");
+    }
+
+    let name = document.getElementById('namePerson');
+    let surname = document.getElementById('surnamePerson');
+    let patronymic = document.getElementById('patronymicPerson');
+
+    function validation() {
+        if(name.value.trim().length < 1) {
+            name.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            name.style.borderColor = '#ccc'
+        }
+    }
+    function validation2() {
+        if(surname.value.trim().length < 1) {
+            surname.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            surname.style.borderColor = '#ccc'
+        }
+    }
+    function validation3() {
+        if(patronymic.value.trim().length < 1) {
+            patronymic.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            patronymic.style.borderColor = '#ccc'
+        }
+    }
+
+    function allValidation() {
+        validation();
+        validation2();
+        validation3();
+        if(name.style.borderColor == 'rgb(204, 204, 204)' && surname.style.borderColor == 'rgb(204, 204, 204)' && patronymic.style.borderColor == 'rgb(204, 204, 204)') {
+            alert('Пока недоступно')
+        }
+        else{
+            alert('Проверьте правильность заполнения полей')
+        }
+    }   
+
+    name.addEventListener("input", validation);
+    surname.addEventListener("input", validation2);
+    patronymic.addEventListener("input", validation3);
+</script>
+
+@* Собираем данные из полей *@
+<script>
+    function test() {
+        @* const inputs = document.querySelectorAll('.inputPersonData');
+        const formData = {};
+        for(let i = 0; i < inputs.length; i++){
+
+        }
+        console.log(inputs[0].value) *@
+    }
+
+</script>
+
+
+
