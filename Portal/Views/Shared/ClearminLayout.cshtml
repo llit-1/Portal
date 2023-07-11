@@ -212,7 +212,11 @@
                                     {
                                         <li><a id="calc_vipechka" href="#calc_vipechka">Выпечка</a></li>
                                         <li><a id="calc_defrost" href="#calc_defrost">Кондитерка</a></li>
-                                        <li><a id="Sandwitches" href="#Sandwitches">Сэндвичи</a></li>
+                                        @if (User.IsInRole("old_calculate"))
+                                        {
+                                            <li><a id="Sandwitches" href="#Sandwitches">Сэндвичи</a></li>
+                                        }
+                                        
                                     }
                                     @if (User.IsInRole("test_role"))
                                     {
@@ -220,8 +224,8 @@
                                         <li> <a id = "calc_vipechka" href = "#calc_bread" > Хлеб(NEW) </a></li>
                                         <li><a id="calc_vipechka" href="#calc_bakery">Выпечка(NEW)</a></li>
                                         <li><a id="calc_defrost" href="#calc_confectionery">Кондитерка(NEW)</a></li>
-                                        <li><a id="Sandwitches" href="#Sandwitch">Сэндвичи(NEW)</a></li>
                                     }
+                                        <li><a id="Sandwitches" href="#Sandwitch">Сэндвичи(NEW)</a></li>                                    
                                 </ul>
                             </li>
                         }

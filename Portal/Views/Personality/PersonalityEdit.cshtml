@@ -32,10 +32,10 @@
         <div class="leftBlockPersonData">
             @if(Model.Personality != null)
             {   
-                <label class="label-light">Имя</label>
-                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.Personality.Name">
                 <label class="label-light">Фамилия</label>
                 <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.Personality.Surname">
+                <label class="label-light">Имя</label>
+                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.Personality.Name">
                 <label class="label-light">Отчество</label>
                 <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.Personality.Patronymic">
                 <label class="label-light">Дата рождения</label>
@@ -62,10 +62,10 @@
             }
             else
             {
-                <label class="label-light">Имя</label>
-                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">
                 <label class="label-light">Фамилия</label>
-                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" >
+                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson">
+                <label class="label-light">Имя</label>
+                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">               
                 <label class="label-light">Отчество</label>
                 <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
                 <label class="label-light">Дата рождения</label>
@@ -136,7 +136,7 @@
                     </select>
                 </div>
                  <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="test()">СОХРАНИТЬ</button>
+                    <button class="buttonAddPersonData" onclick="editUser()">СОХРАНИТЬ</button>
                     <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
                 </div>
             </div>
@@ -185,7 +185,7 @@
                     </select>
                 </div>
                 <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="test()" >ДОБАВИТЬ</button>
+                    <button class="buttonAddPersonData" onclick="addUser()">ДОБАВИТЬ</button>
                     @* allValidation() *@
                     
                     <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
@@ -256,67 +256,101 @@
     patronymic.addEventListener("input", validation3);
 </script>
 
-@* Отправляем JSON *@
+@* Отправляем JSON (Новый пользователь) *@
 <script>
-    function test() {
+    function addUser() {
         const Personality = {};
-        
-        Personality.GUID = $('#personGUID').val();
         Personality.Name = $('#namePerson').val();
         Personality.Surname = $('#surnamePerson').val();
         Personality.Patronymic = $('#patronymicPerson').val();
         Personality.BirthDate = $('#birthDatePerson').val();
-        Personality.JobTitleGUID = $('#jobTitlePerson').val();
-        Personality.locationGUID = $('#TTPerson').val();
+        Personality.JobTitle = $('#jobTitlePerson').val();
+        Personality.location = $('#TTPerson').val();
         Personality.HireDate = $('#HireDate').val();
         Personality.DismissalsDate = $('#DismissalsDate').val();
-        Personality.ScheduleGUID = $('#ScheduleGUID').val();
+        Personality.Schedule = $('#ScheduleGUID').val();
         Personality.Actual = getActual();
 
         function getActual() {
             const input = document.getElementById('closedPerson').checked
             if(input == true) {
-                return 1;
+                return 0;
             }
             else {
-                return 0;
+                return 1;
             }
         }
 
         const json = JSON.stringify(Personality)
         console.log(json)
-        @* $.ajax({
+         $.ajax({
             type: "POST",
-            url: '/Settings_Access/UserSave',
-            data: { userjsn: userjsn },
+            url: '/Personality/PersonalityAdd',
+            data: { json: json },
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
-
-                    ShowModal('Редактор пользователя', 'Пользователь успешно добавлен');
-                    //DataTable();
-
-                    $('#modalWindow').on('hidden.bs.modal', function () {
-
-                        setTimeout(function () {
-                            $('#modalWindow').remove();
-                            DataTable();
-                        }, 100);
-
-                        $('#modalWindow').off('hidden.bs.modal');
-                    });
-
+                    SpinnerShow();
+                    location.hash = '#Personality'
                 }
                 else {
                     ShowModal('Редактор пользователя', result.data);
                 }
             },
             error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
-        }); *@
+        }); 
     }
     
     
 
 </script>
 
+@* Отправляем JSON (Редактирование пользователя) *@
+<script>
+    function editUser() {
+        const Personality = {};
+        Personality.GUID = $('#personGUID').val();
+        Personality.Name = $('#namePerson').val();
+        Personality.Surname = $('#surnamePerson').val();
+        Personality.Patronymic = $('#patronymicPerson').val();
+        Personality.BirthDate = $('#birthDatePerson').val();
+        Personality.JobTitle = $('#jobTitlePerson').val();
+        Personality.location = $('#TTPerson').val();
+        Personality.HireDate = $('#HireDate').val();
+        Personality.DismissalsDate = $('#DismissalsDate').val();
+        Personality.Schedule = $('#ScheduleGUID').val();
+        Personality.Actual = getActual();
 
+        function getActual() {
+            const input = document.getElementById('closedPerson').checked
+            if (input == true) {
+                return 0;
+            }
+            else {
+                return 1;
+            }
+        }
+
+        const json = JSON.stringify(Personality)
+        console.log(json)
+        $.ajax({
+            type: "PUT",
+            url: '/Personality/PersonalityPut',
+            data: { json: json },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    SpinnerShow();
+                    location.hash = '#Personality'
+                }
+                else {
+                    ShowModal('Редактор пользователя', result.data);
+                }
+            },
+            error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
+        });
+    }
+
+
+
+</script>

@@ -36,17 +36,21 @@
         </a>
     </div>
 
-    <!--сэндвичи-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#Sandwitches" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/svg/color_panels/sandwich.svg" width="20px">
-                </span>
-                <h4>Сэндвичи</h4>
+        if (User.IsInRole("old_calculate"))
+        {
+            <!--сэндвичи-->
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#Sandwitches" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/sandwich.svg" width="20px">
+                        </span>
+                        <h4>Сэндвичи</h4>
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
+        }
+    
     }
 
     <!--хлеб-->
@@ -92,7 +96,7 @@
             </div>
         </a>
     </div>
-
+    }
     <!--сэндвичи-->
     <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
         <a href="#Sandwitch" class="panel panel-default thumbnail cm-thumbnail tails-panel">
@@ -104,7 +108,7 @@
             </div>
         </a>
     </div>
-    }
+    
 </div>
 
 

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Portal.Models.JsonModels;
 using Portal.Models.MSSQL.Personality;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,12 @@ namespace Portal.Controllers
         {
             db = context;
             dbSql = dbSqlContext;
+        }
+
+
+        public IActionResult Personality()
+        {
+            return PartialView();
         }
 
 
@@ -46,10 +54,67 @@ namespace Portal.Controllers
             return PartialView(model);
         }
 
-        public IActionResult Personality() 
+
+        public IActionResult PersonalityAdd(string json)
         {
-            return PartialView();
+
+
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
+                Models.MSSQL.Personality.Personality personality = new Personality();
+                personality.Name = personalityJson.Name;
+                personality.Surname = personalityJson.Surname;
+                personality.Patronymic = personalityJson.Patronymic;
+                personality.BirthDate = personalityJson.BirthDate;
+                personality.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                personality.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
+                personality.HireDate = personalityJson.HireDate;
+                personality.DismissalsDate = personalityJson.DismissalsDate;
+                personality.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                personality.Actual = personalityJson.Actual;
+                dbSql.Add(personality);
+                dbSql.SaveChanges();
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
         }
+
+        public IActionResult PersonalityPut(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {               
+                PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
+                Models.MSSQL.Personality.Personality personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == personalityJson.Guid);
+                personality.Name = personalityJson.Name;
+                personality.Surname = personalityJson.Surname;
+                personality.Patronymic = personalityJson.Patronymic;
+                personality.BirthDate = personalityJson.BirthDate;
+                personality.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                personality.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
+                personality.HireDate = personalityJson.HireDate;
+                personality.DismissalsDate = personalityJson.DismissalsDate;
+                personality.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                personality.Actual = personalityJson.Actual;
+                dbSql.SaveChanges();
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+           
+        }
+
 
     }
 }
