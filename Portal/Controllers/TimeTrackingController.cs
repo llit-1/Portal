@@ -16,5 +16,10 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
-    }
+     
+        public IActionResult TrackingDataTable() 
+        {
+            return PartialView();
+        }
+    } 
 }

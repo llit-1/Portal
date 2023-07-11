@@ -66,6 +66,9 @@ $(function () {
 
         // Учет рабочего времени
         if (hash == '#staff') loadContent(hash.replace('#', ''), '/Home/Staff');
+        if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');
+        if (hash == '#TrackingData') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingData');
+        
 
         // Запросы пользователей
         if (hash == '#userrequests') loadContent(hash.replace('#', ''), '/UserRequests/ReqList?state=new');
@@ -79,7 +82,6 @@ $(function () {
         if (hash == '#SettingsAccess') loadTabMenu(hash.replace('#', ''), '/Settings_Access/TabMenu');                  // настройки -> права доступа       
         if (hash == '#SettingsTT') loadTabMenu(hash.replace('#', ''), '/Settings_TT/TabMenu');                          // настройки -> торговые точки
         if (hash == '#SettingsVideo') loadTabMenu(hash.replace('#', ''), '/Settings/Video');                            // настройки -> видеонаблюдение
-        if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');                     // настройки -> Пользователи
         if (hash == '#SettingsRk') loadTabMenu(hash.replace('#', ''), '/Settings/Rk');                                  // настройки -> р-кипер
         if (hash == '#SettingsModules') loadContent(hash.replace('#', ''), '/Settings/Modules');                        // настройки -> модули
 
