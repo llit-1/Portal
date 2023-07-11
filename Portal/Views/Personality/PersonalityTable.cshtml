@@ -1,6 +1,5 @@
 @model Portal.Models.PersonalityModel
 
-
 <!--таблица пользователей-->
 <div class="panel panel-default"  id="personTable" style="margin-bottom:0px">
     <div class="panel-body">
@@ -8,6 +7,8 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
+                        @if(Model.Personalities != null)
+                        {
                         <table class="data-table nowrap" id="tableDataPerson" > 
                             <thead>
                                 <tr>
@@ -59,12 +60,18 @@
 
                             </tbody>
                         </table>
+                        }
+                        else {
+                            <div> Данных нет </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
 
 <!--вычисление высоты таблицы-->
 <script>
@@ -114,6 +121,7 @@
     });
 </script>
 
+@* Выделение ряда неактивного польхователя *@
 <script>
     const table = document.getElementById("tablePerson"); //Находим таблицу
     const rows = table.getElementsByTagName("tr"); //Получаем массив рядов
@@ -122,13 +130,17 @@
 
         let cell = rows[i].getElementsByTagName('td') //Получаем список ячеек
 
-
+        // Проходимся по каждой ячейки в поисках "0"
         for(let j = 0; j < cell.length; j++){ 
             let td = cell[j].querySelector("p").textContent
             if(td === '0') {
-                rows[i].style.backgroundColor = "#c4c4c479";
+                //Закрашиваем ряд
+                rows[i].style.backgroundColor = "#f3c7a030";
             }
         }
         
         }
 </script>
+
+
+

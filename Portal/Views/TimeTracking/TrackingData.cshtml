@@ -1,107 +1,135 @@
-<link rel="stylesheet" href="/Portal/Views/TimeTracking/TrackingData.css">
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+
+        <!--блок заголовка-->
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--заголовок-->
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--меню таблицы-->
+        <div class="tableMenu" id="tableMenu">
+            
+            <div id="tableMenu1" class="col-md-12" style="padding:0px">
+                <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+                <a href="#AddPerson" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
+            </div>
 
 
-<style>
+            <div class="userActive">
+                <span class="textForCheckbox">Показать неактивных пользователей</span>
+                <label class="switch">
+                    <input type="checkbox" class="switch__input" id="closedPersonality" checked onchange="loadTrackingDataTable()">
+                    <span class="switch__slider"></span>
+                </label>
+            </div>
 
-    .container-fluid {
-        width: 96vw;
-        display: flex;
-        flex-direction: column;
-        margin: 0;
-        justify-content: center;
-        align-items: top;
-    }
+        </div>
 
-    .table_settings {
-        width: 90vw;
-        height: 15vh;
-        background-color: burlywood;
-        margin-bottom: 20px
-    }
+        <!--меню добавления пользователя-->
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
 
-    .table {
-        border: 1px solid black;
-        margin-left: auto;
-        width: 100vw;
-    }
+        </div>
 
-    .td_center {
-        text-align: center;
-    }
+    </div>
+</div>
 
-    .button{
-        width: 10px;
-        height: 10px;
-        outline: none;
-        
-    }
+<div id="page" style="margin-top:15px"></div>
 
-    .add{
-        background-color: rgb(118, 184, 118);
-    }
 
-</style>
-
-<script defer>
-    const data = {
-        users: {
-            0: {
-                name: 'Vladislav',
-                jobTitle: 'check',
-                otherInfo: '??',
-                workMode: 'day',
-                time: '08:00 - 17:00'
-            },
-            1: {
-                name: 'Nikolay',
-                jobTitle: 'check',
-                otherInfo: '??',
-                workMode: 'night',
-                time: '17:00 - 02:00',
+<!------------------------------------------------------------------------------------------------------------------->
+<!--загрузка таблицы пользователей-->
+<script>
+    
+    function loadTrackingDataTable() {
+        try{
+            let closedPersonality = document.getElementById('closedPersonality').checked;
+            if(closedPersonality){
+                SpinnerShow();
+                $('#page').load('/TimeTracking/TrackingdataTable', function () { SpinnerHide(); });
+            } else {
+                SpinnerShow();
+                $('#page').load('/TimeTracking/TrackingdataTable', function () { SpinnerHide(); });
             }
         }
+        catch{
+            document.getElementById('page').innerHTML = 'Hi'
+        }
+        
     }
-
-    // Сворачиваем\разворачиваем таблицу в зависимости от меню 
-    const table = document.querySelector('.table');
-    const menu = document.querySelector('.btn[data-toggle="cm-menu"]');
-
-    !body.classList.contains('cm-menu-toggled') ? table.style.width = '80vw' : table.style.width = '100vw';
-
-    menu.addEventListener('click', function() {
-        !body.classList.contains('cm-menu-toggled') ? table.style.width = '80vw' : table.style.width = '100vw';    
-    });
-    // -------------------------------------------------------
-
-
-
-
 </script>
 
-<div class="table_settings"></div>
+<script>
+    function DataTable() {
+        $('#header').text('Пользователи');
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#staff" });
+        $('#tableMenu').show();
+        $('#editMenu').hide();
+        $('#addMenu').hide();
+        $('#page').empty();
+        loadTrackingDataTable();
+    }
+    DataTable();
+</script>
 
-<table class="table">
-    <tr>
-        <th>Имя</th>
-        <th>Должность</th>
-        <th>Остальная информация</th>
-        <th>Режим работы</th>
-        <th>Смена</th>
-        <th>Смена</th>
-        <th>Смена</th>
-        <th>Смена</th>
-        <th class="td_center">Добавить график</th>
-    </tr>
 
-    <tr>
-        <td>Кургузов Владислав Сергеевич</td>
-        <td>Стажер</td>
-        <td>Пропуск</td>
-        <td>Пропуск</td>
-        <td>Пропуск</td>
-        <td>Пропуск</td>
-        <td>Пропуск</td>
-        <td>Пропуск</td>
-        <td class="td_center"><button class="button add"></button></td>
-    </tr>
-</table>
+
+
+<!--загрузка формы добавления пользователя-->
+<script>
+    function AddItem() {
+        // Ссылка на страницу 
+        location.hash = "#AddPerson";
+        // Редактируем header
+        $('#header').text('Добавление пользователя');
+
+        // Вешаем на кнопку возврат к таблице
+        $('#back').unbind('click');
+        $('#back').click(function () { 
+            checkbox.style.display = 'flex'
+            DataTable(); });
+        
+        // Скрываем все лишнее
+        $('#tableMenu').hide();
+        $('#editMenu').hide();
+        $('#addMenu').show();
+
+         $('#page').empty(); 
+        SpinnerShow();
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=0', function () { SpinnerHide() });
+    }
+</script>
+
+<!--загрузка редактора пользователя-->
+<script>
+    function EditItem(itemName, typeGuid) {
+        location.hash = "#EditPerson";
+        $('#header').text(itemName);
+
+        $('#back').unbind('click');
+        $('#back').click(function () { 
+            DataTable();
+         });
+
+        $('#tableMenu').hide();
+        $('#editMenu').show();
+        $('#addMenu').hide();
+
+        $('#page').empty();
+        SpinnerShow();
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=' + typeGuid, function () { SpinnerHide() });
+    }
+</script> 
