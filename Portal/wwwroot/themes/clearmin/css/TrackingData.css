@@ -1,5 +1,47 @@
-#tableTrackingData {
+.headerTracking{
     display: flex;
-    justify-content: space-between;
     flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+
+}
+
+.headerTrackingItem{
+    margin-right: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendarTracking{
+    border: 1px solid #BFBFBF;
+    border-radius: 2px;
+    height: 35px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: 2px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+}
+
+.selectTracking{
+    border: 1px solid #BFBFBF;
+    border-radius: 2px;
+    height: 34px;
+    margin-left: 10px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+    width: 5vw;
+    text-align: center;
+}
+
+.pTracking{
+    width: 20px;
+    margin: 0;
+}
+
+#tdcell{
+    width: 60vw !important;
 }

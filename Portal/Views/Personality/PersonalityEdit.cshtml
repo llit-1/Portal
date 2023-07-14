@@ -19,7 +19,7 @@
                 <div class="userActive statePersonData" id="statePersonData">
                     <span class="textForCheckbox">Уволен</span>
                     <label class="switch">
-                        <input type="checkbox" class="switch__input inputPersonData" checked id="closedPerson">
+                        <input type="checkbox" class="switch__input" checked id="closedPerson">
                         <span class="switch__slider"></span>
                     </label>
                 </div>
@@ -136,7 +136,7 @@
                     </select>
                 </div>
                  <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="editUser()">СОХРАНИТЬ</button>
+                    <button class="buttonAddPersonData" onclick="allValidation()">СОХРАНИТЬ</button>
                     <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
                 </div>
             </div>
@@ -185,8 +185,8 @@
                     </select>
                 </div>
                 <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="addUser()">ДОБАВИТЬ</button>
-                    @* allValidation() *@
+                    <button class="buttonAddPersonData" onclick="allValidation()">ДОБАВИТЬ</button>
+                    @* addUser() *@
                     
                     <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
                 </div>
@@ -196,6 +196,8 @@
         
     
 </div>
+
+
 
 
 <script>
@@ -210,9 +212,16 @@
         document.querySelectorAll(".inputPersonData").forEach(input => input.value = "");
     }
 
-    let name = document.getElementById('namePerson');
-    let surname = document.getElementById('surnamePerson');
-    let patronymic = document.getElementById('patronymicPerson');
+    const name = document.getElementById('namePerson');
+    const surname = document.getElementById('surnamePerson');
+    const patronymic = document.getElementById('patronymicPerson');
+    const BirthDate = document.getElementById('birthDatePerson')
+    const JobTitleGUID = document.getElementById('jobTitlePerson')
+    const locationGUID = document.getElementById('TTPerson')
+    const HireDate = document.getElementById('HireDate')
+    const DismissalsDate = document.getElementById('DismissalsDate')
+    const ScheduleGUID = document.getElementById('ScheduleGUID')
+
 
     function validation() {
         if(name.value.trim().length < 1) {
@@ -238,13 +247,73 @@
             patronymic.style.borderColor = '#ccc'
         }
     }
+    function validation4() {
+        if(BirthDate.value.trim().length < 1) {
+            BirthDate.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            BirthDate.style.borderColor = '#ccc'
+        }
+    }
+    function validation5() {
+        if(JobTitleGUID.value.trim().length < 1) {
+            JobTitleGUID.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            JobTitleGUID.style.borderColor = '#ccc'
+        }
+    }
+    function validation6() {
+        if(locationGUID.value.trim().length < 1) {
+            locationGUID.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            locationGUID.style.borderColor = '#ccc'
+        }
+    }
+    function validation7() {
+        if(HireDate.value.trim().length < 1) {
+            HireDate.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            HireDate.style.borderColor = '#ccc'
+        }
+    }
+    function validation8() {
+        if(ScheduleGUID.value.trim().length < 1) {
+            ScheduleGUID.style.borderColor = 'rgb(250, 56, 56)'
+        }
+        else{
+            ScheduleGUID.style.borderColor = '#ccc'
+        }
+    }
+
 
     function allValidation() {
         validation();
         validation2();
         validation3();
-        if(name.style.borderColor == 'rgb(204, 204, 204)' && surname.style.borderColor == 'rgb(204, 204, 204)' && patronymic.style.borderColor == 'rgb(204, 204, 204)') {
-            alert('Пока недоступно')
+        validation4();
+        validation5();
+        validation6();
+        validation7();
+        validation8();
+        let count = 0
+        const check = document.querySelectorAll(".inputPersonData").forEach((input) => {
+            if(input.style.borderColor == 'rgb(204, 204, 204)') {
+                count += 0;
+            }
+            else{
+                count += 1;
+            }
+        } )
+        if( count <= 1) {
+            if(location.hash == '#EditPerson'){
+                editUser();
+            }
+            else {
+                addUser();
+            }
         }
         else{
             alert('Проверьте правильность заполнения полей')
@@ -256,7 +325,15 @@
     patronymic.addEventListener("input", validation3);
 </script>
 
-@* Отправляем JSON (Новый пользователь) *@
+<script>
+    const name = document.getElementById('namePerson');
+    const surname = document.getElementById('surnamePerson');
+    if(name.value == '' && surname.value == '') {
+        clearInputs();
+    }
+</script>
+
+@* Отправляем JSON *@
 <script>
     function addUser() {
         const Personality = {};
@@ -282,7 +359,6 @@
         }
 
         const json = JSON.stringify(Personality)
-        console.log(json)
          $.ajax({
             type: "POST",
             url: '/Personality/PersonalityAdd',
@@ -332,7 +408,6 @@
         }
 
         const json = JSON.stringify(Personality)
-        console.log(json)
         $.ajax({
             type: "PUT",
             url: '/Personality/PersonalityPut',

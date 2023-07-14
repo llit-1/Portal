@@ -1,0 +1,212 @@
+@model Portal.Models.TrackingDataTableModel
+
+<!--блок элементов над списком заказов-->
+<div class="row headerTracking" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--фильтр ТТ-->
+    <div class="headerTrackingItem">
+        <select class="form-control form-control-sm" id="ttSelector">
+
+            <option id="0" selected>Все ТТ</option>
+
+            @foreach (var tt in Model.TTs.OrderBy(g => g.Code))
+            {
+                <option id="@tt.Id">@tt.Name</option>;
+            }
+        </select>
+    </div>
+
+    <div class="headerTrackingItem">
+        <p class="pTracking">С:</p>
+        <input type='date' class="calendarTracking" value='@Model.BeginDate.ToString("yyyy-MM-dd")'>
+    </div>
+    <div class="headerTrackingItem ">
+        <p class="pTracking">По: </p> 
+        <input type='date' class="calendarTracking" value='@Model.EndDate.ToString("yyyy-MM-dd")'>
+    </div>
+
+    <div class="headerTrackingItem">
+        <select class="form-control form-control-sm" id="ttSelector">
+
+            <option id="0" selected>Сегодня</option>
+            <option id="0" >7 дней</option>
+            <option id="0" >15 дней</option>
+            <option id="0" >30 дней</option>
+
+        </select>
+    </div>
+
+</div>
+
+<!--таблица заказов-->
+<div class="panel panel-default" id="OrdersFranch">
+
+    <div class="table-responsive">
+        <table class="table" style="vertical-align: middle;" id="fOrdersTable">
+
+            <tbody>
+                @if (Model.TTs.Count() > 0)
+                {
+                    var tts = Model.TTs.OrderBy(g => g.Code);
+                    int[] days = new int[] {1};
+                    string[] persons = new string[] {"Кургузов Владислав Сергеевич","Зубенко Михаил Петрович", "Помогите Помог Помагатович"};
+                    @foreach (var tt in tts)
+                    {
+                        <!--точки-->
+
+                        <tr class="row-group-01" id="rowTracking" style="vertical-align: middle;">
+                            <td style="vertical-align: middle;"><label><input class="hidden" type="checkbox" id="@tt.Id">@tt.Id</label></td>
+                            <td style="vertical-align: middle;" id="tdcell"><b>@tt?.Name</b></td>
+                            <td style="vertical-align: middle;" align="center" colspan="1" >@days.Count().ToString() запись</td>
+                        </tr>
+                        
+                        @foreach (var day in days)
+                        {   
+                            var fuck = tt.Id * 2 + day;
+                            <tr class="row-group-02 hidden days_@tt.Id">
+                                <td style="vertical-align: middle;" align="left"><label><input class="hidden" type="checkbox" id="@fuck">@fuck</label></td>
+                                <td style="vertical-align: middle;" align="center">@Model.BeginDate.ToString("dd-MM-yyyy")</td>
+                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico" onclick='SheduleEdit()'>' </label></td>
+                            </tr>
+                         
+                      
+                            @foreach (var person in persons)
+                            {
+                                <tr class="hidden persons_@fuck">
+                                    <td style="vertical-align: middle;" class="mobile-hide"></td>
+                                    <td style="text-align:left; vertical-align: middle;">@person</td>
+                                    <td></td>
+                                </tr>
+                            } 
+                        }
+
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* -------------------------------------------------------------- *@
+
+<script>
+    @* var orderTypeId = @Model.orderType.Id; *@
+</script>
+
+<!--редактировать смену-->
+<script>
+    function SheduleEdit() {
+        $('#page').empty();
+        $('#page').load('/TimeTracking/TrackingDataEdit', function () { SpinnerHide(); }); 
+    }
+</script>
+
+
+<!--группировка по ТТ-->
+<script>
+    $('.row-group-01').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.days_' + $(check).attr('id');
+        console.log(check)
+        console.log(items)
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(items).each(function () {
+                var check01 = $(this).children('td').children('label').children('input');
+                var items01 = '.persons_' + $(check01).attr('id');
+                if ($(check01).prop('checked')) {
+                    $(check01).prop('checked', false);
+                    $(items01).addClass('hidden');
+                }
+            });
+
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+</script>
+
+<!--группировка по заказу-->
+<script>
+    $('.row-group-02').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.persons_' + $(check).attr('id');
+        console.log(check)
+        console.log(items)
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+</script>
+
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--селектор дат-->
+<script>
+    $('#dateSelector').on('change', function () {
+        filters();
+    });
+</script>
+
+<!--селектор ТТ-->
+<script>
+    $('#ttSelector').on('change', function () {
+        filters();
+    });
+</script>
+
+<!--фильтры-->
+<script>
+    function filters() {
+        var dateVal = $('#dateSelector').val();
+        if (dateVal == 'текущие заказы') dateVal = 'current';
+        if (dateVal == 'все заказы') dateVal = 'all';
+
+        var ttVal = $("option:selected", '#ttSelector').attr('id');
+        if (ttVal == '0') ttVal = 'all';
+
+        $('#loading').show();
+        $('#OrdersFranch').empty();
+        $(contentContainer).load('/ttOrders/OrdersList?dateString=' + dateVal + '&ttString=' + ttVal + '&orderTypeId=' + orderTypeId);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        $('#loading').hide();  
+    });
+</script>

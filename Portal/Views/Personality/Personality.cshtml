@@ -24,14 +24,14 @@
             
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
                 <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-                <a href="#AddPerson" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
+                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" onclick="AddItem()" style="margin-left:20px">добавить</a>
             </div>
 
 
             <div class="userActive">
                 <span class="textForCheckbox">Показать неактивных пользователей</span>
                 <label class="switch">
-                    <input type="checkbox" class="switch__input" id="closedPersonality" checked onchange="loadPersonalityTable()">
+                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()">
                     <span class="switch__slider"></span>
                 </label>
             </div>
@@ -53,13 +53,18 @@
 <!--загрузка таблицы пользователей-->
 <script>
     function loadPersonalityTable() {
-        let closedPersonality = document.getElementById('closedPersonality').checked;
-        if(closedPersonality){
-            SpinnerShow();
-            $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
-        } else {
-            SpinnerShow();
-            $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
+        try{
+            let closedPersonality = document.getElementById('closedPersonality').checked;
+            if(closedPersonality){
+                SpinnerShow();
+                $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
+            } else {
+                SpinnerShow();
+                $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
+            }
+        }   
+        catch{
+            return document.getElementById('page').innerHTML = '<div>Нет данных</div>'
         }
         
     }
