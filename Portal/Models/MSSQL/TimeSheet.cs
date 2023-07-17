@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System;
+using Portal.Models.MSSQL.Personality;
 
 namespace Portal.Models.MSSQL
 {
@@ -11,6 +12,7 @@ namespace Portal.Models.MSSQL
         public Guid Guid { get; set; }
         public Personality.Personality Personality { get; set; }
         public Location.Location Location { get; set; }
+        public JobTitle JobTitle { get; set; }
         public DateTime Begin { get; set; }
         public DateTime End { get; set; }
     }

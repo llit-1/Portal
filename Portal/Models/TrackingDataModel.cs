@@ -1,0 +1,23 @@
+﻿using Microsoft.CodeAnalysis;
+using Portal.Models.MSSQL;
+using System;
+using System.Collections.Generic;
+
+namespace Portal.Models
+{
+    public class TrackingDataModel
+    {
+        public List<TTData> TTDatas { get; set; }
+    }
+    public class TTData
+    {
+        public Portal.Models.MSSQL.Location.Location Location { get; set; }
+        public List<DateData> DateDatas { get; set; }
+    }
+
+    public class DateData
+    {
+        public DateTime Date { get; set; }
+        public List<TimeSheet> TimeSheets { get; set; }
+    }
+}
