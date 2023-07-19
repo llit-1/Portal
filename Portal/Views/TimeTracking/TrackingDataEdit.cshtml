@@ -1,0 +1,134 @@
+<div class="row" id="fordres_editor">
+    <!--группы-->
+    <div class="col-sm-2">
+        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+
+            <table class="table">
+                <tr> 
+                    <th class="bg-primary">Должность</th>
+                </tr>
+            </table>
+
+            <div class="scroll">
+                <table class="table table-hover" id="groupTable">
+                    <tr class="GroupTR" class="hidden">
+                        <td>Директор</td>
+                    </tr>
+                    <tr class="GroupTR" class="hidden">
+                        <td>Кассир</td>
+                    </tr>
+                    <tr class="GroupTR" class="hidden">
+                        <td>Охранник</td>
+                    </tr>
+                    <tr class="GroupTR" class="hidden">
+                        <td>Уборщик</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--SKU-->
+    <div class="col-sm-5">
+        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+
+            <table class="table">
+
+                <tr class="bg-primary">
+                    <th width="51%" class="text-center">Сотрудник</th>
+                    <th width="7%" class="text-center"></th>
+                </tr>
+
+            </table>
+
+            <div class="scroll" id="skuTables">
+            </div>
+
+        </div>
+
+        <!--добавить все-->
+        <div class="col-4" style="height:40px">
+            <button class="btn btn-sm btn-default" type="button" href="javascript:void(0)" onclick="selectAllSku()" style="float:right; margin-left:20px">добавить всех</button>
+        </div>
+
+    </div>
+
+            <!--заказ-->
+    <div class="col-sm-5">
+        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+            <table class="table">
+                <tr class="bg-primary">
+                    <td>
+                        <label for="ttSelect">ТТ</label>
+                        <select class="form-control form-control-sm" id="ttSelect">
+                            <option selected disabled>выберите точку</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <label for="orderDate">Дата</label>
+                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="2023.07.11" max="2023.07.17" />
+                    </td>
+                </tr>
+            </table>
+
+            <table class="table">
+                <tr class="bg-primary">
+                    <th width="40%" class="text-left">Сотрудник</th>
+                    <th width="30%" class="text-center">Должность</th>
+                    <th width="25%" class="text-left">Время</th>
+                    <th width="5%" class="text-center"></th>
+                </tr>
+            </table>
+
+            <!--sku  в заказе-->
+            <div class="scroll" id="SkuInOrder">
+                <table class="table" id="FOrdersItemsTable">
+                    <tr></tr>
+
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            Кургузов Владислав Сергеевич
+                        </td>
+
+                        <td style="vertical-align: middle;">
+                            Директор
+                        </td>
+
+                        <td style="vertical-align: middle;">
+                            <select class="form-control form-control-sm" style="min-width:110px">
+                                <option value="08:00-17:00">08:00-17:00</option>
+                                <option value="09:00-18:00">09:00-18:00</option>
+                                <option value="17:00-00:00">17:00-00:00</option>
+                            </select>
+                        </td>
+                        
+                        <td style="vertical-align: bottom;">
+                            <label class="md-remove-circle-outline ico" style="margin: 0;"></label>
+                        </td>
+
+                        <td class="hidden">
+                            15
+                        </td>
+
+                        <td class="hidden">
+                            <input value="до Завтра" />
+                        </td>
+
+                        <td class="hidden">
+                            <input  value="Сегодня" />
+                        </td>
+
+                    </tr>
+
+                </table>
+            </div>
+
+
+                </div>
+
+                <!--кнопки сохранить/отмена-->
+        <div class="col-4" style="height:40px">
+            <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder()" style="float:right">Сохранить</button>
+        </div>
+    </div>
+</div>

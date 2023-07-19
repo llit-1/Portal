@@ -5,6 +5,5 @@ namespace Portal.Models
     public class PersonalityModel
     {
         public List<Models.MSSQL.Personality.Personality> Personalities { get; set; }
-        public int MyProperty { get; set; }
     }
 }
