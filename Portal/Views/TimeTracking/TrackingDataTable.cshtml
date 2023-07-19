@@ -1,0 +1,286 @@
+@model Portal.Models.TrackingDataModel
+
+<!--блок элементов над списком заказов-->
+<div class="row headerTracking" style="margin-top: 10px; margin-bottom:10px">
+
+    <!--фильтр ТТ-->
+    <div class="headerTrackingItem">
+        <select class="form-control form-control-sm" id="ttSelector" onchange="filters()">
+            @if(@Model.TTDatas.Count() == 1)
+            {
+                <option id="0"> <b>Все точки</b> </option>
+
+                foreach(var tt in Model.TTDatas)
+                {
+                    <option id="@tt.Location.Guid" selected> @tt.Location.Name </option>
+                }
+                
+
+                @foreach (var tt in Model.Location.OrderBy(g => g.Name))
+                {
+                    <option id="@tt.Guid">@tt.Name</option>
+                    ;
+                    
+                }
+            }
+            else
+            {
+                <option id="0" selected> Все точки </option>
+                @foreach (var tt in Model.Location.OrderBy(g => g.Name))
+                {
+                    <option id="@tt.Guid">@tt.Name</option>
+                    ;
+
+                }
+            }
+
+
+
+        </select>
+    </div>
+
+    <div class="headerTrackingItem">
+        <p class="pTracking">С:</p>
+        @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня) *@
+        <input type='date' class="calendarTracking" id="calendarBegin" onchange="filters()" value='@Model.TTDatas[0].DateDatas[0].Date.ToString("yyyy-MM-dd")'>
+    </div>
+    <div class="headerTrackingItem ">
+        <p class="pTracking">По: </p> 
+        <input type='date' class="calendarTracking" id="calendarEnd" onchange="filters()" value='@Model.TTDatas[0].DateDatas[^1].Date.ToString("yyyy-MM-dd")' >
+    </div>
+
+    <div class="headerTrackingItem">
+        <select class="form-control form-control-sm" id="intervalSelector" onchange="editCalendar()">
+
+            <option id="0" selected disabled hidden> --- </option>
+            <option id="1" >Сегодня</option>
+            <option id="2" >7 дней</option>
+            <option id="3" >15 дней</option>
+            <option id="4" >30 дней</option>
+
+        </select>
+    </div>
+
+</div>
+
+<!--таблица заказов-->
+<div class="panel panel-default" id="OrdersFranch">
+
+    <div class="table-responsive">
+        <table class="table" style="vertical-align: middle;" id="fOrdersTable">
+
+            <tbody>
+
+                    @{  
+                        var tts = Model.TTDatas.OrderBy(g => g.Location.Name);
+                        
+                    }
+                    <!--точки-->
+                    @foreach (var tt in tts)
+                    {
+                        <tr class="row-group-01" id="rowTracking mainTR_@tt.Location.Guid" style="vertical-align: middle;">
+                            <td style="vertical-align: middle;"><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
+                            <td style="vertical-align: middle;" id="tdcell"></td>
+                            <td style="vertical-align: middle;" align="center" colspan="1" ></td>
+                        </tr>
+
+                        <!--Даты-->
+                        @foreach (var day in tt.DateDatas)
+                        {   
+                                var countPerson = day.TimeSheets.Count().ToString();
+                            switch (day.TimeSheets.Count().ToString().Last())
+                            {
+                                case '1':
+                                    {
+                                        countPerson += " смена";
+                                        break;
+                                    }
+                                case '2':
+                                case '3':
+                                case '4':
+                                    {
+                                        countPerson += " смены";
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        countPerson += " смен";
+                                        break;
+                                    }
+                            }
+                            <tr class="row-group-02 hidden day_@tt.Location.Guid">
+                                <td style="vertical-align: middle;" align="left"><label><input class="hidden" type="checkbox" id='@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'> @day.Date.ToString("dd-MM-yyyy")</label></td>
+                                <td style="vertical-align: middle;" align="center"> @countPerson</td>
+                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico" onclick='SheduleEdit()'></label></td>
+                            </tr>
+                         
+                            <!--Сотрудники-->
+                            @foreach (var person in day.TimeSheets.OrderBy(g => g.Personality.Surname))
+                            {
+                                var SNP = @person.Personality.Surname +' '+ @person.Personality.Name +' '+ @person.Personality.Patronymic;
+                                <tr class='row-group-03 hidden person_@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>
+                                    <td class="hidden">@person.Guid</td> @* Guid пользователя *@
+                                    <td style="vertical-align: middle;" class="mobile-hide">@SNP</td>
+                                    <td style="text-align:left; vertical-align: middle;">@person.JobTitle.Name</td>
+                                    <td>@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
+                                </tr>
+                            } 
+                        } 
+                    } 
+
+              
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* -------------------------------------------------------------- *@
+
+
+<!--редактировать смену-->
+<script>
+    function SheduleEdit() {
+        $('#page').empty();
+        $('#page').load('/TimeTracking/TrackingDataEdit', function () { SpinnerHide(); }); 
+    }
+</script>
+
+
+<!--группировка по ТТ-->
+<script>
+    $('.row-group-01').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.day_' + $(check).attr('id');
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(items).each(function () {
+                var check01 = $(this).children('td').children('label').children('input');
+                var items01 = '.person_' + $(check01).attr('id');
+                if ($(check01).prop('checked')) {
+                    $(check01).prop('checked', false);
+                    $(items01).addClass('hidden');
+                }
+            });
+
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+</script>
+
+<!--группировка по дню-->
+<script>
+    $('.row-group-02').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.person_' + $(check).attr('id');
+        if (!$(check).is(':checked')) {
+            $(check).prop('checked', true);
+            $(items).removeClass('hidden');
+        }
+        else {
+            $(check).prop('checked', false);
+            $(items).addClass('hidden');
+        }
+    });
+</script>
+
+<!--мобильная версия-->
+<script>
+    var curOrient = '';
+
+    // переключение по ориентации экрана
+    function autoScreenLoad() {
+        var width = $(window).width();
+        var height = $(window).height();
+        orient = width / height;
+
+        if (orient > 1 & curOrient != 'horizontal') {
+            curOrient = 'horizontal';
+            $('.mobile-hide').show();
+        }
+
+        if (orient < 1 & curOrient != 'vertical') {
+            curOrient = 'vertical';
+            $('.mobile-hide').hide();
+        }
+    }
+
+    $(window).resize(function () {
+        autoScreenLoad();
+    });
+</script>
+
+<!--селектор дат-->
+<script>
+    $('#dateSelector').on('change', function () {
+        filters();
+    });
+</script>
+
+
+<!--Изменение календаря через выбор промежутка-->
+<script>
+    const startBeginDate = document.getElementById('calendarBegin').value
+    const endBeginDate = document.getElementById('calendarEnd').value
+    console.log(endBeginDate)
+
+    function editCalendar() {
+        let calendarBegin = document.getElementById("calendarBegin");
+        let calendarEnd = document.getElementById("calendarEnd");
+        calendarBegin.value = startBeginDate;
+        calendarEnd.value = endBeginDate;
+        const intervalSelector = document.getElementById('intervalSelector').value;
+
+        function editDate(days){
+            let date = Date.now()
+            date = date - (60 * 60 * 24 * days * 1000);
+            date = new Date(date)
+            let year = date.getFullYear();
+            let month = ("0" + (date.getMonth() + 1)).slice(-2);
+            let day = ("0" + date.getDate()).slice(-2);
+            let result = year + "-" + month + "-" + day;
+            return result;
+        }
+        if(intervalSelector === '7 дней'){
+            calendarBegin.value = editDate(7)
+        }
+        else if(intervalSelector === '15 дней'){
+            calendarBegin.value = editDate(15)
+        }
+        else if(intervalSelector === '30 дней'){
+            calendarBegin.value = editDate(30)
+        }
+        else if(intervalSelector === 'Сегодня'){
+            calendarBegin.value = editDate(0)
+        }
+        filters()
+    }
+</script>
+
+<!--фильтры-->
+<script>
+    function filters() {
+        let ttVal = $("option:selected", '#ttSelector').attr('id');
+        console.log(ttVal)
+        const calendarBegin = document.getElementById("calendarBegin").value;
+        const calendarEnd = document.getElementById("calendarEnd").value;
+        const ttSelector = document.getElementById('ttSelector');
+        let selectedOption = ttSelector.options[ttSelector.selectedIndex];
+        let selectedOptionId = selectedOption.getAttribute("id");
+        console.log('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&tt=' + selectedOptionId)
+        $('#loading').show();
+        $('#OrdersFranch').empty();
+        $(contentContainer).load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
+    }
+</script>
+
+<!--по загрузке страницы-->
+<script>
+    $(document).ready(function () {
+        autoScreenLoad();
+        $('#loading').hide();  
+    });
+</script>
