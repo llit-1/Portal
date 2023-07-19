@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 @model Portal.Models.TrackingDataModel
 =======
 @model Portal.Models.TrackingDataTableModel
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+@model Portal.Models.TrackingDataModel
+>>>>>>> 698b6dd... Portal v2.14.4.4
 
 <!--блок элементов над списком заказов-->
 <div class="row headerTracking" style="margin-top: 10px; margin-bottom:10px">
@@ -10,10 +14,14 @@
     <!--фильтр ТТ-->
     <div class="headerTrackingItem">
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
         <select class="form-control form-control-sm" id="ttSelector" onchange="filters()">
             @if(@Model.TTDatas.Count() == 1)
             {
                 <option id="0"> <b>Все точки</b> </option>
+<<<<<<< HEAD
 
                 foreach(var tt in Model.TTDatas)
                 {
@@ -43,19 +51,45 @@
 
 =======
         <select class="form-control form-control-sm" id="ttSelector">
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
 
-            <option id="0" selected>Все ТТ</option>
+                foreach(var tt in Model.TTDatas)
+                {
+                    <option id="@tt.Location.Guid" selected> @tt.Location.Name </option>
+                }
+                
 
-            @foreach (var tt in Model.TTs.OrderBy(g => g.Code))
-            {
-                <option id="@tt.Id">@tt.Name</option>;
+                @foreach (var tt in Model.Location.OrderBy(g => g.Name))
+                {
+                    <option id="@tt.Guid">@tt.Name</option>
+                    ;
+                    
+                }
             }
+            else
+            {
+                <option id="0" selected> Все точки </option>
+                @foreach (var tt in Model.Location.OrderBy(g => g.Name))
+                {
+                    <option id="@tt.Guid">@tt.Name</option>
+                    ;
+
+                }
+            }
+<<<<<<< HEAD
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+
+
+
+>>>>>>> 698b6dd... Portal v2.14.4.4
         </select>
     </div>
 
     <div class="headerTrackingItem">
         <p class="pTracking">С:</p>
+<<<<<<< HEAD
 <<<<<<< HEAD
         @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня) *@
         <input type='date' class="calendarTracking" id="calendarBegin" onchange="filters()" value='@Model.TTDatas[0].DateDatas[0].Date.ToString("yyyy-MM-dd")'>
@@ -75,20 +109,32 @@
             <option id="4" >30 дней</option>
 =======
         <input type='date' class="calendarTracking" value='@Model.BeginDate.ToString("yyyy-MM-dd")'>
+=======
+        @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня) *@
+        <input type='date' class="calendarTracking" id="calendarBegin" onchange="filters()" value='@Model.TTDatas[0].DateDatas[0].Date.ToString("yyyy-MM-dd")'>
+>>>>>>> 698b6dd... Portal v2.14.4.4
     </div>
     <div class="headerTrackingItem ">
         <p class="pTracking">По: </p> 
-        <input type='date' class="calendarTracking" value='@Model.EndDate.ToString("yyyy-MM-dd")'>
+        <input type='date' class="calendarTracking" id="calendarEnd" onchange="filters()" value='@Model.TTDatas[0].DateDatas[^1].Date.ToString("yyyy-MM-dd")' >
     </div>
 
     <div class="headerTrackingItem">
-        <select class="form-control form-control-sm" id="ttSelector">
+        <select class="form-control form-control-sm" id="intervalSelector" onchange="editCalendar()">
 
+<<<<<<< HEAD
             <option id="0" selected>Сегодня</option>
             <option id="0" >7 дней</option>
             <option id="0" >15 дней</option>
             <option id="0" >30 дней</option>
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+            <option id="0" selected disabled hidden> --- </option>
+            <option id="1" >Сегодня</option>
+            <option id="2" >7 дней</option>
+            <option id="3" >15 дней</option>
+            <option id="4" >30 дней</option>
+>>>>>>> 698b6dd... Portal v2.14.4.4
 
         </select>
     </div>
@@ -103,12 +149,16 @@
 
             <tbody>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
 
                     @{  
                         var tts = Model.TTDatas.OrderBy(g => g.Location.Name);
                         
                     }
                     <!--точки-->
+<<<<<<< HEAD
                     @foreach (var tt in tts)
                     {
                         <tr class="row-group-01" id="rowTracking mainTR_@tt.Location.Guid" style="vertical-align: middle;">
@@ -168,39 +218,67 @@
                     var tts = Model.TTs.OrderBy(g => g.Code);
                     int[] days = new int[] {1};
                     string[] persons = new string[] {"Кургузов Владислав Сергеевич","Зубенко Михаил Петрович", "Помогите Помог Помагатович"};
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
                     @foreach (var tt in tts)
                     {
-                        <!--точки-->
-
-                        <tr class="row-group-01" id="rowTracking" style="vertical-align: middle;">
-                            <td style="vertical-align: middle;"><label><input class="hidden" type="checkbox" id="@tt.Id">@tt.Id</label></td>
-                            <td style="vertical-align: middle;" id="tdcell"><b>@tt?.Name</b></td>
-                            <td style="vertical-align: middle;" align="center" colspan="1" >@days.Count().ToString() запись</td>
+                        <tr class="row-group-01" id="rowTracking mainTR_@tt.Location.Guid" style="vertical-align: middle;">
+                            <td style="vertical-align: middle;"><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
+                            <td style="vertical-align: middle;" id="tdcell"></td>
+                            <td style="vertical-align: middle;" align="center" colspan="1" ></td>
                         </tr>
-                        
-                        @foreach (var day in days)
+
+                        <!--Даты-->
+                        @foreach (var day in tt.DateDatas)
                         {   
-                            var fuck = tt.Id * 2 + day;
-                            <tr class="row-group-02 hidden days_@tt.Id">
-                                <td style="vertical-align: middle;" align="left"><label><input class="hidden" type="checkbox" id="@fuck">@fuck</label></td>
-                                <td style="vertical-align: middle;" align="center">@Model.BeginDate.ToString("dd-MM-yyyy")</td>
-                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico" onclick='SheduleEdit()'>' </label></td>
+                                var countPerson = day.TimeSheets.Count().ToString();
+                            switch (day.TimeSheets.Count().ToString().Last())
+                            {
+                                case '1':
+                                    {
+                                        countPerson += " смена";
+                                        break;
+                                    }
+                                case '2':
+                                case '3':
+                                case '4':
+                                    {
+                                        countPerson += " смены";
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        countPerson += " смен";
+                                        break;
+                                    }
+                            }
+                            <tr class="row-group-02 hidden day_@tt.Location.Guid">
+                                <td style="vertical-align: middle;" align="left"><label><input class="hidden" type="checkbox" id='@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'> @day.Date.ToString("dd-MM-yyyy")</label></td>
+                                <td style="vertical-align: middle;" align="center"> @countPerson</td>
+                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico" onclick='SheduleEdit()'></label></td>
                             </tr>
                          
-                      
-                            @foreach (var person in persons)
+                            <!--Сотрудники-->
+                            @foreach (var person in day.TimeSheets.OrderBy(g => g.Personality.Surname))
                             {
-                                <tr class="hidden persons_@fuck">
-                                    <td style="vertical-align: middle;" class="mobile-hide"></td>
-                                    <td style="text-align:left; vertical-align: middle;">@person</td>
-                                    <td></td>
+                                var SNP = @person.Personality.Surname +' '+ @person.Personality.Name +' '+ @person.Personality.Patronymic;
+                                <tr class='row-group-03 hidden person_@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>
+                                    <td class="hidden">@person.Guid</td> @* Guid пользователя *@
+                                    <td style="vertical-align: middle;" class="mobile-hide">@SNP</td>
+                                    <td style="text-align:left; vertical-align: middle;">@person.JobTitle.Name</td>
+                                    <td>@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
                                 </tr>
                             } 
-                        }
+                        } 
+                    } 
 
+<<<<<<< HEAD
                     }
                 }
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+              
+>>>>>>> 698b6dd... Portal v2.14.4.4
             </tbody>
         </table>
     </div>
@@ -209,11 +287,14 @@
 @* -------------------------------------------------------------- *@
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <script>
     @* var orderTypeId = @Model.orderType.Id; *@
 </script>
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
 
 <!--редактировать смену-->
 <script>
@@ -229,12 +310,16 @@
     $('.row-group-01').click(function () {
         var check = $(this).children('td').children('label').children('input');
 <<<<<<< HEAD
+<<<<<<< HEAD
         var items = '.day_' + $(check).attr('id');
 =======
         var items = '.days_' + $(check).attr('id');
         console.log(check)
         console.log(items)
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+        var items = '.day_' + $(check).attr('id');
+>>>>>>> 698b6dd... Portal v2.14.4.4
         if (!$(check).is(':checked')) {
             $(check).prop('checked', true);
             $(items).removeClass('hidden');
@@ -243,10 +328,14 @@
             $(items).each(function () {
                 var check01 = $(this).children('td').children('label').children('input');
 <<<<<<< HEAD
+<<<<<<< HEAD
                 var items01 = '.person_' + $(check01).attr('id');
 =======
                 var items01 = '.persons_' + $(check01).attr('id');
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+                var items01 = '.person_' + $(check01).attr('id');
+>>>>>>> 698b6dd... Portal v2.14.4.4
                 if ($(check01).prop('checked')) {
                     $(check01).prop('checked', false);
                     $(items01).addClass('hidden');
@@ -259,6 +348,7 @@
     });
 </script>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <!--группировка по дню-->
 <script>
@@ -274,6 +364,13 @@
         console.log(check)
         console.log(items)
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+<!--группировка по дню-->
+<script>
+    $('.row-group-02').click(function () {
+        var check = $(this).children('td').children('label').children('input');
+        var items = '.person_' + $(check).attr('id');
+>>>>>>> 698b6dd... Portal v2.14.4.4
         if (!$(check).is(':checked')) {
             $(check).prop('checked', true);
             $(items).removeClass('hidden');
@@ -318,6 +415,7 @@
     });
 </script>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 <!--Изменение календаря через выбор промежутка-->
@@ -364,12 +462,55 @@
         filters();
     });
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+
+<!--Изменение календаря через выбор промежутка-->
+<script>
+    const startBeginDate = document.getElementById('calendarBegin').value
+    const endBeginDate = document.getElementById('calendarEnd').value
+    console.log(endBeginDate)
+
+    function editCalendar() {
+        let calendarBegin = document.getElementById("calendarBegin");
+        let calendarEnd = document.getElementById("calendarEnd");
+        calendarBegin.value = startBeginDate;
+        calendarEnd.value = endBeginDate;
+        const intervalSelector = document.getElementById('intervalSelector').value;
+
+        function editDate(days){
+            let date = Date.now()
+            date = date - (60 * 60 * 24 * days * 1000);
+            date = new Date(date)
+            let year = date.getFullYear();
+            let month = ("0" + (date.getMonth() + 1)).slice(-2);
+            let day = ("0" + date.getDate()).slice(-2);
+            let result = year + "-" + month + "-" + day;
+            return result;
+        }
+        if(intervalSelector === '7 дней'){
+            calendarBegin.value = editDate(7)
+        }
+        else if(intervalSelector === '15 дней'){
+            calendarBegin.value = editDate(15)
+        }
+        else if(intervalSelector === '30 дней'){
+            calendarBegin.value = editDate(30)
+        }
+        else if(intervalSelector === 'Сегодня'){
+            calendarBegin.value = editDate(0)
+        }
+        filters()
+    }
+>>>>>>> 698b6dd... Portal v2.14.4.4
 </script>
 
 <!--фильтры-->
 <script>
     function filters() {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
         let ttVal = $("option:selected", '#ttSelector').attr('id');
         console.log(ttVal)
         const calendarBegin = document.getElementById("calendarBegin").value;
@@ -378,6 +519,7 @@
         let selectedOption = ttSelector.options[ttSelector.selectedIndex];
         let selectedOptionId = selectedOption.getAttribute("id");
         console.log('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&tt=' + selectedOptionId)
+<<<<<<< HEAD
         $('#loading').show();
         $('#OrdersFranch').empty();
         $(contentContainer).load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
@@ -393,6 +535,11 @@
         $('#OrdersFranch').empty();
         $(contentContainer).load('/ttOrders/OrdersList?dateString=' + dateVal + '&ttString=' + ttVal + '&orderTypeId=' + orderTypeId);
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+        $('#loading').show();
+        $('#OrdersFranch').empty();
+        $(contentContainer).load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
+>>>>>>> 698b6dd... Portal v2.14.4.4
     }
 </script>
 

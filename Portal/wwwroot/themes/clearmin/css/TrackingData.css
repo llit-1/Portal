@@ -1,10 +1,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #tableTrackingData {
     display: flex;
     justify-content: space-between;
     flex-direction: row;
 =======
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
 .headerTracking{
     display: flex;
     flex-direction: row;
@@ -51,6 +54,7 @@
 
 #tdcell{
     width: 60vw !important;
+<<<<<<< HEAD
 >>>>>>> 698b6dd... Portal v2.14.4.4
 =======
 .headerTracking{
@@ -100,4 +104,6 @@
 #tdcell{
     width: 60vw !important;
 >>>>>>> 433ea36... Portal v2.14.4.3
+=======
+>>>>>>> 698b6dd... Portal v2.14.4.4
 }
