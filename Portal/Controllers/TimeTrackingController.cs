@@ -101,7 +101,7 @@ namespace Portal.Controllers
         public IActionResult TrackingDataEdit(string stringDate, string locationGuid)
         {
             TTData tTData = new TTData();
-            DateTime date = DateTime.ParseExact(stringDate, "yyyy-MM-dd", null);
+            DateTime date = DateTime.ParseExact(stringDate, "dd-MM-yyyy", null);
             Portal.Models.MSSQL.Location.Location location = dbSql.Locations.FirstOrDefault(c => c.Guid == Guid.Parse(locationGuid));
             DateData dateData = new DateData();
             dateData.Date = date;
@@ -115,6 +115,7 @@ namespace Portal.Controllers
             trackingDataEditModel.Personalities = dbSql.Personalities.Include(c => c.JobTitle)
                                                                      .Include(c => c.Schedule)
                                                                      .Include(c => c.Location)
+                                                                     .Where(c => c.Actual == 1)
                                                                      .ToList();
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
             return PartialView(trackingDataEditModel);

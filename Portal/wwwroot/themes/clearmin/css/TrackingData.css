@@ -45,3 +45,15 @@
 #tdcell{
     width: 60vw !important;
 }
+
+.getJobTitleData{
+    transition: background-color linear 0.2s;
+}
+
+.personList {
+    transition: display linear 0.2s;
+}
+
+.active1{
+    background-color: #f5e5dc;
+}

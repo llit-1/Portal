@@ -1,3 +1,5 @@
+@model Portal.Models.TrackingDataEditModel
+
 <div class="row" id="fordres_editor">
     <!--группы-->
     <div class="col-sm-2">
@@ -7,24 +9,18 @@
                 <tr> 
                     <th class="bg-primary">Должность</th>
                 </tr>
-            </table>
-
-            <div class="scroll">
-                <table class="table table-hover" id="groupTable">
-                    <tr class="GroupTR" class="hidden">
-                        <td>Директор</td>
+    
+                @foreach (var item in Model.JobTitles)
+                {
+                    <tr class="getJobTitleData"> 
+                        <td><input type="checkbox" class="hidden"><label>@item.Name</label></td>
+                        <td class="hidden TTForHeader">@Model.TTData.Location.Name</td>
+                        <td class="hidden TTIdForHeader">@Model.TTData.Location.Guid</td>
+                        <td class="hidden jobTitleId">@item.Guid</td>
+                        <td class="hidden dateForHeader"> @Model.TTData.DateDatas[0].Date.ToString("dd.MM.yyyy")</td>
                     </tr>
-                    <tr class="GroupTR" class="hidden">
-                        <td>Кассир</td>
-                    </tr>
-                    <tr class="GroupTR" class="hidden">
-                        <td>Охранник</td>
-                    </tr>
-                    <tr class="GroupTR" class="hidden">
-                        <td>Уборщик</td>
-                    </tr>
-                </table>
-            </div>
+                }
+             </table>
         </div>
     </div>
     <!--SKU-->
@@ -34,9 +30,21 @@
             <table class="table">
 
                 <tr class="bg-primary">
-                    <th width="51%" class="text-center">Сотрудник</th>
-                    <th width="7%" class="text-center"></th>
+                    <th width="60%" class="text-center">Сотрудник</th>
+                    <th width="30%" class="text-center"></th>
+                    <th width="10%" class="text-center"></th>
                 </tr>
+                @foreach (var item in Model.Personalities)
+                {
+                    <tr class="personList hidden"> 
+                        <td class="hidden">@item.Guid</td>
+                        <td><input type="checkbox" class="hidden"><label>@item.Surname @item.Name @item.Patronymic</label></td>
+                        <td>@item.JobTitle.Name</td>
+                        <td class="hidden">@item.JobTitle.Guid</td>
+                        <td class="hidden">@item.Location.Guid</td>
+                        <td onclick="alert('Добавлен')"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
+                    </tr>
+                }
 
             </table>
 
@@ -45,37 +53,18 @@
 
         </div>
 
-        <!--добавить все-->
-        <div class="col-4" style="height:40px">
-            <button class="btn btn-sm btn-default" type="button" href="javascript:void(0)" onclick="selectAllSku()" style="float:right; margin-left:20px">добавить всех</button>
-        </div>
 
     </div>
 
             <!--заказ-->
     <div class="col-sm-5">
         <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
-            <table class="table">
-                <tr class="bg-primary">
-                    <td>
-                        <label for="ttSelect">ТТ</label>
-                        <select class="form-control form-control-sm" id="ttSelect">
-                            <option selected disabled>выберите точку</option>
-                        </select>
-                    </td>
-
-                    <td>
-                        <label for="orderDate">Дата</label>
-                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="2023.07.11" max="2023.07.17" />
-                    </td>
-                </tr>
-            </table>
 
             <table class="table">
                 <tr class="bg-primary">
                     <th width="40%" class="text-left">Сотрудник</th>
-                    <th width="30%" class="text-center">Должность</th>
-                    <th width="25%" class="text-left">Время</th>
+                    <th width="30%" class="text-left">Должность</th>
+                    <th width="30%" class="text-left">Время</th>
                     <th width="5%" class="text-center"></th>
                 </tr>
             </table>
@@ -86,36 +75,20 @@
                     <tr></tr>
 
                     <tr>
-                        <td style="vertical-align: middle;">
+                        <td style="vertical-align: middle;" width="35%">
                             Кургузов Владислав Сергеевич
                         </td>
 
-                        <td style="vertical-align: middle;">
+                        <td style="vertical-align: middle;" width="20%">
                             Директор
                         </td>
 
-                        <td style="vertical-align: middle;">
-                            <select class="form-control form-control-sm" style="min-width:110px">
-                                <option value="08:00-17:00">08:00-17:00</option>
-                                <option value="09:00-18:00">09:00-18:00</option>
-                                <option value="17:00-00:00">17:00-00:00</option>
-                            </select>
+                        <td style="vertical-align: middle;" width="30%">
+                            <input type="time"> - <input type="time">
                         </td>
                         
-                        <td style="vertical-align: bottom;">
+                        <td style="vertical-align: middle;" width="5%">
                             <label class="md-remove-circle-outline ico" style="margin: 0;"></label>
-                        </td>
-
-                        <td class="hidden">
-                            15
-                        </td>
-
-                        <td class="hidden">
-                            <input value="до Завтра" />
-                        </td>
-
-                        <td class="hidden">
-                            <input  value="Сегодня" />
                         </td>
 
                     </tr>
@@ -132,3 +105,47 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    let tt = document.querySelector('.TTForHeader').textContent
+    let date = document.querySelector('.dateForHeader').textContent
+    $('#header').text(date + '  ' + tt);
+    $('#back').unbind('click');
+    $('#back').click(function () { 
+        $(contentContainer).load('/TimeTracking/TrackingData')});
+</script>
+
+
+
+<script>
+
+    $(".getJobTitleData").click(function (event) {
+        let elem = this;
+        let allJobTitle = document.querySelectorAll('.getJobTitleData')
+        let allPerson = document.querySelectorAll('.personList')
+        // Получаем guid должности
+        let jobTitle = this.children[3].textContent;
+        // Получаем guid должности
+        let ttguid = this.children[2].textContent;
+        if(elem.classList.contains('active1')){
+            elem.classList.remove('active1');
+            allPerson.forEach((str) => {
+                str.classList.add('hidden')
+            })
+        }else{
+            allJobTitle.forEach((str) => {
+                str.classList.remove('active1')
+            })
+            allPerson.forEach((str) => {
+                str.classList.add('hidden')
+            })
+            elem.classList.add('active1');
+            allPerson.forEach((str) => {
+                if(str.children[2].textContent == jobTitle && str.children[3].textContent == ttguid){
+                    str.classList.remove('hidden')
+                }
+            })
+        }
+    })
+</script>

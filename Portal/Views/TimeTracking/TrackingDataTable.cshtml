@@ -109,9 +109,10 @@
                                     }
                             }
                             <tr class="row-group-02 hidden day_@tt.Location.Guid">
-                                <td style="vertical-align: middle;" align="left"><label><input class="hidden" type="checkbox" id='@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'> @day.Date.ToString("dd-MM-yyyy")</label></td>
+                                <td style="vertical-align: middle;" align="left"><label id="IdForGetDate"><input class="hidden" type="checkbox" id='@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>@day.Date.ToString("dd-MM-yyyy")</label></td>
                                 <td style="vertical-align: middle;" align="center"> @countPerson</td>
-                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico" onclick='SheduleEdit()'></label></td>
+                                <td class="hidden">@tt.Location.Guid</td>
+                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
                             </tr>
                          
                             <!--Сотрудники-->
@@ -139,10 +140,17 @@
 
 <!--редактировать смену-->
 <script>
-    function SheduleEdit() {
-        $('#page').empty();
-        $('#page').load('/TimeTracking/TrackingDataEdit', function () { SpinnerHide(); }); 
-    }
+    
+    function loadTracking(str) {
+        let date = str.parentElement.parentElement.children[0].children[0].textContent;
+        let guid = str.parentElement.parentElement.children[2].textContent
+        p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
+        $('#page').load(p);
+        console.log(p)
+        $('#loading').show();
+    } 
+    
+
 </script>
 
 
@@ -225,7 +233,6 @@
 <script>
     const startBeginDate = document.getElementById('calendarBegin').value
     const endBeginDate = document.getElementById('calendarEnd').value
-    console.log(endBeginDate)
 
     function editCalendar() {
         let calendarBegin = document.getElementById("calendarBegin");
@@ -264,15 +271,12 @@
 <script>
     function filters() {
         let ttVal = $("option:selected", '#ttSelector').attr('id');
-        console.log(ttVal)
         const calendarBegin = document.getElementById("calendarBegin").value;
         const calendarEnd = document.getElementById("calendarEnd").value;
         const ttSelector = document.getElementById('ttSelector');
         let selectedOption = ttSelector.options[ttSelector.selectedIndex];
         let selectedOptionId = selectedOption.getAttribute("id");
-        console.log('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&tt=' + selectedOptionId)
         $('#loading').show();
-        $('#OrdersFranch').empty();
         $(contentContainer).load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
     }
 </script>
