@@ -99,16 +99,12 @@
                 @* Выбор ТТ *@
                 <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                     <select id="TTPerson" class="inputPersonData" data-width="100%" value="@Model.Personality.Location.Name">
+
+                        <option value="@Model.Personality.Location.Guid">@Model.Personality.Location.Name</option>
+
                         @foreach (var location in Model.Locations.OrderBy(g => g.Name))
                         {
-                            if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
-                            {
-                                <option selected="selected" value="@location.Guid">@location.Name</option>
-                            }
-                            else
-                            {
                                 <option value="@location.Guid">@location.Name</option>
-                            }
                         }
                     </select>
                 </div>

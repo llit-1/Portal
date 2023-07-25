@@ -2,20 +2,16 @@
 
 <!--блок элементов над списком заказов-->
 <div class="row headerTracking" style="margin-top: 10px; margin-bottom:10px">
-
     <!--фильтр ТТ-->
     <div class="headerTrackingItem">
         <select class="form-control form-control-sm" id="ttSelector" onchange="filters()">
             @if(@Model.TTDatas.Count() == 1)
             {
                 <option id="0"> <b>Все точки</b> </option>
-
                 foreach(var tt in Model.TTDatas)
                 {
                     <option id="@tt.Location.Guid" selected> @tt.Location.Name </option>
                 }
-                
-
                 @foreach (var tt in Model.Location.OrderBy(g => g.Name))
                 {
                     <option id="@tt.Guid">@tt.Name</option>
@@ -29,19 +25,14 @@
                 @foreach (var tt in Model.Location.OrderBy(g => g.Name))
                 {
                     <option id="@tt.Guid">@tt.Name</option>
-                    ;
-
                 }
             }
-
-
-
         </select>
     </div>
-
+ 
     <div class="headerTrackingItem">
         <p class="pTracking">С:</p>
-        @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня) *@
+       @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня)  *@
         <input type='date' class="calendarTracking" id="calendarBegin" onchange="filters()" value='@Model.TTDatas[0].DateDatas[0].Date.ToString("yyyy-MM-dd")'>
     </div>
     <div class="headerTrackingItem ">
@@ -65,29 +56,24 @@
 
 <!--таблица заказов-->
 <div class="panel panel-default" id="OrdersFranch">
-
     <div class="table-responsive">
         <table class="table" style="vertical-align: middle;" id="fOrdersTable">
-
             <tbody>
-
                     @{  
                         var tts = Model.TTDatas.OrderBy(g => g.Location.Name);
-                        
                     }
                     <!--точки-->
                     @foreach (var tt in tts)
                     {
                         <tr class="row-group-01" id="rowTracking mainTR_@tt.Location.Guid" style="vertical-align: middle;">
-                            <td style="vertical-align: middle;"><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
-                            <td style="vertical-align: middle;" id="tdcell"></td>
-                            <td style="vertical-align: middle;" align="center" colspan="1" ></td>
+                            <td style="vertical-align: middle;" width=40% ><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
+                            <td style="vertical-align: middle;" id="tdcell" width=20%></td>
+                            <td style="vertical-align: middle;" align="center" colspan="1" width=40%></td>
                         </tr>
-
                         <!--Даты-->
                         @foreach (var day in tt.DateDatas)
                         {   
-                                var countPerson = day.TimeSheets.Count().ToString();
+                            var countPerson = day.TimeSheets.Count().ToString();
                             switch (day.TimeSheets.Count().ToString().Last())
                             {
                                 case '1':
@@ -114,7 +100,6 @@
                                 <td class="hidden">@tt.Location.Guid</td>
                                 <td style="vertical-align: middle;" align="center"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
                             </tr>
-                         
                             <!--Сотрудники-->
                             @foreach (var person in day.TimeSheets.OrderBy(g => g.Personality.Surname))
                             {
@@ -127,32 +112,11 @@
                                 </tr>
                             } 
                         } 
-                    } 
-
-              
+                    }
             </tbody>
         </table>
     </div>
 </div>
-
-@* -------------------------------------------------------------- *@
-
-
-<!--редактировать смену-->
-<script>
-    
-    function loadTracking(str) {
-        let date = str.parentElement.parentElement.children[0].children[0].textContent;
-        let guid = str.parentElement.parentElement.children[2].textContent
-        p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
-        $('#page').load(p);
-        console.log(p)
-        $('#loading').show();
-    } 
-    
-
-</script>
-
 
 <!--группировка по ТТ-->
 <script>
@@ -277,8 +241,20 @@
         let selectedOption = ttSelector.options[ttSelector.selectedIndex];
         let selectedOptionId = selectedOption.getAttribute("id");
         $('#loading').show();
-        $(contentContainer).load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
+        $('#page').load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
     }
+</script>
+
+
+<!--редактировать смену-->
+<script>
+    function loadTracking(str) {
+        let date = str.parentElement.parentElement.children[0].children[0].textContent;
+        let guid = str.parentElement.parentElement.children[2].textContent
+        p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
+        $('#page').load(p);
+        $('#loading').show();
+    } 
 </script>
 
 <!--по загрузке страницы-->

@@ -11,6 +11,8 @@ using Portal.Models.Calculator;
 using Portal.Models;
 using Microsoft.CodeAnalysis;
 using System.Drawing;
+using Portal.Models.JsonModels;
+using Newtonsoft.Json;
 
 namespace Portal.Controllers
 {
@@ -120,7 +122,33 @@ namespace Portal.Controllers
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
             return PartialView(trackingDataEditModel);
         }
+        public IActionResult TimeTrackingAdd(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                TimeSheetJsonModel TimeSheetJsonModels = JsonConvert.DeserializeObject<TimeSheetJsonModel>(json);
+                List<object> numbers = new List<object>();
+                foreach (var TimeSheet in TimeSheetJsonModels.TimeSheetJson)
+                {
+                    Models.MSSQL.TimeSheet TimeSheets = new TimeSheet();
+                    TimeSheets.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == TimeSheet.Personality);
+                    TimeSheets.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == TimeSheet.Location);
+                    TimeSheets.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == TimeSheet.JobTitle);
+                    TimeSheets.Begin = TimeSheet.Begin;
+                    TimeSheets.End = TimeSheet.End;
+                    dbSql.Add(TimeSheets);
+                }
 
-
+                dbSql.SaveChanges();
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
     }
 }

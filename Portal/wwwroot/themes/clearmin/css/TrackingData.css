@@ -48,12 +48,72 @@
 
 .getJobTitleData{
     transition: background-color linear 0.2s;
-}
-
-.personList {
-    transition: display linear 0.2s;
+    cursor: pointer;
 }
 
 .active1{
     background-color: #f5e5dc;
+}
+
+
+
+.getAllPersons{
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.newRowAlign{
+    vertical-align: middle !important;
+    font-weight: 400;
+    font-size: 13px;
+}
+
+.table3{
+    max-height: 70vh;
+}
+
+.scrollTable{
+    height: 70vh;
+    overflow-y: scroll;
+}
+
+.allPerson{
+    margin-top: 5vh;
+    border: 1px solid #dddddd;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    background-color: #dddddd6e;
+    box-shadow: inset 0px 0px 10px 5px #dddddd6e;
+    transition: background-color 0.2s linear;
+    transition: color 0.2s linear;
+    cursor: pointer;
+}
+
+.sortPersonInput{
+    width: 13vw;
+    height: 35px;
+    border: 1px solid #dddddd;
+}
+
+.sortPersonInput::placeholder {
+    font-style: italic;
+}
+
+.active2{
+    background-color: #F4812E !important;
+    margin-bottom: 10px;
+    color: white;
+    box-shadow: none;
+}
+
+.table-for-an{
+    transition: display 0.2s linear;
+}
+
+#selectJobTitle{
+    height: 40px;
+    width: 150px;
 }
