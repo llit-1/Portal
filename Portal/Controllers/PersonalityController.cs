@@ -33,8 +33,8 @@ namespace Portal.Controllers
             model.Personalities = dbSql.Personalities.Include(c => c.JobTitle)
                                                              .Include(c => c.Location)
                                                              .Include(c => c.Schedule)
-                                                             .ToList();
-            if (showUnActual == "0") { model.Personalities = model.Personalities.Where(c => c.Actual != 0).ToList(); }          
+                                                             .ToList();                                                            
+            if (showUnActual == "0") { model.Personalities = model.Personalities.Where(c => c.Actual == 1).ToList(); }          
             return PartialView(model);
         }
 

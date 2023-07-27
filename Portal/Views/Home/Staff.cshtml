@@ -22,8 +22,10 @@
             </div>
         </a>
     </div>
-
-    
+    }   
+  
+    @if (User.IsInRole("employee_control"))
+    {
     <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
         <a href="#TrackingData" class="panel panel-default thumbnail cm-thumbnail tails-panel">
             <div class="panel-body text-center" style="min-height: 147px;">

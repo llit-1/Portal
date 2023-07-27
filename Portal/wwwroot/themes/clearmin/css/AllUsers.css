@@ -83,6 +83,7 @@
 /* Тумблер конец */
 
 
+
 /* Страница добавления пользователя */
 
 /* Уменьшение размера таблицы при раскрытии меню */
@@ -111,6 +112,7 @@
     width: 63vw;
     align-items: center;
     border-bottom: 1px solid #ABABAA;
+    padding-bottom: 5px;
 }
 
 .personData {
@@ -142,6 +144,10 @@
     transition: box-shadow linear 1.2s;
 }
 
+.actual {
+    width: 9vw !important;
+    border-radius: 5px;
+}
 .inputPersonData:focus {
     border-color: #418dffd0 !important;
     box-shadow: 0px 0px 4px 2px #418dff79 !important;
@@ -268,6 +274,7 @@
     .titlePersontable{
         padding-top: 20px;
         width: 80vw;
+        padding-bottom: 5px;
     }
 
     .statePersonData{

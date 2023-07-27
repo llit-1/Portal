@@ -1,136 +1,433 @@
-@model Portal.Models.TrackingDataModel
+@model Portal.Models.TrackingDataEditModel
 
 <div class="row" id="fordres_editor">
     <!--группы-->
     <div class="col-sm-2">
-        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
-
+        <div class="col-4 panel panel-default height table1" id='check' style="margin-bottom: 10px">
             <table class="table">
                 <tr> 
                     <th class="bg-primary">Должность</th>
                 </tr>
-            </table>
-
-            <div class="scroll">
-                <table class="table table-hover" id="groupTable">
-                    @foreach (var item in Model.TTDatas[0].Location.Name)
-                    {
-                        <tr class="row-group-02"> 
-                            <td class="TableGroup"><input type="checkbox" class="hidden"><label>@item</label></td>
+                @foreach (var item in Model.JobTitles)
+                {
+                        <tr class="getJobTitleData"> 
+                            <td style="cursor: pointer;"><input type="checkbox" class="hidden"><label style="cursor: pointer;">@item.Name</label></td>
+                            <td class="hidden TTForHeader">@Model.TTData.Location.Name</td>
+                            <td class="hidden TTIdForHeader">@Model.TTData.Location.Guid</td>
+                            <td class="hidden jobTitleId">@item.Guid</td>
+                            <td class="hidden dateForHeader">@Model.TTData.DateDatas[0].Date.ToString("dd.MM.yyyy")</td>
                         </tr>
-                    }
-                </table>
-            </div>
+                }
+            </table>
+        </div>
+        <div class="allPersonsDiv" id="allPersonsDiv">
+            <table class="allPersonsTable">
+                <tr class="allPerson getAllPersons" onclick="allPersons()" style="width: 100%;">
+                    <td >Все сотрудники</td>
+                </tr>
+                <tr class="sortInput">
+                    <td ><input type="text" class="sortPersonInput hidden" placeholder="Введите ФИО" ></td>
+                </tr>
+            </table>
         </div>
     </div>
+
     <!--SKU-->
     <div class="col-sm-5">
-        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
 
             <table class="table">
-
                 <tr class="bg-primary">
-                    <th width="51%" class="text-center">Сотрудник</th>
-                    <th width="7%" class="text-center"></th>
+                    <th class="text-left">Сотрудник</th>
+                    <th class="text-center">Должность</th>
                 </tr>
-
             </table>
 
-            <div class="scroll" id="skuTables">
-            </div>
+        <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
+            <table class="table table-for-an">
 
+
+
+                @foreach (var item in Model.Personalities.OrderBy(g => g.Surname))
+                {
+                        <tr class="personList hidden"> 
+                            <td class="hidden">@item.Guid</td>
+                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+                            <td>@item.JobTitle.Name</td>
+                            <td class="hidden">@item.JobTitle.Guid</td>
+                            <td class="hidden">@item.Location.Guid</td>
+                            <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
+                            <td class="hidden">@item.Schedule.BeginTime</td>
+                            <td class="hidden">@item.Schedule.EndTime</td>
+                        </tr>
+                }
+            </table>
         </div>
-
-        <!--добавить все-->
-        <div class="col-4" style="height:40px">
-            <button class="btn btn-sm btn-default" type="button" href="javascript:void(0)" onclick="selectAllSku()" style="float:right; margin-left:20px">добавить всех</button>
-        </div>
-
     </div>
 
-            <!--заказ-->
+    <!--заказ-->
     <div class="col-sm-5">
         <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
-            <table class="table">
-                <tr class="bg-primary">
-                    <td>
-                        <label for="ttSelect">ТТ</label>
-                        <select class="form-control form-control-sm" id="ttSelect">
-                            <option selected disabled>выберите точку</option>
-                        </select>
-                    </td>
-
-                    <td>
-                        <label for="orderDate">Дата</label>
-                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="2023.07.11" max="2023.07.17" />
-                    </td>
-                </tr>
-            </table>
 
             <table class="table">
                 <tr class="bg-primary">
-                    <th width="40%" class="text-left">Сотрудник</th>
-                    <th width="30%" class="text-center">Должность</th>
-                    <th width="25%" class="text-left">Время</th>
-                    <th width="5%" class="text-center"></th>
+                    <th  class="text-left">Сотрудник</th>
+                    <th  class="text-left">Должность</th>
+                    <th  class="text-left">Время</th>
+                    @* <th  class="text-center"></th> *@
                 </tr>
             </table>
 
             <!--sku  в заказе-->
-            <div class="scroll" id="SkuInOrder">
-                <table class="table" id="FOrdersItemsTable">
-                    <tr></tr>
+            <div id="SkuInOrder" class="table1">
+                <table class="table">
+                    <tbody id="personItemsTable" >
+                        @if (Model.TTData.DateDatas[0].TimeSheets.Count() > 0)
+                        {
+                            @foreach (var item in Model.TTData.DateDatas[0].TimeSheets)
+                            {
+                                        <tr>
+                                            <th class="hidden guidForError">@item.Personality.Guid</th>
+                                            <th class="newRowAlign">@item.Personality.Surname @item.Personality.Name @item.Personality.Patronymic</th>
+                                            <th class="hidden">@item.JobTitle.Guid</th>
+                                            <th class="newRowAlign">
+                                            <select name="" id="selectJobTitle" class="selectJobTitle">
 
-                    <tr>
-                        <td style="vertical-align: middle;">
-                            Кургузов Владислав Сергеевич
-                        </td>
+                                            @foreach (var job in Model.JobTitles)
+                                            {
+                                                if (job.Name == item.JobTitle.Name)
+                                                {
+                                                    <option value="@job.Guid" selected>@job.Name</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@job.Guid">@job.Name</option>
+                                                }
 
-                        <td style="vertical-align: middle;">
-                            Директор
-                        </td>
+                                            }
 
-                        <td style="vertical-align: middle;">
-                            <select class="form-control form-control-sm" style="min-width:110px">
-                                <option value="08:00-17:00">08:00-17:00</option>
-                                <option value="09:00-18:00">09:00-18:00</option>
-                                <option value="17:00-00:00">17:00-00:00</option>
-                            </select>
-                        </td>
-                        
-                        <td style="vertical-align: bottom;">
-                            <label class="md-remove-circle-outline ico" style="margin: 0;"></label>
-                        </td>
+                                            </select>
 
-                        <td class="hidden">
-                            15
-                        </td>
-
-                        <td class="hidden">
-                            <input value="до Завтра" />
-                        </td>
-
-                        <td class="hidden">
-                            <input  value="Сегодня" />
-                        </td>
-
-                    </tr>
-
+                                            </th>
+                                            <th class="newRowAlign" style="width: fit-content;" ><input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON"><input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON"></th>
+                                            <th class="newRowAlign"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
+                                        </tr>
+                            }
+                        }
+                    </tbody>
                 </table>
             </div>
+        </div>
 
-
-                </div>
-
-                <!--кнопки сохранить/отмена-->
+        <!--кнопки сохранить/отмена-->
         <div class="col-4" style="height:40px">
-            <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder()" style="float:right">Сохранить</button>
+            <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="sendData()" style="float:right">Сохранить</button>
         </div>
     </div>
 </div>
 
 
 <script>
+    let tt = document.querySelector('.TTForHeader').textContent
+    let date = document.querySelector('.dateForHeader').textContent
+    $('#header').text(date + '  ' + tt);
     $('#back').unbind('click');
-    $('#back').click(function () { $(contentContainer).load('/TimeTracking/TrackingData')});
+    $('#back').click(function () { 
+        $('#page').load('/TimeTracking/TrackingData')});
+</script>
+
+
+
+<script>
+    @* Прячем или показываем кнопку "Все сотрудники" *@
+    function hideInput(){
+        let inputSearch = document.querySelector('.sortPersonInput')
+        if(!inputSearch.classList.contains('hidden')){
+            inputSearch.classList.add('hidden')
+        }
+    } 
+    function showInput(){
+        let inputSearch = document.querySelector('.sortPersonInput')
+        if(inputSearch.classList.contains('hidden')){
+            inputSearch.classList.remove('hidden')
+        }
+    }
+
+    @* Заполняем список сотрудников, в зависимости от точки и должности *@
+    $(".getJobTitleData").click(function (event) {
+        checkHeight()
+        let getAllPersons = document.querySelector('.getAllPersons');
+        let elem = this;
+        let allJobTitle = document.querySelectorAll('.getJobTitleData')
+        let allPerson = document.querySelectorAll('.personList')
+        // Получаем guid должности
+        let jobTitle = this.children[3].textContent;
+        // Получаем guid должности
+        let ttguid = this.children[2].textContent;
+        // В случае, если кнопка нажата -> убираем выделение -> для каждого человека добавляем hidden
+        if(elem.classList.contains('active1')){
+            elem.classList.remove('active1');
+            hideInput()
+            getAllPersons.classList.remove('active2')
+            allPerson.forEach((str) => {
+                str.classList.add('hidden')
+            })
+        // В случае, если кнопка не нажата -> снимаем со всех кнопок выделение -> прячем всех людей -> добавляем выделение на 1 кнопку -> 
+        }else{
+            getAllPersons.classList.remove('active2')
+            hideInput()
+            allJobTitle.forEach((str) => {
+                str.classList.remove('active1')
+            })
+            allPerson.forEach((str) => {
+                str.classList.add('hidden')
+            })
+            elem.classList.add('active1');
+            allPerson.forEach((str) => {
+                if(str.children[3].textContent == jobTitle && str.children[4].textContent == ttguid){
+                    str.classList.remove('hidden')
+                }
+            })
+        }
+    })
+</script>
+
+<!--Кнопка просмотра всех сотрудников-->
+<script>
+    function allPersons(){
+        let inputSearch = document.querySelector('.sortPersonInput')
+        inputSearch.classList.toggle('hidden')
+        let allJobTitle = document.querySelectorAll('.getJobTitleData')
+        let allPerson = document.querySelectorAll('.personList')
+        let getAllPersons = document.querySelector('.getAllPersons');
+        if(getAllPersons.classList.contains('active2')){
+            hideInput()
+            getAllPersons.classList.remove('active2');
+            allPerson.forEach((str) => {
+                    str.classList.add('hidden')
+            });
+        } else {
+            showInput()
+            allJobTitle.forEach((str) => {
+                str.classList.remove('active1')
+            })
+            getAllPersons.classList.add('active2');
+            allPerson.forEach((str) => {
+                str.classList.remove('hidden')
+            });
+        }
+        checkHeight()
+    }
+</script>
+
+<!--Добавляем человека в смену-->
+<script>
+    function addRowPeron(data) {
+        // Создаем строку
+        let newRow = document.createElement('tr');
+
+        // Создаем ячейки для заполнения
+        let guidNameCell = document.createElement('td');
+        guidNameCell.classList.add('newRowAlign');
+        guidNameCell.classList.add('hidden');
+        guidNameCell.classList.add('guidForError');
+
+        let nameCell = document.createElement('td');
+        nameCell.classList.add('newRowAlign');
+
+        let jobTitleIdCell = document.createElement('td');
+        jobTitleIdCell.classList.add('newRowAlign');
+        jobTitleIdCell.classList.add('hidden');
+
+        let jobTitleCell = document.createElement('td');
+        jobTitleCell.classList.add('newRowAlign');
+
+        let timeCell = document.createElement('td');
+        timeCell.classList.add('newRowAlign');
+
+        let deletePersonCell = document.createElement('td');
+        deletePersonCell.classList.add('newRowAlign');
+
+        // Получаем данные из personList
+        let guidName = data.parentElement.children[0].textContent;
+        let name = data.parentElement.children[1].children[1].textContent;
+        let guidJobTitle = data.parentElement.children[3].textContent;
+        let jobTitleName = data.parentElement.children[2].textContent;
+        let timeBegin = data.parentElement.children[6].textContent;
+        let timeEnd = data.parentElement.children[6].textContent;
+
+        // Заполняем данными
+        guidNameCell.textContent = guidName;
+        nameCell.textContent = name;
+        jobTitleIdCell.textContent = guidJobTitle;
+        jobTitleCell.innerHTML = `` ;
+        timeCell.innerHTML = `<input type="time" value='${timeBegin}' class='timeBeginForJSON'><input type="time" value='${timeEnd}' class='timeEndForJSON'>`;
+        deletePersonCell.innerHTML = `<label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label>`;
+
+        newRow.appendChild(guidNameCell);
+        newRow.appendChild(nameCell);
+        newRow.appendChild(jobTitleIdCell);
+        newRow.appendChild(jobTitleCell);
+        newRow.appendChild(timeCell);
+        newRow.appendChild(deletePersonCell);
+
+
+        let table = document.getElementById('personItemsTable');
+        table.appendChild(newRow);
+
+        const getJobTitleData = document.querySelectorAll('.getJobTitleData');
+        const jobTitleList = [];
+        const jobTitleIdList = [];
+        getJobTitleData.forEach((jobTitle) => {
+            jobTitleList.push(jobTitle.children[0].children[1].textContent)
+            jobTitleIdList.push(jobTitle.children[3].textContent)
+        })
+
+        let select = document.createElement('select');
+        select.name = '';
+        select.id = 'selectJobTitle';
+        select.className = 'selectJobTitle';
+
+        for (let i = 0; i < jobTitleList.length; i++) {
+            let option = document.createElement('option');
+            option.value = jobTitleIdList[i];
+            option.text = jobTitleList[i];
+            if(jobTitleList[i] == jobTitleName){
+                option.selected = true;
+            }
+            select.add(option);
+        }
+
+        jobTitleCell.appendChild(select);
+
+        checkHeight()
+    }
+
+    function deletePersonRow(str){
+        str.closest('tr').remove()
+        checkHeight()
+    }
+    @* if scrollTable *@
+    function checkHeight() {
+        let table3 = document.querySelectorAll('.table1');
+        table3.forEach((fixTable) => {
+            let table = fixTable.children[0]
+
+            let tableHeight = fixTable.clientHeight;
+            let helperHeight = table.clientHeight;
+            let windowHeight = window.innerHeight;
+            if (tableHeight > 0.69 * windowHeight) {
+                fixTable.classList.add('scrollTable')
+            }
+            if (helperHeight < 0.69 * windowHeight){
+                fixTable.classList.remove('scrollTable')
+            }
+        })
+
+    }
+    checkHeight()
+</script>
+
+<!--Сортировка таблицы по имени-->
+<script>
+    const sortPersonInput = document.querySelector('.sortPersonInput') // input, куда вводится текст
+    const personList = document.querySelectorAll('.namePersons') // список label, где записаны все ФИО
+
+    sortPersonInput.addEventListener('input', (event) => {
+        let filterValue = event.target.value.toLowerCase();
+        let table = document.querySelector('.table-for-an')
+        let rows = table.getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+            let name = rows[i].getElementsByTagName('td')[1].children[1];
+            if (name) {
+                let nameValue = name.textContent || name.innerText;
+                if (nameValue.toLowerCase().indexOf(filterValue) > -1) {
+                rows[i].classList.remove('hidden');
+                } else {
+                rows[i].classList.add('hidden');
+                }
+            }
+        }
+    })
+</script>
+
+<!--Отправляем данные и сборка JSON-->
+<script>
+    function sendData(){
+        // Получаем данные 
+        const selectJobTitle = document.querySelectorAll('.selectJobTitle');
+        const personalityGuid = document.querySelectorAll('.guidForError');
+        const locationGuid = document.querySelector('.TTIdForHeader');
+        const begin = document.querySelectorAll('.timeBeginForJSON');
+        const end = document.querySelectorAll('.timeEndForJSON');
+        const date = document.querySelector('.dateForHeader').textContent.split('.').reverse().join('-'); + ' ' + '00:00:00';
+        const TimeSheetJson = [];
+        const sheduleData = {};
+
+        function editDate(date, days){
+            date = date + (60 * 60 * 24 * days * 1000);
+            date = new Date(date)
+            let year = date.getFullYear();
+            let month = ("0" + (date.getMonth() + 1)).slice(-2);
+            let day = ("0" + date.getDate()).slice(-2);
+            let result = year + "-" + month + "-" + day;
+            return result;
+        }
+        
+        for(let i = 0; i < selectJobTitle.length; i++){
+            
+            let date1 = new Date();
+            date1 = date1.setHours.apply(date1, begin[i].value.split(":"));
+            let date2 = new Date();
+            date2 = date2.setHours.apply(date2, end[i].value.split(":"));
+            let diff = date2 - date1;
+            let helperForTime = document.querySelector('.dateForHeader').textContent.split('.').reverse().join('-');
+            let beginTime;
+            let endTime;
+            if(diff > 0){
+                endTime = helperForTime + ' ' + end[i].value;
+            } else {
+                const dateString = document.querySelector('.dateForHeader').textContent;
+                const dateParts = dateString.split('.');
+                const dateObject = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+                // получение миллисекунд
+                const milliseconds = dateObject.getTime();
+                let totalEndDateWithOutHours = editDate(milliseconds, 1).split('.').reverse().join('-')
+                endTime = totalEndDateWithOutHours + ' ' + end[i].value;
+            }
+            
+            beginTime = helperForTime + ' ' + begin[i].value;
+            
+            TimeSheetJson.push({
+                Personality: personalityGuid[i].textContent,
+                JobTitle: selectJobTitle[i].value,
+                Location: locationGuid.textContent,
+                Begin: beginTime,
+                End: endTime,
+            })
+       }
+
+       sheduleData.TimeSheetJson = TimeSheetJson;
+       sheduleData.Date = date;
+       sheduleData.Location = locationGuid.textContent;
+       
+        const sheduleDataJSON = JSON.stringify(sheduleData);
+         $.ajax({
+            type: "POST",
+            url: '/TimeTracking/TimeTrackingAdd',
+            data: { json: sheduleDataJSON },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    SpinnerShow();
+                    $('#page').load('/TimeTracking/TrackingData', function () { SpinnerHide(); });
+                }
+                else {
+                    alert(result);
+                    @* alert('Что-то пошло не так'); *@
+                }
+            },
+            @* error: function (error) { alert(error.responseText); } *@
+            error: function (error) { alert(error); }
+        }); 
+    }
 </script>
