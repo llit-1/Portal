@@ -14,6 +14,7 @@ using System.Drawing;
 using Portal.Models.JsonModels;
 using Newtonsoft.Json;
 
+
 namespace Portal.Controllers
 {
     [Authorize]
@@ -103,6 +104,7 @@ namespace Portal.Controllers
         public IActionResult TrackingDataEdit(string stringDate, string locationGuid)
         {
             TTData tTData = new TTData();
+
             DateTime date = DateTime.ParseExact(stringDate, "dd-MM-yyyy", null);
             Portal.Models.MSSQL.Location.Location location = dbSql.Locations.FirstOrDefault(c => c.Guid == Guid.Parse(locationGuid));
             DateData dateData = new DateData();
@@ -122,6 +124,7 @@ namespace Portal.Controllers
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
             return PartialView(trackingDataEditModel);
         }
+
         public IActionResult TimeTrackingAdd(string json)
         {
             var result = new RKNet_Model.Result<string>();

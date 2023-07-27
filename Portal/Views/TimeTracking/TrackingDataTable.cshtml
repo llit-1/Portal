@@ -39,7 +39,6 @@
         </div>
     </div>
 
-
     <div class="headerTrackingItem">
         <select class="form-control form-control-sm" id="intervalSelector" onchange="editCalendar()">
 
@@ -209,8 +208,6 @@
  
         // получить сегодняшнюю дату в формате `MM/DD/YYYY`
         let now = today.toLocaleDateString('en-US');
-        
-
         function editDate(days){
             let date = Date.now()
             date = date - (60 * 60 * 24 * days * 1000);

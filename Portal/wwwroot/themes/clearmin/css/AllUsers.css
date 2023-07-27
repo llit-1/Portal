@@ -148,7 +148,6 @@
     width: 9vw !important;
     border-radius: 5px;
 }
-
 .inputPersonData:focus {
     border-color: #418dffd0 !important;
     box-shadow: 0px 0px 4px 2px #418dff79 !important;

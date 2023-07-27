@@ -5,6 +5,7 @@
     <!--Выпадающий список состояний работника-->
     <div class="titlePersontable">
         <h3>Данные пользователя</h3>
+
         <select class="inputPersonData actual">
         @if (Model.Personality == null || Model.Personality.Actual == 1)
         {
@@ -25,6 +26,7 @@
             <option value="0" selected class="optionForColor">Уволен</option>
         }
         </select>
+
     </div> 
         <hr>
     <!--Наполнение данных, если они есть-->
@@ -163,7 +165,6 @@
                 <input type="date" class="inputPersonData" id="HireDate">
                 <label class="label-light">Дата увольнения</label>
                 <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
-
                 <label class="label-light">Смена</label>
                 @* Выбор смены *@
                 <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
