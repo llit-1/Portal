@@ -127,9 +127,9 @@ namespace Portal.Controllers
             var result = new RKNet_Model.Result<string>();
             try
             {
-                TimeSheetJsonModel TimeSheetJsonModels = JsonConvert.DeserializeObject<TimeSheetJsonModel>(json);
-                List<object> numbers = new List<object>();
-                foreach (var TimeSheet in TimeSheetJsonModels.TimeSheetJson)
+                TimeSheetJsonModel timeSheetJsonModel = JsonConvert.DeserializeObject<TimeSheetJsonModel>(json);
+                List<TimeSheet> addedTimeSheets = new List<TimeSheet>();
+                foreach (var TimeSheet in timeSheetJsonModel.TimeSheetJson)
                 {
                     Models.MSSQL.TimeSheet TimeSheets = new TimeSheet();
                     TimeSheets.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == TimeSheet.Personality);
@@ -137,9 +137,29 @@ namespace Portal.Controllers
                     TimeSheets.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == TimeSheet.JobTitle);
                     TimeSheets.Begin = TimeSheet.Begin;
                     TimeSheets.End = TimeSheet.End;
-                    dbSql.Add(TimeSheets);
+                    addedTimeSheets.Add(TimeSheets);
+                }                
+                List<TimeSheet> removedTimeSheets = dbSql.TimeSheets.Include(c => c.Location)
+                                                                    .Where(c => c.Location.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
+                                                                    .ToList();
+                List<Guid> selectedPersonalityGuid = timeSheetJsonModel.TimeSheetJson.Select(c => c.Personality).Distinct().ToList();
+                List<TimeSheet> checkingTimeSeets = new List<TimeSheet>();
+                foreach (var personality in selectedPersonalityGuid)
+                {
+                   checkingTimeSeets.AddRange(dbSql.TimeSheets.Include(c => c.Personality)
+                                                         .Where(c => c.Personality.Guid == personality && c.Begin.Date == timeSheetJsonModel.Date)
+                                                         .ToList());
+                }
+                checkingTimeSeets = checkingTimeSeets.Where(c => !removedTimeSheets.Any(d => d.Guid == c.Guid)).ToList();
+                checkingTimeSeets.AddRange(addedTimeSheets);
+                string error = CheckTimesheetsForСoincidenceTime(checkingTimeSeets, selectedPersonalityGuid);
+                if (error != "")
+                {
+                   return new ObjectResult(error);
                 }
 
+                dbSql.TimeSheets.RemoveRange(removedTimeSheets);
+                dbSql.AddRange(addedTimeSheets);
                 dbSql.SaveChanges();
                 return new OkObjectResult(result);
             }
@@ -150,5 +170,24 @@ namespace Portal.Controllers
                 return new ObjectResult(result);
             }
         }
+
+        private string CheckTimesheetsForСoincidenceTime(List<TimeSheet> checkingTimeSeets, List<Guid> selectedPersonalityGuid)
+        {
+            foreach (var personality in selectedPersonalityGuid)
+            {
+                List<TimeSheet> timeSheets = checkingTimeSeets.Where(c => c.Personality.Guid == personality).OrderBy(c => c.Begin).ToList();
+                DateTime selectedDatetime = new();
+                for (int i = 0; i < timeSheets.Count; i++)
+                {
+                    if (selectedDatetime > timeSheets[i].Begin)
+                    {
+                        return ($"Error: Конфликт рабочего времени!\nСотрудник: {timeSheets[i].Personality.Surname} {timeSheets[i].Personality.Name} {timeSheets[i].Personality.Patronymic}");
+                    }
+                    selectedDatetime = timeSheets[i].End;
+               }
+            }
+            return "";
+        }
+
     }
 }

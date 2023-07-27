@@ -544,10 +544,9 @@
     }
 
     <!--Учет пользователей #staff--> 
-    @if (User.IsInRole("HR"))
+    @if (User.IsInRole("employee_control"))
     {
         <div class="@classTails">
-            @* Сюда ссылку на страницу *@   
             <a href="#staff" class="panel panel-default thumbnail cm-thumbnail tails-panel">
                 <div class="panel-body text-center tails-main" style="min-height: 147px;">
                     <span class="svg-48">
@@ -570,9 +569,8 @@
                     <h4>Учет сотрудников</h4>
                     <small>*ожидается описание*</small>
                 </div>
-
         @{
-            var role = "HR";
+            var role = "employee_control";
             var req = Model.FirstOrDefault(r => r.RoleCode == role);
         }
 

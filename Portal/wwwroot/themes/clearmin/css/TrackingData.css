@@ -9,6 +9,11 @@
 
 }
 
+.headerTracking__date{
+    display: flex;
+    flex-direction: row;
+}
+
 .headerTrackingItem{
     margin-right: 15px;
     display: flex;
@@ -68,6 +73,20 @@
     font-size: 13px;
 }
 
+.newRowAlign > input{
+    border: 1px solid #00000042;
+    margin-bottom: 2px;
+    border-radius: 2px;
+    padding: 0px 4px;
+    text-align: center;
+    margin-right: 2px;
+}
+
+#selectJobTitle{
+    border: 1px solid #00000042;
+    border-radius: 2px;
+}
+
 .table3{
     max-height: 70vh;
 }
@@ -92,12 +111,6 @@
     cursor: pointer;
 }
 
-.sortPersonInput{
-    width: 13vw;
-    height: 35px;
-    border: 1px solid #dddddd;
-}
-
 .sortPersonInput::placeholder {
     font-style: italic;
 }
@@ -116,4 +129,113 @@
 #selectJobTitle{
     height: 40px;
     width: 150px;
+}
+
+.allPersonsDiv, .allPersonsTable, .getAllPersons{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    width: 100%;
+    margin-bottom: 10px !important;
+}
+
+.allPersonsTable{
+    width: 100%;
+}
+
+.allPersonsTable > tbody {
+    width: 100%;
+}
+
+.sortInput {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.sortPersonInput{
+    width: 100%;
+    border: 1px solid #cccccc;
+    border-radius: 2px;
+    height: 35px;
+}
+
+.sortInput > td {
+    width: 100%;
+}
+
+
+/* Мобильная версия */
+
+
+/* Страница с выбором точки */
+@media screen and (max-width: 488px) and (orientation: portrait){
+    .headerTracking{
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .headerTrackingItem{
+        margin: 0;
+        position: relative;
+    }
+
+    .headerTracking__date{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 10px 0px;
+    }
+
+    .calendarTracking{
+        width: 35vw;
+        text-align: center;
+    }
+
+    .row-group-03{
+        font-size: 10px;
+    }
+}
+
+/* Страница с выбором */
+
+@media screen and (max-width: 488px) and (orientation: portrait){
+    .allPersonsDiv{
+        margin-bottom: 10px;
+        width: 92vw;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+    }
+
+    .getAllPersons{
+        margin: 0;
+    }
+
+    .allPersonsTable{
+        width: 92vw;
+    }
+
+    .sortPersonInput{
+        width: 91vw;
+    }
+
+    div.allPersonsDiv > table > tbody > tr:nth-child(2) > td > input {
+        margin-top: 2px;
+        text-align: center;
+        border-radius: 2px;
+    }
+
+    div.col-4.panel.panel-default.height > table > tbody > tr{
+        width: 12px;
+    }
+
+    #selectJobTitle{
+        width: 100px;
+    }
+
 }

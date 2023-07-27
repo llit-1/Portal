@@ -133,7 +133,7 @@
         // Проходимся по каждой ячейки в поисках "0"
         for(let j = 0; j < cell.length; j++){ 
             let td = cell[j].querySelector("p").textContent
-            if(td === '0') {
+            if(td === '0' || td === '2') {
                 //Закрашиваем ряд
                 rows[i].style.backgroundColor = "#f3c7a030";
             }

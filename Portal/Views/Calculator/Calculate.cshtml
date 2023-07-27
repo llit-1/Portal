@@ -80,13 +80,11 @@
         <div>
             @for (int i = 0; i < Model.TTs.Count; i++)
             {
-                
                 <button class="ttbut" id=@Model.TTs[i].Restaurant_Sifr onclick="ttbutClick(this)">@Model.TTs[i].Name</button>
             }
         </div>
     } 
 </div>
-    
 
 <script>
        function calculate(inputObject){
@@ -104,29 +102,29 @@
         let nextSecondPeriodCoefficient = trObject.querySelector('.nextSecondPeriodCoefficient').value.replace(/(,)/, ".");
         let itemCode = trObject.querySelector('.itemCode').value;
         let itemName = trObject.querySelector('.itemName').value;
-        let resp
+        let resp;
         switch (@Model.Reaction)
          {
             case 1:
-                if(inputObject.value < averageProductionPeriod){
-                    resp = Math.round((averageRestOfThisPeriod - averageProductionPeriod) * itemCoef * itemOnTTCoef * thisPeriodCoefficient)
+                if(+inputObject.value < +averageProductionPeriod){
+                    resp = Math.round((+averageRestOfThisPeriod - +averageProductionPeriod) * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient)
                     break;
                 }
-                resp = Math.round(averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value);
+                resp = Math.round(+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value);
                 break;
             case 2:
-                if (inputObject.value < averageProductionPeriod) {
-                    resp = Math.round((averageNextPer * nextPeriodCoefficient + (averageRestOfThisPeriod - averageProductionPeriod) * thisPeriodCoefficient) * itemCoef * itemOnTTCoef)
+                if (+inputObject.value < +averageProductionPeriod) {
+                    resp = Math.round((+averageNextPer * +nextPeriodCoefficient + (+averageRestOfThisPeriod - +averageProductionPeriod) * +thisPeriodCoefficient) * +itemCoef * +itemOnTTCoef)
                     break;
                 }
-                resp = Math.round(averageNextPer * itemCoef * itemOnTTCoef * nextPeriodCoefficient + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value));
+                resp = Math.round(+averageNextPer * +itemCoef * +itemOnTTCoef * +nextPeriodCoefficient + (+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value));
                 break;
             case 3:
-                if (inputObject.value < averageProductionPeriod) {
-                    resp = Math.round((averageSecondNextPer * nextSecondPeriodCoefficient + averageNextPer * nextPeriodCoefficient + (averageRestOfThisPeriod - averageProductionPeriod) * thisPeriodCoefficient) * itemCoef * itemOnTTCoef)
+                if (+inputObject.value < +averageProductionPeriod) {
+                    resp = Math.round((+averageSecondNextPer * +nextSecondPeriodCoefficient + +averageNextPer * +nextPeriodCoefficient + (+averageRestOfThisPeriod - +averageProductionPeriod) * +thisPeriodCoefficient) * +itemCoef * +itemOnTTCoef)
                     break;
                 }
-                resp = Math.round((averageSecondNextPer * nextSecondPeriodCoefficient + averageNextPer * nextPeriodCoefficient) * itemCoef * itemOnTTCoef + (averageRestOfThisPeriod * itemCoef * itemOnTTCoef * thisPeriodCoefficient - inputObject.value));
+                resp = Math.round((+averageSecondNextPer * +nextSecondPeriodCoefficient + +averageNextPer * +nextPeriodCoefficient) * +itemCoef * +itemOnTTCoef + (+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value));
                 break;
          }
         if (resp < 0) {resp = 0}

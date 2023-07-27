@@ -29,16 +29,16 @@
             }
         </select>
     </div>
- 
-    <div class="headerTrackingItem">
-        <p class="pTracking">С:</p>
-       @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня)  *@
-        <input type='date' class="calendarTracking" id="calendarBegin" onchange="filters()" value='@Model.TTDatas[0].DateDatas[0].Date.ToString("yyyy-MM-dd")'>
+    <div class="headerTracking__date">
+        <div class="headerTrackingItem">
+        @* Получаем дату, которую отправили или дефолтную (сегодня-сегодня)  *@
+            <input type='date' class="calendarTracking form-control form-control-sm" id="calendarBegin" onchange="filters()" value='@Model.TTDatas[0].DateDatas[0].Date.ToString("yyyy-MM-dd")'>
+        </div>
+        <div class="headerTrackingItem">
+            <input type='date' class="calendarTracking form-control form-control-sm" id="calendarEnd" onchange="filters()" value='@Model.TTDatas[0].DateDatas[^1].Date.ToString("yyyy-MM-dd")' >
+        </div>
     </div>
-    <div class="headerTrackingItem ">
-        <p class="pTracking">По: </p> 
-        <input type='date' class="calendarTracking" id="calendarEnd" onchange="filters()" value='@Model.TTDatas[0].DateDatas[^1].Date.ToString("yyyy-MM-dd")' >
-    </div>
+
 
     <div class="headerTrackingItem">
         <select class="form-control form-control-sm" id="intervalSelector" onchange="editCalendar()">
@@ -57,7 +57,7 @@
 <!--таблица заказов-->
 <div class="panel panel-default" id="OrdersFranch">
     <div class="table-responsive">
-        <table class="table" style="vertical-align: middle;" id="fOrdersTable">
+        <table class="table" style="vertical-align: middle;" id="fOrdersTable" width='80%'>
             <tbody>
                     @{  
                         var tts = Model.TTDatas.OrderBy(g => g.Location.Name);
@@ -66,9 +66,9 @@
                     @foreach (var tt in tts)
                     {
                         <tr class="row-group-01" id="rowTracking mainTR_@tt.Location.Guid" style="vertical-align: middle;">
-                            <td style="vertical-align: middle;" width=40% ><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
+                            <td style="vertical-align: middle;" width=30% ><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
                             <td style="vertical-align: middle;" id="tdcell" width=20%></td>
-                            <td style="vertical-align: middle;" align="center" colspan="1" width=40%></td>
+                            <td style="vertical-align: middle;" align="right" colspan="1" width=20%></td>
                         </tr>
                         <!--Даты-->
                         @foreach (var day in tt.DateDatas)
@@ -98,17 +98,17 @@
                                 <td style="vertical-align: middle;" align="left"><label id="IdForGetDate"><input class="hidden" type="checkbox" id='@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>@day.Date.ToString("dd-MM-yyyy")</label></td>
                                 <td style="vertical-align: middle;" align="center"> @countPerson</td>
                                 <td class="hidden">@tt.Location.Guid</td>
-                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
+                                <td style="vertical-align: middle;" align="right"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
                             </tr>
                             <!--Сотрудники-->
                             @foreach (var person in day.TimeSheets.OrderBy(g => g.Personality.Surname))
                             {
                                 var SNP = @person.Personality.Surname +' '+ @person.Personality.Name +' '+ @person.Personality.Patronymic;
                                 <tr class='row-group-03 hidden person_@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>
-                                    <td class="hidden">@person.Guid</td> @* Guid пользователя *@
-                                    <td style="vertical-align: middle;" class="mobile-hide">@SNP</td>
-                                    <td style="text-align:left; vertical-align: middle;">@person.JobTitle.Name</td>
-                                    <td>@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
+                                    <td class="hidden">@person.Guid</td>
+                                    <td style="vertical-align: middle;" align="left">@SNP</td>
+                                    <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitle.Name</td>
+                                    <td align="right">@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
                                 </tr>
                             } 
                         } 
@@ -195,15 +195,21 @@
 
 <!--Изменение календаря через выбор промежутка-->
 <script>
-    const startBeginDate = document.getElementById('calendarBegin').value
-    const endBeginDate = document.getElementById('calendarEnd').value
+    const startBeginDate = document.getElementById('calendarBegin');
+    const endBeginDate = document.getElementById('calendarEnd');
 
     function editCalendar() {
         let calendarBegin = document.getElementById("calendarBegin");
         let calendarEnd = document.getElementById("calendarEnd");
-        calendarBegin.value = startBeginDate;
-        calendarEnd.value = endBeginDate;
+        calendarBegin.value = startBeginDate.value;
+        calendarEnd.value = endBeginDate.value;
         const intervalSelector = document.getElementById('intervalSelector').value;
+
+        let today = new Date();
+ 
+        // получить сегодняшнюю дату в формате `MM/DD/YYYY`
+        let now = today.toLocaleDateString('en-US');
+        
 
         function editDate(days){
             let date = Date.now()
@@ -217,15 +223,19 @@
         }
         if(intervalSelector === '7 дней'){
             calendarBegin.value = editDate(7)
+            calendarEnd.value = editDate(0)
         }
         else if(intervalSelector === '15 дней'){
             calendarBegin.value = editDate(15)
+            calendarEnd.value = editDate(0)
         }
         else if(intervalSelector === '30 дней'){
             calendarBegin.value = editDate(30)
+            calendarEnd.value = editDate(0)
         }
         else if(intervalSelector === 'Сегодня'){
             calendarBegin.value = editDate(0)
+            calendarEnd.value = editDate(0)
         }
         filters()
     }
@@ -250,7 +260,8 @@
 <script>
     function loadTracking(str) {
         let date = str.parentElement.parentElement.children[0].children[0].textContent;
-        let guid = str.parentElement.parentElement.children[2].textContent
+        let guid = str.parentElement.parentElement.children[2].textContent;
+        event.stopPropagation()
         p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
         $('#page').load(p);
         $('#loading').show();

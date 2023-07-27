@@ -3,7 +3,7 @@
 <div class="row" id="fordres_editor">
     <!--группы-->
     <div class="col-sm-2">
-        <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
+        <div class="col-4 panel panel-default height table1" id='check' style="margin-bottom: 10px">
             <table class="table">
                 <tr> 
                     <th class="bg-primary">Должность</th>
@@ -20,12 +20,12 @@
                 }
             </table>
         </div>
-        <div style="margin-bottom: 10px; width: 16.666666666666664%;" >
-            <table style="width: 100%;">
+        <div class="allPersonsDiv" id="allPersonsDiv">
+            <table class="allPersonsTable">
                 <tr class="allPerson getAllPersons" onclick="allPersons()" style="width: 100%;">
                     <td >Все сотрудники</td>
                 </tr>
-                <tr>
+                <tr class="sortInput">
                     <td ><input type="text" class="sortPersonInput hidden" placeholder="Введите ФИО" ></td>
                 </tr>
             </table>
@@ -37,8 +37,8 @@
 
             <table class="table">
                 <tr class="bg-primary">
-                    <th width="50%" class="text-left">Сотрудник</th>
-                    <th width="50%" class="text-left">Должность</th>
+                    <th class="text-left">Сотрудник</th>
+                    <th class="text-center">Должность</th>
                 </tr>
             </table>
 
@@ -70,10 +70,10 @@
 
             <table class="table">
                 <tr class="bg-primary">
-                    <th width="40%" class="text-left">Сотрудник</th>
-                    <th width="30%" class="text-left">Должность</th>
-                    <th width="30%" class="text-left">Время</th>
-                    <th width="5%" class="text-center"></th>
+                    <th  class="text-left">Сотрудник</th>
+                    <th  class="text-left">Должность</th>
+                    <th  class="text-left">Время</th>
+                    @* <th  class="text-center"></th> *@
                 </tr>
             </table>
 
@@ -90,7 +90,7 @@
                                             <th class="newRowAlign">@item.Personality.Surname @item.Personality.Name @item.Personality.Patronymic</th>
                                             <th class="hidden">@item.JobTitle.Guid</th>
                                             <th class="newRowAlign">
-                                                <select name="" id="selectJobTitle" class="selectJobTitle">
+                                            <select name="" id="selectJobTitle" class="selectJobTitle">
 
                                             @foreach (var job in Model.JobTitles)
                                             {
@@ -105,11 +105,10 @@
 
                                             }
 
-
-                                                </select>
+                                            </select>
 
                                             </th>
-                                            <th class="newRowAlign"><input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON"> - <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON"></th>
+                                            <th class="newRowAlign" style="width: fit-content;" ><input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON"><input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON"></th>
                                             <th class="newRowAlign"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
                                         </tr>
                             }
@@ -262,7 +261,7 @@
         nameCell.textContent = name;
         jobTitleIdCell.textContent = guidJobTitle;
         jobTitleCell.innerHTML = `` ;
-        timeCell.innerHTML = `<input type="time" value='${timeBegin}' class='timeBeginForJSON'> - <input type="time" value='${timeEnd}' class='timeEndForJSON'>`;
+        timeCell.innerHTML = `<input type="time" value='${timeBegin}' class='timeBeginForJSON'><input type="time" value='${timeEnd}' class='timeEndForJSON'>`;
         deletePersonCell.innerHTML = `<label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label>`;
 
         newRow.appendChild(guidNameCell);
@@ -394,7 +393,6 @@
                 // получение миллисекунд
                 const milliseconds = dateObject.getTime();
                 let totalEndDateWithOutHours = editDate(milliseconds, 1).split('.').reverse().join('-')
-                console.log(totalEndDateWithOutHours)
                 endTime = totalEndDateWithOutHours + ' ' + end[i].value;
             }
             
@@ -422,15 +420,15 @@
             success: function (result) {
                 if (result.ok) {
                     SpinnerShow();
-                    $('#page').load('/TimeTracking/TrackingDataTable', function () { SpinnerHide(); });
+                    $('#page').load('/TimeTracking/TrackingData', function () { SpinnerHide(); });
                 }
                 else {
-                    @* alert(result.data); *@
-                    alert('Что-то пошло не так');
+                    alert(result);
+                    @* alert('Что-то пошло не так'); *@
                 }
             },
             @* error: function (error) { alert(error.responseText); } *@
-            error: function (error) { alert('Что-то пошло не так'); }
+            error: function (error) { alert(error); }
         }); 
     }
 

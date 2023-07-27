@@ -1,35 +1,36 @@
 @model Portal.Models.PersonalityEditModel
 
-<!--таблица пользователей-->
+<!--Блок добавления\редактирования работника-->
 <div class="panel panel-default panel-default-person"  id="personTable" style="margin-bottom:0px">
+    <!--Выпадающий список состояний работника-->
     <div class="titlePersontable">
         <h3>Данные пользователя</h3>
+        <select class="inputPersonData actual">
         @if (Model.Personality == null || Model.Personality.Actual == 1)
-            {
-                <div class="userActive statePersonData" id="statePersonData">
-                    <span class="textForCheckbox">Уволен</span>
-                    <label class="switch">
-                        <input type="checkbox" class="switch__input" id="closedPerson">
-                        <span class="switch__slider"></span>
-                    </label>
-                </div>
-            }
-            else
-            {
-                <div class="userActive statePersonData" id="statePersonData">
-                    <span class="textForCheckbox">Уволен</span>
-                    <label class="switch">
-                        <input type="checkbox" class="switch__input" checked id="closedPerson">
-                        <span class="switch__slider"></span>
-                    </label>
-                </div>
-           
-            }
+        {
+            <option value="1"  selected class="optionForColor">Активен</option>
+            <option value="2" class="optionForColor">Отстранен</option>
+            <option value="0" class="optionForColor">Уволен</option>
+        }
+        else if(Model.Personality.Actual == 2)
+        {
+            <option value="1" class="optionForColor">Активен</option>
+            <option value="2" selected class="optionForColor">Отстранен</option>
+            <option value="0" class="optionForColor">Уволен</option>
+        }
+        else
+        {
+            <option value="1" class="optionForColor">Активен</option>
+            <option value="2" class="optionForColor">Отстранен</option>
+            <option value="0" selected class="optionForColor">Уволен</option>
+        }
+        </select>
     </div> 
         <hr>
+    <!--Наполнение данных, если они есть-->
     <div class="personData">
-        
         <div class="leftBlockPersonData">
+            <!--Первый столбец-->
             @if(Model.Personality != null)
             {   
                 <label class="label-light">Фамилия</label>
@@ -112,9 +113,9 @@
                 <label class="label-light">Дата приема на работу</label>
                 <input type="date" class="inputPersonData" id="HireDate" value="@Model.Personality.HireDate.ToString("yyyy-MM-dd")">
                 <label class="label-light">Дата увольнения</label>
-                <input type="date" class="inputPersonData" id="DismissalsDate" value="@Model.Personality.DismissalsDate?.ToString("yyyy-MM-dd")">
-
+                <input type="date" class="inputPersonData dissDate" id="DismissalsDate" value="@Model.Personality.DismissalsDate?.ToString("yyyy-MM-dd")">
                 <label class="label-light">Смена</label>
+                
                 @* Выбор смены *@
                 <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                     <select id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.Personality.Schedule.Name">
@@ -161,7 +162,7 @@
                 <label class="label-light">Дата приема на работу</label>
                 <input type="date" class="inputPersonData" id="HireDate">
                 <label class="label-light">Дата увольнения</label>
-                <input type="date" class="inputPersonData" id="DismissalsDate">
+                <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
 
                 <label class="label-light">Смена</label>
                 @* Выбор смены *@
@@ -189,25 +190,52 @@
             </div>
         }
     </div>
-        
-    
 </div>
 
-
-
-
+@* Красим select *@
 <script>
+    //  let actual = document.querySelector('.actual')
+    // let optionForColor = document.querySelectorAll('.optionForColor')
+    // actual.addEventListener('change', () =>{
+    //     if(actual.value == 0){
+    //         actual.style.backgroundColor = '#ff000042'
+    //         for (var i = 0; i < optionForColor.length; i++) {
+    //             optionForColor[i].style.backgroundColor = "#fff";
+    //         }
+    //     }
+    //     else if(actual.value == 1){
+    //         actual.style.backgroundColor = "rgb(164 240 164 / 40%)";
+    //         for (var i = 0; i < optionForColor.length; i++) {
+    //             optionForColor[i].style.backgroundColor = "#fff";
+    //         }
+            
+    //     }
+    //     else{
+    //         actual.style.backgroundColor = 'rgb(247 253 119 / 40%)'
+    //         for (var i = 0; i < optionForColor.length; i++) {
+    //             optionForColor[i].style.backgroundColor = "#fff";
+    //         }
+    //     }
+    // })
+
+    const actualPicker = document.querySelector('.actual');
+    const valueDismissalsDate = document.querySelector('.dissDate');
+    valueDismissalsDate.addEventListener('input', () => {
+        if(valueDismissalsDate.value != '') {
+            actualPicker.innerHTML = "<option value='1' >Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";              
+        } else {
+            actualPicker.innerHTML = "<option value='1' selected>Активен</option><option value='2' >Отстранен</option><option value='0' >Уволен</option>";
+        }
+    })
 
     // Возврат к таблице
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#Personality" });
 
-
     function clearInputs() {
         // Получаем все элементы input на странице и очищаем их значение
         document.querySelectorAll(".inputPersonData").forEach(input => input.value = "");
     }
-
     const name = document.getElementById('namePerson');
     const surname = document.getElementById('surnamePerson');
     const patronymic = document.getElementById('patronymicPerson');
@@ -218,7 +246,7 @@
     const DismissalsDate = document.getElementById('DismissalsDate')
     const ScheduleGUID = document.getElementById('ScheduleGUID')
 
-
+    // Кривизна невероятная
     function validation() {
         if(name.value.trim().length < 1) {
             name.style.borderColor = 'rgb(250, 56, 56)'
@@ -284,7 +312,7 @@
         }
     }
 
-
+    // Повторение кривизны
     function allValidation() {
         validation();
         validation2();
@@ -294,7 +322,7 @@
         validation6();
         validation7();
         validation8();
-        let count = 0
+        let count = -1;
         const check = document.querySelectorAll(".inputPersonData").forEach((input) => {
             if(input.style.borderColor == 'rgb(204, 204, 204)') {
                 count += 0;
@@ -342,17 +370,7 @@
         Personality.HireDate = $('#HireDate').val();
         Personality.DismissalsDate = $('#DismissalsDate').val();
         Personality.Schedule = $('#ScheduleGUID').val();
-        Personality.Actual = getActual();
-
-        function getActual() {
-            const input = document.getElementById('closedPerson').checked
-            if(input == true) {
-                return 0;
-            }
-            else {
-                return 1;
-            }
-        }
+        Personality.Actual = $('.actual').val();
 
         const json = JSON.stringify(Personality)
          $.ajax({
@@ -372,9 +390,6 @@
             error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
         }); 
     }
-    
-    
-
 </script>
 
 @* Отправляем JSON (Редактирование пользователя) *@
@@ -391,18 +406,8 @@
         Personality.HireDate = $('#HireDate').val();
         Personality.DismissalsDate = $('#DismissalsDate').val();
         Personality.Schedule = $('#ScheduleGUID').val();
-        Personality.Actual = getActual();
-
-        function getActual() {
-            const input = document.getElementById('closedPerson').checked
-            if (input == true) {
-                return 0;
-            }
-            else {
-                return 1;
-            }
-        }
-
+        Personality.Actual = $('.actual').val();
+        
         const json = JSON.stringify(Personality)
         $.ajax({
             type: "PUT",
@@ -421,7 +426,4 @@
             error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
         });
     }
-
-
-
 </script>

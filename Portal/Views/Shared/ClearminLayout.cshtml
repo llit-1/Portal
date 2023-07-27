@@ -237,7 +237,7 @@
                         }
 
                         <!--Учет пользователей-->
-                        @if (User.IsInRole("HR"))
+                        @if (User.IsInRole("employee_control"))
                         {
                             <li class="cm-submenu">
                                 <a class="md-tablet" id="person" onclick="selectSection('person')">Учет сотрудников<span class="caret"></span></a>
