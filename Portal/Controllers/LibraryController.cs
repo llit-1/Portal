@@ -90,6 +90,18 @@ namespace Portal.Controllers
             return RedirectToAction("RootFolder", new { id = 15 });
         }
 
+        [Authorize(Roles = "library_shzhleb")]
+        public IActionResult Hleb()
+        {
+            var log = new LogEvent<string>(User);
+            log.Name = "Библиотека знаний";
+            log.Description = "Сестрорецкий хлебозавод";
+            log.IpAdress = HttpContext.Session.GetString("ip");
+            log.Save();
+
+            return RedirectToAction("RootFolder", new { id = 17 });
+        }
+
         // ----------------------------------------------------------------------------------------------------------------
         // Служба персонала
         [Authorize(Roles = "library_hr")]
@@ -234,7 +246,7 @@ namespace Portal.Controllers
             }
             else
             {
-                if (rootItem.Id <= 2 || rootItem.Id == 15)
+                if (rootItem.Id <= 2 || rootItem.Id == 15 || rootItem.Id == 17)
                     folderView.prevPath = "Index";
                 
                 if (rootItem.Id > 2 && rootItem.Id < 15)

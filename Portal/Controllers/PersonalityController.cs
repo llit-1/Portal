@@ -57,8 +57,6 @@ namespace Portal.Controllers
 
         public IActionResult PersonalityAdd(string json)
         {
-
-
             var result = new RKNet_Model.Result<string>();
             try
             {

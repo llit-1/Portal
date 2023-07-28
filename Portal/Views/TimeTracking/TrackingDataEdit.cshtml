@@ -9,14 +9,15 @@
                     <th class="bg-primary">Должность</th>
                 </tr>
                 @foreach (var item in Model.JobTitles)
-                {
-                        <tr class="getJobTitleData"> 
-                            <td style="cursor: pointer;"><input type="checkbox" class="hidden"><label style="cursor: pointer;">@item.Name</label></td>
-                            <td class="hidden TTForHeader">@Model.TTData.Location.Name</td>
-                            <td class="hidden TTIdForHeader">@Model.TTData.Location.Guid</td>
-                            <td class="hidden jobTitleId">@item.Guid</td>
-                            <td class="hidden dateForHeader">@Model.TTData.DateDatas[0].Date.ToString("dd.MM.yyyy")</td>
-                        </tr>
+                {   
+                            <tr class="getJobTitleData">
+                                <td style="cursor: pointer;"><input type="checkbox" class="hidden"><label style="cursor: pointer;">@item.Name</label></td>
+                                <td class="hidden TTForHeader">@Model.TTData.Location.Name</td>
+                                <td class="hidden TTIdForHeader">@Model.TTData.Location.Guid</td>
+                                <td class="hidden jobTitleId">@item.Guid</td>
+                                <td class="hidden dateForHeader">@Model.TTData.DateDatas[0].Date.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        
                 }
             </table>
         </div>
@@ -73,7 +74,6 @@
                     <th  class="text-left">Сотрудник</th>
                     <th  class="text-left">Должность</th>
                     <th  class="text-left">Время</th>
-                    @* <th  class="text-center"></th> *@
                 </tr>
             </table>
 
@@ -139,7 +139,6 @@
 
 
 <script>
-    @* Прячем или показываем кнопку "Все сотрудники" *@
     function hideInput(){
         let inputSearch = document.querySelector('.sortPersonInput')
         if(!inputSearch.classList.contains('hidden')){
@@ -153,7 +152,6 @@
         }
     }
 
-    @* Заполняем список сотрудников, в зависимости от точки и должности *@
     $(".getJobTitleData").click(function (event) {
         checkHeight()
         let getAllPersons = document.querySelector('.getAllPersons');
@@ -254,7 +252,7 @@
         let guidJobTitle = data.parentElement.children[3].textContent;
         let jobTitleName = data.parentElement.children[2].textContent;
         let timeBegin = data.parentElement.children[6].textContent;
-        let timeEnd = data.parentElement.children[6].textContent;
+        let timeEnd = data.parentElement.children[7].textContent;
 
         // Заполняем данными
         guidNameCell.textContent = guidName;
@@ -307,7 +305,7 @@
         str.closest('tr').remove()
         checkHeight()
     }
-    @* if scrollTable *@
+
     function checkHeight() {
         let table3 = document.querySelectorAll('.table1');
         table3.forEach((fixTable) => {
@@ -424,10 +422,8 @@
                 }
                 else {
                     alert(result);
-                    @* alert('Что-то пошло не так'); *@
                 }
             },
-            @* error: function (error) { alert(error.responseText); } *@
             error: function (error) { alert(error); }
         }); 
     }
