@@ -145,7 +145,7 @@
 }
 
 .actual {
-    width: 9vw !important;
+    width: 9vw;
     border-radius: 5px;
 }
 .inputPersonData:focus {
@@ -225,6 +225,12 @@
 
 /* Вид для телефона */
 @media screen and (max-width: 600px) and (orientation: portrait){
+
+    .actual {
+        width: 35vw !important;
+        margin-bottom: 0;
+    }
+
     .tableMenu {
         flex-direction: column;
         justify-content: center;

@@ -50,7 +50,7 @@
                             <td>@(i + 1)</td>
                             <td>@Model.Items[i].ItemOnTT.Item.Name</td>
                             <td>
-                                <input class="inputObject" type="text" size='4' oninput="calculate(this)">
+                                <input class="inputObject" type="text" size='4' >
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>
                             <td class="hidden">
@@ -67,7 +67,7 @@
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">                               
                             </td>
                             <td>
-                                <input class="fact" type="text" size='4' oninput="factChange(this)">
+                                <input class="fact" type="text" size='4'>
                             </td>
                         </tr>
                     }
@@ -87,6 +87,17 @@
 </div>
 
 <script>
+    function debounce(callee, timeoutMs) {
+        return function perform(...args) {
+            let previousCall = this.lastCall
+            this.lastCall = Date.now()
+            if (previousCall && this.lastCall - previousCall <= timeoutMs) {
+            clearTimeout(this.lastCallTimer)
+            }
+            this.lastCallTimer = setTimeout(() => callee(...args), timeoutMs)
+        }
+    }
+    
        function calculate(inputObject){
         inputObject.value = inputObject.value.replace(/[^\d.]/g, '');
         let trObject = inputObject.parentNode.parentNode;
@@ -138,8 +149,9 @@
         log.TTName = '@Html.Raw(Model.TTs[0].Name)';
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
-        WriteLog(log);
+        return log;
        }
+       
 </script>
 
 <script>
@@ -159,7 +171,7 @@
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
         log.Fact = factObject.value;
-        WriteLog(log);
+        return log;
     }
 </script>
 
@@ -176,6 +188,26 @@
             });        
     }
 </script>
+
+<script>
+    function sendDataOverTime(inputList, func, funcWithDebounce){
+        inputList.forEach(element => {
+            element.addEventListener('input', () => {
+                func(element)
+                funcWithDebounce(func(element))
+            }
+        )})
+    }
+    // Ставим debounce на input ввода остатка
+    let calculateHandler = debounce(WriteLog, 1500)
+    let inputObj = document.querySelectorAll('.inputObject');
+    sendDataOverTime(inputObj, calculate, calculateHandler)
+    // Ставим debounce на input ввода факта
+    let fact = document.querySelectorAll('.fact');
+    let factChangeHandler = debounce(WriteLog, 1500)
+    sendDataOverTime(fact, factChange, factChangeHandler)
+</script>
+
 <script>
     function ttbutClick(thisBut){
      let butref = '/Calculator/Calculate?typeGuid=' + '@Html.Raw(Model.ItemsGroup.Guid)' + '&tt=' + thisBut.id

@@ -421,10 +421,10 @@
                     location.hash = '#Personality'
                 }
                 else {
-                    ShowModal('Редактор пользователя', result.data);
+                    alert(result.data);
                 }
             },
-            error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
+            error: function (error) { alert(result.data); }
         });
     }
 </script>
