@@ -145,7 +145,7 @@
 }
 
 .actual {
-    width: 9vw;
+    width: 9vw !important;
     border-radius: 5px;
 }
 .inputPersonData:focus {
@@ -297,7 +297,7 @@
 }
 
 /* Вид для телефона */
-@media screen and (orientation: landscape){
+@media screen and (min-width: 1000px) and (orientation: landscape){
 
     hr {
         margin: 1px;
