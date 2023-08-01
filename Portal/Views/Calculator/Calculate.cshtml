@@ -102,10 +102,17 @@
         inputObject.value = inputObject.value.replace(/[^\d.]/g, '');
         let trObject = inputObject.parentNode.parentNode;
         let answerObject = trObject.querySelector('.answer');
+
         let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
+        if(+averageRestOfThisPeriod < 1 || +averageRestOfThisPeriod > 4){
+            averageRestOfThisPeriod + 0;
+        } else {
+            averageRestOfThisPeriod = 4;
+        }
         let averageNextPer = trObject.querySelector('.averageNextPer').value.replace(/(,)/, ".");
         let averageSecondNextPer = trObject.querySelector('.averageSecondNextPer').value.replace(/(,)/, ".");
-        let averageProductionPeriod = trObject.querySelector('.averageProductionPeriod').value.replace(/(,)/, ".");;
+        let averageProductionPeriod = trObject.querySelector('.averageProductionPeriod').value.replace(/(,)/, ".");
+
         let itemOnTTCoef = trObject.querySelector('.itemOnTTCoef').value.replace(/(,)/, ".");
         let itemCoef = trObject.querySelector('.itemCoef').value.replace(/(,)/, ".");
         let thisPeriodCoefficient = trObject.querySelector('.thisPeriodCoefficient').value.replace(/(,)/, ".");

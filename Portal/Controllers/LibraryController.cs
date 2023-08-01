@@ -209,7 +209,7 @@ namespace Portal.Controllers
             var rootItem = db.RootFolders.FirstOrDefault(r => folderView.curDirectory.FullName.Contains(r.Path));
 
             // условный каталог Внутренние документы
-            if (rootItem.Id != 1 && rootItem.Id !=2 && rootItem.Id != 14 && rootItem.Id != 15)
+            if (rootItem.Id != 1 && rootItem.Id !=2 && rootItem.Id != 14 && rootItem.Id != 15 && rootItem.Id != 17)
             {
                 var internalDocsItem = new RKNet_Model.Library.RootFolder();
                 internalDocsItem.Name = "Внутренние документы";

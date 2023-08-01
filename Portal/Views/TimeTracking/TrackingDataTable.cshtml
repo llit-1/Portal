@@ -7,16 +7,14 @@
         <select class="form-control form-control-sm" id="ttSelector" onchange="filters()">
             @if(@Model.TTDatas.Count() == 1)
             {
-                <option id="0"> <b>Все точки</b> </option>
+                <option id="0" > <b>Все точки</b> </option>
                 foreach(var tt in Model.TTDatas)
                 {
                     <option id="@tt.Location.Guid" selected> @tt.Location.Name </option>
                 }
                 @foreach (var tt in Model.Location.OrderBy(g => g.Name))
                 {
-                    <option id="@tt.Guid">@tt.Name</option>
-                    ;
-                    
+                    <option id="@tt.Guid">@tt.Name</option>;
                 }
             }
             else
