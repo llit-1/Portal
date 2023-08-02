@@ -104,7 +104,7 @@
         let answerObject = trObject.querySelector('.answer');
 
         let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
-        if(+averageRestOfThisPeriod < 1 || +averageRestOfThisPeriod > 4){
+        if(+averageRestOfThisPeriod < 0.3 || +averageRestOfThisPeriod > 4){
             averageRestOfThisPeriod + 0;
         } else {
             averageRestOfThisPeriod = 4;
