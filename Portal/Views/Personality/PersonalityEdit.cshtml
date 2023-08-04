@@ -6,7 +6,7 @@
     <div class="titlePersontable">
         <h3>Данные пользователя</h3>
 
-        <select class="inputPersonData actual">
+        <select required class="inputPersonData actual">
         @if (Model.Personality == null || Model.Personality.Actual == 1)
         {
             <option value="1"  selected class="optionForColor">Активен</option>
@@ -31,235 +31,211 @@
         <hr>
     <!--Наполнение данных, если они есть-->
     <div class="personData">
-        <div class="leftBlockPersonData">
-            <!--Первый столбец-->
-            @if(Model.Personality != null)
-            {   
-                <label class="label-light">Фамилия</label>
-                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.Personality.Surname">
-                <label class="label-light">Имя</label>
-                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.Personality.Name">
-                <label class="label-light">Отчество</label>
-                <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.Personality.Patronymic">
-                <label class="label-light">Дата рождения</label>
-                <input type="date" class="inputPersonData" id="birthDatePerson" value="@Model.Personality.BirthDate.ToString("yyyy-MM-dd")">
-                <label class="label-light">Должность</label>
-                <input type="hidden" id="personGUID" value="@Model.Personality.Guid">
-
-                @* Выбор должности *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.Personality.JobTitle.Name">
-                        @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
-                        {
-                            if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                        }
-                    </select>
-                </div>
-            }
-            else
-            {
-                <label class="label-light">Фамилия</label>
-                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson">
-                <label class="label-light">Имя</label>
-                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">               
-                <label class="label-light">Отчество</label>
-                <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
-                <label class="label-light">Дата рождения</label>
-                <input type="date" class="inputPersonData" id="birthDatePerson">
-                <label class="label-light">Должность</label>
-                <input type="hidden" id="personGUID" value="0">
-
-                @* Выбор должности *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="jobTitlePerson" class="inputPersonData" data-width="100%">
-                        @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
-                        {
-                            if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                        }
-                    </select>
-                </div>
-            }
-
-        </div>
+        <!--Первый столбец-->
         @if(Model.Personality != null)
-        {
-            <div class="rightBlockPersonData">
-                <label class="label-light">ТТ</label>
-                @* Выбор ТТ *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="TTPerson" class="inputPersonData" data-width="100%" value="@Model.Personality.Location.Name">
+        {   
+            <form id="user-form">
+                <div class="leftBlockPersonData">
+                    <label class="label-light">Фамилия</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.Personality.Surname">
+                    <label class="label-light">Имя</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.Personality.Name">
+                    <label class="label-light">Отчество</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.Personality.Patronymic">
+                    <label class="label-light">Дата рождения</label>
+                    <input required type="date" class="inputPersonData" id="birthDatePerson" value="@Model.Personality.BirthDate.ToString("yyyy-MM-dd")">
+                    <label class="label-light">Должность</label>
+                    <input required type="hidden" id="personGUID" value="@Model.Personality.Guid">
 
-                        <option value="@Model.Personality.Location.Guid">@Model.Personality.Location.Name</option>
-
-                        @foreach (var location in Model.Locations.OrderBy(g => g.Name))
-                        {
-                                <option value="@location.Guid">@location.Name</option>
-                        }
-                    </select>
-                </div>
-
-                <label class="label-light">Дата приема на работу</label>
-                <input type="date" class="inputPersonData" id="HireDate" value="@Model.Personality.HireDate.ToString("yyyy-MM-dd")">
-                <label class="label-light">Дата увольнения</label>
-                <input type="date" class="inputPersonData dissDate" id="DismissalsDate" value="@Model.Personality.DismissalsDate?.ToString("yyyy-MM-dd")">
-                <label class="label-light">Смена</label>
-                
-                @* Выбор смены *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.Personality.Schedule.Name">
-                        @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
-                        {
-                            if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                    @* Выбор должности *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.Personality.JobTitle.Name">
+                            @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
                             {
-                                <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
                             }
-                            else
-                            {   
-                                <option value="@schedule.Guid">@schedule.Name</option>
-                            }
-                        }
-                    </select>
-                </div>
-
-                <label class="label-light">Юр. лицо</label>
-                <input type="text" class="inputPersonData" id="">
-            </div>
-
-            <div class='rightBlockPersonData'>
-                <label class="label-light">Юр. лицо разнесения затрат</label>
-                <input type="text" class="inputPersonData" id="">
-
-                <label class="label-light">Период действия версии</label>
-                <div class='rightBlockPersonData__versions'>
-                    <label class="label-light">С</label>
-                    <div>
-                        <input type="datetime-local" class="inputPersonData correctForData" id="">
-                    </div>
-                    <label class="label-light">По</label>
-                    <div>
-                        <input type="datetime-local" class="inputPersonData correctForData" id="">
+                        </select>
                     </div>
                 </div>
+                
+                <div class="rightBlockPersonData">
+                    <label class="label-light">ТТ</label>
+                    @* Выбор ТТ *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="TTPerson" class="inputPersonData" data-width="100%" value="@Model.Personality.Location.Name">
 
-                <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="allValidation()">СОХРАНИТЬ</button>
-                    <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                            <option value="@Model.Personality.Location.Guid">@Model.Personality.Location.Name</option>
+
+                            @foreach (var location in Model.Locations.OrderBy(g => g.Name))
+                            {
+                                    <option value="@location.Guid">@location.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <label class="label-light">Дата приема на работу</label>
+                    <input required type="date" class="inputPersonData" id="HireDate" value="@Model.Personality.HireDate.ToString("yyyy-MM-dd")">
+                    <label class="label-light">Дата увольнения</label>
+                    <input type="date" class="inputPersonData dissDate" id="DismissalsDate" value="@Model.Personality.DismissalsDate?.ToString("yyyy-MM-dd")">
+                    <label class="label-light">Смена</label>
+                    
+                    @* Выбор смены *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.Personality.Schedule.Name">
+                            @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
+                            {
+                                if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                                {
+                                    <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                }
+                                else
+                                {   
+                                    <option value="@schedule.Guid">@schedule.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <label class="label-light">Юр. лицо</label>
+                    <input required type="text" class="inputPersonData" id="">
                 </div>
-            </div>
 
+                <div class='rightBlockPersonData'>
+                    <label class="label-light">Юр. лицо разнесения затрат</label>
+                    <input required type="text" class="inputPersonData" id="">
+
+                    <label class="label-light">Период действия версии</label>
+                    <div class='rightBlockPersonData__versions'>
+                        <label class="label-light">С</label>
+                        <div>
+                            <input required type="datetime-local" class="inputPersonData correctForData" id="">
+                        </div>
+                        <label class="label-light">По</label>
+                        <div>
+                            <input type="datetime-local" class="inputPersonData correctForData" id="">
+                        </div>
+                    </div>
+
+                    <div class="buttonAddPerson">
+                        <button class="buttonAddPersonData" type="submit">СОХРАНИТЬ</button>
+                        <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                    </div>
+                </div>
+            </form>
         }
         else
         {
-            <div class="rightBlockPersonData">
-                <label class="label-light">ТТ</label>
-                @* Выбор ТТ *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="TTPerson" class="inputPersonData" data-width="100%">
-                        @foreach (var location in Model.Locations.OrderBy(g => g.Name))
-                        {
-                            if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
-                            {
-                                <option selected="selected" value="@location.Guid">@location.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@location.Guid">@location.Name</option>
-                            }
-                        }
-                    </select>
-                </div>
+            <form id="user-form">
+                <div class="leftBlockPersonData">
+                    <label class="label-light">Фамилия</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson">
+                    <label class="label-light">Имя</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">               
+                    <label class="label-light">Отчество</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
+                    <label class="label-light">Дата рождения</label>
+                    <input required type="date" class="inputPersonData" id="birthDatePerson">
+                    <label class="label-light">Должность</label>
+                    <input required type="hidden" id="personGUID" value="0">
 
-                <label class="label-light">Дата приема на работу</label>
-                <input type="date" class="inputPersonData" id="HireDate">
-                <label class="label-light">Дата увольнения</label>
-                <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
-                <label class="label-light">Смена</label>
-                @* Выбор смены *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="ScheduleGUID" class="inputPersonData" data-width="100%">
-                        @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
-                        {
-                            if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                    @* Выбор должности *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="jobTitlePerson" class="inputPersonData" data-width="100%">
+                            @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
                             {
-                                <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
                             }
-                            else
-                            {
-                                <option value="@schedule.Guid">@schedule.Name</option>
-                            }
-                        }
-                    </select>
-                </div>
-
-                <label class="label-light">Юр. лицо</label>
-                <input type="text" class="inputPersonData" id="">
-            </div>
-
-            <div class='rightBlockPersonData'>
-                <label class="label-light">Юр. лицо разнесения затрат</label>
-                <input type="text" class="inputPersonData" id="">
-
-                <label class="label-light">Период действия версии</label>
-                <div class='rightBlockPersonData__versions'>
-                    <label class="label-light">С</label>
-                    <div>
-                        <input type="datetime-local" class="inputPersonData correctForData" id="">
-                    </div>
-                    <label class="label-light">По</label>
-                    <div>
-                        <input type="datetime-local" class="inputPersonData correctForData" id="">
+                        </select>
                     </div>
                 </div>
+                
+                <div class="rightBlockPersonData">
+                    <label class="label-light">ТТ</label>
+                    @* Выбор ТТ *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="TTPerson" class="inputPersonData" data-width="100%">
+                            @foreach (var location in Model.Locations.OrderBy(g => g.Name))
+                            {
+                                if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
+                                {
+                                    <option selected="selected" value="@location.Guid">@location.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@location.Guid">@location.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
 
-                <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="allValidation()">ДОБАВИТЬ</button>
-                    <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                    <label class="label-light">Дата приема на работу</label>
+                    <input required type="date" class="inputPersonData" id="HireDate">
+                    <label class="label-light">Дата увольнения</label>
+                    <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
+                    <label class="label-light">Смена</label>
+                    @* Выбор смены *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="ScheduleGUID" class="inputPersonData" data-width="100%">
+                            @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
+                            {
+                                if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                                {
+                                    <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@schedule.Guid">@schedule.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <label class="label-light">Юр. лицо</label>
+                    <input required type="text" class="inputPersonData" id="">
                 </div>
-            </div>
+
+                <div class='rightBlockPersonData'>
+                    <label class="label-light">Юр. лицо разнесения затрат</label>
+                    <input required type="text" class="inputPersonData" id="">
+
+                    <label class="label-light">Период действия версии</label>
+                    <div class='rightBlockPersonData__versions'>
+                        <label class="label-light">С</label>
+                        <div>
+                            <input required type="datetime-local" class="inputPersonData correctForData" id="">
+                        </div>
+                        <label class="label-light">По</label>
+                        <div>
+                            <input type="datetime-local" class="inputPersonData correctForData" id="">
+                        </div>
+                    </div>
+
+                    <div class="buttonAddPerson">
+                        <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
+                        <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                    </div>
+                </div>
+            </form>
         }
     </div>
 </div>
 
-@* Красим select *@
-<script>
-    //  let actual = document.querySelector('.actual')
-    // let optionForColor = document.querySelectorAll('.optionForColor')
-    // actual.addEventListener('change', () =>{
-    //     if(actual.value == 0){
-    //         actual.style.backgroundColor = '#ff000042'
-    //         for (var i = 0; i < optionForColor.length; i++) {
-    //             optionForColor[i].style.backgroundColor = "#fff";
-    //         }
-    //     }
-    //     else if(actual.value == 1){
-    //         actual.style.backgroundColor = "rgb(164 240 164 / 40%)";
-    //         for (var i = 0; i < optionForColor.length; i++) {
-    //             optionForColor[i].style.backgroundColor = "#fff";
-    //         }
-            
-    //     }
-    //     else{
-    //         actual.style.backgroundColor = 'rgb(247 253 119 / 40%)'
-    //         for (var i = 0; i < optionForColor.length; i++) {
-    //             optionForColor[i].style.backgroundColor = "#fff";
-    //         }
-    //     }
-    // })
 
+<script>
     const actualPicker = document.querySelector('.actual');
     const valueDismissalsDate = document.querySelector('.dissDate');
     valueDismissalsDate.addEventListener('input', () => {
@@ -278,102 +254,11 @@
         // Получаем все элементы input на странице и очищаем их значение
         document.querySelectorAll(".inputPersonData").forEach(input => input.value = "");
     }
-    const name = document.getElementById('namePerson');
-    const surname = document.getElementById('surnamePerson');
-    const patronymic = document.getElementById('patronymicPerson');
-    const BirthDate = document.getElementById('birthDatePerson')
-    const JobTitleGUID = document.getElementById('jobTitlePerson')
-    const locationGUID = document.getElementById('TTPerson')
-    const HireDate = document.getElementById('HireDate')
-    const DismissalsDate = document.getElementById('DismissalsDate')
-    const ScheduleGUID = document.getElementById('ScheduleGUID')
 
-    // Кривизна невероятная
-    function validation() {
-        if(name.value.trim().length < 1) {
-            name.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            name.style.borderColor = '#ccc'
-        }
-    }
-    function validation2() {
-        if(surname.value.trim().length < 1) {
-            surname.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            surname.style.borderColor = '#ccc'
-        }
-    }
-    function validation3() {
-        if(patronymic.value.trim().length < 1) {
-            patronymic.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            patronymic.style.borderColor = '#ccc'
-        }
-    }
-    function validation4() {
-        if(BirthDate.value.trim().length < 1) {
-            BirthDate.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            BirthDate.style.borderColor = '#ccc'
-        }
-    }
-    function validation5() {
-        if(JobTitleGUID.value.trim().length < 1) {
-            JobTitleGUID.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            JobTitleGUID.style.borderColor = '#ccc'
-        }
-    }
-    function validation6() {
-        if(locationGUID.value.trim().length < 1) {
-            locationGUID.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            locationGUID.style.borderColor = '#ccc'
-        }
-    }
-    function validation7() {
-        if(HireDate.value.trim().length < 1) {
-            HireDate.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            HireDate.style.borderColor = '#ccc'
-        }
-    }
-    function validation8() {
-        if(ScheduleGUID.value.trim().length < 1) {
-            ScheduleGUID.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            ScheduleGUID.style.borderColor = '#ccc'
-        }
-    }
 
-    // Повторение кривизны
-    function allValidation() {
-        validation();
-        validation2();
-        validation3();
-        validation4();
-        validation5();
-        validation6();
-        validation7();
-        validation8();
-        let count = -1;
-        const check = document.querySelectorAll(".inputPersonData").forEach((input) => {
-            if(input.style.borderColor == 'rgb(204, 204, 204)') {
-                count += 0;
-            }
-            else{
-                count += 1;
-            }
-        } )
-        if( count <= 1) {
+    document.getElementById("user-form").addEventListener("submit", function(event) {
+        event.preventDefault();
+        if (this.checkValidity()){
             if(location.hash == '#EditPerson'){
                 editUser();
             }
@@ -381,14 +266,7 @@
                 addUser();
             }
         }
-        else{
-            alert('Проверьте правильность заполнения полей')
-        }
-    }   
-
-    name.addEventListener("input", validation);
-    surname.addEventListener("input", validation2);
-    patronymic.addEventListener("input", validation3);
+    })
 </script>
 
 <script>
@@ -422,11 +300,12 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
+                    alert(result.data);
                     SpinnerShow();
                     location.hash = '#Personality'
                 }
                 else {
-                    ShowModal('Редактор пользователя', result.data);
+                    alert(result.data);
                 }
             },
             error: function (error) { ShowModal('Редактор пользователя', error.responseText); }

@@ -12,6 +12,7 @@
                             <table class="data-table nowrap" id="tableDataPerson">
                                 <thead>
                                     <tr>
+                                        <th>Номер</th>
                                         <th>ФИО</th>
                                         <th>Должность</th>
                                         <th>Расположение</th>
@@ -20,14 +21,21 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
+                                    @{
+                                        var count = 0;
+                                    }
                                     @foreach (var user in Model.Personalities.OrderBy(u => u.Name))
                                     {
                                         var BirthDate = @user.BirthDate.ToString().Split(' ')[0];
                                         var HireDate = @user.HireDate.ToString().Split(' ')[0];
                                         var NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user.Patronymic.ToString();
                                         var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
-
+                                        count++;
+                                        
                                         <tr id="@user.Guid" class="activeRow" style="margin-right: 5px;" onclick="">
+                                            <td class="tdPersonTable" >
+                                                <p class="text-muted">@count</p>
+                                            </td>
                                             <td class="tdPersonTable" >
                                                 <p class="list-item-heading userName">@NSP</p>
                                             </td>
@@ -120,13 +128,10 @@
             let td = cell[j]
             if(td.classList.contains('deactiveForPersonVersion')) {
                 let text = td.getElementsByTagName('p')[0]
-                console.log(text)
                 if(text.textContent != ''){
-                    console.log('Что-то есть')
                     rows[i].style.backgroundColor = "#b4b4b47e";
                 }
                 else {
-                    console.log('Ничего нет')
                     rows[i].style.backgroundColor = "#a4f3b57e";
                 }
             }

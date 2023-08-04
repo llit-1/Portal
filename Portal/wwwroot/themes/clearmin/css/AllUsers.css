@@ -359,3 +359,8 @@
 .dataTables_scrollBody{
     max-height: 680px !important;
 }
+
+#user-form{
+    display: flex;
+}
+
