@@ -83,7 +83,6 @@
 
 <!--инициализация таблицы-->
 <script>
-    
     var table = $(".data-table").DataTable({
         "ordering": true,
         "order": [0, 'asc'],
@@ -117,11 +116,15 @@
     $('.activeRow').click(function () {
         var itemId = this.id;
         var itemName = $(this).find('.userName').text();
-        EditItem(itemName, itemId);
+        if(location.hash == '#SettingsUsers'){
+            PersonalityVersions();
+        } else {
+            EditItem(itemName, itemId);
+        }
     });
 </script>
 
-@* Выделение ряда неактивного польхователя *@
+@* Выделение ряда неактивного пользователя *@
 <script>
     const table = document.getElementById("tablePerson"); //Находим таблицу
     const rows = table.getElementsByTagName("tr"); //Получаем массив рядов

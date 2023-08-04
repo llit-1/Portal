@@ -49,6 +49,7 @@
 <div id="page" style="margin-top:15px"></div>
 
 
+
 <!------------------------------------------------------------------------------------------------------------------->
 <!--загрузка таблицы пользователей-->
 <script>
@@ -72,7 +73,7 @@
 
 <script>
     function DataTable() {
-        //location.hash = "#SettingsUsers";
+        // location.hash = "#SettingsUsers";
         $('#header').text('Пользователи');
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#staff" });
@@ -91,25 +92,23 @@
 <!--загрузка формы добавления пользователя-->
 <script>
     function AddItem() {
-        // Ссылка на страницу 
+        // Ссылка на страницу
         location.hash = "#AddPerson";
         // Редактируем header
         $('#header').text('Добавление пользователя');
-
-        // Вешаем на кнопку возврат к таблице
-        $('#back').unbind('click');
-        $('#back').click(function () { 
-            checkbox.style.display = 'flex'
-            DataTable(); });
-        
+//         Вешаем на кнопку возврат к таблице
+       $('#back').unbind('click');
+       $('#back').click(function () {
+           checkbox.style.display = 'flex'
+           DataTable(); });
         // Скрываем все лишнее
-        $('#tableMenu').hide();
-        $('#editMenu').hide();
-        $('#addMenu').show();
-
-        @* $('#page').empty(); *@
+       $('#tableMenu').hide();
+       $('#editMenu').hide();
+       $('#addMenu').show();
         SpinnerShow();
-        $('#page').load('/Personality/PersonalityEdit?typeGuid=0', function () { SpinnerHide() });
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=0', function () {
+         SpinnerHide()
+         });
     }
 </script>
 
@@ -118,18 +117,35 @@
     function EditItem(itemName, typeGuid) {
         location.hash = "#EditPerson";
         $('#header').text(itemName);
-
         $('#back').unbind('click');
         $('#back').click(function () { 
             DataTable();
          });
-
         $('#tableMenu').hide();
         $('#editMenu').show();
         $('#addMenu').hide();
-
-        $('#page').empty();
         SpinnerShow();
-        $('#page').load('/Personality/PersonalityEdit?typeGuid=' + typeGuid, function () { SpinnerHide() });
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=' + typeGuid, function () {
+            SpinnerHide()
+        });
+    }
+</script>
+
+<!--загрузка таблицы версий пользователя-->
+<script>
+    function PersonalityVersions() {
+        location.hash = "#PersonalityVersions";
+        $('#header').text('Выбор версии');
+        $('#back').unbind('click');
+        $('#back').click(function () {
+            DataTable();
+         });
+        $('#tableMenu').hide();
+        $('#editMenu').show();
+        $('#addMenu').hide();
+        SpinnerShow();
+        $('#page').load('/Personality/PersonalityVersions', function () {
+            SpinnerHide()
+        });
     }
 </script>

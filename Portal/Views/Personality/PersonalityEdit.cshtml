@@ -1,7 +1,7 @@
 @model Portal.Models.PersonalityEditModel
 
 <!--Блок добавления\редактирования работника-->
-<div class="panel panel-default panel-default-person"  id="personTable" style="margin-bottom:0px">
+<div class="panel panel-default panel-default-person modalPersonWidth"  id="personTable" style="margin-bottom:0px">
     <!--Выпадающий список состояний работника-->
     <div class="titlePersontable">
         <h3>Данные пользователя</h3>
@@ -134,11 +134,33 @@
                         }
                     </select>
                 </div>
-                 <div class="buttonAddPerson">
+
+                <label class="label-light">Юр. лицо</label>
+                <input type="text" class="inputPersonData" id="">
+            </div>
+
+            <div class='rightBlockPersonData'>
+                <label class="label-light">Юр. лицо разнесения затрат</label>
+                <input type="text" class="inputPersonData" id="">
+
+                <label class="label-light">Период действия версии</label>
+                <div class='rightBlockPersonData__versions'>
+                    <label class="label-light">С</label>
+                    <div>
+                        <input type="datetime-local" class="inputPersonData correctForData" id="">
+                    </div>
+                    <label class="label-light">По</label>
+                    <div>
+                        <input type="datetime-local" class="inputPersonData correctForData" id="">
+                    </div>
+                </div>
+
+                <div class="buttonAddPerson">
                     <button class="buttonAddPersonData" onclick="allValidation()">СОХРАНИТЬ</button>
                     <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
                 </div>
             </div>
+
         }
         else
         {
@@ -182,10 +204,29 @@
                         }
                     </select>
                 </div>
+
+                <label class="label-light">Юр. лицо</label>
+                <input type="text" class="inputPersonData" id="">
+            </div>
+
+            <div class='rightBlockPersonData'>
+                <label class="label-light">Юр. лицо разнесения затрат</label>
+                <input type="text" class="inputPersonData" id="">
+
+                <label class="label-light">Период действия версии</label>
+                <div class='rightBlockPersonData__versions'>
+                    <label class="label-light">С</label>
+                    <div>
+                        <input type="datetime-local" class="inputPersonData correctForData" id="">
+                    </div>
+                    <label class="label-light">По</label>
+                    <div>
+                        <input type="datetime-local" class="inputPersonData correctForData" id="">
+                    </div>
+                </div>
+
                 <div class="buttonAddPerson">
                     <button class="buttonAddPersonData" onclick="allValidation()">ДОБАВИТЬ</button>
-                    @* addUser() *@
-                    
                     <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
                 </div>
             </div>
@@ -408,7 +449,7 @@
         Personality.DismissalsDate = $('#DismissalsDate').val();
         Personality.Schedule = $('#ScheduleGUID').val();
         Personality.Actual = $('.actual').val();
-        
+
         const json = JSON.stringify(Personality)
         $.ajax({
             type: "PUT",

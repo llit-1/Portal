@@ -110,9 +110,17 @@ namespace Portal.Controllers
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result);
             }
-           
         }
 
+        public IActionResult PersonalityVersions()
+        {
+            Models.PersonalityModel model = new Models.PersonalityModel();
+            model.Personalities = dbSql.Personalities.Include(c => c.JobTitle)
+                                                             .Include(c => c.Location)
+                                                             .Include(c => c.Schedule)
+                                                             .ToList();
+            return PartialView(model);
+        }
 
     }
 }
