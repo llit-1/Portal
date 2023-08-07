@@ -12,7 +12,7 @@
 
     
 
-<div style="height: 700px" class="calculator-mainbar">
+<div class="calculator-mainbar">
      @if (Model.TTs.Count == 1)
         {
         <div class="calculator-leftbar">
@@ -73,11 +73,17 @@
                     }
                 </tbody>
             </table>
+
+            <div class='button__placeholder'>
+                <button class='calculator__button' onclick='calculateButton()'>Рассчитать план</button>
+                <button class='calculator__button' onclick='factButton()'>Записать факт</button> 
+            </div>
+
         </div>
     }
     else
     {
-        <div>
+        <div class='ttbut_styles'>
             @for (int i = 0; i < Model.TTs.Count; i++)
             {
                 <button class="ttbut" id=@Model.TTs[i].Restaurant_Sifr onclick="ttbutClick(this)">@Model.TTs[i].Name</button>
@@ -87,18 +93,7 @@
 </div>
 
 <script>
-    function debounce(callee, timeoutMs) {
-        return function perform(...args) {
-            let previousCall = this.lastCall
-            this.lastCall = Date.now()
-            if (previousCall && this.lastCall - previousCall <= timeoutMs) {
-            clearTimeout(this.lastCallTimer)
-            }
-            this.lastCallTimer = setTimeout(() => callee(...args), timeoutMs)
-        }
-    }
-    
-       function calculate(inputObject){
+    function calculate(inputObject){
         inputObject.value = inputObject.value.replace(/[^\d.]/g, '');
         let trObject = inputObject.parentNode.parentNode;
         let answerObject = trObject.querySelector('.answer');
@@ -156,9 +151,10 @@
         log.TTName = '@Html.Raw(Model.TTs[0].Name)';
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
-        return log;
-       }
-       
+        if(log.Rest){
+            WriteLog(log)
+        }
+    }
 </script>
 
 <script>
@@ -178,12 +174,38 @@
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
         log.Fact = factObject.value;
-        return log;
+        if(log.Fact){
+            WriteLog(log)
+        }
     }
 </script>
 
 <script>
+    const inputObject = document.querySelectorAll('.inputObject')
+    const calculator__button = document.querySelector('.calculator__button')
+    const answer = document.querySelectorAll('.answer')
+    const fact = document.querySelectorAll('.fact')
+
+    function calculateButton() {
+        answer.forEach(elem => elem.textContent = 0)
+        inputObject.forEach(elem => {
+            if(elem.value != '')
+                calculate(elem)
+        })
+    }
+
+    function factButton() {
+        fact.forEach(elem => {
+            if(elem.value != '')
+                factChange(elem)
+        })
+    }
+</script>
+
+
+<script>
     function WriteLog(log){
+            console.log(log)
             var logjsn = JSON.stringify(log);
             logjsn = logjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
             $.ajax({
@@ -197,22 +219,7 @@
 </script>
 
 <script>
-    function sendDataOverTime(inputList, func, funcWithDebounce){
-        inputList.forEach(element => {
-            element.addEventListener('input', () => {
-                func(element)
-                funcWithDebounce(func(element))
-            }
-        )})
-    }
-    // Ставим debounce на input ввода остатка
-    let calculateHandler = debounce(WriteLog, 1500)
-    let inputObj = document.querySelectorAll('.inputObject');
-    sendDataOverTime(inputObj, calculate, calculateHandler)
-    // Ставим debounce на input ввода факта
-    let fact = document.querySelectorAll('.fact');
-    let factChangeHandler = debounce(WriteLog, 1500)
-    sendDataOverTime(fact, factChange, factChangeHandler)
+
 </script>
 
 <script>
