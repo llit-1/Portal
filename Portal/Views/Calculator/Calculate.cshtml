@@ -50,7 +50,7 @@
                             <td>@(i + 1)</td>
                             <td>@Model.Items[i].ItemOnTT.Item.Name</td>
                             <td>
-                                <input class="inputObject" type="text" size='4' >
+                                <input class="inputObject" type="text" size='4' oninput='calculate(this)'>
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>
                             <td class="hidden">
@@ -67,7 +67,7 @@
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">                               
                             </td>
                             <td>
-                                <input class="fact" type="text" size='4'>
+                                <input class="fact" type="text" size='4' oninput='factChange(this)'>
                             </td>
                         </tr>
                     }
