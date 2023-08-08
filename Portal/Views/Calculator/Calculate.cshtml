@@ -50,7 +50,7 @@
                             <td>@(i + 1)</td>
                             <td>@Model.Items[i].ItemOnTT.Item.Name</td>
                             <td>
-                                <input class="inputObject" type="text" size='4' >
+                                <input class="inputObject" type="text" size='4' oninput='calculate(this)'>
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>
                             <td class="hidden">
@@ -67,18 +67,12 @@
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">                               
                             </td>
                             <td>
-                                <input class="fact" type="text" size='4'>
+                                <input class="fact" type="text" size='4' oninput='factChange(this)'>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
-
-            <div class='button__placeholder'>
-                <button class='calculator__button' onclick='calculateButton()'>Рассчитать план</button>
-                <button class='calculator__button' onclick='factButton()'>Записать факт</button> 
-            </div>
-
         </div>
     }
     else
@@ -181,31 +175,7 @@
 </script>
 
 <script>
-    const inputObject = document.querySelectorAll('.inputObject')
-    const calculator__button = document.querySelector('.calculator__button')
-    const answer = document.querySelectorAll('.answer')
-    const fact = document.querySelectorAll('.fact')
-
-    function calculateButton() {
-        answer.forEach(elem => elem.textContent = 0)
-        inputObject.forEach(elem => {
-            if(elem.value != '')
-                calculate(elem)
-        })
-    }
-
-    function factButton() {
-        fact.forEach(elem => {
-            if(elem.value != '')
-                factChange(elem)
-        })
-    }
-</script>
-
-
-<script>
     function WriteLog(log){
-            console.log(log)
             var logjsn = JSON.stringify(log);
             logjsn = logjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
             $.ajax({

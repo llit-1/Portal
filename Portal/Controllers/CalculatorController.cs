@@ -1,4 +1,3 @@
-using IdentityModel.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -93,7 +92,7 @@ namespace Portal.Controllers
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }
 
-            calculatorInformation.ItemsGroup = CalculatorDb.ItemsGroups.FirstOrDefault(c=> c.Guid == Guid.Parse(typeGuid));
+            calculatorInformation.ItemsGroup = CalculatorDb.ItemsGroups.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
             RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3))
                                                     .FirstOrDefault(c => c.Login == userLogin);
@@ -145,14 +144,14 @@ namespace Portal.Controllers
                         nextDayGroup = dayGroups[0];
                         break;
                     }
-                    nextDayGroup = dayGroups[i+1];
+                    nextDayGroup = dayGroups[i + 1];
                     break;
                 }
             }
 
             for (int i = 0; i < timeGroups.Count; i++)
             {
-                if ( timeGroups[i].FirstHour <= calculatorInformation.Date.Hour && timeGroups[i].LastHour >= calculatorInformation.Date.Hour)
+                if (timeGroups[i].FirstHour <= calculatorInformation.Date.Hour && timeGroups[i].LastHour >= calculatorInformation.Date.Hour)
                 {
                     thisTimeGroup = timeGroups[i];
                     calculatorInformation.ThisTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == thisTimeGroup && c.DayGroup == thisDayGroup);
@@ -167,7 +166,7 @@ namespace Portal.Controllers
                     }
                     if (timeGroups.Count == i + 2)
                     {
-                        nextTimeGroup = timeGroups[i+1];
+                        nextTimeGroup = timeGroups[i + 1];
                         nextSecondTimeGroup = timeGroups[0];
                         calculatorInformation.NextTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextTimeGroup && c.DayGroup == thisDayGroup);
                         calculatorInformation.NextSecondTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextSecondTimeGroup && c.DayGroup == nextDayGroup);
@@ -256,7 +255,10 @@ namespace Portal.Controllers
                 logjsn = logjsn.Replace("%bkspc%", " ");
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
                 calculatorLog.Date = DateTime.Now;
+                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
                 dbSql.CalculatorLogs.Add(calculatorLog);
+                CalculatorLogTest calculatorLogsTest = new CalculatorLogTest(calculatorLog);
+                dbSql.CalculatorLogsTest.Add(calculatorLogsTest);
                 dbSql.SaveChanges();
             }
             catch (Exception ex)
