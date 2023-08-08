@@ -256,6 +256,7 @@ namespace Portal.Controllers
                 logjsn = logjsn.Replace("%bkspc%", " ");
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
                 calculatorLog.Date = DateTime.Now;
+                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
                 dbSql.CalculatorLogs.Add(calculatorLog);
                 dbSql.SaveChanges();
             }

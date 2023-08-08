@@ -15,5 +15,6 @@ namespace Portal.Models.MSSQL
         public int Result { get; set; }
         public int Fact { get; set; }
         public DateTime Date { get; set; }
+        public Guid? SessionId { get; set; }
     }
 }
