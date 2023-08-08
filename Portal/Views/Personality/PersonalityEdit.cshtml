@@ -220,7 +220,7 @@
                         </div>
                         <label class="label-light">По</label>
                         <div>
-                            <input type="datetime-local" class="inputPersonData correctForData" id="">
+                            <input required type="datetime-local" class="inputPersonData correctForData" id="">
                         </div>
                     </div>
 
@@ -308,7 +308,7 @@
                     alert(result.data);
                 }
             },
-            error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
+            error: function (error) { alert(error.responseText); }
         }); 
     }
 </script>

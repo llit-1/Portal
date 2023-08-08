@@ -24,7 +24,7 @@
             
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
                 <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" onclick="AddItem()" style="margin-left:20px">добавить</a>
+                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" onclick="AddItem(0)" style="margin-left:20px">добавить</a>
             </div>
 
 
@@ -91,7 +91,7 @@
 
 <!--загрузка формы добавления пользователя-->
 <script>
-    function AddItem() {
+    function AddItem(typeGuid) {
         // Ссылка на страницу
         location.hash = "#AddPerson";
         // Редактируем header
@@ -106,7 +106,7 @@
        $('#editMenu').hide();
        $('#addMenu').show();
         SpinnerShow();
-        $('#page').load('/Personality/PersonalityEdit?typeGuid=0', function () {
+        $('#page').load('/Personality/PersonalityEdit?typeGuid=' + typeGuid, function () {
          SpinnerHide()
          });
     }
@@ -140,7 +140,7 @@
         $('#back').click(function () {
             DataTable();
          });
-        $('#tableMenu').hide();
+        $('#tableMenu').show();
         $('#editMenu').show();
         $('#addMenu').hide();
         SpinnerShow();

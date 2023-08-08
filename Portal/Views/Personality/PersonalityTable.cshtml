@@ -116,12 +116,10 @@
     $('.activeRow').click(function () {
         var itemId = this.id;
         var itemName = $(this).find('.userName').text();
-        if(location.hash == '#Personality'){
-            PersonalityVersions();
-        } else {
-            EditItem(itemName, itemId);
-        }
+        PersonalityVersions();
     });
+
+    
 </script>
 
 @* Выделение ряда неактивного пользователя *@
