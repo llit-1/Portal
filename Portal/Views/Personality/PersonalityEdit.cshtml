@@ -62,7 +62,7 @@
                     <label class="label-light">Отчество</label>
                     <input required type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.PersonalitiesVersions.Patronymic">
                     <label class="label-light">Дата рождения</label>
-                    <input required type="date" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
+                    <input required type="date" min="1900-01-01" max="2010-01-01" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
                     <label class="label-light">Должность</label>
                     <input type="hidden" id="personGUID" value="@Model.PersonalitiesVersions.Personalities.Guid">
                     <input type="hidden" id="personVersionGUID" value="@Model.PersonalitiesVersions.Guid">
@@ -101,9 +101,9 @@
                     </div>
 
                 <label class="label-light">Дата приема на работу</label>
-                    <input required type="date" class="inputPersonData" id="HireDate" value="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")">
+                    <input required type="date" class="inputPersonData" id="HireDate" min="1900-01-01" value="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")">
                 <label class="label-light">Дата увольнения</label>
-                    <input type="date" class="inputPersonData dissDate" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
+                    <input type="date" class="inputPersonData dissDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
 
                     <label class="label-light">Смена</label>
                     @* Выбор смены *@
@@ -162,11 +162,11 @@
                         <div class='rightBlockPersonData__versions hidden'>
                             <label class="label-light">С</label>
                             <div>
-                                <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-ddThh:mm")">
+                                <input disable type="date" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")">
                             </div>
                             <label class="label-light">По</label>
                             <div>
-                                <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-ddThh:mm")">
+                                <input disable type="date" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
                             </div>
                         </div>
                     }
@@ -177,11 +177,11 @@
                         <div class='rightBlockPersonData__versions'>
                             <label class="label-light">С</label>
                             <div>
-                                <input required type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-ddThh:mm")">
+                                <input required type="date" class="inputPersonData correctForData" id="VersionStartDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" max="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")">
                             </div>
                             <label class="label-light">По</label>
                             <div>
-                                <input type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-ddThh:mm")">
+                                <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
                             </div>
                         </div>
                     }
@@ -192,11 +192,11 @@
                         <div class='rightBlockPersonData__versions'>
                             <label class="label-light">С</label>
                             <div>
-                                <input required type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-ddThh:mm")">
+                                <input required type="date" class="inputPersonData correctForData" min="@DateTime.Now.ToString("yyyy-MM-dd")" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
                             </div>
                             <label class="label-light">По</label>
                             <div>
-                                <input type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-ddThh:mm")">
+                                <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
                             </div>
                         </div>
                     }
@@ -229,7 +229,7 @@
                     <label class="label-light">Отчество</label>
                     <input required type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
                     <label class="label-light">Дата рождения</label>
-                    <input required type="date" class="inputPersonData" id="birthDatePerson">
+                    <input required type="date" class="inputPersonData" id="birthDatePerson" min="1900-01-01" max="2010-01-01">
                     <label class="label-light">Должность</label>
                     <input required type="hidden" id="personGUID" value="0">
 
@@ -320,11 +320,11 @@
                     <div class='rightBlockPersonData__versions hidden'>
                         <label class="label-light">С</label>
                         <div>
-                            <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate">
+                            <input disable type="date" class="inputPersonData correctForData" id="VersionStartDate">
                         </div>
                         <label class="label-light">По</label>
                         <div>
-                            <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate">
+                            <input disable type="date" class="inputPersonData correctForData" id="VersionEndDate">
                         </div>
                     </div>
                     }
@@ -334,11 +334,11 @@
                     <div class='rightBlockPersonData__versions'>
                         <label class="label-light">С</label>
                         <div>
-                            <input required type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate">
+                            <input required type="date" class="inputPersonData correctForData" id="VersionStartDate">
                         </div>
                         <label class="label-light">По</label>
                         <div>
-                            <input required type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate">
+                            <input required type="date" class="inputPersonData correctForData" id="VersionEndDate">
                         </div>
                     </div>   
                     }
@@ -368,8 +368,10 @@
 
     // Возврат к таблице
     const NewPerson = document.getElementById('NewPerson').value;
-        $('#back').unbind('click');
-        $('#back').click(function () { location.hash = "#Personality" });
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#Personality" });
+
+        
     
 
     function clearInputs() {
@@ -444,6 +446,27 @@
     }
 </script>
 
+<script>
+    const HireDate = document.getElementById('HireDate'); // Дата приема на работу
+    const VersionStartDate = document.getElementById('VersionStartDate') // Дата старта версии
+    const VersionEndDate = document.getElementById('VersionEndDate') // Дата старта версии
+    const DismissalsDate = document.getElementById('DismissalsDate') // Дата увольнения
+
+    HireDate.addEventListener('input', () => {
+        const HireDateValue = HireDate.value;
+        VersionStartDate.min = HireDateValue;
+        DismissalsDate.min = HireDateValue;
+    })
+
+    VersionStartDate.addEventListener('input', () => {
+        VersionEndDate.min = VersionStartDate.value;
+    })
+
+    VersionEndDate.addEventListener('input', () => {
+        VersionStartDate.max = VersionEndDate.value;
+    })
+</script>
+
 @* Отправляем JSON (Редактирование пользователя) *@
 <script>
     function editUser() {
@@ -481,10 +504,12 @@
                     location.hash = '#Personality'
                 }
                 else {
-                    openModal('Ошибка', result)
+                    openModal('Ошибка', result.errorMessage)
                 }
             },
-            error: function (error) { openModal('Ошибка', error) }
+            error: function (error) {
+                openModal('Ошибка', error.errorMessage)
+            }
         });
     }
 </script>

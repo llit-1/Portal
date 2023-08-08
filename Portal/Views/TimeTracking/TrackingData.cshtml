@@ -27,11 +27,19 @@
 <!------------------------------------------------------------------------------------------------------------------->
 <!--загрузка таблицы пользователей-->
 <script>
-    
     function loadTrackingDataTable() {
         try{
             SpinnerShow();
-            $('#page').load('/TimeTracking/TrackingdataTable', function () { SpinnerHide(); });
+            const calendarBegin = localStorage.getItem("calendarBegin");
+            const calendarEnd = localStorage.getItem("calendarEnd");
+            let selectedOptionId = localStorage.getItem("selectedOptionId");
+            $('#loading').show();
+            if (calendarBegin != null && calendarEnd != null && selectedOptionId != null){
+                $('#page').load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
+            } else {
+                $('#page').load('/TimeTracking/TrackingdataTable')
+            }
+            
 
         }
         catch{
@@ -45,7 +53,10 @@
     function TrackingDataTable() {
         $('#header').text('Табель');
         $('#back').unbind('click');
-        $('#back').click(function () { location.hash = "#staff" });
+        $('#back').click(function () {
+            localStorage.clear();
+            location.hash = "#staff" 
+        });
         $('#tableMenu').show();
         $('#editMenu').hide();
         $('#addMenu').hide();

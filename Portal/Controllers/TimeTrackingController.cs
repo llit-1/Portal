@@ -14,6 +14,7 @@ using System.Drawing;
 using Portal.Models.JsonModels;
 using Newtonsoft.Json;
 using Portal.Models.MSSQL.Personality;
+using Portal.Models.MSSQL.PersonalityVersions;
 
 namespace Portal.Controllers
 {
@@ -103,9 +104,16 @@ namespace Portal.Controllers
         }
         public IActionResult TrackingDataEdit(string stringDate, string locationGuid)
         {
-            TTData tTData = new TTData();
-
             DateTime date = DateTime.ParseExact(stringDate, "dd-MM-yyyy", null);
+
+            List<PersonalityVersion> pervers = dbSql.PersonalityVersions.Include(c => c.Personalities)
+                                                                        .Include(c => c.JobTitle)
+                                                                        .Include(c => c.Schedule)
+                                                                        .Include(c => c.Location)
+                                                                        .Where(c => c.VersionStartDate <= date && (c.VersionEndDate == null || c.VersionEndDate >= date) && c.Actual == 1)
+                                                                        .ToList();
+
+            TTData tTData = new TTData();
             Portal.Models.MSSQL.Location.Location location = dbSql.Locations.FirstOrDefault(c => c.Guid == Guid.Parse(locationGuid));
             DateData dateData = new DateData();
             dateData.Date = date;
@@ -113,17 +121,14 @@ namespace Portal.Controllers
                                                   .Include(c => c.JobTitle)
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
                                                   .ToList();
+
+
             tTData.Location = location;
             tTData.DateDatas = new List<DateData> { dateData };
             TrackingDataEditModel trackingDataEditModel = new TrackingDataEditModel();
             trackingDataEditModel.TTData = tTData;
             trackingDataEditModel.Personalities = dbSql.Personalities.ToList();
-            trackingDataEditModel.PersonalityVersions = dbSql.PersonalityVersions.Include(c => c.JobTitle)
-                                                                                 .Include(c => c.Schedule)
-                                                                                 .Include(c => c.Location)
-                                                                                 .Include(c => c.Personalities)
-                                                                                 .Where(c => c.Actual == 1 && c.VersionEndDate == null)
-                                                                                 .ToList();
+            trackingDataEditModel.PersonalityVersions = pervers;
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
             return PartialView(trackingDataEditModel);
         }
@@ -177,7 +182,7 @@ namespace Portal.Controllers
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result.ErrorMessage);
-            }
+            }    
         }
 
         private string CheckTimesheetsForСoincidenceTime(List<TimeSheet> checkingTimeSeets, List<Guid> selectedPersonalityGuid)

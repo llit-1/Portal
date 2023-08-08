@@ -70,7 +70,6 @@
 
 <script>
     function DataTable() {
-        // location.hash = "#SettingsUsers";
         $('#header').text('Пользователи');
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#staff" });
@@ -97,12 +96,6 @@
         } else {
             $('#header').text('Добавление версии');
         }
-        
-//         Вешаем на кнопку возврат к таблице
-       $('#back').unbind('click');
-       $('#back').click(function () {
-           checkbox.style.display = 'flex'
-           DataTable(); });
         // Скрываем все лишнее
        $('#tableMenu').hide();
        $('#editMenu').hide();
@@ -119,10 +112,6 @@
     function EditItem(itemName, typeGuid, newPerson) {
         location.hash = "#EditPerson";
         $('#header').text(itemName);
-        $('#back').unbind('click');
-        $('#back').click(function () { 
-            DataTable();
-         });
         $('#tableMenu').hide();
         $('#editMenu').show();
         $('#addMenu').hide();

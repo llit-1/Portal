@@ -24,10 +24,15 @@
                                         <th class="hidden">ЮЛ разнесения затрат</th>
                                         <th>Дата начала версии</th>
                                         <th>Дата окончания версии</th>
+                                        <th class="hidden"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
-                                    @foreach (var user in Model.PersonalitiesVersions)
+                                    @{var uniquePersonalityVersions = Model.PersonalitiesVersions
+                                    .Where(x => !Model.Errors.Any(c => c == x.Guid))
+                                    .ToList();
+                                    }
+                                    @foreach (var user in uniquePersonalityVersions)
                                     {
                                         var BirthDate = @user.Personalities.BirthDate.ToString().Split(' ')[0];
                                         var HireDate = @user.HireDate.ToString().Split(' ')[0];
@@ -35,8 +40,8 @@
                                         var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
 
                                         <tr id="@user.Guid" class="activeRow" style="margin-right: 5px;" onclick="">
-                                            <td class="tdPersonTable" >
-                                                <p class="list-item-heading userName">@NSP</p>
+                                            <td class="tdPersonTable">
+                                            <p class="list-item-heading userName">@NSP</p>
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted ">@BirthDate</p>
@@ -47,11 +52,11 @@
                                             <td class="tdPersonTable">
                                                 <p class="text-muted">@user.Location.Name</p>
                                             </td>
-                                            <td class="tdPersonTable" >
+                                            <td class="tdPersonTable">
                                                 <p class="text-muted ">@HireDate</p>
                                             </td>
                                             <td class="tdPersonTable">
-                                                <p class="text-muted ">@user.DismissalsDate</p>
+                                                <p class="text-muted ">@DismissalsDate</p>
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted ">@user.Schedule.Name</p>
@@ -63,14 +68,85 @@
                                                 <p class="text-muted ">@user.EntityCost?.Name</p>
                                             </td>
                                             <td class="tdPersonTable">
-                                                <p class="text-muted ">@user.VersionStartDate</p>
+                                                <p class="text-muted ">@user.VersionStartDate.Value.ToString("dd.MM.yyyy")</p>
                                             </td>
-                                            <td class="tdPersonTable deactiveForPersonVersion">
-                                                <p class="text-muted ">@user?.VersionEndDate</p>
+                                            @if (user.VersionEndDate == null)
+                                            {
+                                                <td class="tdPersonTable deactiveForPersonVersion">
+                                                    <p class="text-muted ">@user.VersionEndDate</p>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="tdPersonTable deactiveForPersonVersion">
+                                                    <p class="text-muted ">@user.VersionEndDate.Value.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                            }
+                                            <td class="tdPersonTable hidden">
+                                                <p class="text-muted ">@user.VersionStartDate.Value.ToString("yyyy.MM.dd")</p>
                                             </td>
                                         </tr>
                                     }
 
+                                    @{var uniquePersonalityErrorVersions = Model.PersonalitiesVersions
+                                    .Where(x => Model.Errors.Any(c => c == x.Guid))
+                                    .ToList();
+                                    }
+                                    @foreach (var user in uniquePersonalityErrorVersions)
+                                    {
+                                        var BirthDate = @user.Personalities.BirthDate.ToString().Split(' ')[0];
+                                        var HireDate = @user.HireDate.ToString().Split(' ')[0];
+                                        var NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user.Patronymic.ToString();
+                                        var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
+                                        //Если есть ошибка выделяет красным
+                                        <tr id="@user.Guid" class="activeRow" style="margin-right: 5px; background-color: #ff9d9d;">
+                                            <td class="tdPersonTable">
+                                            <p class="list-item-heading userName">@NSP</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@BirthDate</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted">@user.JobTitle.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted">@user.Location.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@HireDate</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@DismissalsDate</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@user.Schedule.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable hidden">
+                                                <p class="text-muted ">@user.Entity?.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable hidden">
+                                                <p class="text-muted ">@user.EntityCost?.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@user.VersionStartDate.Value.ToString("dd.MM.yyyy")</p>
+                                            </td>
+                                            @if(user.VersionEndDate == null)
+                                            {
+                                                <td class="tdPersonTable deactiveForPersonVersion">
+                                                    <p class="text-muted ">@user.VersionEndDate</p>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="tdPersonTable deactiveForPersonVersion">
+                                                    <p class="text-muted ">@user.VersionEndDate.Value.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                            }
+                                            <td class="tdPersonTable hidden">
+                                                <p class="text-muted ">@user.VersionStartDate.Value.ToString("yyyy.MM.dd")</p>
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         }
@@ -112,7 +188,7 @@
     });
 
     // сортируем по-умолчанию по последнему столбцу
-    table.order([10, 'asc']).draw();
+    table.order([11, 'desc']).draw();
 
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
@@ -127,7 +203,7 @@
 
 </script>
 
-<!--клик по строке-->
+
 <script>
     const typeGuid = $('#Person_Guid').val()
     $('.activeRow').click(function () {
@@ -137,12 +213,28 @@
 
         EditItem(itemName, itemId, newPerson)
     });
+</script>
 
+<!-- Ограничение дат -->
+<script>
+    const tabbleMenu = document.getElementById('tableMenu')
+    tabbleMenu.innerHTML += `<div class='notation'>
+                            <p class='p_green'> - актуальная версия</p>
+                            <p class='p_gray'> - устаревшая версия</p>
+                            <p class='p_red'> - пересечение дат</p>
+                            </div>`
+
+    const typeGuid = $('#Person_Guid').val()    
     $('#buttonAdd').unbind('click');
     $('#buttonAdd').click(function () {
         AddItem(typeGuid, 0)
     })
+    $("#searchDatatable").on("input", function (event) {
+        table.search($(this).val()).draw();
+    });
 </script>
+
+
 
 @* Выделение ряда активной и неактивной версии *@
 <script>
@@ -150,20 +242,21 @@
     const rows = table.getElementsByTagName("tr"); //Получаем массив рядов
 
     for(let i = 0; i < rows.length; i++) { //Проходимся по каждому ряду
-        let cell = rows[i].getElementsByTagName('td') //Получаем список ячеек
-        // Проходимся по каждой ячейки в поисках "0"
-        for(let j = 0; j < cell.length; j++){ 
-            let td = cell[j]
-            if(td.classList.contains('deactiveForPersonVersion')) {
-                let text = td.getElementsByTagName('p')[0]
-                if(text.textContent != ''){
-                    rows[i].style.backgroundColor = "#b4b4b47e";
-                }
-                else {
-                    rows[i].style.backgroundColor = "#a4f3b57e";
+        if (rows[i].style.backgroundColor != 'rgb(255, 157, 157)') {
+                let cell = rows[i].getElementsByTagName('td') //Получаем список ячеек
+                // Проходимся по каждой ячейки в поисках "0"
+                for (let j = 0; j < cell.length; j++) {
+                    let td = cell[j]
+                    if (td.classList.contains('deactiveForPersonVersion')) {
+                        let text = td.getElementsByTagName('p')[0]
+                        if (text.textContent != '') {
+                            rows[i].style.backgroundColor = "#b4b4b47e";
+                        }
+                        else {
+                            rows[i].style.backgroundColor = "#a4f3b57e";
+                        }
+                    }
                 }
             }
-        }
-        
         }
 </script>

@@ -114,16 +114,23 @@
     </div>
 </div>
 
-<!--группировка по ТТ-->
+
 <script>
+    const day_state = [];
     $('.row-group-01').click(function () {
+        // clas
         var check = $(this).children('td').children('label').children('input');
         var items = '.day_' + $(check).attr('id');
         if (!$(check).is(':checked')) {
             $(check).prop('checked', true);
             $(items).removeClass('hidden');
+            day_state.push(this.id)
         }
         else {
+            let index = day_state.indexOf(this.id);
+            if (index !== -1) {
+                day_state.splice(index, 1);
+            }
             $(items).each(function () {
                 var check01 = $(this).children('td').children('label').children('input');
                 var items01 = '.person_' + $(check01).attr('id');
@@ -137,6 +144,21 @@
             $(items).addClass('hidden');
         }
     });
+
+
+    function loadTracking(str) {
+    let days_state = JSON.stringify(day_state)
+
+    localStorage.setItem('days_state', days_state)
+
+    let date = str.parentElement.parentElement.children[0].children[0].textContent;
+            let guid = str.parentElement.parentElement.children[2].textContent;
+            event.stopPropagation()
+            p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
+            $('#page').load(p);
+            $('#loading').show();
+    }
+
 </script>
 
 <!--группировка по дню-->
@@ -238,28 +260,26 @@
 <!--фильтры-->
 <script>
     function filters() {
-        let ttVal = $("option:selected", '#ttSelector').attr('id');
-        const calendarBegin = document.getElementById("calendarBegin").value;
-        const calendarEnd = document.getElementById("calendarEnd").value;
-        const ttSelector = document.getElementById('ttSelector');
-        let selectedOption = ttSelector.options[ttSelector.selectedIndex];
-        let selectedOptionId = selectedOption.getAttribute("id");
-        $('#loading').show();
-        $('#page').load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
+            let ttVal = $("option:selected", '#ttSelector').attr('id');
+            const ttSelector = document.getElementById('ttSelector');
+            const calendarBegin = document.getElementById("calendarBegin").value;
+            const calendarEnd = document.getElementById("calendarEnd").value;
+            let selectedOption = ttSelector.options[ttSelector.selectedIndex];
+            let selectedOptionId = selectedOption.getAttribute("id");
+            localStorage.setItem("calendarBegin", calendarBegin);
+            localStorage.setItem("calendarEnd", calendarEnd);
+            localStorage.setItem("selectedOptionId", selectedOptionId);
+            $('#loading').show();
+            $('#page').load('/TimeTracking/TrackingdataTable?begin=' + calendarBegin + '&end=' + calendarEnd + '&locationguid=' + selectedOptionId);
     }
-</script>
-
-
-<!--редактировать смену-->
-<script>
-    function loadTracking(str) {
-        let date = str.parentElement.parentElement.children[0].children[0].textContent;
-        let guid = str.parentElement.parentElement.children[2].textContent;
-        event.stopPropagation()
-        p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
-        $('#page').load(p);
-        $('#loading').show();
-    } 
+    
+    if (localStorage.getItem('days_state') != null){
+        let state = localStorage.getItem('days_state')
+        let arr_state = JSON.parse(state);
+        arr_state.forEach(elem => {
+            document.getElementById(elem).click()
+        })
+    }
 </script>
 
 <!--по загрузке страницы-->

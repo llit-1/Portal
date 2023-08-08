@@ -140,7 +140,7 @@ namespace Portal.Controllers
                     personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                     personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
                     DateTime now = DateTime.Now;
-                    personalityVersion.VersionStartDate = now;
+                    personalityVersion.VersionStartDate = personalityJson.HireDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == newPersonalityGuid);
                     personalityVersion.Actual = personalityJson.Actual;
                     dbSql.Add(personalityVersion);
@@ -149,7 +149,7 @@ namespace Portal.Controllers
                 else
                 {
                     DateTime now = DateTime.Now;
-                    dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = now;
+                    dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = now.AddDays(-1);;
                     Models.MSSQL.Personality.Personality personality = new Personality();
                     Guid newPersonalityGuid = personalityJson.Guid;
                     PersonalityVersion personalityVersion = new();
@@ -199,12 +199,22 @@ namespace Portal.Controllers
                 personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
                 personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                 personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
-                personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
-                personalityVersion.VersionEndDate = personalityJson.VersionEndDate;
                 personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                 personalityVersion.Actual = personalityJson.Actual;
-                dbSql.SaveChanges();
-                return new OkObjectResult(result);
+                if(personalityJson.VersionStartDate > personalityJson.VersionEndDate)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Дата начала действия смены не может быть больше, чем дата конца.";
+                    return new ObjectResult(result);
+                }
+                else
+                {
+                    personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
+                    personalityVersion.VersionEndDate = personalityJson.VersionEndDate;
+                    dbSql.SaveChanges();
+                    return new OkObjectResult(result);
+                }
+                
             }
             catch (Exception ex)
             {
@@ -217,16 +227,54 @@ namespace Portal.Controllers
         public IActionResult PersonalityVersions(string typeGuid, string newPerson)
         {
             PersonalityVersionModel personalityVersionModel = new();
+
+            List<PersonalityVersion> checkVersionsForError = dbSql.PersonalityVersions.Include(c => c.Personalities)
+                                                                                      .Include(c => c.Location)
+                                                                                      .Include(c => c.JobTitle)
+                                                                                      .Include(c => c.Entity)
+                                                                                      .Include(c => c.EntityCost)
+                                                                                      .Include(c => c.Schedule)
+                                                                                      .Where(c => c.Personalities.Guid == Guid.Parse(typeGuid))
+                                                                                      .OrderBy(c => c.VersionStartDate)
+                                                                                      .ToList();
+
+
             personalityVersionModel.NewPerson = newPerson;
             personalityVersionModel.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
-            personalityVersionModel.PersonalitiesVersions = dbSql.PersonalityVersions.Include(c => c.Personalities)
-                                                                                     .Include(c => c.Location)
-                                                                                     .Include(c => c.JobTitle)
-                                                                                     .Include(c => c.Entity)
-                                                                                     .Include(c => c.EntityCost)
-                                                                                     .Include(c => c.Schedule)
-                                                                                     .Where(c => c.Personalities.Guid == personalityVersionModel.Personality.Guid)
-                                                                                     .ToList();
+            personalityVersionModel.PersonalitiesVersions = checkVersionsForError;
+
+
+            List<Guid> ErrorsInDAtes = new();
+            var count = 0;
+            List<Guid> temp = new();
+            
+            for (var i = 0; i < (checkVersionsForError.Count-1); i++)
+            {      
+                if(checkVersionsForError[i].VersionEndDate != null)
+                {
+                    if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value.AddDays(1) != checkVersionsForError[i + 1].VersionStartDate)
+                    {
+                        ErrorsInDAtes.Add(checkVersionsForError[i].Guid);
+                    }
+                    else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value >= checkVersionsForError[i + 1].VersionStartDate.Value)
+                    {
+                        ErrorsInDAtes.Add(checkVersionsForError[i].Guid);
+                    }
+                }
+                else
+                {
+                    count++;
+                    temp.Add(checkVersionsForError[i].Guid);
+                }
+            }
+            if(temp.Count > 1)
+            {
+                temp.RemoveAt(temp.Count - 1);
+                ErrorsInDAtes.AddRange(temp);
+            }
+
+            personalityVersionModel.Errors = ErrorsInDAtes;
+
             return PartialView(personalityVersionModel);
         }
 
