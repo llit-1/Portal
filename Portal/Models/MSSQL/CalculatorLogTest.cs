@@ -13,7 +13,7 @@ namespace Portal.Models.MSSQL
         public string TTName { get; set; }
         public int Rest { get; set; }
         public int Result { get; set; }
-        public int Fact { get; set; }
+        public int? Fact { get; set; }
         public DateTime Date { get; set; }
         public Guid? SessionId { get; set; }
 
