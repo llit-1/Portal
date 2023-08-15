@@ -436,10 +436,10 @@
                     location.hash = '#Personality'
                 }
                 else {
-                    alert(result.data);
+                    openModal('Ошибка', result)
                 }
             },
-            error: function (error) { alert(error.responseText); }
+            error: function (error) { openModal('Ошибка', error) }
         });
     }
 </script>
@@ -481,10 +481,10 @@
                     location.hash = '#Personality'
                 }
                 else {
-                    alert(result.data);
+                    openModal('Ошибка', result)
                 }
             },
-            error: function (error) { alert(result.data); }
+            error: function (error) { openModal('Ошибка', error) }
         });
     }
 </script>

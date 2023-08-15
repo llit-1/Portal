@@ -186,9 +186,9 @@ namespace Portal.Controllers
                 {
                     if (selectedDatetime > timeSheets[i].Begin)
                     {
-                        return ($"Error: Конфликт рабочего времени!\nСотрудник: {timeSheets[i].PersonalityVersions.Surname} {timeSheets[i].PersonalityVersions.Name} {timeSheets[i].PersonalityVersions.Patronymic}\n" +
-                            $"Уже активен на точке: {checkingTimeSeets[0].Location.Name}\n" +
-                            $"Временной слот {checkingTimeSeets[0].Begin} - {checkingTimeSeets[0].End}");
+                        return ($"Конфликт рабочего времени!\nСотрудник: {timeSheets[i].PersonalityVersions.Surname} {timeSheets[i].PersonalityVersions.Name} {timeSheets[i].PersonalityVersions.Patronymic}\n" +
+                                $"Уже активен на точке: {checkingTimeSeets[0].Location.Name}\n" +
+                                $"Временной слот {checkingTimeSeets[0].Begin} - {checkingTimeSeets[0].End}");
                     }
                     selectedDatetime = timeSheets[i].End;
                 }

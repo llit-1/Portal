@@ -22,8 +22,6 @@
 }
 /* Шапка конец */
 
-
-
 /* Тумблер  */
 .switch {
     display: inline-block;
@@ -291,14 +289,43 @@
         
     }
 
+    /* Отображение страницы */
+    
     .personData{
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #user-form {
         flex-direction: column;
     }
 
+    .leftBlockPersonData, .rightBlockPersonData {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        padding-left: 6%;
+        padding-top: 10px;
+    }
+
     .inputPersonData {
-        width: 73vw;
+        width: 80vw;
         height: 5vh;
     }
+
+    .rightBlockPersonData__versions {
+        width: 80vw;
+    }
+
+    #VersionStartDate, #VersionEndDate {
+        width: 72vw;
+    }
+
+    .buttonClearPersonData {
+        margin-right: 8%;
+    }
+
+    /* --------------------- */
 
     .buttonAddPersonData {
         width: 90px;

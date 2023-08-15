@@ -3,11 +3,13 @@
 <div class="row" id="fordres_editor">
     <!--группы-->
     <div class="col-sm-2">
+            <table class="table">
+                <tr class="bg-primary">
+                    <th class="text-left">Должность</th>
+                </tr>
+            </table>
         <div class="col-4 panel panel-default height table1" id='check' style="margin-bottom: 10px">
             <table class="table">
-                <tr> 
-                    <th class="bg-primary">Должность</th>
-                </tr>
                 @foreach (var item in Model.JobTitles)
                 {   
                             <tr class="getJobTitleData">
@@ -420,10 +422,10 @@
                     $('#page').load('/TimeTracking/TrackingData', function () { SpinnerHide(); });
                 }
                 else {
-                    alert(result);
+                    openModal('Ошибка', result)
                 }
             },
-            error: function (error) { alert(error); }
+            error: function (error) { openModal('Ошибка', error) }
         }); 
     }
 </script>
