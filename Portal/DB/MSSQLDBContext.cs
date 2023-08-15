@@ -23,9 +23,11 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.CalculatorLogTest> CalculatorLogsTest { get; set; } // тестовые логи калькулятора
         public DbSet<Models.MSSQL.Location.LocationType> LocationTypes { get; set; } // тип локации
         public DbSet<Models.MSSQL.Location.Location> Locations { get; set; } // локация
-        public DbSet<Models.MSSQL.Personality.Personality> Personalities { get; set; } // персона
+        public DbSet<Models.MSSQL.Personality.Personality> Personalities { get; set; } // сотрудники
+        public DbSet<Models.MSSQL.PersonalityVersions.PersonalityVersion> PersonalityVersions { get; set; } // версии сотрудников
         public DbSet<Models.MSSQL.Personality.JobTitle> JobTitles { get; set; } // должность
         public DbSet<Models.MSSQL.Personality.Schedule> Schedules { get; set; } // типы смен
         public DbSet<Models.MSSQL.TimeSheet> TimeSheets { get; set; } // типы смен
+        public DbSet<Models.MSSQL.Personality.Entity> Entity { get; set; } // ЮЛ
     }
 }

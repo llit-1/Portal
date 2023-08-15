@@ -88,7 +88,7 @@
 
 <script>
     function calculate(inputObject){
-        inputObject.value = inputObject.value.replace(/[^\d.]/g, '');
+        inputObject.value = inputObject.value.replace(/[^\d]/g, '');
         let trObject = inputObject.parentNode.parentNode;
         let answerObject = trObject.querySelector('.answer');
 

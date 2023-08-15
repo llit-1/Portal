@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Portal.Models.MSSQL.Personality;
+using Portal.Models.MSSQL.PersonalityVersions;
+using System.Collections.Generic;
 
 namespace Portal.Models
 {
     public class PersonalityModel
     {
-        public List<Models.MSSQL.Personality.Personality> Personalities { get; set; }
+        public PersonalityVersion PersonalitiesVersions { get; set; }
+        public Personality Personalities { get; set; }
     }
 }

@@ -48,7 +48,7 @@
 
 
 
-                @foreach (var item in Model.Personalities.OrderBy(g => g.Surname))
+                @foreach (var item in Model.PersonalityVersions.OrderBy(g => g.Surname))
                 {
                         <tr class="personList hidden"> 
                             <td class="hidden">@item.Guid</td>
@@ -86,8 +86,8 @@
                             @foreach (var item in Model.TTData.DateDatas[0].TimeSheets)
                             {
                                         <tr>
-                                            <th class="hidden guidForError">@item.Personality.Guid</th>
-                                            <th class="newRowAlign">@item.Personality.Surname @item.Personality.Name @item.Personality.Patronymic</th>
+                                    <th class="hidden guidForError">@item.PersonalityVersions.Guid</th>
+                                    <th class="newRowAlign">@item.PersonalityVersions.Surname @item.PersonalityVersions.Name @item.PersonalityVersions.Patronymic</th>
                                             <th class="hidden">@item.JobTitle.Guid</th>
                                             <th class="newRowAlign">
                                             <select name="" id="selectJobTitle" class="selectJobTitle">
@@ -125,7 +125,7 @@
     </div>
 </div>
 
-
+<!-- Настройка страницы -->
 <script>
     let tt = document.querySelector('.TTForHeader').textContent
     let date = document.querySelector('.dateForHeader').textContent
@@ -353,7 +353,7 @@
     function sendData(){
         // Получаем данные 
         const selectJobTitle = document.querySelectorAll('.selectJobTitle');
-        const personalityGuid = document.querySelectorAll('.guidForError');
+        const PersonalityVersionGuid = document.querySelectorAll('.guidForError');
         const locationGuid = document.querySelector('.TTIdForHeader');
         const begin = document.querySelectorAll('.timeBeginForJSON');
         const end = document.querySelectorAll('.timeEndForJSON');
@@ -396,7 +396,7 @@
             beginTime = helperForTime + ' ' + begin[i].value;
             
             TimeSheetJson.push({
-                Personality: personalityGuid[i].textContent,
+                PersonalityVersions: PersonalityVersionGuid[i].textContent,
                 JobTitle: selectJobTitle[i].value,
                 Location: locationGuid.textContent,
                 Begin: beginTime,

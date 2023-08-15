@@ -1,43 +1,45 @@
-@model Portal.Models.PersonalityModel
+@model PersonalityVersionModel
 
 <!--таблица версий пользователей-->
-<div class="panel panel-default" id="personTable" style="margin-bottom:0px">
+ <div class="panel panel-default" id="personTable" style="margin-bottom:0px">
     <div class="panel-body">
         <div class="row mb-4 mt-3" style='width: 100% !important'>
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @if (Model.Personalities != null)
+                        <input id="Person_Guid" value="@Model.PersonalitiesVersions[0].Personalities.Guid" class="hidden">
+                        @try
                         {
                             <table class="data-table nowrap" id="tableDataPerson">
                                 <thead>
                                     <tr>
-                                        <th>Номер</th>
                                         <th>ФИО</th>
+                                        <th>Дата рождения</th>
                                         <th>Должность</th>
-                                        <th>Расположение</th>
-                                        <th>Дата активации</th>
-                                        <th>Дата деактивации</th>
+                                        <th>Место работы</th>
+                                        <th>Дата приема на работу</th>
+                                        <th>Дата увольнения</th>
+                                        <th>Смена</th>
+                                        <th class="hidden">ЮЛ</th>
+                                        <th class="hidden">ЮЛ разнесения затрат</th>
+                                        <th>Дата начала версии</th>
+                                        <th>Дата окончания версии</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
-                                    @{
-                                        var count = 0;
-                                    }
-                                    @foreach (var user in Model.Personalities.OrderBy(u => u.Name))
+                                    @foreach (var user in Model.PersonalitiesVersions)
                                     {
-                                        var BirthDate = @user.BirthDate.ToString().Split(' ')[0];
+                                        var BirthDate = @user.Personalities.BirthDate.ToString().Split(' ')[0];
                                         var HireDate = @user.HireDate.ToString().Split(' ')[0];
                                         var NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user.Patronymic.ToString();
                                         var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
-                                        count++;
-                                        
+
                                         <tr id="@user.Guid" class="activeRow" style="margin-right: 5px;" onclick="">
                                             <td class="tdPersonTable" >
-                                                <p class="text-muted">@count</p>
-                                            </td>
-                                            <td class="tdPersonTable" >
                                                 <p class="list-item-heading userName">@NSP</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@BirthDate</p>
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted">@user.JobTitle.Name</p>
@@ -46,16 +48,35 @@
                                                 <p class="text-muted">@user.Location.Name</p>
                                             </td>
                                             <td class="tdPersonTable" >
-                                                <p class="text-muted ">@user.HireDate</p>
+                                                <p class="text-muted ">@HireDate</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@user.DismissalsDate</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@user.Schedule.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable hidden">
+                                                <p class="text-muted ">@user.Entity?.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable hidden">
+                                                <p class="text-muted ">@user.EntityCost?.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted ">@user.VersionStartDate</p>
                                             </td>
                                             <td class="tdPersonTable deactiveForPersonVersion">
-                                                <p class="text-muted ">@user.DismissalsDate</p>
+                                                <p class="text-muted ">@user?.VersionEndDate</p>
                                             </td>
                                         </tr>
                                     }
 
                                 </tbody>
                             </table>
+                        }
+                        catch
+                        {
+                            <div>Нет данных :(</div>
                         }
                     </div>
                 </div>
@@ -90,8 +111,8 @@
         scrollCollapse: !0
     });
 
-    // сортируем по-умолчанию по первому столбцу
-    table.order([0, 'asc']).draw();
+    // сортируем по-умолчанию по последнему столбцу
+    table.order([8, 'asc']).draw();
 
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
@@ -101,19 +122,29 @@
     // скрываем сверху таблицы фильтры data-table
     $('.view-filter').hide();
 
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#Personality" });
+
 </script>
 
 <!--клик по строке-->
 <script>
+    const typeGuid = $('#Person_Guid').val()
     $('.activeRow').click(function () {
         var itemId = this.id;
         var itemName = $(this).find('.userName').text();
-        EditItem(itemName, itemId);
-    }
-    );
+        let newPerson = 2;
+
+        EditItem(itemName, itemId, newPerson)
+    });
+
+    $('#buttonAdd').unbind('click');
+    $('#buttonAdd').click(function () {
+        AddItem(typeGuid, 0)
+    })
 </script>
 
-@* Выделение ряда неактивного пользователя *@
+@* Выделение ряда активной и неактивной версии *@
 <script>
     const table = document.getElementById("tablePerson"); //Находим таблицу
     const rows = table.getElementsByTagName("tr"); //Получаем массив рядов

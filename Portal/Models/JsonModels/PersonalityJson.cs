@@ -17,7 +17,13 @@
             public DateTime HireDate { get; set; }
             public DateTime? DismissalsDate { get; set; }
             public Guid? Schedule { get; set; }
+            public Guid? Entity { get; set; }
+            public Guid? EntityCost { get; set; }
             public int Actual { get; set; }
+            public DateTime? VersionStartDate { get; set; }
+            public DateTime? VersionEndDate { get; set; }
+            public string NewPerson { get; set; }
+            public string personGUID { get; set; }
         }
     }
 
