@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis;
 using System.Drawing;
 using Portal.Models.JsonModels;
 using Newtonsoft.Json;
-
+using Portal.Models.MSSQL.Personality;
 
 namespace Portal.Controllers
 {
@@ -84,7 +84,7 @@ namespace Portal.Controllers
                 {
                     DateData dateData = new DateData();
                     dateData.Date = date;
-                    dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.PersonalityVersions)
+                    dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                           .Include(c => c.Location)
                                                           .Include(c => c.JobTitle)
                                                           .Where(c => c.Location == location && c.Begin > date && c.Begin < date.AddDays(1))
@@ -109,7 +109,7 @@ namespace Portal.Controllers
             Portal.Models.MSSQL.Location.Location location = dbSql.Locations.FirstOrDefault(c => c.Guid == Guid.Parse(locationGuid));
             DateData dateData = new DateData();
             dateData.Date = date;
-            dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.PersonalityVersions)
+            dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                   .Include(c => c.JobTitle)
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
                                                   .ToList();
@@ -117,9 +117,11 @@ namespace Portal.Controllers
             tTData.DateDatas = new List<DateData> { dateData };
             TrackingDataEditModel trackingDataEditModel = new TrackingDataEditModel();
             trackingDataEditModel.TTData = tTData;
+            trackingDataEditModel.Personalities = dbSql.Personalities.ToList();
             trackingDataEditModel.PersonalityVersions = dbSql.PersonalityVersions.Include(c => c.JobTitle)
                                                                                  .Include(c => c.Schedule)
                                                                                  .Include(c => c.Location)
+                                                                                 .Include(c => c.Personalities)
                                                                                  .Where(c => c.Actual == 1 && c.VersionEndDate == null)
                                                                                  .ToList();
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
@@ -136,7 +138,7 @@ namespace Portal.Controllers
                 foreach (var TimeSheet in timeSheetJsonModel.TimeSheetJson)
                 {
                     Models.MSSQL.TimeSheet TimeSheets = new TimeSheet();
-                    TimeSheets.PersonalityVersions = dbSql.PersonalityVersions.FirstOrDefault(c => c.Guid == TimeSheet.PersonalityVersions);
+                    TimeSheets.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == TimeSheet.Personalities);
                     TimeSheets.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == TimeSheet.Location);
                     TimeSheets.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == TimeSheet.JobTitle);
                     TimeSheets.Begin = TimeSheet.Begin;
@@ -146,17 +148,19 @@ namespace Portal.Controllers
                 List<TimeSheet> removedTimeSheets = dbSql.TimeSheets.Include(c => c.Location)
                                                                     .Where(c => c.Location.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
                                                                     .ToList();
-                List<Guid> selectedPersonalityGuid = timeSheetJsonModel.TimeSheetJson.Select(c => c.PersonalityVersions).Distinct().ToList();
+                List<Guid> selectedPersonalityGuid = timeSheetJsonModel.TimeSheetJson.Select(c => c.Personalities).Distinct().ToList();
                 List<TimeSheet> checkingTimeSeets = new List<TimeSheet>();
+
                 foreach (var personality in selectedPersonalityGuid)
                 {
-                    checkingTimeSeets.AddRange(dbSql.TimeSheets.Include(c => c.PersonalityVersions)
+                    checkingTimeSeets.AddRange(dbSql.TimeSheets.Include(c => c.Personalities)
                                                                .Include(c => c.Location)
-                                                               .Where(c => c.PersonalityVersions.Guid == personality && c.Begin.Date == timeSheetJsonModel.Date)
-                                                               .ToList());  
+                                                               .Where(c => c.Personalities.Guid == personality && c.Begin.Date == timeSheetJsonModel.Date)
+                                                               .ToList());
                 }
                 checkingTimeSeets = checkingTimeSeets.Where(c => !removedTimeSheets.Any(d => d.Guid == c.Guid)).ToList();
                 checkingTimeSeets.AddRange(addedTimeSheets);
+
                 string error = CheckTimesheetsForСoincidenceTime(checkingTimeSeets, selectedPersonalityGuid);
                 if (error != "")
                 {
@@ -172,7 +176,7 @@ namespace Portal.Controllers
             {
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
-                return new ObjectResult(result);
+                return new ObjectResult(result.ErrorMessage);
             }
         }
 
@@ -180,13 +184,13 @@ namespace Portal.Controllers
         {
             foreach (var personality in selectedPersonalityGuid)
             {
-                List<TimeSheet> timeSheets = checkingTimeSeets.Where(c => c.PersonalityVersions.Guid == personality).OrderBy(c => c.Begin).ToList();
+                List<TimeSheet> timeSheets = checkingTimeSeets.Where(c => c.Personalities.Guid == personality).OrderBy(c => c.Begin).ToList();
                 DateTime selectedDatetime = new();
                 for (int i = 0; i < timeSheets.Count; i++)
                 {
                     if (selectedDatetime > timeSheets[i].Begin)
                     {
-                        return ($"Конфликт рабочего времени!\nСотрудник: {timeSheets[i].PersonalityVersions.Surname} {timeSheets[i].PersonalityVersions.Name} {timeSheets[i].PersonalityVersions.Patronymic}\n" +
+                        return ($"Конфликт рабочего времени!\nСотрудник: {timeSheets[i].Personalities.Name}\n" +
                                 $"Уже активен на точке: {checkingTimeSeets[0].Location.Name}\n" +
                                 $"Временной слот {checkingTimeSeets[0].Begin} - {checkingTimeSeets[0].End}");
                     }

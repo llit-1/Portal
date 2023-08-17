@@ -53,8 +53,8 @@
                 @foreach (var item in Model.PersonalityVersions.OrderBy(g => g.Surname))
                 {
                         <tr class="personList hidden"> 
-                            <td class="hidden">@item.Guid</td>
-                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+                            <td class="hidden">@item.Personalities.Guid</td>
+                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Personalities.Name</label></td>
                             <td>@item.JobTitle.Name</td>
                             <td class="hidden">@item.JobTitle.Guid</td>
                             <td class="hidden">@item.Location.Guid</td>
@@ -88,8 +88,8 @@
                             @foreach (var item in Model.TTData.DateDatas[0].TimeSheets)
                             {
                                         <tr>
-                                    <th class="hidden guidForError">@item.PersonalityVersions.Guid</th>
-                                    <th class="newRowAlign">@item.PersonalityVersions.Surname @item.PersonalityVersions.Name @item.PersonalityVersions.Patronymic</th>
+                                    <th class="hidden guidForError">@item.Personalities.Guid</th>
+                                    <th class="newRowAlign">@item.Personalities.Name</th>
                                             <th class="hidden">@item.JobTitle.Guid</th>
                                             <th class="newRowAlign">
                                             <select name="" id="selectJobTitle" class="selectJobTitle">
@@ -355,7 +355,7 @@
     function sendData(){
         // Получаем данные 
         const selectJobTitle = document.querySelectorAll('.selectJobTitle');
-        const PersonalityVersionGuid = document.querySelectorAll('.guidForError');
+        const Personalities = document.querySelectorAll('.guidForError');
         const locationGuid = document.querySelector('.TTIdForHeader');
         const begin = document.querySelectorAll('.timeBeginForJSON');
         const end = document.querySelectorAll('.timeEndForJSON');
@@ -398,7 +398,7 @@
             beginTime = helperForTime + ' ' + begin[i].value;
             
             TimeSheetJson.push({
-                PersonalityVersions: PersonalityVersionGuid[i].textContent,
+                Personalities: Personalities[i].textContent,
                 JobTitle: selectJobTitle[i].value,
                 Location: locationGuid.textContent,
                 Begin: beginTime,

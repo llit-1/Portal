@@ -98,12 +98,11 @@
                                 <td style="vertical-align: middle;" align="right"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
                             </tr>
                             <!--Сотрудники-->
-                            @foreach (var person in day.TimeSheets.OrderBy(g => g.PersonalityVersions.Surname))
+                            @foreach (var person in day.TimeSheets.OrderBy(g => g.Personalities.Name))
                             {
-                            var SNP = @person.PersonalityVersions.Surname + ' ' + @person.PersonalityVersions.Name + ' ' + @person.PersonalityVersions.Patronymic;
                                 <tr class='row-group-03 hidden person_@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>
                                     <td class="hidden">@person.Guid</td>
-                                    <td style="vertical-align: middle;" align="left">@SNP</td>
+                                    <td style="vertical-align: middle;" align="left">@person.Personalities.Name</td>
                                     <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitle.Name</td>
                                     <td align="right">@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
                                 </tr>

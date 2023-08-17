@@ -10,7 +10,7 @@ namespace Portal.Models.MSSQL
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Guid { get; set; } 
-        public PersonalityVersions.PersonalityVersion PersonalityVersions { get; set; }
+        public Personality.Personality Personalities { get; set; }
         public Location.Location Location { get; set; }
         public Personality.JobTitle JobTitle { get; set; }
         public DateTime Begin { get; set; }

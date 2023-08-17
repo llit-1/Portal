@@ -47,6 +47,10 @@ closeBtn.addEventListener('click', () => {
 
 // Создаем заголовок модального окна
 const modalHeader = document.createElement('h2');
+modalHeader.style = `    
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 10px
+;`;
 modalContentDiv.appendChild(closeBtn);
 modalContentDiv.appendChild(modalHeader);
 
