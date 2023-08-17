@@ -10,9 +10,8 @@ namespace Portal.Models.MSSQL.Location
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Guid { get; set; }
         public string Name { get; set; }
-        public LocationType LocationType { get; set; }
+        public LocationType? LocationType { get; set; }
         public int RKCode { get; set; }
-        public int? PortalCode { get; set; }
-        public int Actual { get; set; }
+        public int? AggregatorsCode { get; set; }
     }
 }

@@ -1,7 +1,6 @@
 /* Иконка для бокового меню */
 .tableIcon{background-image:url("~/svg/panels/table.svg")!important;}
 
-
 /* Шапка */
 .tableMenu {
     display: flex;
@@ -22,8 +21,6 @@
     justify-content: bottom;
 }
 /* Шапка конец */
-
-
 
 /* Тумблер  */
 .switch {
@@ -118,20 +115,28 @@
 .personData {
     display: flex;
     flex-direction: row;
+    margin-bottom: 30px;
 }
 
 .tdPersonTable{
-    padding-left: 18px !important;
+    padding-left: 10px !important;
 }
 
 .leftBlockPersonData, .rightBlockPersonData{
     display: flex;
     flex-direction: column;
-    margin: 15px;
+    margin: 10px;
+    padding: 10px;
+    /*box-shadow: 0px 0px 5px 1px #00000026;*/
+}
+
+.rightBlockPersonData{
+    border-left: 1px solid #8782825c;
+    padding-left: 33px;
 }
 
 .inputPersonData {
-    width: 14vw;
+    width: 18vw;
     height: 4vh;
     margin-bottom: 10px;
     border: 1px solid #ccc;
@@ -144,10 +149,37 @@
     transition: box-shadow linear 1.2s;
 }
 
+.rightBlockPersonData__versions{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid #ccc;
+    padding: 15px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+}
+
+.correctForData{
+    width: 15.3vw;
+}
+
 .actual {
     width: 9vw !important;
-    border-radius: 5px;
+    height: 4vh;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+    padding: 10px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    transition: border-color linear 1.2s;
+    transition: box-shadow linear 1.2s;
 }
+.actual:focus{
+    border-color: #418dffd0 !important;
+    box-shadow: 0px 0px 4px 2px #418dff79 !important;
+}
+
 .inputPersonData:focus {
     border-color: #418dffd0 !important;
     box-shadow: 0px 0px 4px 2px #418dff79 !important;
@@ -257,14 +289,43 @@
         
     }
 
+    /* Отображение страницы */
+    
     .personData{
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #user-form {
         flex-direction: column;
     }
 
+    .leftBlockPersonData, .rightBlockPersonData {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        padding-left: 6%;
+        padding-top: 10px;
+    }
+
     .inputPersonData {
-        width: 73vw;
+        width: 80vw;
         height: 5vh;
     }
+
+    .rightBlockPersonData__versions {
+        width: 80vw;
+    }
+
+    #VersionStartDate, #VersionEndDate {
+        width: 72vw;
+    }
+
+    .buttonClearPersonData {
+        margin-right: 8%;
+    }
+
+    /* --------------------- */
 
     .buttonAddPersonData {
         width: 90px;
@@ -292,7 +353,11 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        margin-top: 2vh;
+        margin-top: 2.6vh;
+    }
+
+    .rightBlockPersonData{
+        border: none;
     }
 }
 
@@ -305,32 +370,38 @@
     }
 
 
-    .personData {
-        width: 85vw;
-        justify-content: space-around;
-    }
+    /*.personData {*/
+    /*    width: 85vw;*/
+    /*    justify-content: space-around;*/
+    /*}*/
 
     .titlePersontable {
         margin-top: 40px;
     }
 
-    .inputPersonData {
-        height: 36px;
-        width: 283px;
-    }
 
     #personTable {
         height: fit-content;
+
     }
 
     .text-muted {
-        margin-left: 15px;
+        margin-left: 7px;
     }
 
     .buttonAddPerson {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        margin-top: 2vh;
+        margin-top: 4.3vh;
     }
 }
+
+.dataTables_scrollBody{
+    max-height: 680px !important;
+}
+
+#user-form{
+    display: flex;
+}
+

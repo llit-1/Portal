@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Portal.Models.MSSQL.Location;
+using Portal.Models.MSSQL.Personality;
 using Portal.ViewModels.Settings_TT;
 using RKNet_Model;
 using RKNet_Model.Account;
@@ -20,9 +22,11 @@ namespace Portal.Controllers
     public class Settings_TTController : Controller
     {
         private DB.SQLiteDBContext db;
-        public Settings_TTController(DB.SQLiteDBContext context)
+        private DB.MSSQLDBContext dbSql;
+        public Settings_TTController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
             db = context;
+            dbSql = dbSqlContext;
         }
 
 
@@ -519,6 +523,25 @@ namespace Portal.Controllers
                         var cash = db.CashStations.FirstOrDefault(c => c.Ip == item.Ip);
                         ttt.CashStations.Add(cash);
                     }
+
+                    Location location = new();
+                    LocationVersions locationVersions = new();
+
+                    location.Name = ttJsn.name;
+                    location.LocationType = null;
+                    location.RKCode = ttJsn.restaurant_Sifr;
+                    location.AggregatorsCode = int.Parse(ttJsn.code);
+                    dbSql.Add(location);
+                    dbSql.SaveChanges();
+
+                    locationVersions.Name = ttJsn.name;
+                    locationVersions.Location = location;
+                    locationVersions.OBD = int.Parse(ttJsn.obd);
+                    locationVersions.Entity = null;
+                    locationVersions.Actual = 1;
+                    dbSql.Add(locationVersions);
+                    dbSql.SaveChanges();
+
                     db.TTs.Update(ttt);
                     db.SaveChanges();
                 }

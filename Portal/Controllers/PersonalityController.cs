@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using Portal.Models;
 using Portal.Models.JsonModels;
 using Portal.Models.MSSQL.Personality;
+using Portal.Models.MSSQL.PersonalityVersions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,28 +32,84 @@ namespace Portal.Controllers
 
         public IActionResult PersonalityTable(string showUnActual)
         {
-            Models.PersonalityModel model = new Models.PersonalityModel();
-            model.Personalities = dbSql.Personalities.Include(c => c.JobTitle)
-                                                             .Include(c => c.Location)
-                                                             .Include(c => c.Schedule)
-                                                             .ToList();                                                            
-            if (showUnActual == "0") { model.Personalities = model.Personalities.Where(c => c.Actual == 1).ToList(); }          
-            return PartialView(model);
+            List<PersonalityModel> models = new List<PersonalityModel> ();
+            List<Personality> personalities = dbSql.Personalities.ToList();
+            foreach (var person in personalities)
+            {
+                if(showUnActual == "1")
+                {
+                    PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
+                                                                                     .Include(c => c.Location)
+                                                                                     .Include(c => c.Personalities)
+                                                                                     .Include(c => c.Schedule)
+                                                                                     .Include(c => c.Entity)
+                                                                                     .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.VersionEndDate == null);
+                    if(personalityVersion != null)
+                    {
+                        PersonalityModel model = new PersonalityModel();
+                        model.Personalities = person;
+                        model.PersonalitiesVersions = personalityVersion;
+                        models.Add(model);
+                    }
+
+                }
+                else
+                {
+                    PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
+                                                                                     .Include(c => c.Location)
+                                                                                     .Include(c => c.Personalities)
+                                                                                     .Include(c => c.Schedule)
+                                                                                     .Include(c => c.Entity)
+                                                                                     .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.VersionEndDate == null && c.Actual == 1);
+                    if (personalityVersion != null)
+                    {
+                        PersonalityModel model = new PersonalityModel();
+                        model.Personalities = person;
+                        model.PersonalitiesVersions = personalityVersion;
+                        models.Add(model);
+                    }
+                }
+
+
+
+            }
+
+
+            return PartialView(models);
         }
 
-        public IActionResult PersonalityEdit(string typeGuid)
+        public IActionResult PersonalityEdit(string typeGuid, string newPerson)
         {
-            Models.PersonalityEditModel model = new Models.PersonalityEditModel();
-            if (typeGuid != "0")
+            Models.PersonalityEditModel model = new();
+            if(newPerson == "2" && typeGuid != "0")
             {
-                model.Personality = dbSql.Personalities.Include(c => c.JobTitle)
-                                                        .Include(c => c.Location)
-                                                        .Include(c => c.Schedule)
-                                                        .FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+                PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
+                                                                                  .Include(c => c.Location)
+                                                                                  .Include(c => c.Schedule)
+                                                                                  .Include(c => c.Personalities)
+                                                                                  .Include(c => c.Entity)
+                                                                                  .FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+                model.PersonalitiesVersions = personalityVersion;
+
+                model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
             }
+            else if(typeGuid != "0")
+            {
+                PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
+                                                                                  .Include(c => c.Location)
+                                                                                  .Include(c => c.Schedule)
+                                                                                  .Include(c => c.Personalities)
+                                                                                  .Include(c => c.Entity)
+                                                                                  .FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(typeGuid) && c.VersionEndDate == null);
+                model.PersonalitiesVersions = personalityVersion;
+
+                model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+            }
+            model.NewPerson = newPerson;
             model.Schedules = dbSql.Schedules.ToList();
             model.Locations = dbSql.Locations.ToList();
             model.JobTitles = dbSql.JobTitles.ToList();
+            model.Entity = dbSql.Entity.ToList();
             return PartialView(model);
         }
 
@@ -61,19 +120,58 @@ namespace Portal.Controllers
             try
             {
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
-                Models.MSSQL.Personality.Personality personality = new Personality();
-                personality.Name = personalityJson.Name;
-                personality.Surname = personalityJson.Surname;
-                personality.Patronymic = personalityJson.Patronymic;
-                personality.BirthDate = personalityJson.BirthDate;
-                personality.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
-                personality.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
-                personality.HireDate = personalityJson.HireDate;
-                personality.DismissalsDate = personalityJson.DismissalsDate;
-                personality.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
-                personality.Actual = personalityJson.Actual;
-                dbSql.Add(personality);
-                dbSql.SaveChanges();
+                if (personalityJson.NewPerson == "1")
+                {
+                    Models.MSSQL.Personality.Personality personality = new Personality();
+                    personality.Name = personalityJson.Surname + " " + personalityJson.Name + " " + personalityJson.Patronymic;
+                    personality.BirthDate = personalityJson.BirthDate;
+                    dbSql.Add(personality);
+                    dbSql.SaveChanges();
+                    Guid newPersonalityGuid = personality.Guid;
+                    PersonalityVersion personalityVersion = new();
+                    personalityVersion.Name = personalityJson.Name;
+                    personalityVersion.Surname = personalityJson.Surname;
+                    personalityVersion.Patronymic = personalityJson.Patronymic;
+                    personalityVersion.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                    personalityVersion.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
+                    personalityVersion.HireDate = personalityJson.HireDate;
+                    personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
+                    personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                    personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
+                    personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
+                    DateTime now = DateTime.Now;
+                    personalityVersion.VersionStartDate = now;
+                    personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == newPersonalityGuid);
+                    personalityVersion.Actual = personalityJson.Actual;
+                    dbSql.Add(personalityVersion);
+                    dbSql.SaveChanges();
+                }
+                else
+                {
+                    DateTime now = DateTime.Now;
+                    dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = now;
+                    Models.MSSQL.Personality.Personality personality = new Personality();
+                    Guid newPersonalityGuid = personalityJson.Guid;
+                    PersonalityVersion personalityVersion = new();
+                    personalityVersion.Name = personalityJson.Name;
+                    personalityVersion.Surname = personalityJson.Surname;
+                    personalityVersion.Patronymic = personalityJson.Patronymic;
+                    personalityVersion.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                    personalityVersion.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
+                    personalityVersion.HireDate = personalityJson.HireDate;
+                    personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
+                    personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                    personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
+                    personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
+                    personalityVersion.VersionStartDate = now;
+                    personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
+                    personalityVersion.Actual = personalityJson.Actual;
+                    dbSql.Add(personalityVersion);
+                    dbSql.SaveChanges();
+                }
+                    
+
+
                 return new OkObjectResult(result);
             }
             catch (Exception ex)
@@ -88,19 +186,23 @@ namespace Portal.Controllers
         {
             var result = new RKNet_Model.Result<string>();
             try
-            {               
+            {
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
-                Models.MSSQL.Personality.Personality personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == personalityJson.Guid);
-                personality.Name = personalityJson.Name;
-                personality.Surname = personalityJson.Surname;
-                personality.Patronymic = personalityJson.Patronymic;
-                personality.BirthDate = personalityJson.BirthDate;
-                personality.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
-                personality.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
-                personality.HireDate = personalityJson.HireDate;
-                personality.DismissalsDate = personalityJson.DismissalsDate;
-                personality.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
-                personality.Actual = personalityJson.Actual;
+                PersonalityVersion personalityVersion = dbSql.PersonalityVersions.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
+                personalityVersion.Name = personalityJson.Name;
+                personalityVersion.Surname = personalityJson.Surname;
+                personalityVersion.Patronymic = personalityJson.Patronymic;
+                personalityVersion.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                personalityVersion.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
+                personalityVersion.HireDate = personalityJson.HireDate;
+                personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
+                personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
+                personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
+                personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
+                personalityVersion.VersionEndDate = personalityJson.VersionEndDate;
+                personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
+                personalityVersion.Actual = personalityJson.Actual;
                 dbSql.SaveChanges();
                 return new OkObjectResult(result);
             }
@@ -110,9 +212,23 @@ namespace Portal.Controllers
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result);
             }
-           
         }
 
+        public IActionResult PersonalityVersions(string typeGuid, string newPerson)
+        {
+            PersonalityVersionModel personalityVersionModel = new();
+            personalityVersionModel.NewPerson = newPerson;
+            personalityVersionModel.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+            personalityVersionModel.PersonalitiesVersions = dbSql.PersonalityVersions.Include(c => c.Personalities)
+                                                                                     .Include(c => c.Location)
+                                                                                     .Include(c => c.JobTitle)
+                                                                                     .Include(c => c.Entity)
+                                                                                     .Include(c => c.EntityCost)
+                                                                                     .Include(c => c.Schedule)
+                                                                                     .Where(c => c.Personalities.Guid == personalityVersionModel.Personality.Guid)
+                                                                                     .ToList();
+            return PartialView(personalityVersionModel);
+        }
 
     }
 }

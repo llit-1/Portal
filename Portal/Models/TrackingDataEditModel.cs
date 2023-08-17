@@ -1,5 +1,6 @@
 ﻿using Portal.Models.MSSQL.Personality;
 using System.Collections.Generic;
+using Portal.Models.MSSQL.PersonalityVersions;
 
 namespace Portal.Models
 {
@@ -8,5 +9,6 @@ namespace Portal.Models
         public TTData TTData { get; set; }
         public List<Personality> Personalities { get; set; }
         public List<JobTitle> JobTitles { get; set; }
+        public List<PersonalityVersion> PersonalityVersions { get; set; }
     }
 }

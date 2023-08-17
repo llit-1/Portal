@@ -1,4 +1,4 @@
-@model Portal.Models.PersonalityModel
+@model List<Portal.Models.PersonalityModel>
 
 <!--таблица пользователей-->
 <div class="panel panel-default"  id="personTable" style="margin-bottom:0px">
@@ -7,62 +7,72 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @if(Model.Personalities != null)
+                        @try
                         {
                         <table class="data-table nowrap" id="tableDataPerson" > 
                             <thead>
                                 <tr>
-                                    <th>ФИО</th>
-                                    <th class="dateWidth">Дата рождения</th>
+                                    <th>Имя</th>
+                                    <th>Фамилия</th>
+                                    <th>Отчество</th>
+                                    <th>Дата рождения</th>
                                     <th>Должность</th>
-                                    <th>Расположение</th>
-                                    <th class="HireDateWidth">Дата приема на работу</th>
-                                    <th>Дата увольнения</th>
-                                    <th>График</th>
-                                    <th class="hiddenPerson">Состояние</th>
+                                    <th>Место работы</th>
+                                    <th>Дата приема на работу</th>
+                                    <th class="hidden">Дата увольнения</th>
+                                    <th>Смена</th>
+                                    <th>ЮЛ</th>
+                                    <th>ЮЛ разнесения затрат</th>
+                                    <th class='hidden'>Активность</th>
                                 </tr>
                             </thead>
                             <tbody id="tablePerson">
-                                @foreach (var user in Model.Personalities.OrderBy(u => u.Name))
+                                    @foreach (var user in Model)
                                 {
-                                    var BirthDate = @user.BirthDate.ToString().Split(' ')[0];
-                                    var HireDate = @user.HireDate.ToString().Split(' ')[0];
-                                    var NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user.Patronymic.ToString();
-                                    var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
-
-                                <tr id="@user.Guid" class="activeRow" style="margin-right: 5px;" onclick="">
-                                    <td class="tdPersonTable">
-                                        <p class="list-item-heading userName">@NSP</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted">@BirthDate</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted">@user.JobTitle.Name</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted">@user.Location.Name</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted">@HireDate</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted">@DismissalsDate</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted">@user.Schedule.Name</p>
-                                    </td>
-                                    <td class="tdPersonTable">
-                                        <p class="text-muted hiddenPerson">@user.Actual</p>
-                                    </td>
-                                </tr>
+                                    <tr id="@user.Personalities.Guid" class="activeRow">
+                                        <td class="tdPersonTable">
+                                            <p class="list-item-heading userName">@user.PersonalitiesVersions.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                        <p class="text-muted">@user.PersonalitiesVersions.Surname</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                        <p class="text-muted">@user.PersonalitiesVersions.Patronymic</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@user.Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                        <p class="text-muted">@user.PersonalitiesVersions.JobTitle.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                        <p class="text-muted">@user.PersonalitiesVersions.Location.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@user.PersonalitiesVersions.HireDate.ToString("dd.MM.yyyy")</p>
+                                        </td>
+                                        <td class="tdPersonTable hidden">
+                                            <p class="text-muted">@user.PersonalitiesVersions.DismissalsDate</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@user.PersonalitiesVersions.Schedule.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@user.PersonalitiesVersions.Entity?.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@user.PersonalitiesVersions?.EntityCost?.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable hidden">
+                                            <p class="text-muted">@user.PersonalitiesVersions.Actual</p>
+                                        </td>
+                                    </tr>
                                 }
-
                             </tbody>
                         </table>
                         }
-                        else {
-                            <div> Данных нет </div>
+                        catch {
+                            <div> Данных нет :( </div>
                         }
                     </div>
                 </div>
@@ -83,7 +93,6 @@
 
 <!--инициализация таблицы-->
 <script>
-    
     var table = $(".data-table").DataTable({
         "ordering": true,
         "order": [0, 'asc'],
@@ -117,20 +126,25 @@
     $('.activeRow').click(function () {
         var itemId = this.id;
         var itemName = $(this).find('.userName').text();
-        EditItem(itemName, itemId);
+        PersonalityVersions(itemId, 0);
     });
+    $('#buttonAdd').unbind('click');
+    $('#buttonAdd').click(function () {
+        AddItem(0, 1)
+    })
+    
+    
 </script>
 
-@* Выделение ряда неактивного польхователя *@
+@* Выделение ряда неактивного пользователя *@
 <script>
     const table = document.getElementById("tablePerson"); //Находим таблицу
+
     const rows = table.getElementsByTagName("tr"); //Получаем массив рядов
 
     for(let i = 0; i < rows.length; i++) { //Проходимся по каждому ряду
-
         let cell = rows[i].getElementsByTagName('td') //Получаем список ячеек
-
-        // Проходимся по каждой ячейки в поисках "0"
+        // Проходимся по каждой ячейки в поисках "0" или "2"
         for(let j = 0; j < cell.length; j++){ 
             let td = cell[j].querySelector("p").textContent
             if(td === '0' || td === '2') {
@@ -138,8 +152,7 @@
                 rows[i].style.backgroundColor = "#f3c7a030";
             }
         }
-        
-        }
+    }
 </script>
 
 

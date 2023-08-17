@@ -1,338 +1,386 @@
-@model Portal.Models.PersonalityEditModel
+@model PersonalityEditModel
 
 <!--Блок добавления\редактирования работника-->
-<div class="panel panel-default panel-default-person"  id="personTable" style="margin-bottom:0px">
+<div class="panel panel-default panel-default-person modalPersonWidth"  id="personTable" style="margin-bottom:0px">
     <!--Выпадающий список состояний работника-->
     <div class="titlePersontable">
-        <h3>Данные пользователя</h3>
-
-        <select class="inputPersonData actual">
-        @if (Model.Personality == null || Model.Personality.Actual == 1)
+        @if(Model.NewPerson == "1")
         {
-            <option value="1"  selected class="optionForColor">Активен</option>
-            <option value="2" class="optionForColor">Отстранен</option>
-            <option value="0" class="optionForColor">Уволен</option>
-        }
-        else if(Model.Personality.Actual == 2)
-        {
-            <option value="1" class="optionForColor">Активен</option>
-            <option value="2" selected class="optionForColor">Отстранен</option>
-            <option value="0" class="optionForColor">Уволен</option>
+            <h3>Данные пользователя</h3>
         }
         else
         {
-            <option value="1" class="optionForColor">Активен</option>
-            <option value="2" class="optionForColor">Отстранен</option>
-            <option value="0" selected class="optionForColor">Уволен</option>
+            <h3>Данные версии пользователя</h3>
         }
-        </select>
+
+            
+            @if(@Model.NewPerson != null)
+            {
+                <input class="hidden" id="NewPerson" value="@Model.NewPerson"/>
+            }
+            
+            @if (Model?.PersonalitiesVersions == null || Model.PersonalitiesVersions?.Actual == 1)
+            {
+                <select class=" actual" id='actual'>
+                    <option value="1" selected='selected' class="optionForColor">Активен</option>
+                    <option value="2" class="optionForColor">Отстранен</option>
+                    <option value="0" class="optionForColor">Уволен</option>
+                </select>
+            }
+            else if (Model.PersonalitiesVersions?.Actual == 2)
+            {
+                <select class=" actual" id='actual' >
+                    <option value="1" class="optionForColor">Активен</option>
+                    <option value="2" selected='selected' class="optionForColor">Отстранен</option>
+                    <option value="0" class="optionForColor">Уволен</option>
+                </select>
+            }
+            else
+            {
+                <select class=" actual" id='actual' >
+                    <option value="1" class="optionForColor">Активен</option>
+                    <option value="2" class="optionForColor">Отстранен</option>
+                    <option value="0" selected='selected' class="optionForColor">Уволен</option>
+                </select>
+            }
+
+        
 
     </div> 
         <hr>
     <!--Наполнение данных, если они есть-->
     <div class="personData">
-        <div class="leftBlockPersonData">
-            <!--Первый столбец-->
-            @if(Model.Personality != null)
-            {   
-                <label class="label-light">Фамилия</label>
-                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.Personality.Surname">
-                <label class="label-light">Имя</label>
-                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.Personality.Name">
-                <label class="label-light">Отчество</label>
-                <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.Personality.Patronymic">
-                <label class="label-light">Дата рождения</label>
-                <input type="date" class="inputPersonData" id="birthDatePerson" value="@Model.Personality.BirthDate.ToString("yyyy-MM-dd")">
-                <label class="label-light">Должность</label>
-                <input type="hidden" id="personGUID" value="@Model.Personality.Guid">
+        <!--Первый столбец-->
+        @if(Model.PersonalitiesVersions?.Personalities != null)
+        {   
+            <form id="user-form">
+                <div class="leftBlockPersonData">
+                    <label class="label-light">Фамилия</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.PersonalitiesVersions.Surname">
+                    <label class="label-light">Имя</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.PersonalitiesVersions.Name">
+                    <label class="label-light">Отчество</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.PersonalitiesVersions.Patronymic">
+                    <label class="label-light">Дата рождения</label>
+                    <input required type="date" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
+                    <label class="label-light">Должность</label>
+                    <input type="hidden" id="personGUID" value="@Model.PersonalitiesVersions.Personalities.Guid">
+                    <input type="hidden" id="personVersionGUID" value="@Model.PersonalitiesVersions.Guid">
 
-                @* Выбор должности *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.Personality.JobTitle.Name">
-                        @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
-                        {
-                            if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                    @* Выбор должности *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.JobTitle.Name">
+                            @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
                             {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                                {
+                                    <option value="@jobTitle.Guid" selected>@jobTitle.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
                             }
-                            else
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                        }
-                    </select>
+                        </select>
+                    </div>
                 </div>
-            }
-            else
-            {
-                <label class="label-light">Фамилия</label>
-                <input type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson">
-                <label class="label-light">Имя</label>
-                <input type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">               
-                <label class="label-light">Отчество</label>
-                <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
-                <label class="label-light">Дата рождения</label>
-                <input type="date" class="inputPersonData" id="birthDatePerson">
-                <label class="label-light">Должность</label>
-                <input type="hidden" id="personGUID" value="0">
+                
+                <div class="rightBlockPersonData">
+                    <label class="label-light">ТТ</label>
+                    @* Выбор ТТ *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="TTPerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Location.Name" placeholder="Выберите ТТ">
 
-                @* Выбор должности *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="jobTitlePerson" class="inputPersonData" data-width="100%">
-                        @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
-                        {
-                            if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                        <option value="@Model.PersonalitiesVersions.Location.Guid">@Model.PersonalitiesVersions.Location.Name</option>
+
+                            @foreach (var location in Model.Locations.OrderBy(g => g.Name))
                             {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                    <option value="@location.Guid">@location.Name</option>
                             }
-                            else
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                        }
-                    </select>
-                </div>
-            }
-
-        </div>
-        @if(Model.Personality != null)
-        {
-            <div class="rightBlockPersonData">
-                <label class="label-light">ТТ</label>
-                @* Выбор ТТ *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="TTPerson" class="inputPersonData" data-width="100%" value="@Model.Personality.Location.Name">
-
-                        <option value="@Model.Personality.Location.Guid">@Model.Personality.Location.Name</option>
-
-                        @foreach (var location in Model.Locations.OrderBy(g => g.Name))
-                        {
-                                <option value="@location.Guid">@location.Name</option>
-                        }
-                    </select>
-                </div>
+                        </select>
+                    </div>
 
                 <label class="label-light">Дата приема на работу</label>
-                <input type="date" class="inputPersonData" id="HireDate" value="@Model.Personality.HireDate.ToString("yyyy-MM-dd")">
+                    <input required type="date" class="inputPersonData" id="HireDate" value="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")">
                 <label class="label-light">Дата увольнения</label>
-                <input type="date" class="inputPersonData dissDate" id="DismissalsDate" value="@Model.Personality.DismissalsDate?.ToString("yyyy-MM-dd")">
-                <label class="label-light">Смена</label>
-                
-                @* Выбор смены *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.Personality.Schedule.Name">
-                        @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
-                        {
-                            if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                    <input type="date" class="inputPersonData dissDate" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
+
+                    <label class="label-light">Смена</label>
+                    @* Выбор смены *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Schedule.Name">
+                            @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
                             {
-                                <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                                {
+                                    <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                }
+                                else
+                                {   
+                                    <option value="@schedule.Guid">@schedule.Name</option>
+                                }
                             }
-                            else
-                            {   
-                                <option value="@schedule.Guid">@schedule.Name</option>
+                        </select>
+                    </div>
+
+                    @* Выбор Юр. лица *@
+                    <label class="label-light">Юр. лицо</label>
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="EntityGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Entity?.Name">
+                            @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.Entity?.Guid) != null)
+                            {
+                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.Entity.Guid">@Model.PersonalitiesVersions.Entity.Name</option>
                             }
-                        }
-                    </select>
+                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                            {
+                                <option value="@entity.Guid">@entity.Name</option>
+                            }
+                        </select>
+                    </div>
+
                 </div>
-                 <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="allValidation()">СОХРАНИТЬ</button>
-                    <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+
+                <div class='rightBlockPersonData'>
+                    @* Выбор Юр. лица разнесения затрат *@
+                    <label class="label-light">Юр. лицо разнесения затрат</label>
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
+                            @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.Entity?.Guid) != null)
+                            {
+                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.Entity.Guid">@Model.PersonalitiesVersions.Entity.Name</option>
+                            }
+                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                            {
+                                <option value="@entity.Guid">@entity.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    @if(Model.NewPerson == "1")
+                    {
+                        <label class="label-light hidden">Период действия версии</label>
+                        <div class='rightBlockPersonData__versions hidden'>
+                            <label class="label-light">С</label>
+                            <div>
+                                <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-ddThh:mm")">
+                            </div>
+                            <label class="label-light">По</label>
+                            <div>
+                                <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-ddThh:mm")">
+                            </div>
+                        </div>
+                    }
+                    else if(Model.NewPerson == "2")
+                    {
+                        <label class="label-light">Период действия версии</label>
+                        <input class='hidden' value='@Model.NewPerson' id='check_person'>
+                        <div class='rightBlockPersonData__versions'>
+                            <label class="label-light">С</label>
+                            <div>
+                                <input required type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-ddThh:mm")">
+                            </div>
+                            <label class="label-light">По</label>
+                            <div>
+                                <input type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-ddThh:mm")">
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="label-light">Период действия версии</label>
+                        <input class='hidden' value='@Model.NewPerson' id='check_person'>
+                        <div class='rightBlockPersonData__versions'>
+                            <label class="label-light">С</label>
+                            <div>
+                                <input required type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-ddThh:mm")">
+                            </div>
+                            <label class="label-light">По</label>
+                            <div>
+                                <input type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-ddThh:mm")">
+                            </div>
+                        </div>
+                    }
+                    @if (Model.NewPerson == "1")
+                    {
+                        <div class="buttonAddPerson">
+                            <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
+                            <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="buttonAddPerson">
+                            <button class="buttonAddPersonData" type="submit">СОХРАНИТЬ</button>
+                            <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                        </div>
+                    }
+                    
                 </div>
-            </div>
+            </form>
         }
         else
         {
-            <div class="rightBlockPersonData">
-                <label class="label-light">ТТ</label>
-                @* Выбор ТТ *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="TTPerson" class="inputPersonData" data-width="100%">
-                        @foreach (var location in Model.Locations.OrderBy(g => g.Name))
-                        {
-                            if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
+            <form id="user-form">
+                <div class="leftBlockPersonData">
+                    <label class="label-light">Фамилия</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson">
+                    <label class="label-light">Имя</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson">               
+                    <label class="label-light">Отчество</label>
+                    <input required type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
+                    <label class="label-light">Дата рождения</label>
+                    <input required type="date" class="inputPersonData" id="birthDatePerson">
+                    <label class="label-light">Должность</label>
+                    <input required type="hidden" id="personGUID" value="0">
+
+                    @* Выбор должности *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select placeholder="Выберите должность" required id="jobTitlePerson" class="inputPersonData" data-width="100%">
+                            @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
                             {
-                                <option selected="selected" value="@location.Guid">@location.Name</option>
+                                if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
                             }
-                            else
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="rightBlockPersonData">
+                    <label class="label-light">ТТ</label>
+                    @* Выбор ТТ *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select placeholder="Выберите ТТ" required id="TTPerson" class="inputPersonData" data-width="100%">
+                            @foreach (var location in Model.Locations.OrderBy(g => g.Name))
                             {
-                                <option value="@location.Guid">@location.Name</option>
+                                if (Model.Locations.FirstOrDefault(g => g.Guid == location.Guid) != null)
+                                {
+                                    <option selected="selected" value="@location.Guid">@location.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@location.Guid">@location.Name</option>
+                                }
                             }
-                        }
-                    </select>
+                        </select>
+                    </div>
+
+                    <label class="label-light">Дата приема на работу</label>
+                    <input required type="date" class="inputPersonData" id="HireDate">
+                    <label class="label-light">Дата увольнения</label>
+                    <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
+                    <label class="label-light">Смена</label>
+                    @* Выбор смены *@
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select placeholder="Выберите смену" required id="ScheduleGUID" class="inputPersonData" data-width="100%">
+                            @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
+                            {
+                                if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                                {
+                                    <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@schedule.Guid">@schedule.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <label class="label-light">Юр. лицо</label>
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="EntityGUID" class="inputPersonData" data-width="100%">
+                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                            {
+                                <option selected="selected" value="@entity.Guid">@entity.Name</option>
+                            }
+                        </select>
+                    </div>
                 </div>
 
-                <label class="label-light">Дата приема на работу</label>
-                <input type="date" class="inputPersonData" id="HireDate">
-                <label class="label-light">Дата увольнения</label>
-                <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
-                <label class="label-light">Смена</label>
-                @* Выбор смены *@
-                <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                    <select id="ScheduleGUID" class="inputPersonData" data-width="100%">
-                        @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
-                        {
-                            if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                <div class='rightBlockPersonData'>
+                    @* Выбор Юр. лица *@
+                    <label class="label-light">Юр. лицо разнесения затрат</label>
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
+                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
                             {
-                                <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                    <option selected="selected" value="@entity.Guid">@entity.Name</option>
                             }
-                            else
-                            {
-                                <option value="@schedule.Guid">@schedule.Name</option>
-                            }
-                        }
-                    </select>
+                        </select>
+                    </div>
+                    @if(Model.NewPerson == "1")
+                    {
+                    <label class="label-light hidden">Период действия версии</label>
+                    <div class='rightBlockPersonData__versions hidden'>
+                        <label class="label-light">С</label>
+                        <div>
+                            <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate">
+                        </div>
+                        <label class="label-light">По</label>
+                        <div>
+                            <input disable type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate">
+                        </div>
+                    </div>
+                    }
+                    else
+                    {
+                    <label class="label-light">Период действия версии</label>
+                    <div class='rightBlockPersonData__versions'>
+                        <label class="label-light">С</label>
+                        <div>
+                            <input required type="datetime-local" class="inputPersonData correctForData" id="VersionStartDate">
+                        </div>
+                        <label class="label-light">По</label>
+                        <div>
+                            <input required type="datetime-local" class="inputPersonData correctForData" id="VersionEndDate">
+                        </div>
+                    </div>   
+                    }
+
+                    <div class="buttonAddPerson ">
+                        <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
+                        <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                    </div>
                 </div>
-                <div class="buttonAddPerson">
-                    <button class="buttonAddPersonData" onclick="allValidation()">ДОБАВИТЬ</button>
-                    @* addUser() *@
-                    
-                    <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
-                </div>
-            </div>
+            </form>
         }
     </div>
 </div>
 
-@* Красим select *@
-<script>
-    //  let actual = document.querySelector('.actual')
-    // let optionForColor = document.querySelectorAll('.optionForColor')
-    // actual.addEventListener('change', () =>{
-    //     if(actual.value == 0){
-    //         actual.style.backgroundColor = '#ff000042'
-    //         for (var i = 0; i < optionForColor.length; i++) {
-    //             optionForColor[i].style.backgroundColor = "#fff";
-    //         }
-    //     }
-    //     else if(actual.value == 1){
-    //         actual.style.backgroundColor = "rgb(164 240 164 / 40%)";
-    //         for (var i = 0; i < optionForColor.length; i++) {
-    //             optionForColor[i].style.backgroundColor = "#fff";
-    //         }
-            
-    //     }
-    //     else{
-    //         actual.style.backgroundColor = 'rgb(247 253 119 / 40%)'
-    //         for (var i = 0; i < optionForColor.length; i++) {
-    //             optionForColor[i].style.backgroundColor = "#fff";
-    //         }
-    //     }
-    // })
 
+<script>
+    // Смена состояния сотрудника в зависимости от заполненности даты увольнения
     const actualPicker = document.querySelector('.actual');
     const valueDismissalsDate = document.querySelector('.dissDate');
     valueDismissalsDate.addEventListener('input', () => {
         if(valueDismissalsDate.value != '') {
-            actualPicker.innerHTML = "<option value='1' >Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";              
+            actualPicker.innerHTML = "<option value='1'>Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";              
         } else {
             actualPicker.innerHTML = "<option value='1' selected>Активен</option><option value='2' >Отстранен</option><option value='0' >Уволен</option>";
         }
     })
 
     // Возврат к таблице
-    $('#back').unbind('click');
-    $('#back').click(function () { location.hash = "#Personality" });
+    const NewPerson = document.getElementById('NewPerson').value;
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#Personality" });
+    
 
     function clearInputs() {
         // Получаем все элементы input на странице и очищаем их значение
         document.querySelectorAll(".inputPersonData").forEach(input => input.value = "");
     }
-    const name = document.getElementById('namePerson');
-    const surname = document.getElementById('surnamePerson');
-    const patronymic = document.getElementById('patronymicPerson');
-    const BirthDate = document.getElementById('birthDatePerson')
-    const JobTitleGUID = document.getElementById('jobTitlePerson')
-    const locationGUID = document.getElementById('TTPerson')
-    const HireDate = document.getElementById('HireDate')
-    const DismissalsDate = document.getElementById('DismissalsDate')
-    const ScheduleGUID = document.getElementById('ScheduleGUID')
 
-    // Кривизна невероятная
-    function validation() {
-        if(name.value.trim().length < 1) {
-            name.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            name.style.borderColor = '#ccc'
-        }
-    }
-    function validation2() {
-        if(surname.value.trim().length < 1) {
-            surname.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            surname.style.borderColor = '#ccc'
-        }
-    }
-    function validation3() {
-        if(patronymic.value.trim().length < 1) {
-            patronymic.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            patronymic.style.borderColor = '#ccc'
-        }
-    }
-    function validation4() {
-        if(BirthDate.value.trim().length < 1) {
-            BirthDate.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            BirthDate.style.borderColor = '#ccc'
-        }
-    }
-    function validation5() {
-        if(JobTitleGUID.value.trim().length < 1) {
-            JobTitleGUID.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            JobTitleGUID.style.borderColor = '#ccc'
-        }
-    }
-    function validation6() {
-        if(locationGUID.value.trim().length < 1) {
-            locationGUID.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            locationGUID.style.borderColor = '#ccc'
-        }
-    }
-    function validation7() {
-        if(HireDate.value.trim().length < 1) {
-            HireDate.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            HireDate.style.borderColor = '#ccc'
-        }
-    }
-    function validation8() {
-        if(ScheduleGUID.value.trim().length < 1) {
-            ScheduleGUID.style.borderColor = 'rgb(250, 56, 56)'
-        }
-        else{
-            ScheduleGUID.style.borderColor = '#ccc'
-        }
-    }
-
-    // Повторение кривизны
-    function allValidation() {
-        validation();
-        validation2();
-        validation3();
-        validation4();
-        validation5();
-        validation6();
-        validation7();
-        validation8();
-        let count = -1;
-        const check = document.querySelectorAll(".inputPersonData").forEach((input) => {
-            if(input.style.borderColor == 'rgb(204, 204, 204)') {
-                count += 0;
-            }
-            else{
-                count += 1;
-            }
-        } )
-        if( count <= 1) {
+    // Валидация формы + отправка
+    document.getElementById("user-form").addEventListener("submit", function(event) {
+        event.preventDefault();
+        if (this.checkValidity()) {
             if(location.hash == '#EditPerson'){
                 editUser();
             }
@@ -340,14 +388,7 @@
                 addUser();
             }
         }
-        else{
-            alert('Проверьте правильность заполнения полей')
-        }
-    }   
-
-    name.addEventListener("input", validation);
-    surname.addEventListener("input", validation2);
-    patronymic.addEventListener("input", validation3);
+    })
 </script>
 
 <script>
@@ -362,6 +403,7 @@
 <script>
     function addUser() {
         const Personality = {};
+        const personGUID = document.getElementById('personGUID').value;
         Personality.Name = $('#namePerson').val();
         Personality.Surname = $('#surnamePerson').val();
         Personality.Patronymic = $('#patronymicPerson').val();
@@ -372,6 +414,15 @@
         Personality.DismissalsDate = $('#DismissalsDate').val();
         Personality.Schedule = $('#ScheduleGUID').val();
         Personality.Actual = $('.actual').val();
+        const EntityGUID = document.getElementById('EntityGUID').value;
+        const EntityCostGUID = document.getElementById('EntityCostGUID').value;
+        Personality.Entity = EntityGUID;
+        Personality.EntityCost = EntityCostGUID;
+        Personality.NewPerson = $('#NewPerson').val();
+        Personality.personGUID = personGUID;
+        Personality.VersionStartDate = $('#VersionStartDate').val();
+        Personality.VersionEndDate = $('#VersionEndDate').val();
+
 
         const json = JSON.stringify(Personality)
          $.ajax({
@@ -385,11 +436,11 @@
                     location.hash = '#Personality'
                 }
                 else {
-                    ShowModal('Редактор пользователя', result.data);
+                    openModal('Ошибка', result)
                 }
             },
-            error: function (error) { ShowModal('Редактор пользователя', error.responseText); }
-        }); 
+            error: function (error) { openModal('Ошибка', error) }
+        });
     }
 </script>
 
@@ -397,7 +448,7 @@
 <script>
     function editUser() {
         const Personality = {};
-        Personality.GUID = $('#personGUID').val();
+        const personVersionGUID = document.getElementById('personVersionGUID').value;
         Personality.Name = $('#namePerson').val();
         Personality.Surname = $('#surnamePerson').val();
         Personality.Patronymic = $('#patronymicPerson').val();
@@ -408,7 +459,16 @@
         Personality.DismissalsDate = $('#DismissalsDate').val();
         Personality.Schedule = $('#ScheduleGUID').val();
         Personality.Actual = $('.actual').val();
-        
+        Personality.VersionStartDate = $('#VersionStartDate').val();
+        Personality.VersionEndDate = $('#VersionEndDate').val();
+        const EntityGUID = document.getElementById('EntityGUID').value;
+        const EntityCostGUID = document.getElementById('EntityCostGUID').value;
+        Personality.Entity = EntityGUID;
+        Personality.EntityCost = EntityCostGUID;
+        Personality.NewPerson = $('#NewPerson').val();
+        Personality.personGUID = personVersionGUID;
+
+
         const json = JSON.stringify(Personality)
         $.ajax({
             type: "PUT",
@@ -421,10 +481,10 @@
                     location.hash = '#Personality'
                 }
                 else {
-                    alert(result.data);
+                    openModal('Ошибка', result)
                 }
             },
-            error: function (error) { alert(result.data); }
+            error: function (error) { openModal('Ошибка', error) }
         });
     }
 </script>

@@ -11,7 +11,7 @@ function CancelRequest(id) {
 }
 
 // по загрузке страницы
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', () => {
     Alerts();
-    $('#loading').hide();    
-});
+    $('#loading').hide();  
+})

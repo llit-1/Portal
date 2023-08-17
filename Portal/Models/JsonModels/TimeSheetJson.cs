@@ -13,7 +13,7 @@ namespace Portal.Models.JsonModels
     }
     public class TimeSheetJson
     {
-        public Guid Personality { get; set; }
+        public Guid Personalities { get; set; }
         public Guid Location { get; set; }
         public Guid JobTitle { get; set; }
         public DateTime Begin { get; set; }

@@ -24,7 +24,7 @@
             
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
                 <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" onclick="AddItem()" style="margin-left:20px">добавить</a>
+                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
             </div>
 
 
@@ -48,9 +48,7 @@
 
 <div id="page" style="margin-top:15px"></div>
 
-
-<!------------------------------------------------------------------------------------------------------------------->
-<!--загрузка таблицы пользователей-->
+<!-- Загрузка таблицы пользователей, по умолчанию показывает всех пользователей с активным профилем -->
 <script>
     function loadPersonalityTable() {
         try{
@@ -72,7 +70,7 @@
 
 <script>
     function DataTable() {
-        //location.hash = "#SettingsUsers";
+        // location.hash = "#SettingsUsers";
         $('#header').text('Пользователи');
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#staff" });
@@ -90,46 +88,68 @@
 
 <!--загрузка формы добавления пользователя-->
 <script>
-    function AddItem() {
-        // Ссылка на страницу 
+    function AddItem(typeGuid, newPerson) {
+        // Ссылка на страницу
         location.hash = "#AddPerson";
         // Редактируем header
-        $('#header').text('Добавление пользователя');
-
-        // Вешаем на кнопку возврат к таблице
-        $('#back').unbind('click');
-        $('#back').click(function () { 
-            checkbox.style.display = 'flex'
-            DataTable(); });
+        if (newPerson == 1) {
+            $('#header').text('Добавление пользователя');
+        } else {
+            $('#header').text('Добавление версии');
+        }
         
+//         Вешаем на кнопку возврат к таблице
+       $('#back').unbind('click');
+       $('#back').click(function () {
+           checkbox.style.display = 'flex'
+           DataTable(); });
         // Скрываем все лишнее
-        $('#tableMenu').hide();
-        $('#editMenu').hide();
-        $('#addMenu').show();
-
-        @* $('#page').empty(); *@
+       $('#tableMenu').hide();
+       $('#editMenu').hide();
+       $('#addMenu').show();
         SpinnerShow();
-        $('#page').load('/Personality/PersonalityEdit?typeGuid=0', function () { SpinnerHide() });
+        $('#page').load(`/Personality/PersonalityEdit?typeGuid=${typeGuid}&newPerson=${newPerson}` , function () {
+         SpinnerHide()
+         });
     }
 </script>
 
 <!--загрузка редактора пользователя-->
 <script>
-    function EditItem(itemName, typeGuid) {
+    function EditItem(itemName, typeGuid, newPerson) {
         location.hash = "#EditPerson";
         $('#header').text(itemName);
-
         $('#back').unbind('click');
         $('#back').click(function () { 
             DataTable();
          });
-
         $('#tableMenu').hide();
         $('#editMenu').show();
         $('#addMenu').hide();
-
-        $('#page').empty();
         SpinnerShow();
-        $('#page').load('/Personality/PersonalityEdit?typeGuid=' + typeGuid, function () { SpinnerHide() });
+        $('#page').load(`/Personality/PersonalityEdit?typeGuid=${typeGuid}&newPerson=${newPerson}`, function () {
+            SpinnerHide()
+        });
+    }
+</script>
+
+<!--загрузка таблицы версий пользователя-->
+<script>
+    function PersonalityVersions(typeGuid, newPerson) {
+        location.hash = "#PersonalityVersions";
+        $('#header').text('Выбор версии');
+        $('#back').unbind('click');
+        $('#back').click(function () {
+            $('.userActive').show();
+            DataTable();
+         });
+        $('.userActive').hide();
+        $('#tableMenu').show();
+        $('#editMenu').show();
+        $('#addMenu').hide();
+        SpinnerShow();
+        $('#page').load(`/Personality/PersonalityVersions?typeGuid=${typeGuid}&newPerson=${newPerson}`, function () {
+            SpinnerHide()
+        });
     }
 </script>
