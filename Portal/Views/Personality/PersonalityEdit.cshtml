@@ -52,7 +52,7 @@
     <div class="personData">
         <!--Первый столбец-->
         @if(Model.PersonalitiesVersions?.Personalities != null)
-        {   
+        {
             <form id="user-form">
                 <div class="leftBlockPersonData">
                     <label class="label-light">Фамилия</label>
@@ -70,16 +70,13 @@
                     @* Выбор должности *@
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                         <select required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.JobTitle.Name">
+                            @if (Model.JobTitles.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.JobTitle.Guid) != null)
+                            {
+                                <option value="@Model.PersonalitiesVersions.JobTitle.Guid" selected>@Model.PersonalitiesVersions.JobTitle.Name</option>
+                            }
                             @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
                             {
-                                if (Model.JobTitles.FirstOrDefault(g => g.Guid == jobTitle.Guid) != null)
-                                {
-                                    <option value="@jobTitle.Guid" selected>@jobTitle.Name</option>
-                                }
-                                else
-                                {
-                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                                }
+                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
                             }
                         </select>
                     </div>
@@ -192,11 +189,11 @@
                         <div class='rightBlockPersonData__versions'>
                             <label class="label-light">С</label>
                             <div>
-                                <input required type="date" class="inputPersonData correctForData" min="@DateTime.Now.ToString("yyyy-MM-dd")" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                <input required type="date" class="inputPersonData correctForData" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
                             </div>
                             <label class="label-light">По</label>
                             <div>
-                                <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
+                                <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@DateTime.Now.ToString("yyyy-MM-dd")">
                             </div>
                         </div>
                     }
@@ -246,6 +243,8 @@
                                 {
                                     <option value="@jobTitle.Guid">@jobTitle.Name</option>
                                 }
+                                    
+
                             }
                         </select>
                     </div>
@@ -367,9 +366,18 @@
     })
 
     // Возврат к таблице
-    const NewPerson = document.getElementById('NewPerson').value;
-    $('#back').unbind('click');
-    $('#back').click(function () { location.hash = "#Personality" });
+    const NewPerson = document.getElementById('NewPerson').value; // 1 - новый сотрудник, 0 и 2 - не новый
+    const personGUID = document.getElementById('personGUID').value;
+    if(NewPerson == 1)
+    {
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#Personality" });
+    } else {
+        $('#back').unbind('click');
+        $('#back').click(function () { PersonalityVersions(personGUID, 2) });
+        
+    }
+    
 
         
     
@@ -471,7 +479,9 @@
 <script>
     function editUser() {
         const Personality = {};
+        const personGUID = document.getElementById('personGUID').value;
         const personVersionGUID = document.getElementById('personVersionGUID').value;
+        Personality.Guid = personVersionGUID;
         Personality.Name = $('#namePerson').val();
         Personality.Surname = $('#surnamePerson').val();
         Personality.Patronymic = $('#patronymicPerson').val();
@@ -489,8 +499,7 @@
         Personality.Entity = EntityGUID;
         Personality.EntityCost = EntityCostGUID;
         Personality.NewPerson = $('#NewPerson').val();
-        Personality.personGUID = personVersionGUID;
-
+        Personality.personGUID = personGUID;
 
         const json = JSON.stringify(Personality)
         $.ajax({

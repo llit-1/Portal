@@ -3,7 +3,7 @@
 <!--таблица версий пользователей-->
  <div class="panel panel-default" id="personTable" style="margin-bottom:0px">
     <div class="panel-body">
-        <div class="row mb-4 mt-3" style='width: 100% !important'>
+        <div class="row mb-4 mt-3" style='width: 100% !important; margin-left: 0;'>
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -218,6 +218,11 @@
 <!-- Ограничение дат -->
 <script>
     const tabbleMenu = document.getElementById('tableMenu')
+    const notation = document.querySelector('.notation') ?? '';
+    if (notation) {
+        notation.remove();
+    }
+    
     tabbleMenu.innerHTML += `<div class='notation'>
                             <p class='p_green'> - актуальная версия</p>
                             <p class='p_gray'> - устаревшая версия</p>

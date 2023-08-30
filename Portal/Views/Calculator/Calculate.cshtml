@@ -171,16 +171,34 @@
 </script>
 
 <script>
-    function WriteLog(log){
+    async function WriteLog(log) {
+        let attempts = 0;
+        const maxAttempts = 10;
+        const timeout = 5000;
+
+        async function sendLog(log) {
             var logjsn = JSON.stringify(log);
-            logjsn = logjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
-            $.ajax({
-                type: "POST",
-                url: '/Calculator/LogSave',
-                data: { logjsn: logjsn },
-                datatype: "text",
-                error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
-            });        
+            logjsn = logjsn.replace(/ /g, "%bkspc%"); // экранирование пробелов
+
+            try {
+                await $.ajax({
+                    type: "POST",
+                    url: '/Calculator/LogSave',
+                    data: { logjsn: logjsn },
+                    dataType: "text",
+                });
+            } catch (error) {
+                if (attempts < maxAttempts) {
+                    attempts += 1;
+                    await new Promise(resolve => setTimeout(resolve, timeout));
+                    await sendLog(log);
+                } else {
+                    openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+                }
+            }
+        }
+
+        await sendLog(log);
     }
 </script>
 

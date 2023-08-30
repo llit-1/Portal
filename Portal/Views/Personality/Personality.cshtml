@@ -50,16 +50,20 @@
 
 <!-- Загрузка таблицы пользователей, по умолчанию показывает всех пользователей с активным профилем -->
 <script>
+    
+
     function loadPersonalityTable() {
         try{
             let closedPersonality = document.getElementById('closedPersonality').checked;
-            if(closedPersonality){
+
+            if (closedPersonality) {
                 SpinnerShow();
                 $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
             } else {
                 SpinnerShow();
                 $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
             }
+            
         }   
         catch{
             return document.getElementById('page').innerHTML = '<div>Нет данных</div>'
