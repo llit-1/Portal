@@ -54,7 +54,7 @@
                 {
                         <tr class="personList hidden"> 
                             <td class="hidden">@item.Personalities.Guid</td>
-                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Personalities.Name</label></td>
+                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
                             <td>@item.JobTitle.Name</td>
                             <td class="hidden">@item.JobTitle.Guid</td>
                             <td class="hidden">@item.Location.Guid</td>
@@ -134,7 +134,8 @@
     $('#header').text(date + '  ' + tt);
     $('#back').unbind('click');
     $('#back').click(function () { 
-        $('#page').load('/TimeTracking/TrackingData')});
+        $('#page').load('/TimeTracking/TrackingData')
+    });
 </script>
 
 

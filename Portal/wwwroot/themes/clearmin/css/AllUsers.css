@@ -22,6 +22,95 @@
 }
 /* Шапка конец */
 
+/* Маркеры */
+.notation {
+    display: flex;
+    flex-direction: row;
+    width: 60%;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.notation > p {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    min-width: 154px;
+}
+
+.p_green::before {
+    content: ' ';
+    width: 15px;
+    height: 15px;
+    background-color: #d2f9da;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 1px;
+    border: 1px solid #89bb94;
+}
+
+.p_gray::before {
+    content: ' ';
+    width: 15px;
+    height: 15px;
+    background-color: #b4b4b47e;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 1px;
+    border: 1px solid #4d4d4d7e;
+}
+
+.p_red::before {
+    content: ' ';
+    width: 15px;
+    height: 15px;
+    background-color: #ff9d9d;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 1px;
+    border: 1px solid #d76565;
+}
+
+.green_p {
+    width: 15px;
+    height: 15px;
+    background-color: #d2f9da;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #89bb94;
+    margin-left: 13px;
+}
+
+.gray_p {
+    width: 15px;
+    height: 15px;
+    background-color: #b4b4b47e;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #4d4d4d7e;
+    margin-left: 13px;
+}
+
+.red_p {
+    width: 15px;
+    height: 15px;
+    background-color: #ff9d9d;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #d76565;
+    margin-left: 13px;
+}
+
+.vertical-flex {
+    display: flex;
+    align-items: center;
+}
+
 /* Тумблер  */
 .switch {
     display: inline-block;
@@ -261,6 +350,10 @@
     .actual {
         width: 35vw !important;
         margin-bottom: 0;
+    }
+
+    .notation {
+        display: none ;
     }
 
     .tableMenu {

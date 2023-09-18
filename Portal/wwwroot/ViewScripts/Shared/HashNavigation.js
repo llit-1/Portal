@@ -68,7 +68,6 @@ $(function () {
         // Учет рабочего времени
         if (hash == '#staff') loadContent(hash.replace('#', ''), '/Home/Staff');
         if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');
-
         if (hash == '#TrackingData') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingData');
         
 

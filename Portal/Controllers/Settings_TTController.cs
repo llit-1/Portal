@@ -290,7 +290,6 @@ namespace Portal.Controllers
                                         result.Ok = false;
                                         result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
                                         return new ObjectResult(result);
-
                                     }
 
                                     // добавляем кассу в бд

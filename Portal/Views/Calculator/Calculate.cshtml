@@ -193,7 +193,7 @@
                     await new Promise(resolve => setTimeout(resolve, timeout));
                     await sendLog(log);
                 } else {
-                    openModal('Ошибка', "Не удалось отправить логи после максимального числа попыток");
+                    openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
                 }
             }
         }

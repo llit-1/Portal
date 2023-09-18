@@ -86,7 +86,7 @@ namespace Portal.Controllers
         }
 
         // Учет сотрудников
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "employee_control")]
         public IActionResult Staff()
         {
             return PartialView();

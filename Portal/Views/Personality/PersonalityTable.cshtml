@@ -18,54 +18,67 @@
                                     <th>Дата рождения</th>
                                     <th>Должность</th>
                                     <th>Место работы</th>
-                                    <th>Дата приема на работу</th>
+                                    <th class="hidden">Дата приема на работу</th>
                                     <th class="hidden">Дата увольнения</th>
                                     <th>Смена</th>
                                     <th>ЮЛ</th>
                                     <th>ЮЛ разнесения затрат</th>
                                     <th class='hidden'>Активность</th>
+                                    <th align='center'>Статус</th>
                                 </tr>
                             </thead>
                             <tbody id="tablePerson">
-                                    @foreach (var user in Model)
+                                @for(var x=0; x < Model.Count();x++)
                                 {
-                                    <tr id="@user.Personalities.Guid" class="activeRow">
+                                    <tr id="@Model[x].Personalities.Guid" class="activeRow">
                                         <td class="tdPersonTable">
-                                            <p class="list-item-heading userName">@user.PersonalitiesVersions.Name</p>
+                                            <p class="list-item-heading userName">@Model[x].PersonalitiesVersions.Name</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                        <p class="text-muted">@user.PersonalitiesVersions.Surname</p>
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Surname</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                        <p class="text-muted">@user.PersonalitiesVersions.Patronymic</p>
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Patronymic</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                            <p class="text-muted">@user.Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
+                                            <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                        <p class="text-muted">@user.PersonalitiesVersions.JobTitle.Name</p>
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle.Name</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                        <p class="text-muted">@user.PersonalitiesVersions.Location.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@user.PersonalitiesVersions.HireDate.ToString("dd.MM.yyyy")</p>
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Location.Name</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p class="text-muted">@user.PersonalitiesVersions.DismissalsDate</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@user.PersonalitiesVersions.Schedule.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@user.PersonalitiesVersions.Entity?.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@user.PersonalitiesVersions?.EntityCost?.Name</p>
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.HireDate.ToString("dd.MM.yyyy")</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p class="text-muted">@user.PersonalitiesVersions.Actual</p>
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.DismissalsDate</p>
                                         </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Schedule.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Entity?.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable">
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions?.EntityCost?.Name</p>
+                                        </td>
+                                        <td class="tdPersonTable hidden">
+                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Actual</p>
+                                        </td>
+                                            @if (Model[x].StatusError[0] == 0)
+                                            {
+                                                <td class="tdPersonTable vertical-flex" style='padding-left: 24px !important;'>
+                                                    <p class='green_p'></p>
+                                                </td>
+                                            }
+                                            @if (Model[x].StatusError[0] == 1)
+                                            {
+                                                <td class="tdPersonTable vertical-flex" align='center' style='padding-left: 24px !important;'>
+                                                    <p class='red_p'></p>
+                                                </td>
+                                            }
                                     </tr>
                                 }
                             </tbody>
@@ -139,9 +152,7 @@
 @* Выделение ряда неактивного пользователя *@
 <script>
     const table = document.getElementById("tablePerson"); //Находим таблицу
-
     const rows = table.getElementsByTagName("tr"); //Получаем массив рядов
-
     for(let i = 0; i < rows.length; i++) { //Проходимся по каждому ряду
         let cell = rows[i].getElementsByTagName('td') //Получаем список ячеек
         // Проходимся по каждой ячейки в поисках "0" или "2"
