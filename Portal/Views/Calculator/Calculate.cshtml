@@ -93,10 +93,10 @@
         let answerObject = trObject.querySelector('.answer');
 
         let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
-        if(+averageRestOfThisPeriod < 0.3 || +averageRestOfThisPeriod > 4){
+        if(+averageRestOfThisPeriod < 0.3 || +averageRestOfThisPeriod > 1){
             averageRestOfThisPeriod + 0;
         } else {
-            averageRestOfThisPeriod = 4;
+            averageRestOfThisPeriod = 1;
         }
         let averageNextPer = trObject.querySelector('.averageNextPer').value.replace(/(,)/, ".");
         let averageSecondNextPer = trObject.querySelector('.averageSecondNextPer').value.replace(/(,)/, ".");
