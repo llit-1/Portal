@@ -21,5 +21,7 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.Calculator.TimeDayGroups> TimeDayGroups { get; set; } //Группы День-Время
         public DbSet<Models.MSSQL.Calculator.CalculatorReaction> CalculatorReaction { get; set; } //периуд времени разной реакции калькулятора
         public DbSet<Models.MSSQL.Calculator.ItemsGroupTimeTT_Coefficient> ItemsGroupTimeTT_Coefficient { get; set; } //Таблица групповых коэффициентов
+        public DbSet<Models.MSSQL.Calculator.NumberOfSales> NumberOfSales { get; set; } // таблица с данными продаж по периодам
+        public DbSet<Models.MSSQL.Calculator.SpecialDay> SpecialDays { get; set; } // специальные дни
     }
 }

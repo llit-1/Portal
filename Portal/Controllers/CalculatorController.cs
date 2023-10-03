@@ -129,11 +129,14 @@ namespace Portal.Controllers
             DayGroups thisDayGroup = new DayGroups();
             DayGroups nextDayGroup = new DayGroups();
 
+            DayGroups spesialToday = CalculatorDb.SpecialDays.Include(c => c.DayGroups).FirstOrDefault(c => c.Date == DateTime.Today)?.DayGroups;
+            DayGroups spesialTomorrow = CalculatorDb.SpecialDays.Include(c => c.DayGroups).FirstOrDefault(c => c.Date == DateTime.Today.AddDays(1))?.DayGroups;
+
             for (int i = 0; i < dayGroups.Count; i++)
             {
                 if (dayGroups[i].FirstDayUS <= (int)calculatorInformation.Date.DayOfWeek && dayGroups[i].LastDayUS >= (int)calculatorInformation.Date.DayOfWeek)
                 {
-                    thisDayGroup = dayGroups[i];
+                    thisDayGroup = dayGroups[i];                  
                     if (thisDayGroup.LastDayUS != (int)calculatorInformation.Date.DayOfWeek)
                     {
                         nextDayGroup = dayGroups[i];
@@ -147,6 +150,15 @@ namespace Portal.Controllers
                     nextDayGroup = dayGroups[i + 1];
                     break;
                 }
+            }
+
+            if (spesialToday != null)
+            {
+                thisDayGroup = spesialToday;
+            }
+            if (spesialTomorrow != null)
+            {
+                nextDayGroup = spesialTomorrow;
             }
 
             for (int i = 0; i < timeGroups.Count; i++)
@@ -204,43 +216,64 @@ namespace Portal.Controllers
             foreach (var item in items)
             {
                 CalculatorItem thisItem = new CalculatorItem();
+                thisItem.SettlementDaysRestOfThisPeriod = 1;
+                thisItem.SettlementDaysNextPer = 1;
+                thisItem.SettlementDaysSecondNextPer = 1;
                 thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
 
-                List<AverageSalesPerHour> thisPeriodRestSales = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.ThisTimeDayGroup.Guid &&
-                                                                                                        c.ItemOnTT == thisItem.ItemOnTT.Guid &&
+
+
+                List<NumberOfSales> thisPeriodRestSales = CalculatorDb.NumberOfSales.Where(c => c.TimeDayGroupsGUID == calculatorInformation.ThisTimeDayGroup.Guid &&
+                                                                                                        c.ItemOnTTGUID == thisItem.ItemOnTT.Guid &&
                                                                                                         c.Hour > calculatorInformation.Date.Hour)
                                                                                                 .ToList();
-                double thisPeriodRestSalesSum = thisPeriodRestSales.Select(c => c.Quantity)
+                thisItem.SumRestOfThisPeriod = thisPeriodRestSales.Select(c => c.Quantity)
                                                                    .DefaultIfEmpty(0)
                                                                    .Sum();
-                double productionPeriodSum = thisPeriodRestSales.Where(c => c.Hour < calculatorInformation.Date.Hour + calculatorInformation.ItemsGroup.HourForProduction)
+                thisItem.SumProductionPeriod = thisPeriodRestSales.Where(c => c.Hour < calculatorInformation.Date.Hour + calculatorInformation.ItemsGroup.HourForProduction)
                                                                 .Select(c => c.Quantity)
                                                                 .DefaultIfEmpty(0)
                                                                 .Sum();
 
-                thisItem.AverageRestOfThisPeriod = thisPeriodRestSalesSum
-                                                   / (4 * (calculatorInformation.ThisTimeDayGroup.DayGroup.LastDay - calculatorInformation.ThisTimeDayGroup.DayGroup.FirstDay + 1));
+                if (thisPeriodRestSales.Count != 0)
+                {
+                    thisItem.SettlementDaysRestOfThisPeriod = thisPeriodRestSales[0].SettlementDays;
+                }
 
-                thisItem.AverageProductionPeriod = productionPeriodSum
-                                                   / (4 * (calculatorInformation.ThisTimeDayGroup.DayGroup.LastDay - calculatorInformation.ThisTimeDayGroup.DayGroup.FirstDay + 1));
+                thisItem.AverageRestOfThisPeriod = thisItem.SumRestOfThisPeriod / thisItem.SettlementDaysRestOfThisPeriod;
 
-                double nextPeriodSalesSum = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.NextTimeDayGroup.Guid &&
-                                                                                                        c.ItemOnTT == thisItem.ItemOnTT.Guid)
+                thisItem.AverageProductionPeriod = thisItem.SumProductionPeriod / thisItem.SettlementDaysRestOfThisPeriod; ;
+
+                thisItem.SumNextPer = CalculatorDb.NumberOfSales.Where(c => c.TimeDayGroupsGUID == calculatorInformation.NextTimeDayGroup.Guid &&
+                                                                                                        c.ItemOnTTGUID == thisItem.ItemOnTT.Guid)
                                                                                              .ToList()
                                                                                              .Select(c => c.Quantity)
                                                                                              .DefaultIfEmpty(0)
                                                                                              .Sum();
-                thisItem.AverageNextPer = nextPeriodSalesSum
-                                                   / (4 * (calculatorInformation.NextTimeDayGroup.DayGroup.LastDay - calculatorInformation.NextTimeDayGroup.DayGroup.FirstDay + 1));
+                var settlementDaysNextPer = CalculatorDb.NumberOfSales.FirstOrDefault(c => c.TimeDayGroupsGUID == calculatorInformation.NextTimeDayGroup.Guid &&
+                                                                                                        c.ItemOnTTGUID == thisItem.ItemOnTT.Guid);
+                if (settlementDaysNextPer != null)
+                {
+                    thisItem.SettlementDaysNextPer = settlementDaysNextPer.SettlementDays;
+                }
 
-                double nextSecondPeriodSalesSum = CalculatorDb.AverageSalesPerHour.Where(c => c.TimeDayGroups == calculatorInformation.NextSecondTimeDayGroup.Guid &&
-                                                                                                        c.ItemOnTT == thisItem.ItemOnTT.Guid)
+                thisItem.AverageNextPer = thisItem.SumNextPer / thisItem.SettlementDaysNextPer;
+
+                thisItem.SumSecondNextPer = CalculatorDb.NumberOfSales.Where(c => c.TimeDayGroupsGUID == calculatorInformation.NextSecondTimeDayGroup.Guid &&
+                                                                                                        c.ItemOnTTGUID == thisItem.ItemOnTT.Guid)
                                                                                              .ToList()
                                                                                              .Select(c => c.Quantity)
                                                                                              .DefaultIfEmpty(0)
                                                                                              .Sum();
-                thisItem.AverageSecondNextPer = nextSecondPeriodSalesSum
-                                                   / (4 * (calculatorInformation.NextSecondTimeDayGroup.DayGroup.LastDay - calculatorInformation.NextSecondTimeDayGroup.DayGroup.FirstDay + 1));
+
+                var settlementDaysSecondNextPer = CalculatorDb.NumberOfSales.FirstOrDefault(c => c.TimeDayGroupsGUID == calculatorInformation.NextSecondTimeDayGroup.Guid &&
+                                                                                                        c.ItemOnTTGUID == thisItem.ItemOnTT.Guid);
+                if (settlementDaysSecondNextPer != null)
+                {
+                    thisItem.SettlementDaysSecondNextPer = settlementDaysSecondNextPer.SettlementDays;
+                }
+
+                thisItem.AverageSecondNextPer = thisItem.SumSecondNextPer / thisItem.SettlementDaysSecondNextPer;
 
                 calculatorInformation.Items.Add(thisItem);
             }
