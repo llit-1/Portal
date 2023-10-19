@@ -1,34 +1,40 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
-using Portal.Models.PowerBi;
-using System.Diagnostics;
-using System.Net.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Rest;
 using Newtonsoft.Json.Linq;
 using Portal.Models;
+using Portal.Models.PowerBi;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using Microsoft.EntityFrameworkCore;
-
+using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
-    [Authorize(Roles ="reports")]
+    [Authorize(Roles = "reports")]
     public class ReportsController : Controller
     {
         DB.SQLiteDBContext db;
+        private DB.MSSQLDBContext dbSql;
+        private DB.RK7DBContext rk7Sql;
+        private DB.Reports1CDBContext reports1CSql;
 
-        public ReportsController(DB.SQLiteDBContext sqliteContext)
+        public ReportsController(DB.SQLiteDBContext sqliteContext, DB.MSSQLDBContext dbSqlContext, DB.RK7DBContext rK7DBContext, DB.Reports1CDBContext reports1CDBContext)
         {
             db = sqliteContext;
+            dbSql = dbSqlContext;
+            rk7Sql = rK7DBContext;
+            reports1CSql = reports1CDBContext;
         }
 
         // Отчеты в общем доступе (без разграничения на уровне строк в отчетах)
@@ -39,7 +45,7 @@ namespace Portal.Controllers
 
             var login = User.Claims.First(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value.ToLower();
             reportsView.User = db.Users.Include(u => u.Reports).FirstOrDefault(u => u.Login.ToLower() == login.ToLower());
-            reportsView.AllReports = db.AllReports.FirstOrDefault();            
+            reportsView.AllReports = db.AllReports.FirstOrDefault();
 
             // логируем
             var log = new LogEvent<string>(User);
@@ -112,6 +118,182 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
+
+        //Отчёты Франчази
+        [Authorize(Roles = "reports_franchisee")]
+        public IActionResult FranchiseeReports(string TTcode)
+        {
+            FranchiseeReportsModel franchiseeReportsModel = new FranchiseeReportsModel();
+            string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
+            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3)).FirstOrDefault(c => c.Login == userLogin);
+            string UserStr = User.Identity.Name;
+            if (String.IsNullOrEmpty(TTcode))
+            {
+                franchiseeReportsModel.TTs = user.TTs.ToList();
+                return PartialView(franchiseeReportsModel);
+            }
+            else
+            {
+                franchiseeReportsModel.TTs = user.TTs.Where(c => c.Restaurant_Sifr == int.Parse(TTcode)).ToList();
+            }
+            if (franchiseeReportsModel.TTs.Count == 0)
+            {
+                throw new Exception($"В БД отсутствует ТТ с кодом {TTcode}");
+            }
+            return PartialView(franchiseeReportsModel);
+        }
+
+
+        [Authorize(Roles = "reports_franchisee")]
+        public FileContentResult DownloadFranchiseeReport(string Report, string TTcode, string Begin, string End)
+        {
+            int restaraunt = int.Parse(TTcode);
+            DateTime begin = DateTime.ParseExact(Begin, "yyyy-MM-dd", null);
+            DateTime end = DateTime.ParseExact(End, "yyyy-MM-dd", null).AddDays(1);
+            var menuItems = rk7Sql.MenuItems.ToList();
+            var currencies = rk7Sql.Currencies.ToList();
+
+
+
+
+
+
+            switch (Report)
+            {
+                case "DefectReports":
+                    {
+                        int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == restaraunt).Obd;
+                        var marriagesOnTT = reports1CSql.MarriagesOnTT.Where(c => c.Date >= begin && c.Date < end && c.CounterpartyCode == obd).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Товар";
+                            worksheet.Cell(1, 2).Value = "Количество";
+                            worksheet.Cell(1, 3).Value = "Причина";
+                            worksheet.Cell(1, 4).Value = "Масса";
+                            worksheet.Cell(1, 5).Value = "Дата";
+                            for (int i = 0; i < marriagesOnTT.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = marriagesOnTT[i].Nomenclature;
+                                worksheet.Cell(i + 2, 2).Value = marriagesOnTT[i].Quantity;
+                                worksheet.Cell(i + 2, 3).Value = marriagesOnTT[i].ReasonMarriage;
+                                worksheet.Cell(i + 2, 4).Value = marriagesOnTT[i].StorageUnitstatesWeight;
+                                worksheet.Cell(i + 2, 5).Value = marriagesOnTT[i].Date;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                //stream.Flush();
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                };
+                            }
+                        }
+                    }
+
+                case "Sales":
+                    {
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && (c.Currency == 1 || c.Currency == 4))).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Товар";
+                            worksheet.Cell(1, 2).Value = "Количество";
+                            worksheet.Cell(1, 3).Value = "Цена";
+                            worksheet.Cell(1, 4).Value = "Валюта";
+                            worksheet.Cell(1, 5).Value = "Дата и время продажи";
+                            for (int i = 0; i < saleObjects.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
+                                worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
+                                worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
+                                worksheet.Cell(i + 2, 5).Value = saleObjects[i].Date;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                //stream.Flush();
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                };
+                            }
+                        }
+                    }
+                case "ReternsOff":
+                    {
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && (c.Currency == 1003299 || c.Currency == 1000716))).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Товар";
+                            worksheet.Cell(1, 2).Value = "Количество";
+                            worksheet.Cell(1, 3).Value = "Цена";
+                            worksheet.Cell(1, 4).Value = "Дата и время возврата";
+                            for (int i = 0; i < saleObjects.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
+                                worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
+                                worksheet.Cell(i + 2, 4).Value = saleObjects[i].Date;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                //stream.Flush();
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                };
+                            }
+                        }
+                    }
+
+                case "WriteOut":
+                    {
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && c.Currency != 1 && c.Currency != 4 && c.Currency != 1003299 && c.Currency != 1000716)).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Товар";
+                            worksheet.Cell(1, 2).Value = "Количество";
+                            worksheet.Cell(1, 3).Value = "Цена";
+                            worksheet.Cell(1, 4).Value = "Тип списания";
+                            worksheet.Cell(1, 5).Value = "Дата и время списания";
+                            for (int i = 0; i < saleObjects.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
+                                worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
+                                worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
+                                worksheet.Cell(i + 2, 5).Value = saleObjects[i].Date;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                //stream.Flush();
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                };
+                            }
+                        }
+                    }
+
+                default:
+                    return null;
+            }
+
+
+
+        }
+
 
         // Кассовые операции
         [Authorize(Roles = "reports_cashoperations")]
@@ -195,13 +377,13 @@ namespace Portal.Controllers
         // Папка
         public IActionResult Folder(string path)
         {
-            if(path == "Reports")
+            if (path == "Reports")
             {
                 return Redirect("/Home/Reports");
             }
 
             var folderView = new ViewModels.Library.FolderView();
-            
+
             // разэкранирование "плюс" и "пробел"
             path = path.Replace("plustoreplace", "+");
             path = path.Replace("backspacetoreplace", " ");
@@ -211,7 +393,7 @@ namespace Portal.Controllers
 
             // корневой каталог раздела
             var rootItem = db.RootFolders.FirstOrDefault(r => path.Contains(r.Path));
-            folderView.navItems.Add(rootItem);                        
+            folderView.navItems.Add(rootItem);
             var rootDir = new DirectoryInfo(rootItem.Path);
 
             // промежуточные каталоги
@@ -241,14 +423,14 @@ namespace Portal.Controllers
             {
                 folderView.prevPath = "Reports";
             }
-            
+
             return PartialView("Other", folderView);
         }
 
         // Встраиваемые отчёты Embedded
         public async Task<IActionResult> ProfitEmbedded()
         {
-            return RedirectToAction("Unavailable","Home");
+            return RedirectToAction("Unavailable", "Home");
 
             // Параметры подключения к зарегистрированному приложению Power Bi
             PBIAppIntegration pbiApp = new PBIAppIntegration
@@ -268,7 +450,7 @@ namespace Portal.Controllers
             {
                 WorkspaceId = new Guid("20ad784f-9d5a-4988-9660-d1b9c3054841"),
                 DataSet = "b63c39b9-b629-4484-921c-5ffc82ea20ef",
-                ReportId = new Guid("cccaaf7e-0654-4afa-9e3f-4dd0bd982f17")           
+                ReportId = new Guid("cccaaf7e-0654-4afa-9e3f-4dd0bd982f17")
             };
 
             // роли Power Bi
@@ -277,7 +459,7 @@ namespace Portal.Controllers
             // присваиваем все роли пользователя ролям Power Bi
             foreach (var claim in User.Claims)
             {
-                if(claim.Type == System.Security.Claims.ClaimsIdentity.DefaultRoleClaimType) pbiRoles.Add(claim.Value);
+                if (claim.Type == System.Security.Claims.ClaimsIdentity.DefaultRoleClaimType) pbiRoles.Add(claim.Value);
             }
 
             // выбираем версию отчета в зависимости от роли
@@ -295,9 +477,9 @@ namespace Portal.Controllers
             var reportConfig = await GetPBIEmbedConfig(pbiApp, report, pbiRoles);
 
             return PartialView(reportConfig);
-        }        
+        }
 
-        public async Task<IActionResult> ItsmEmbedded ()
+        public async Task<IActionResult> ItsmEmbedded()
         {
             return RedirectToAction("Unavailable", "Home");
 
@@ -403,7 +585,7 @@ namespace Portal.Controllers
 
                 result.EmbedToken = tokenResponse;
                 result.EmbedUrl = reportData.EmbedUrl;
-                result.Id = reportData.Id.ToString();                
+                result.Id = reportData.Id.ToString();
             }
 
             return result;

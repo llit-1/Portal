@@ -63,8 +63,9 @@ namespace Portal
                 services.AddDbContext<DB.MSSQLDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssql")), ServiceLifetime.Transient);
                 services.AddDbContext<DB.CalculatorDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("calculator")), ServiceLifetime.Transient);
             }
+            services.AddDbContext<DB.Reports1CDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssql1C")), ServiceLifetime.Transient);
+            services.AddDbContext<DB.RK7DBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("mssqlrk7")), ServiceLifetime.Transient);
             services.AddDbContext<DB.SQLiteDBContext>(options => options.UseSqlite(Configuration.GetConnectionString("sqlite")));
-
 
             services.AddDistributedMemoryCache();
             services.AddSession(options =>

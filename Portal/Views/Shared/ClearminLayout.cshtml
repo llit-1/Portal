@@ -103,6 +103,10 @@
                                     {
                                         <li><a id="gpt" href="#GPT">Чат GPT</a></li>
                                     }
+                                    @if (User.IsInRole("reports_franchisee"))
+                                    {
+                                        <li><a id="FranchiseeReports" href="#FranchiseeReports">Отчёты Франчайзи</a></li>
+                                    }
                                 </ul>
                             </li>
                         }

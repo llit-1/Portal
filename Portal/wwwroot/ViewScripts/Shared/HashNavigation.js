@@ -21,6 +21,7 @@ $(function () {
         if (hash == '#Other') loadContent(hash.replace('#', ''), '/Reports/Other');                           // отчёты -> другие отчёты
         if (hash == '#GPT') loadContent(hash.replace('#', ''), '/Reports/GPT');                               // отчёты -> чат GPT
         if (hash == '#TemperatureSensors') loadContent(hash.replace('#', ''), '/Reports/TemperatureSensors'); // отчёты -> Датчики температуры СХЗ
+        if (hash == '#FranchiseeReports') loadContent(hash.replace('#', ''), '/Reports/FranchiseeReports');   // отчёты -> Отчёты Франчайзи
 
         // Заказы ТТ
         if (hash == '#ttorders') loadContent(hash.replace('#', ''), '/Home/TTOrders');                         // заказы -> плитка

@@ -1,0 +1,173 @@
+﻿@model Portal.Models.FranchiseeReportsModel
+<!--блок элементов сверху-->
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+
+    <!--Назад-->
+    <a href="#reports" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+
+
+<div>
+    @if (Model.TTs.Count == 1)
+    {
+        <div>
+            <h1>@Model.TTs[0].Name</h1>
+
+            <!--блок элементов над списком отчётов-->
+            <div class="row headerTracking" style="margin-top: 10px; margin-bottom:10px">
+                <!--фильтр ТТ-->
+                <div class="headerTrackingItem">
+                    <select class="form-control form-control-sm" id="intervalSelector" onchange="editCalendar()">
+                        <option id="0">Произвольный период</option>
+                        <option id="1">Текущий месяц</option>
+                        <option id="2">Прошлый месяц</option>
+                    </select>
+                </div>
+                <div class="headerTracking__date">
+                    <div class="headerTrackingItem">
+                        <input type='date' class="calendarTracking form-control form-control-sm" id="calendarBegin" oninput="calendarInput()">
+                    </div>
+                    <div class="headerTrackingItem">
+                        <input type='date' class="calendarTracking form-control form-control-sm" id="calendarEnd" oninput="calendarInput()">
+                    </div>
+                </div>
+
+            </div>
+
+            <!--таблица отчётов-->
+            <div class="panel panel-default" id="OrdersFranch">
+                <div class="table-responsive">
+                    <table class="table" style="vertical-align: middle;" id="fOrdersTable" width='80%'>
+                        <tbody>
+                            <tr class="row-group-01" id="DefectReports" style="vertical-align: middle;" onclick="downloadReport(this)">
+                                <td style="vertical-align: middle;" width=30%><label><input class="hidden" type="checkbox"><b>Акты брака</b></label></td>
+                                <td style="vertical-align: middle;" id="tdcell" width=20%></td>
+                                <td style="vertical-align: middle;" align="right">
+                                    <img src="~/svg/download.svg" width="30px">
+                                </td>
+                            </tr>
+                            <tr class="row-group-01" id="WriteOut" style="vertical-align: middle;" onclick="downloadReport(this)">
+                                <td style="vertical-align: middle;" width=30%><label><input class="hidden" type="checkbox"><b>Списания</b></label></td>
+                                <td style="vertical-align: middle;" id="tdcell" width=20%></td>
+                                <td style="vertical-align: middle;" align="right">
+                                    <img src="~/svg/download.svg" width="30px">
+                                </td>
+                            </tr>
+                            <tr class="row-group-01" id="Sales" style="vertical-align: middle;" onclick="downloadReport(this)">
+                                <td style="vertical-align: middle;" width=30%><label><input class="hidden" type="checkbox"><b>Продажи</b></label></td>
+                                <td style="vertical-align: middle;" id="tdcell" width=20%></td>
+                                <td style="vertical-align: middle;" align="right">
+                                    <img src="~/svg/download.svg" width="30px">
+                                </td>
+                            </tr>
+                            <tr class="row-group-01" id="ReternsOff" style="vertical-align: middle;" onclick="downloadReport(this)">
+                                <td style="vertical-align: middle;" width=30%><label><input class="hidden" type="checkbox"><b>Возвраты</b></label></td>
+                                <td style="vertical-align: middle;" id="tdcell" width=20%></td>
+                                <td style="vertical-align: middle;" align="right">
+                                    <img src="~/svg/download.svg" width="30px">
+                                </td>
+                            </tr>
+                            <!--Даты-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>       
+                       
+        </div>
+    }
+    else
+    {
+        <div class='ttbut_styles'>
+            @for (int i = 0; i < Model.TTs.Count; i++)
+            {
+                <button class="ttbut" id=@Model.TTs[i].Restaurant_Sifr onclick="ttbutClick(this)">@Model.TTs[i].Name</button>
+            }
+        </div>
+    }
+</div>
+<div id="Unavailable"></div>
+
+<script>
+    function ttbutClick(thisBut) {
+        let butref = '/Reports/FranchiseeReports?TTcode=' + thisBut.id
+        loadContent(location.hash.replace('#', ''), butref)
+    }
+</script>
+
+<!--верхнее меню-->
+<script>
+    function editCalendar() {
+        const calendarBegin = document.getElementById("calendarBegin");
+        const calendarEnd = document.getElementById("calendarEnd"); 
+        const intervalSelector = document.getElementById('intervalSelector').value;
+        let beginDate = new Date();
+        let endDate = new Date();        
+        switch (intervalSelector)
+        {
+            case 'Произвольный период':
+                break;
+            case 'Текущий месяц' :
+                beginDate.setDate(1);
+                SetDate(beginDate, calendarBegin);
+                SetDate(endDate, calendarEnd);
+                break;
+            case 'Прошлый месяц' :
+                beginDate.setMonth(beginDate.getMonth()-1);
+                beginDate.setDate(1);
+                endDate.setDate(0);
+                SetDate(beginDate, calendarBegin);
+                SetDate(endDate, calendarEnd);
+                break;
+        }
+        function SetDate(date, calendar) {
+            calendar.value = (date.getFullYear() + "-" + ((date.getMonth() + 1)).toString().padStart(2, 0) + "-" + date.getDate().toString().padStart(2, 0));
+        }
+    }
+
+    function calendarInput() {
+        document.getElementById("0").selected=true;
+    }
+
+   
+</script>
+
+<!--скачивание отчёта-->
+<script>
+    function downloadReport(tr) {
+        let sel = document.getElementById('updateAllSelector');
+        let calendarBegin = document.getElementById('calendarBegin').value;
+        let calendarEnd = document.getElementById('calendarEnd').value;
+        if(calendarBegin === ''){
+            alert("Не указана начальная дата");
+            return;            
+        }
+        else if (calendarEnd === '') {
+            alert("Не указана конечная дата");
+            return;
+        }
+        else if (calendarEnd < calendarBegin) {
+            alert("Начальная дата не может быть больше конечной даты");
+            return;       
+        }
+        let timeDiff = (new Date(calendarEnd)).getTime() - (new Date(calendarBegin)).getTime();
+        let days = Math.ceil(timeDiff/1000/3600/24);
+        if (days > 40) {
+            alert("Количество запрашиваемых дней - не более 40");
+            return;        
+        }
+        let url = '/Reports/DownloadFranchiseeReport?Report=' + tr.id + '&TTcode=' + @Model.TTs[0].Restaurant_Sifr + '&Begin=' + calendarBegin + '&End=' + calendarEnd;
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: (function () {
+                window.location = url
+            }),
+            error: (function () {
+                alert('ошибка')
+            })
+        });
+    }
+</script>

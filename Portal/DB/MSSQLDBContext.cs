@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Portal.Models.MSSQL;
 
 namespace Portal.DB
 {
@@ -30,5 +31,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.Personality.Schedule> Schedules { get; set; } // типы смен
         public DbSet<Models.MSSQL.TimeSheet> TimeSheets { get; set; } // типы смен
         public DbSet<Models.MSSQL.Personality.Entity> Entity { get; set; } // ЮЛ
+        public DbSet<SaleObject> SaleObjects { get; set; }
     }
 }
