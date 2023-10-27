@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Portal.Models.JsonModels;
 using Portal.Models.MSSQL.Location;
 using Portal.Models.MSSQL.Personality;
+using Portal.Models.MSSQL.PersonalityVersions;
+using Portal.ViewModels.Settings_Access.json;
 using Portal.ViewModels.Settings_TT;
 using RKNet_Model;
 using RKNet_Model.Account;
@@ -694,226 +697,92 @@ namespace Portal.Controllers
         // Таблица организаций
         public IActionResult OrganizationsTable()
         {
-            var organizations = db.Organizations
-                .Include(o => o.TTs.Where(t => t.CloseDate == null))
-                .ToList();
-            return PartialView(organizations);
+            var model = new EntityLocationModel
+            {
+                Entities = dbSql.Entity != null ? dbSql.Entity.ToList() : new List<Entity>(),
+                LocationVersions = dbSql.LocationVersions != null
+                    ? dbSql.LocationVersions.Include(t => t.Entity).Include(t => t.Location).ToList()
+                    : new List<LocationVersions>()
+            };
+
+            return PartialView(model);
         }
 
-        // Редактор организаций
-        public IActionResult OrganizationEdit(int Id)
+        // Редактор организаций 
+        public IActionResult OrganizationEdit(string id)
         {
-            var orgSettings = new OrganizationSettings();
-
-            orgSettings.Organization = db.Organizations
-                .Include(o => o.TTs)
-                .FirstOrDefault(o => o.Id == Id);
-
-            if (orgSettings.Organization == null)
+            if (id != null)
             {
-                orgSettings.Organization = new RKNet_Model.TT.Organization();
-                orgSettings.isNew = true;
+                var model = new EntityLocationModel
+                {
+                    Entities = dbSql.Entity.Where(c => c.Guid == Guid.Parse(id)).ToList(),
+                    LocationVersions = dbSql.LocationVersions.Include(t => t.Entity)
+                                                                        .Include(t => t.Location)
+                                                                        .ToList(),
+                    New = 0
+                };
+                return PartialView(model);
             }
-
-            orgSettings.TTs = db.TTs.ToList();
-            return PartialView(orgSettings);
+            else
+            {
+                var model = new EntityLocationModel
+                {
+                    New = 1,
+                    Entities = dbSql.Entity.ToList(),
+                    LocationVersions = dbSql.LocationVersions.Include(t => t.Entity)
+                                                                        .Include(t => t.Location)
+                                                                        .ToList()
+                };
+                return PartialView(model);
+            }
         }
 
         // Сохранение организации
         public IActionResult OrganizationSave(string orgjsn)
         {
-            var result = new RKNet_Model.Result<string>();
+            
+        var result = new RKNet_Model.Result<string>();
             try
             {
                 orgjsn = orgjsn.Replace("%bkspc%", " ");
-                var orgJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.organization>(orgjsn);
-
-                // существующая организация
-                if (orgJsn.id != 0)
+                organization org = JsonConvert.DeserializeObject<organization>(orgjsn);
+                if(org.Name == "")
                 {
-                    var organization = db.Organizations
-                        .Include(o => o.TTs)
-                        .FirstOrDefault(o => o.Id == orgJsn.id);
-
-                    switch (orgJsn.attribute)
-                    {
-                        case "orgName":
-                            if (!string.IsNullOrEmpty(orgJsn.name))
-                            {
-                                organization.Name = orgJsn.name;
-                            }
-                            else
-                            {
-                                result.Ok = false;
-                                result.Data = "Название организации заполненно некорректно.";
-                                return new ObjectResult(result);
-                            }
-
-                            var existName = db.Organizations.FirstOrDefault(o => o.Name == organization.Name);
-                            if (existName != null)
-                            {
-                                result.Ok = false;
-                                result.Data = "Организация с названием \"" + existName.Name + "\" уже существует, введите другое имя.";
-                                return new ObjectResult(result);
-                            }
-                            break;
-
-                        case "tts":
-                            organization.TTs = new List<RKNet_Model.TT.TT>();
-                            foreach (var item in orgJsn.items)
-                            {
-                                var tt = db.TTs.FirstOrDefault(t => t.Id == item.id);
-                                organization.TTs.Add(tt);
-                            }
-                            break;
-
-                            //case "yandexClient":
-                            //    if (!string.IsNullOrEmpty(orgJsn.yandexClient))
-                            //    {
-                            //        organization.YandexLogin = orgJsn.yandexClient;
-                            //    }
-                            //    else
-                            //    {
-                            //        organization.YandexLogin = null;
-                            //    }
-                            //    break;
-
-                            //case "yandexSecret":
-                            //    if (!string.IsNullOrEmpty(orgJsn.yandexSecret))
-                            //    {
-                            //        organization.YandexPassword = orgJsn.yandexSecret;
-                            //    }
-                            //    else
-                            //    {
-                            //        organization.YandexPassword = null;
-                            //    }
-                            //    break;
-                            //case "deliveryClubClient":
-                            //    if (!string.IsNullOrEmpty(orgJsn.deliveryClubClient))
-                            //    {
-                            //        organization.DeliveryClubLogin = orgJsn.deliveryClubClient;
-                            //    }
-                            //    else
-                            //    {
-                            //        organization.DeliveryClubLogin = null;
-                            //    }
-                            //    break;
-
-                            //case "deliveryClubSecret":
-                            //    if (!string.IsNullOrEmpty(orgJsn.deliveryClubSecret))
-                            //    {
-                            //        organization.DeliveryClubPassword = orgJsn.deliveryClubSecret;
-                            //    }
-                            //    else
-                            //    {
-                            //        organization.DeliveryClubPassword = null;
-                            //    }
-                            //    break;
-                    }
-
-                    db.Organizations.Update(organization);
+                    throw new Exception("Введите корректное имя");
                 }
-                // новая организация
+                Entity entity;
+                if (org.Guid.ToString() == "0")
+                {
+                    entity = dbSql.Entity.FirstOrDefault(x => x.Guid.ToString() == org.Guid.ToString());
+                }
                 else
                 {
-                    var organization = new RKNet_Model.TT.Organization();
-                    var tts = new List<RKNet_Model.TT.TT>();
-
-                    // торговые точки в организации
-                    foreach (var tt in orgJsn.tts)
-                    {
-                        tts.Add(db.TTs.First(t => t.Id == tt.id));
-                    }
-
-                    // название ортганизации
-                    if (!string.IsNullOrEmpty(orgJsn.name))
-                    {
-                        organization.Name = orgJsn.name;
-                    }
-                    else
-                    {
-                        result.Ok = false;
-                        result.Data = "Название организации заполненно некорректно.";
-                        return new ObjectResult(result);
-                    }
-
-                    var existName = db.Organizations.FirstOrDefault(o => o.Name == organization.Name);
-                    if (existName != null)
-                    {
-                        result.Ok = false;
-                        result.Data = "Организация с именем \"" + existName.Name + "\" уже существует, введите другое имя.";
-                        return new ObjectResult(result);
-                    }
-
-                    // Яндекс Еда
-                    //if (!string.IsNullOrEmpty(orgJsn.yandexClient))
-                    //{
-                    //    organization.YandexLogin = orgJsn.yandexClient;
-                    //}
-                    //else
-                    //{
-                    //    organization.YandexLogin = null;
-                    //}
-                    //if (!string.IsNullOrEmpty(orgJsn.yandexSecret))
-                    //{
-                    //    organization.YandexPassword = orgJsn.yandexSecret;
-                    //}
-                    //else
-                    //{
-                    //    organization.YandexPassword = null;
-                    //}
-
-                    // Delivery Club
-                    //if (!string.IsNullOrEmpty(orgJsn.deliveryClubClient))
-                    //{
-                    //    organization.DeliveryClubLogin = orgJsn.deliveryClubClient;
-                    //}
-                    //else
-                    //{
-                    //    organization.DeliveryClubLogin = null;
-                    //}
-                    //if (!string.IsNullOrEmpty(orgJsn.deliveryClubSecret))
-                    //{
-                    //    organization.DeliveryClubPassword = orgJsn.deliveryClubSecret;
-                    //}
-                    //else
-                    //{
-                    //    organization.DeliveryClubPassword = null;
-                    //}
-
-                    organization.TTs = tts;
-                    db.Organizations.Add(organization);
+                    entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(org.Guid));
                 }
+                
+                if(entity != null)
+                {
+                    entity.Name = org.Name;
+                    entity.Owner = org.Owner;
+                }
+                else
+                {
+                    Entity entity1 = new Entity();
+                    entity1.Name = org.Name;
+                    entity1.Owner = org.Owner;
+                    dbSql.Add(entity1);
 
-                db.SaveChanges();
+                }
+                dbSql.SaveChanges();
             }
             catch (Exception e)
             {
                 result.Ok = false;
-                result.Data = e.ToString();
+                result.ErrorMessage = e.Message;
+
             }
             return new ObjectResult(result);
-        }
-
-        // Удаление организации
-        public IActionResult OrganizationDelete(int Id)
-        {
-            try
-            {
-                var organization = db.Organizations
-                    .Include(o => o.TTs)
-                    .FirstOrDefault(o => o.Id == Id);
-
-                db.Organizations.Remove(organization);
-                db.SaveChanges();
-
-                return new ObjectResult("ok");
-            }
-            catch (Exception e)
-            {
-                return new ObjectResult(e.ToString());
-            }
-        }
+}
 
         // Выбранные элементы коллекций на организации
         public IActionResult GetOrganizationItems(int Id, string selectId)
