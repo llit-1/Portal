@@ -1,4 +1,4 @@
-﻿@model Portal.ViewModels.Settings_TT.TTSettings
+﻿@model Portal.Models.MSSQL.Location.TTVersionsEdit
 @{
     // загрузка модальных окошек в представление
     await Html.RenderPartialAsync("ModalWindows");
@@ -7,27 +7,52 @@
     var disabled = "disabled";
     var formClass = "input-group";
     var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
-
     var openDate = "";
     var closeDate = "";
-    var ttCode = $"value={@Model.TT.Code}";
+    var ttCode = "";
+    var locVerName = "";
+    var locVerRKCode = 0;
+    var oldAddress = "";
+    Portal.Models.MSSQL.Personality.Entity locVerEntity = null;
+    var locVerOBD = "";
+    Portal.Models.MSSQL.Location.LocationType locVerType = null;
+    var guidNewBase = "0";
 
-    if (Model.TT.OpenDate != null)
+
+    if(Model.LocationVersion != null)
     {
-        openDate = Model.TT.OpenDate.Value.ToString("yyyy-MM-dd");
+        if (Model?.LocationVersion[0]?.VersionStartDate != null)
+        {
+            openDate = Model.LocationVersion[0].VersionStartDate.Value.ToString("yyyy-MM-dd");
+        }
+
+        if (Model?.LocationVersion[0]?.VersionEndDate != null)
+        {
+            closeDate = Model.LocationVersion[0].VersionEndDate.Value.ToString("yyyy-MM-dd");
+        }
+
+        locVerName = Model.LocationVersion[0].Name;
+        locVerRKCode = Model.LocationVersion[0].Location.RKCode;
+        oldAddress = Model.OldTT[0].Address;
+        locVerEntity = Model.LocationVersion[0].Entity;
+        locVerOBD = Model.LocationVersion[0].OBD.ToString();
+        locVerType = Model?.LocationVersion[0].Location.LocationType;
+        guidNewBase = @Model?.LocationVersion[0]?.Guid.ToString();
+    }
+    else
+    {
+        guidNewBase = "0";
     }
 
-    if (Model.TT.CloseDate != null)
-    {
-        closeDate = Model.TT.CloseDate.Value.ToString("yyyy-MM-dd");
-    }
-
-
-    if (Model.newTT)
+    if (Model.TTNew)
     {
         display = "d-none";
         disabled = "";
         formClass = "form-group";
+    }
+    else
+    {
+        ttCode = $"value={@Model?.LocationVersion[0].Location.AggregatorsCode}";
     }
 }
 
@@ -43,7 +68,7 @@
         <!--имя тт-->
         <label class="label-light">имя тт</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="ttName" type="text" class="form-control" value="@Model.TT.Name" style="font-weight:bold" @disabled>
+            <input id="ttName" type="text" class="form-control" value="@locVerName" style="font-weight:bold" @disabled>
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -59,7 +84,7 @@
         <!--код RK тт-->
         <label class="label-light">код RK</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="ttRestaurantSifr" type="number" class="form-control" value="@Model.TT.Restaurant_Sifr" style="font-weight:bold" disabled ="true">
+            <input id="ttRestaurantSifr" type="number" class="form-control" value="@locVerRKCode" style="font-weight:bold" @disabled>
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -75,7 +100,7 @@
         <!--адрес тт-->
         <label class="label-light">адрес тт</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="ttAddress" type="text" class="form-control" value="@Model.TT.Address" style="font-weight:bold" @disabled>
+            <input id="ttAddress" type="text" class="form-control" value="@oldAddress" style="font-weight:bold" @disabled>
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -94,22 +119,22 @@
             <div style="width:100%; float:left; margin-bottom:15px">
                 <select id="ttOrganization" class="form-control selectors" data-width="100%">
                     <option></option>
-                    @foreach (var organization in Model.Organizations.OrderBy(o => o.Name))
+                    @foreach (var organization in Model?.Entities.OrderBy(o => o.Name))
                     {
-                        if (Model.TT.Organization != null)
+                        if (locVerEntity != null)
                         {
-                            if (Model.TT.Organization.Id == organization.Id)
+                            if (Model?.LocationVersion[0].Entity.Guid == organization.Guid)
                             {
-                                <option selected="selected" value="@organization.Id">@organization.Name</option>
+                                <option selected="selected" value="@organization.Guid">@organization.Name</option>
                             }
                             else
                             {
-                                <option value="@organization.Id">@organization.Name</option>
+                                <option value="@organization.Guid">@organization.Name</option>
                             }
                         }
                         else
                         {
-                            <option value="@organization.Id">@organization.Name</option>
+                            <option value="@organization.Guid">@organization.Name</option>
                         }
                     }
 
@@ -130,7 +155,7 @@
         </div>    
 
         <!--код тт-->        
-        @if (Model.newTT)
+        @if (Model.TTNew)
         {
             ttCode = "";
         }
@@ -153,7 +178,7 @@
         <!--код обд-->
         <label class="label-light">код обд</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="ttObd" type="number" class="form-control" value="@Model.TT.Obd" style="font-weight:bold" @disabled>
+            <input id="ttObd" type="number" class="form-control" value="@locVerOBD" style="font-weight:bold" @disabled>
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -172,22 +197,22 @@
             <div style="width:100%; float:left">
                 <select id="ttType" class="form-control selectors" data-width="100%">
                     <option></option>
-                    @foreach (var type in Model.TTtypes.OrderBy(t => t.Name))
+                    @foreach (var type in Model?.locationTypes.OrderBy(t => t.Name))
                     {
-                        if (Model.TT.Type != null)
+                        if (locVerType != null)
                         {
-                            if (Model.TT.Type.Id == type.Id)
+                            if (locVerType.Guid == type.Guid)
                             {
-                                <option selected="selected" value="@type.Id">@type.Name</option>
+                                <option selected="selected" value="@type.Guid">@type.Name</option>
                             }
                             else
                             {
-                                <option value="@type.Id">@type.Name</option>
+                                <option value="@type.Guid">@type.Name</option>
                             }
                         }
                         else
                         {
-                            <option value="@type.Id">@type.Name</option>
+                            <option value="@type.Guid">@type.Name</option>
                         }
                     }
 
@@ -258,9 +283,9 @@
             <div style="width:100%; float:left">
                 <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
 
-                    @foreach (var user in Model.Users.OrderBy(u => u.Name))
+                    @foreach (var user in Model?.OldTT[0]?.Users.OrderBy(u => u.Name))
                     {
-                        if (Model.TT.Users.FirstOrDefault(u => u.Id == user.Id) != null)
+                        if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model.TTNew == false)
                         {
                             <option selected="selected" value="@user.Id">@user.Name</option>
                         }
@@ -298,7 +323,7 @@
             <label class="label-light" style="width:100%">подключенные кассы</label>
             <div id="cashes" style="width:100%; float:left">
 
-                @foreach (var cash in Model.TT.CashStations.OrderBy(n => n.Name))
+                @foreach (var cash in Model?.OldTT[0].CashStations.OrderBy(n => n.Name))
                 {
                     var id = "cash_" + cash.Id.ToString();
                     /*var idip = "caship_" + cash.Id;*/
@@ -334,16 +359,17 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">подключенные камеры</label>
             <div id="cameras" style="width:100%; float:left">
-
-                @foreach (var cam in Model.TT.NxCameras.OrderBy(c => c.Name))
+                @if(Model.TTNew == false)
                 {
-                    <div id="@cam.Id" class="list-group-item list-group-item-slim list-group-item-noaction">
-                        <div style="display:inline">@cam.Name</div>
-                        <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCamProps(this)"></label></div>
-                    </div>
-
-                    
+                    @foreach (var cam in Model.OldTT[0].NxCameras.OrderBy(c => c.Name))
+                    {
+                        <div id="@cam.Id" class="list-group-item list-group-item-slim list-group-item-noaction">
+                            <div style="display:inline">@cam.Name</div>
+                            <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCamProps(this)"></label></div>
+                        </div>
+                    }
                 }
+                
 
             </div>
 
@@ -367,7 +393,14 @@
         <div class="pull-right" style="padding-bottom:10px; width:100%">
             <label id="switchLabel" style="margin-right:15px">Яндекс Еда</label>
             <div class="material-switch pull-right">
-                <input class="slider" id="yandexEda" type="checkbox" checked="@Model.TT.YandexEda">
+                @if (Model.TTNew == false)
+                {
+                    <input class="slider" id="yandexEda" type="checkbox" checked="@Model?.OldTT[0].YandexEda">
+                }
+                else
+                {
+                    <input class="slider" id="yandexEda" type="checkbox">
+                }
                 <label for="yandexEda" class="label-warning"></label>
             </div>
         </div>
@@ -376,7 +409,15 @@
         <div class="pull-right" style="padding-bottom:10px; width:100%">
             <label id="switchLabel" style="margin-right:15px">Delivery Club</label>
             <div class="material-switch pull-right">
-                <input class="slider" id="deliveryClub" type="checkbox" checked="@Model.TT.DeliveryClub">
+                @if (Model.TTNew == false)
+                {
+                    <input class="slider" id="deliveryClub" type="checkbox" checked="@Model?.OldTT[0].DeliveryClub">
+                }
+                else
+                {
+                    <input class="slider" id="deliveryClub" type="checkbox">
+                }
+                
                 <label for="deliveryClub" class="label-warning"></label>
             </div>
         </div>
@@ -384,7 +425,7 @@
     </div>
 
     <!--кнопки сохранить/отмена-->
-    @if (Model.newTT)
+    @if (Model.TTNew)
     {
         blockStyle += ";width:100%";
         <div class="col-12" @blockStyle>
@@ -556,9 +597,14 @@
 <!----------------------------скрипты----------------------------------->
 <!--переменные-->
 <script>
-    var newTT = @Html.Raw(Json.Serialize(Model.newTT));
-    var ttId = @Model.TT.Id;
-    var ttRkSifr = @Model.TT.Restaurant_Sifr;
+    var newTT = @Html.Raw(Json.Serialize(Model?.TTNew));
+    var ttId = "@Model.TTNew";
+    var ttGuid = "@guidNewBase";
+    if (ttId == "False") {
+        ttId = @Model?.OldTT[0].Id;
+    }
+    
+    var ttRkSifr = @Model?.OldTT[0].Restaurant_Sifr;
     var mode = '';
     var ttCams = [];
     var camId = 0;
@@ -620,7 +666,6 @@
     function SelectChange(selector) {
 
         if (!newTT) {
-
             // определяем элементы
             var multiple = $(selector).prop('multiple');
             var selId = '#' + $(selector).prop('id');
@@ -631,7 +676,7 @@
 
             // одиночные селекторы
             if (!multiple) {
-                selector.prop("disabled", false);
+                $(selector).prop("disabled", false);
                 edit.addClass('d-none');
             }
 
@@ -654,7 +699,7 @@
         var multiple = $(selector).prop('multiple');
         var selCont = $(selector).parent();
         var selectId = $(selector).prop('id');
-
+    
         // убираем кнопку "отмена"
         $(cancel).addClass('d-none');
 
@@ -666,18 +711,21 @@
         var tt = {};
         tt.id = ttId;
         tt.attribute = selectId;
+        tt.Guid = "@guidNewBase";
         tt.items = [];
-
         var data = $(selector).select2('data');
 
         $(data).each(function () {
-
             var item = {};
-            item.id = this.id;
+            if (isNaN(this.id)) {
+                item.guidOrg = this.id;
+            } else {
+                item.id = this.id;
+            }
             item.text = this.text;
             tt.items.push(item);
         });
-
+        
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
 
@@ -700,7 +748,7 @@
                     $(selCont).css('width', '100%');
 
                     // получаем коллекцию ваыбранных элементов из бд (контроль)
-                    SelectItems(ttId, selectId);
+                    SelectItems(ttId, selectId, ttGuid);
 
                     // включаем кнопку редактировать
                     if (!multiple) {
@@ -734,7 +782,7 @@
         var selectId = $(selector).prop('id');
 
         // получаем коллекцию ваыбранных элементов из бд
-        SelectItems(ttId, selectId);
+        SelectItems(ttId, selectId, ttGuid);
 
         $(save).addClass('d-none');
         $(cancel).addClass('d-none');
@@ -749,7 +797,7 @@
     }
 
     // получение коллекций данных
-    function SelectItems(ttId, selectId) {
+    function SelectItems(ttId, selectId, ttGuid) {
 
         // снимаем выделение со всех элементов
         $('#' + selectId + ' option').each(function () {
@@ -757,9 +805,14 @@
         });
 
         // получаем данные из контроллера
-        $.get('/Settings_TT/GetTTItems?ttId=' + ttId + '&selectId=' + selectId, function (selectedItems) {
+        $.get('/Settings_TT/GetTTItems?ttId=' + ttId + '&selectId=' + selectId + '&ttGuid=' + ttGuid, function (selectedItems) {
             $(selectedItems).each(function () {
-                $('#' + selectId + ' option[value=' + this.id + ']').prop('selected', true);
+                if (selectId = 'ttOrganization') {
+                    $('#' + selectId + ' option[value=' + this.guid + ']').prop('selected', true);
+                } else {
+                    $('#' + selectId + ' option[value=' + this.id + ']').prop('selected', true);
+                }
+                
             });
 
             // ре-инициализируем select2
@@ -816,8 +869,9 @@
         // отправляем данные в контроллер
         var tt = {};
         tt.id = ttId;
+        tt.Guid = ttGuid;
         tt.attribute = $(input).attr('id');
-
+        tt.Organization = $('#ttOrganization').val();
         tt.name = $('#ttName').val();
         tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
         tt.address = $('#ttAddress').val();
@@ -825,11 +879,10 @@
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
-
-
+        console.log(tt.attribute)
+        
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
-
         $.ajax({
             async: "false",
             type: "POST",
@@ -862,6 +915,7 @@
             },
             error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
         });
+        
     }
 
     // кнопка отмена справа
@@ -976,9 +1030,12 @@
         var data = $(selector).select2('data');
 
         $(data).each(function () {
-
             var item = {};
-            item.id = this.id;
+            if(isNaN(this.id)) {
+                item.guid = this.id;
+            } else {
+                item.id = this.id;
+            }
             item.text = this.text;
             items.push(item);
         });
@@ -1224,6 +1281,7 @@
             // отправляем данные в контроллер
             var tt = {};
             tt.id = ttId;
+            tt.guid = ttGuid;
             tt.attribute = "yandexEda";
             tt.yandexEda = enabled;
 
@@ -1262,6 +1320,7 @@
             var tt = {};
             tt.id = ttId;
             tt.attribute = "deliveryClub";
+            tt.guid = ttGuid;
             tt.deliveryClub = enabled;
 
             var ttjsn = JSON.stringify(tt);

@@ -1,4 +1,4 @@
-﻿@model List<RKNet_Model.TT.TT>
+﻿@model Portal.Models.MSSQL.Location.TTVersions
 
 <!--таблица тт-->
 <div class="panel panel-default" style="margin-bottom:0px">
@@ -22,66 +22,80 @@
                                     <th>Delivery Club</th>
                                     <th>Дата открытия</th>
                                     <th>Дата закрытия</th>
+                                    <th class="hidden">OldId</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var tt in Model.OrderBy(t => t.Name))
+                                @foreach (var tt in Model.LocationVersion.OrderBy(t => t.Name))
                                 {
+                                    var old = Model.OldTT.FirstOrDefault(x => x.Name == tt.Name);
                                     var organization = "";
-                                    if (tt.Organization != null) organization = tt.Organization.Name;
+                                    if (tt?.Entity?.Name != null) organization = tt?.Entity.Name;
 
                                     var ttType = "";
-                                    if (tt.Type != null) ttType = tt.Type.Name;
+                                    if (tt?.Location?.LocationType?.Name != null) ttType = tt?.Location.LocationType.Name;
 
                                     var openDate = "";
-                                    if (tt.OpenDate != null) openDate = tt.OpenDate.Value.ToString("yyyy-MM-dd");
+                                    if (tt?.VersionStartDate != null) openDate = tt?.VersionStartDate.Value.ToString("yyyy-MM-dd");
 
                                     var closeDate = "";
-                                    if (tt.CloseDate != null) closeDate = tt.CloseDate.Value.ToString("yyyy-MM-dd");
+                                    if (tt?.VersionEndDate != null) closeDate = tt?.VersionEndDate.Value.ToString("yyyy-MM-dd");
                                     
 
-                                <tr id="@tt.Id" class="activeRow" onclick="">
+                                <tr id="@tt?.Guid" class="activeRow" onclick="">
                                     <td>
-                                        <p class="list-item-heading ttName">@tt.Name</p>
+                                        <p class="list-item-heading ttName">@tt?.Name</p>
                                     </td>
                                     <td>
                                         <p class="text-muted">@organization</p>
                                     </td>
                                     <td>
-                                        <p class="text-muted">@tt.Code</p>
+                                        <p class="text-muted">@tt.Location.AggregatorsCode</p>
                                     </td>
                                     <td>
-                                        <p class="text-muted">@tt.Obd</p>
+                                        <p class="text-muted">@tt?.OBD</p>
                                     </td>
                                     <td>
                                         <p class="text-muted">@ttType</p>
                                     </td>
                                     <td>
-                                        <p class="text-muted">@tt.Users.Count</p>
+                                            <p class="text-muted">@old?.Users.Count</p>
                                     </td>
                                     <td>
-                                        <p class="text-muted">@tt.CashStations.Count</p>
+                                            <p class="text-muted">@old?.CashStations.Count</p>
                                     </td>
                                     <td>
-                                        <p class="text-muted">@tt.NxCameras.Count</p>
+                                            <p class="text-muted">@old?.NxCameras.Count</p>
                                     </td>                                    
                                     <td>
-                                        @if(tt.YandexEda)
+                                        @if (old?.YandexEda != null)
                                         {
-                                            <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
-                                        }                                        
-                                    </td>
+                                                <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted"><i class="fa fa-fw fa-minus"></i></p>
+                                            }
+                                        </td>
                                     <td>
-                                        @if(tt.DeliveryClub)
+                                        @if (old?.DeliveryClub != null)
                                         {
                                             <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
-                                        } 
+                                        }
+                                        else
+                                        {
+                                                <p class="text-muted"><i class="fa fa-fw fa-minus"></i></p>
+                                        }
                                     </td>
                                     <td>
                                         <p class="text-muted">@openDate</p>
                                     </td>
                                     <td>
                                         <p class="text-muted">@closeDate</p>
+                                    </td>
+
+                                    <td class="hidden">
+                                        <p class="text-muted">@old?.Id</p>
                                     </td>
                                 </tr>
                                 }
@@ -138,9 +152,12 @@
 <!--клик по строке-->
 <script>
     $('.activeRow').click(function () {
-        var itemId = this.id;
+        var itemId = ($(this).find('.hidden').text())
+        var itemGuid = this.id;
         var itemName = $(this).find('.ttName').text();
-        EditItem(itemName, itemId);
+        console.log(itemId)
+        console.log(itemGuid)
+        EditItem(itemName, itemGuid);
     });
 </script>
 
