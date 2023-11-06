@@ -55,7 +55,6 @@ namespace Portal.Controllers
                 return Ok();
             }
 
-            
             TTVersions tVersions = new TTVersions();
 
             List<LocationVersions> loc = dbSql.LocationVersions.Include(x => x.Location)
@@ -138,8 +137,6 @@ namespace Portal.Controllers
                                                           .Include(x => x.Entity)
                                                           .Include(x => x.Location.LocationType)
                                                           .FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid));
-
-                    
 
                     switch (ttJsn.attribute)
                     {
@@ -384,11 +381,12 @@ namespace Portal.Controllers
                     var ttCashes = new List<RKNet_Model.Rk7XML.CashStation>();
 
                     List<LocationVersions> locVersions = dbSql.LocationVersions.Include(x => x.Location)
-                                                                .Include(x => x.Location.LocationType)
+                                                                .Include(x => x.Location)
                                                                 .Include(x => x.Entity)
                                                                 .ToList();
 
                     LocationVersions locversion = new LocationVersions();
+                    Location location = new Location();
 
                     foreach (var item in ttJsn.users)
                     {
@@ -398,8 +396,7 @@ namespace Portal.Controllers
                     // тип новой тт
                     if (!string.IsNullOrEmpty(ttJsn.type))
                     {
-                        /*locversion.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == ttJsn.type);*/
-                        locversion.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(t => t.Guid == Guid.Parse(ttJsn.type));
+                        location.LocationType = dbSql.LocationTypes.FirstOrDefault(t => t.Guid == Guid.Parse(ttJsn.type));
                     }
 
                     // организация новой тт
@@ -413,6 +410,7 @@ namespace Portal.Controllers
                     {
                         locversion.Name = ttJsn.name;
                         tt.Name = ttJsn.name;
+                        location.Name = ttJsn.name;
                     }
                     else
                     {
@@ -432,12 +430,13 @@ namespace Portal.Controllers
 
                     // код RK
                     tt.Restaurant_Sifr = ttJsn.restaurant_Sifr;
-                    locversion.Location.RKCode = ttJsn.restaurant_Sifr;
+                    location.RKCode = ttJsn.restaurant_Sifr;
 
 
                     // Адрес ТТ
                     if (!string.IsNullOrEmpty(ttJsn.address))
                     {
+                        locversion.Address = ttJsn.address;
                         tt.Address = ttJsn.address;
                     }
                     else
@@ -574,6 +573,9 @@ namespace Portal.Controllers
 
                     tt.Users = ttUsers;
                     tt.NxCameras = ttCameras;
+
+                    locversion.Location = location;
+                    locversion.Actual = 1;
 
                     db.TTs.Add(tt);
                     db.SaveChanges();
@@ -867,10 +869,18 @@ namespace Portal.Controllers
         // Таблица типов
         public IActionResult TypesTable()
         {
-            var ttTypes = db.TTtypes
-                .Include(t => t.TTs.Where(t => t.CloseDate == null))
-                .ToList();
-            return PartialView(ttTypes);
+            List<Location> location = dbSql.Locations.Include(x => x.LocationType)
+                                                     .ToList();
+
+            List<LocationType> locationType = dbSql.LocationTypes.ToList();
+
+            LocationTypeAndCountLocation locationTypeAndCountLocations = new();
+
+            locationTypeAndCountLocations.Location = location;
+            locationTypeAndCountLocations.LocationType = locationType;
+            
+
+            return PartialView(locationTypeAndCountLocations);
         }
 
         // Редактор типов

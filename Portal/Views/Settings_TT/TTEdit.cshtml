@@ -17,6 +17,7 @@
     var locVerOBD = "";
     Portal.Models.MSSQL.Location.LocationType locVerType = null;
     var guidNewBase = "0";
+    var newAddress = "";
 
 
     if(Model.LocationVersion != null)
@@ -34,6 +35,7 @@
         locVerName = Model.LocationVersion[0].Name;
         locVerRKCode = Model.LocationVersion[0].Location.RKCode;
         oldAddress = Model.OldTT[0].Address;
+        newAddress = Model.LocationVersion[0].Address;
         locVerEntity = Model.LocationVersion[0].Entity;
         locVerOBD = Model.LocationVersion[0].OBD.ToString();
         locVerType = Model?.LocationVersion[0].Location.LocationType;
@@ -83,9 +85,9 @@
 
         <!--код RK тт-->
         <label class="label-light">код RK</label>
-        <div class="@formClass" style="margin-bottom:15px">
+        <div class="form-group" style="margin-bottom:15px">
             <input id="ttRestaurantSifr" type="number" class="form-control" value="@locVerRKCode" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
+            <span class="input-group-btn d-none">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
                 <!--сохранить-->
@@ -100,7 +102,7 @@
         <!--адрес тт-->
         <label class="label-light">адрес тт</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="ttAddress" type="text" class="form-control" value="@oldAddress" style="font-weight:bold" @disabled>
+            <input id="ttAddress" type="text" class="form-control" value="@newAddress" style="font-weight:bold" @disabled>
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
