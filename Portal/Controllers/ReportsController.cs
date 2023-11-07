@@ -152,12 +152,6 @@ namespace Portal.Controllers
             DateTime end = DateTime.ParseExact(End, "yyyy-MM-dd", null).AddDays(1);
             var menuItems = rk7Sql.MenuItems.ToList();
             var currencies = rk7Sql.Currencies.ToList();
-
-
-
-
-
-
             switch (Report)
             {
                 case "DefectReports":
@@ -184,10 +178,9 @@ namespace Portal.Controllers
                             using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
-                                //stream.Flush();
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
-                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
                                 };
                             }
                         }
@@ -216,10 +209,9 @@ namespace Portal.Controllers
                             using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
-                                //stream.Flush();
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
-                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
                                 };
                             }
                         }
@@ -245,10 +237,9 @@ namespace Portal.Controllers
                             using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
-                                //stream.Flush();
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
-                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
                                 };
                             }
                         }
@@ -277,15 +268,45 @@ namespace Portal.Controllers
                             using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
-                                //stream.Flush();
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
-                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
                                 };
                             }
                         }
                     }
+                case "AgregatorSales":
+                    {
+                        var saleObjectsAgregators = dbSql.SaleObjectsAgregators.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end)).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Товар";
+                            worksheet.Cell(1, 2).Value = "Количество";
+                            worksheet.Cell(1, 3).Value = "Цена";
+                            worksheet.Cell(1, 4).Value = "Агрегатор";
+                            worksheet.Cell(1, 5).Value = "Номер Заказа";
+                            worksheet.Cell(1, 6).Value = "Дата и время продажи";
+                            for (int i = 0; i < saleObjectsAgregators.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjectsAgregators[i].Code).Name;
+                                worksheet.Cell(i + 2, 2).Value = saleObjectsAgregators[i].Quantity;
+                                worksheet.Cell(i + 2, 3).Value = saleObjectsAgregators[i].SumWithDiscount;
+                                worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjectsAgregators[i].Currency).Name;
+                                worksheet.Cell(i + 2, 5).Value = saleObjectsAgregators[i].OrderNumber;
+                                worksheet.Cell(i + 2, 6).Value = saleObjectsAgregators[i].Date;
+                            }
 
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
+                                };
+                            }
+                        }
+                    }
                 default:
                     return null;
             }
