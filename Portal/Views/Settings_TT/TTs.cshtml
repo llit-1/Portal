@@ -21,7 +21,7 @@
         <!--меню таблицы-->
         <div id="tableMenu" class="col-md-12" style="padding:0px">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <a href="#AddTT" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
+            <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="AddItem()" style="margin-left:20px">добавить</a>
         </div>
 
         <!--меню редактора-->
@@ -60,10 +60,21 @@
 <!--загрузка таблицы-->
 <script>
     function loadTTTable() {
+        $('#header').text('Торговые точки');
+        $('.addTTButton').text("Добавить")
         let closedTT = document.getElementById('closedTT').checked;
         let ecTT = document.getElementById('ecTT').checked;
         SpinnerShow();
         $('#page').load('/Settings_TT/TTsTable?closedTT=' + closedTT + '&ecTT=' + ecTT, function () { SpinnerHide(); });
+    }
+
+    function loadTTTableVersion(locGuid, TTName) {
+        $('#header').text(TTName);
+        $('#back').unbind('click');
+        $('#back').click(function () { loadTTTable() });
+        SpinnerShow();
+        $('.addTTButton').text("Добавить версию")
+        $('#page').load('/Settings_TT/TTsTableVersion?locGuid=' + locGuid, function () { SpinnerHide(); });
     }
 </script>
 
@@ -87,7 +98,7 @@
 
 <!--загрузка формы добавления-->
 <script>
-    function AddItem() {
+    function AddItem(0) {
         location.hash = "#AddTT";
         $('#header').text('Добавление торговой точки');
 
@@ -100,7 +111,7 @@
 
         $('#page').empty();
         SpinnerShow();
-        $('#page').load('/Settings_TT/TTEdit?ttId=0', function () { SpinnerHide() });
+        $('#page').load('/Settings_TT/TTEdit?ttGuid=' + ttGuid, function () { SpinnerHide() });
     }
 </script>
 
@@ -119,7 +130,6 @@
 
         $('#page').empty();
         SpinnerShow();
-        console.log(itemGuid)
         $('#page').load(`/Settings_TT/TTEdit?ttGuid=${itemGuid}`, SpinnerHide());
     }
 </script>

@@ -23,6 +23,7 @@
                                     <th>Дата открытия</th>
                                     <th>Дата закрытия</th>
                                     <th class="hidden">OldId</th>
+                                    <th class="hidden">LocGuid</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -97,6 +98,10 @@
                                     <td class="hidden">
                                         <p class="text-muted">@old?.Id</p>
                                     </td>
+
+                                    <td class="hidden">
+                                        <p class="text-muted locGuid">@tt?.Location.Guid</p>
+                                    </td>
                                 </tr>
                                 }
 
@@ -151,13 +156,19 @@
 
 <!--клик по строке-->
 <script>
-    $('.activeRow').click(function () {
+    @*$('.activeRow').click(function () {
         var itemId = ($(this).find('.hidden').text())
         var itemGuid = this.id;
         var itemName = $(this).find('.ttName').text();
-        console.log(itemId)
-        console.log(itemGuid)
         EditItem(itemName, itemGuid);
+    });*@
+    $('.activeRow').click(function () {
+        var itemGuid = this.id;
+        var locGuid = $(this).find('.locGuid').text()
+        var itemName = $(this).find('.ttName').text();
+        var headerName = "Версии для " + itemName;
+        $('.addTTButton').attr("onClick", "AddItem(itemGuid)");
+        loadTTTableVersion(locGuid, headerName)
     });
 </script>
 

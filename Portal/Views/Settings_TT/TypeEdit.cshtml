@@ -1,19 +1,24 @@
-﻿@model Portal.ViewModels.Settings_TT.TTTypeSettings
+﻿@model Portal.Models.MSSQL.Location.LocationTypeAndCountLocation
 @{
     // загрузка модальных окошек в представление
     await Html.RenderPartialAsync("ModalWindows");
 
     var display = "";
     var disabled = "disabled";
-    var formClass = "input-group";
+    var formClass =  "form-group";
     var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
-
+    var guid = "";
 
     if (Model.isNew)
     {
         display = "d-none";
         disabled = "";
         formClass = "form-group";
+        guid = "0";
+    }
+    else
+    {
+        guid = Model.LocationType[0].Guid.ToString();
     }
 }
 
@@ -30,17 +35,15 @@
         <!--название-->
         <label class="label-light">название</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="typeName" type="text" class="form-control" value="@Model.TTType.Name" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-            </span>
+            @if(Model.isNew == false)
+            {
+                <input id="typeName" type="text" class="form-control" value="@Model.LocationType[0].Name" style="font-weight:bold">
+            }
+            else
+            {
+                <input id="typeName" type="text" class="form-control" value="" style="font-weight:bold">
+            }
+            
         </div>
 
         <hr />
@@ -59,18 +62,22 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">селектор тт</label>
             <div style="width:100%; float:left">
-                <select id="tts" class="form-control selectors" data-width="100%" multiple="multiple">
+                <select id="tts" class="form-control selectors" data-width="100%" multiple="multiple" disabled>
 
-                    @foreach (var tt in Model.TTs.OrderBy(t => t.Name))
+                    @foreach (var tt in Model.Location.OrderBy(t => t.Name))
                     {
-                        if (Model.TTType.TTs.FirstOrDefault(t => t.Id == tt.Id) != null)
+                        if (Model.isNew == false)
                         {
-                            <option selected="selected" value="@tt.Id">@tt.Name</option>
+                            if (Model.LocationType.FirstOrDefault(t => t.Guid == tt.LocationType.Guid) != null)
+                            {
+                                <option selected="selected" value="@tt.Guid">@tt.Name</option>
+                            }
                         }
                         else
                         {
-                            <option value="@tt.Id">@tt.Name</option>
+                            <option value="@tt.Guid">@tt.Name</option>
                         }
+
                     }
 
                 </select>
@@ -88,7 +95,7 @@
     </div>
 
     <!--кнопки сохранить/отмена-->
-    @if (Model.isNew)
+    @if (guid != null)
     {
         blockStyle += ";width:100%";
         <div class="col-12" @blockStyle>
@@ -103,7 +110,7 @@
 <!--переменные-->
 <script>
     var newType = @Html.Raw(Json.Serialize(Model.isNew));
-    var typeId = @Model.TTType.Id;
+    var typeId = "@guid";
 </script>
 
 <!--торговые точки-->
@@ -312,6 +319,7 @@
         var edit = $(save).parent().find('.edit');
         var cancel = $(save).parent().find('.cancel');
         var spinner = $(save).parent().children('.saving');
+        
 
         // убираем кнопку "отмена"
         $(cancel).addClass('d-none');
@@ -324,7 +332,6 @@
         var type = {};
         type.id = typeId;
         type.attribute = $(input).attr('id');
-
         type.name = $('#typeName').val();
 
         var typejsn = JSON.stringify(type);
@@ -386,12 +393,13 @@
 <!--сохранить новый тип-->
 <script>
     function SaveNewItem() {
-
         var type = {};
-        type.id = 0;
+        type.id = typeId;
         type.name = $('#typeName').val();
 
         type.tts = DataFromSelector($('#tts'));
+
+        type.items = [];
 
         var typejsn = JSON.stringify(type);
         typejsn = typejsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -433,35 +441,11 @@
         $(data).each(function () {
 
             var item = {};
-            item.id = this.id;
+            item.guid = this.id
             item.text = this.text;
             items.push(item);
         });
 
         return items;
-    }
-</script>
-
-<!--удаление типа-->
-<script>
-    function DeleteItem() {
-        var typeName = $('#typeName').val();
-        var confirmMessage = 'Тип "' + typeName + '" будет удален, продолжить?';
-
-        ShowModal("Подтвердите удаление", confirmMessage, 1);
-
-        // кнопка ok в модальном окне
-        $('#ok').on('click', function () {
-            $('#ok').off('click');
-            SpinnerShow();
-            $.get('/Settings_TT/TypeDelete?Id=' + typeId, function (result) {
-                if (result == "ok") {
-                    DataTable();
-                }
-                else {
-                    ShowModal('Ошибка', result);
-                }
-            });
-        });
     }
 </script>

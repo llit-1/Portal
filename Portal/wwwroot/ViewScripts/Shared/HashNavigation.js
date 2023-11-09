@@ -65,6 +65,7 @@ $(function () {
         if (hash == '#calc_bakery') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=573B9B93-41A1-4ACA-B740-A98CEF77E935');  // калькуляторы -> выпечка 2
         if (hash == '#calc_confectionery') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=9FA5B2FC-91F1-4771-BF06-F7C3E7E37359');    // калькуляторы -> кондитерка 2
         if (hash == '#Sandwitch') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=9C42DDD0-3ABE-4105-AFA1-BFDA989C3836');             // калькуляторы -> сэндвичи 2
+        if (hash == '#OtherCalculate') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=06BE0412-8D99-4111-99A9-98172E0D3930');             // калькуляторы -> Прочее
 
         // Учет рабочего времени
         if (hash == '#staff') loadContent(hash.replace('#', ''), '/Home/Staff');
