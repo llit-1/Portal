@@ -7,7 +7,7 @@ namespace Portal.ViewModels.Settings_Access.json
 {
     public class type
     {
-        public int id;
+        public string id;
         public string name;
         public List<item> tts;
 

@@ -11,5 +11,6 @@ namespace Portal.Models.MSSQL.Location
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public List<Location> Location { get; set; }
         public List<LocationType> LocationType { get; set; }
+        public bool isNew { get; set; }
     }
 }

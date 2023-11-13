@@ -18,21 +18,31 @@
     font-weight: bold;
 }
 
-/* .select2-selection__choice {
-    text-align: center;
-    height: 35px;
-    margin-bottom: 3px;
-    background-color: #fda86b;
+.inputForClose {
+    width: 70%;
+}
+
+.divForClose {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
 }
 
-.select2-selection__rendered {
-    overflow-y: scroll;
-    max-height: 60vh;
+    .divForClose > button {
+        padding: 7.5px;
+    }
+
+.quizModal {
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
-.pd-5 {
-    padding-top: 5px;
-} */
+    .quizModal > input {
+        width: 35%;
+        height: 40px;
+        border: 1px solid #bfbfbf;
+        padding: 5px;
+    }

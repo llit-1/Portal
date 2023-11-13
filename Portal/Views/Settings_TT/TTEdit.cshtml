@@ -34,12 +34,12 @@
 
         locVerName = Model.LocationVersion[0].Name;
         locVerRKCode = Model.LocationVersion[0].Location.RKCode;
-        oldAddress = Model.OldTT[0].Address;
+        oldAddress = Model?.OldTT[0]?.Address;
         newAddress = Model.LocationVersion[0].Address;
         locVerEntity = Model.LocationVersion[0].Entity;
         locVerOBD = Model.LocationVersion[0].OBD.ToString();
         locVerType = Model?.LocationVersion[0].Location.LocationType;
-        guidNewBase = @Model?.LocationVersion[0]?.Guid.ToString();
+        guidNewBase = Model?.LocationVersion[0]?.Guid.ToString();
     }
     else
     {
@@ -233,7 +233,6 @@
             <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
         </div>
 
-        <hr />
 
         <!--дата открытия-->
         <label class="label-light">дата открытия</label>
@@ -250,25 +249,25 @@
                 <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
             </span>
         </div>
-
-        <!--дата закрытия-->
-        <label class="label-light">дата закрытия</label>
-        <div class="@formClass" style="margin-bottom:15px">
-            <input id="closeDate" type="date" class="form-control" value="@closeDate" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-            </span>
-        </div>
-
-            
-
+        @if(!Model.TTNew)
+        {
+            <!--дата закрытия-->
+            <label class="label-light">дата закрытия</label>
+            <div class="divForClose" style="margin-bottom:15px">
+            <input id="closeDate" type="date" class="form-control inputForClose" value="@closeDate" style="font-weight:bold" @disabled>
+            @if(!Model.TTNew)
+            {
+                if(Model.LocationVersion[0].VersionEndDate.ToString() != "")
+                {
+                    <button class="btn btn-sm btn-success" onclick="openConfirm()">Открыть точку</button>
+                }
+                else
+                {
+                    <button class="btn btn-sm btn-danger" onclick="closeConfirm()">Закрыть точку</button>
+                }
+            }
+            </div>
+        }
     </div>
 
     <!--пользователи-->
@@ -285,7 +284,18 @@
             <div style="width:100%; float:left">
                 <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
 
-                    @foreach (var user in Model?.OldTT[0]?.Users.OrderBy(u => u.Name))
+                    @* @foreach (var user in Model?.OldTT[0]?.Users.OrderBy(u => u.Name))
+                    {
+                        if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model.TTNew == false)
+                        {
+                            <option selected="selected" value="@user.Id">@user.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@user.Id">@user.Name</option>
+                        }
+                    } *@
+                    @foreach (var user in Model?.Users?.OrderBy(u => u.Name))
                     {
                         if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model.TTNew == false)
                         {
@@ -692,7 +702,6 @@
 
     // кнопка сохранить
     function SaveSelect(save) {
-
         var cancel = $(save).parent().find('.cancel');
         var edit = $(save).parent().find('.edit');
         var spinner = $(save).parent().find('.saving');
@@ -870,6 +879,7 @@
 
         // отправляем данные в контроллер
         var tt = {};
+        tt.type = $('#ttType').select2('val');
         tt.id = ttId;
         tt.Guid = ttGuid;
         tt.attribute = $(input).attr('id');
@@ -881,7 +891,6 @@
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
-        console.log(tt.attribute)
         
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -920,6 +929,42 @@
         
     }
 
+    function SaveCloseTT() {
+        var input = $('#closeDate');
+
+        var tt = {};
+        tt.type = $('#ttType').select2('val');
+        tt.id = ttId;
+        tt.Guid = ttGuid;
+        tt.attribute = $(input).attr('id');
+        tt.Organization = $('#ttOrganization').val();
+        tt.name = $('#ttName').val();
+        tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
+        tt.address = $('#ttAddress').val();
+        tt.code = $('#ttCode').val();
+        tt.obd = $('#ttObd').val();
+        tt.openDate = $('#openDate').val();
+        tt.closeDate = $('#closeDate').val();
+
+        var ttjsn = JSON.stringify(tt);
+        ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
+        $.ajax({
+            async: "false",
+            type: "POST",
+            url: '/Settings_TT/TTSave',
+            data: { ttjsn: ttjsn },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    $('#header').text(tt.name);
+                }
+                else {
+                    ShowModal('Редактор ТТ', result.data);
+                }
+            },
+            error: function (error) { ShowModal('Редактор ТТ', error.responseText); }
+        });
+    }
     // кнопка отмена справа
     function Cancel(cancel) {
         // получаем текущие элементы
@@ -1517,4 +1562,45 @@
         });        
     }    
     GetNewTTCode();
+</script>
+
+
+<script>
+    let date;
+    let closeDate;
+
+    // Закрытие точки
+    function closeConfirm() {
+        openModalQuestion("Закрыть точку?", "Закрыть ТТ")
+        closeDate = document.querySelector('.divForClose').children[0];
+    }
+
+    // Открытие точки
+    function openConfirm() {
+        openModalQuestionOpen("Открыть точку?", "Открыть ТТ")
+        closeDate = document.querySelector('.divForClose').children[0];
+    }
+
+    function clearCloseDate() {
+        closeDate.value = '';
+        closeModal()
+        SaveCloseTT();
+    }
+
+    function getDateFromModal() {
+        date = document.querySelector('.quizInput');
+        if (date) {
+            date = date.value;
+            console.log(date)
+            openModalYesNo("Вы уверены?", "Да", "Отмена")
+        } else {
+            closeModal()
+        }
+    }
+
+    function YesOrNoModal() {
+        closeDate.value = date;
+        closeModal()
+        SaveCloseTT();
+    }
 </script>

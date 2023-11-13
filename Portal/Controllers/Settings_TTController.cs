@@ -80,39 +80,94 @@ namespace Portal.Controllers
             return PartialView(tVersions);
         }
 
+        // Таблица версий ТТ
+        public IActionResult TTsTableVersion(string locGuid)
+        {
+            if (db.TTs is null)
+            {
+                return Ok();
+            }
+
+            TTVersions tVersions = new TTVersions();
+
+            List<LocationVersions> loc = dbSql.LocationVersions.Include(x => x.Location)
+                                                               .Include(x => x.Entity)
+                                                               .Include(x => x.Location.LocationType)
+                                                               .Where(x => x.Location.Guid == Guid.Parse(locGuid))
+                                                               .ToList();
+
+            var tts = db.TTs.Include(t => t.Users)
+                            .Include(t => t.CashStations)
+                            .Include(t => t.NxCameras)
+                            .Include(t => t.Type)
+                            .Include(t => t.Organization)
+                            .Where(t => !t.Closed)
+                            .ToList();
+
+
+            tVersions.LocationVersion = loc;
+            tVersions.OldTT = tts;
+
+            return PartialView(tVersions);
+        }
         // Редактор ТТ
         public IActionResult TTEdit(string ttGuid)
          {
             TTVersionsEdit ttSettings = new TTVersionsEdit();
-            if(ttGuid != null)
+            
+            // Проверка на тип добавления записи (оригинал или версия)
+            if(original == "1")
             {
-                ttSettings.LocationVersion = dbSql.LocationVersions
-                                                              .Include(x => x.Location)
-                                                              .Include(x => x.Location.LocationType)
-                                                              .Include(x => x.Entity)
-                                                              .Where(x => x.Guid == Guid.Parse(ttGuid))
-                                                              .ToList();
+                if (ttGuid != null && ttGuid != "undefined")
+                {
+                    ttSettings.LocationVersion = dbSql.LocationVersions
+                                                                  .Include(x => x.Location)
+                                                                  .Include(x => x.Location.LocationType)
+                                                                  .Include(x => x.Entity)
+                                                                  .Where(x => x.Guid == Guid.Parse(ttGuid))
+                                                                  .ToList();
 
-                ttSettings.OldTT = db.TTs
-                .Include(t => t.Users)
-                .Include(t => t.CashStations)
-                .Include(t => t.NxCameras)
-                .Where(t => t.Name == ttSettings.LocationVersion[0].Name)
-                .ToList();
+                    ttSettings.OldTT = db.TTs
+                    .Include(t => t.Users)
+                    .Include(t => t.CashStations)
+                    .Include(t => t.NxCameras)
+                    .Where(t => t.Name == ttSettings.LocationVersion[0].Name)
+                    .ToList();
+                }
+                else
+                {
+                    ttSettings.TTNew = true;
+                    ttSettings.OldTT = db.TTs
+                                         .Include(x => x.Users)
+                                         .ToList();
+
+                }
             }
             else
             {
-                ttSettings.TTNew = true;
+                ttSettings.LocationVersion = dbSql.LocationVersions
+                                                                  .Include(x => x.Location)
+                                                                  .Include(x => x.Location.LocationType)
+                                                                  .Include(x => x.Entity)
+                                                                  .Where(x => x.Location.Guid == Guid.Parse(ttGuid) && x.Actual == 1)
+                                                                  .ToList();
+
                 ttSettings.OldTT = db.TTs
-                                     .Include(x => x.Users)
-                                     .ToList();
+                    .Include(t => t.Users)
+                    .Include(t => t.CashStations)
+                    .Include(t => t.NxCameras)
+                    .Where(t => t.Name == ttSettings.LocationVersion[0].Name)
+                    .ToList();
             }
+
+            ttSettings.Users = db.Users.ToList();
 
             ttSettings.locationTypes = dbSql.LocationTypes.ToList();
             ttSettings.Entities = dbSql.Entity.ToList();
 
             return PartialView(ttSettings);
         }
+
 
         // Сохранение ТТ
         public IActionResult TTSave(string ttjsn)
@@ -251,11 +306,13 @@ namespace Portal.Controllers
                             {
                                 tt.CloseDate = close.Date;
                                 ttNewBase.VersionEndDate = close.Date;
+                                
                             }
                             else
                             {
                                 tt.CloseDate = null;
                                 ttNewBase.VersionEndDate = null;
+                                
                             }
 
                             break;
@@ -265,7 +322,7 @@ namespace Portal.Controllers
                             foreach (var item in ttJsn.items)
                             {
                                 tt.Type = db.TTtypes.FirstOrDefault(t => t.Id == item.id);
-                                /*ttNewBase.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == )*/
+                                ttNewBase.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(item.guidOrg));
                             }
 
                             break;
@@ -366,11 +423,17 @@ namespace Portal.Controllers
                                 break;
                             */
                             }
-
-                            db.TTs.Update(tt);
-                            dbSql.Update(ttNewBase);
-                    db.SaveChanges();
-                    dbSql.SaveChanges();
+                    if(tt != null)
+                    {
+                        db.TTs.Update(tt);
+                        db.SaveChanges();
+                    }
+                    if (ttNewBase != null)
+                    {
+                        dbSql.Update(ttNewBase);
+                        dbSql.SaveChanges();
+                    }
+                    
                 }
                 // новая ТТ
                 else
@@ -587,12 +650,16 @@ namespace Portal.Controllers
                         var cash = db.CashStations.FirstOrDefault(c => c.Ip == item.Ip);
                         ttt.CashStations.Add(cash);
                     }
-
-                    dbSql.Add(locversion);
-                    dbSql.SaveChanges();
-
-                    db.TTs.Update(ttt);
-                    db.SaveChanges();
+                    if(locversion != null)
+                    {
+                        dbSql.Add(locversion);
+                        dbSql.SaveChanges();
+                    }
+                    if (ttt != null)
+                    {
+                        db.TTs.Update(ttt);
+                        db.SaveChanges();
+                    }
                 }
             }
             catch (Exception e)
@@ -884,22 +951,24 @@ namespace Portal.Controllers
         }
 
         // Редактор типов
-        public IActionResult TypeEdit(int Id)
+        public IActionResult TypeEdit(string Id)
         {
-            var typeSettings = new TTTypeSettings();
+            LocationTypeAndCountLocation locationTypeAndCountLocations = new LocationTypeAndCountLocation();
 
-            typeSettings.TTType = db.TTtypes
-                .Include(t => t.TTs)
-                .FirstOrDefault(t => t.Id == Id);
-
-            if (typeSettings.TTType == null)
+            if (Id != null)
             {
-                typeSettings.TTType = new RKNet_Model.TT.Type();
-                typeSettings.isNew = true;
+                locationTypeAndCountLocations.LocationType = dbSql.LocationTypes.Where(x => x.Guid == Guid.Parse(Id)).ToList();
+                locationTypeAndCountLocations.Location = dbSql.Locations.Include(x => x.LocationType).ToList();
+                locationTypeAndCountLocations.isNew = false;
+            }
+            else
+            {
+                locationTypeAndCountLocations.LocationType = null;
+                locationTypeAndCountLocations.Location = dbSql.Locations.Include(x => x.LocationType).ToList();
+                locationTypeAndCountLocations.isNew = true;
             }
 
-            typeSettings.TTs = db.TTs.ToList();
-            return PartialView(typeSettings);
+            return PartialView(locationTypeAndCountLocations);
         }
 
         // Сохранение типа
@@ -912,63 +981,16 @@ namespace Portal.Controllers
                 var typeJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.type>(typejsn);
 
                 // существующий тип
-                if (typeJsn.id != 0)
+                if (typeJsn.id != "0")
                 {
-                    var type = db.TTtypes
-                        .Include(t => t.TTs)
-                        .FirstOrDefault(t => t.Id == typeJsn.id);
 
-                    switch (typeJsn.attribute)
-                    {
-                        case "typeName":
-                            if (!string.IsNullOrEmpty(typeJsn.name))
-                            {
-                                type.Name = typeJsn.name;
-                            }
-                            else
-                            {
-                                result.Ok = false;
-                                result.Data = "Название типа заполненно некорректно.";
-                                return new ObjectResult(result);
-                            }
+                    LocationType locType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(typeJsn.id));
 
-                            var existName = db.TTtypes.FirstOrDefault(t => t.Name == type.Name);
-                            if (existName != null)
-                            {
-                                result.Ok = false;
-                                result.Data = "Тип с именем \"" + existName.Name + "\" уже существует, введите другое имя.";
-                                return new ObjectResult(result);
-                            }
-                            break;
 
-                        case "tts":
-                            type.TTs = new List<RKNet_Model.TT.TT>();
-                            foreach (var item in typeJsn.items)
-                            {
-                                var tt = db.TTs.FirstOrDefault(t => t.Id == item.id);
-                                type.TTs.Add(tt);
-                            }
-                            break;
-                    }
 
-                    db.TTtypes.Update(type);
-                }
-                // новый тип
-                else
-                {
-                    var type = new RKNet_Model.TT.Type();
-                    var tts = new List<RKNet_Model.TT.TT>();
-
-                    // торговые точки типа
-                    foreach (var tt in typeJsn.tts)
-                    {
-                        tts.Add(db.TTs.First(t => t.Id == tt.id));
-                    }
-
-                    // название типа
                     if (!string.IsNullOrEmpty(typeJsn.name))
                     {
-                        type.Name = typeJsn.name;
+                        locType.Name = typeJsn.name;
                     }
                     else
                     {
@@ -977,19 +999,45 @@ namespace Portal.Controllers
                         return new ObjectResult(result);
                     }
 
-                    var existName = db.TTtypes.FirstOrDefault(t => t.Name == type.Name);
+                    var existName = dbSql.LocationTypes.FirstOrDefault(t => t.Name == locType.Name);
                     if (existName != null)
                     {
                         result.Ok = false;
                         result.Data = "Тип с именем \"" + existName.Name + "\" уже существует, введите другое имя.";
                         return new ObjectResult(result);
                     }
+                           
 
-                    type.TTs = tts;
-                    db.TTtypes.Add(type);
+                    dbSql.LocationTypes.Update(locType);
+                }
+                // новый тип
+                else
+                {
+                    LocationType locType = new();
+
+                    // название типа
+                    if (!string.IsNullOrEmpty(typeJsn.name))
+                    {
+                        locType.Name = typeJsn.name;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "Название типа заполненно некорректно.";
+                        return new ObjectResult(result);
+                    }
+
+                    var existName = dbSql.LocationTypes.FirstOrDefault(t => t.Name == locType.Name);
+                    if (existName != null)
+                    {
+                        result.Ok = false;
+                        result.Data = "Тип с именем \"" + existName.Name + "\" уже существует, введите другое имя.";
+                        return new ObjectResult(result);
+                    }
+                    dbSql.LocationTypes.Add(locType);
                 }
 
-                db.SaveChanges();
+                dbSql.SaveChanges();
             }
             catch (Exception e)
             {

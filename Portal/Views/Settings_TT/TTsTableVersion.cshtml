@@ -156,18 +156,16 @@
 
 <!--клик по строке-->
 <script>
-    @*$('.activeRow').click(function () {
+    $('.activeRow').click(function () {
         var itemId = ($(this).find('.hidden').text())
         var itemGuid = this.id;
         var itemName = $(this).find('.ttName').text();
         EditItem(itemName, itemGuid);
-    });*@
-    $('.activeRow').click(function () {
-        var itemGuid = this.id;
-        var locGuid = $(this).find('.locGuid').text()
-        var itemName = $(this).find('.ttName').text();
-        var headerName = "Версии для " + itemName;
-        loadTTTableVersion(locGuid, headerName)
     });
+    
+    var locGuid = $('.locGuid').text();
+    locGuid = locGuid.toString();
+    console.log(locGuid)
+    $('.addTTButton').attr("onClick", `AddItem("${locGuid}", "0")`);
 </script>
 
