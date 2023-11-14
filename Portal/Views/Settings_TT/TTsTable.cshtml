@@ -69,7 +69,7 @@
                                             <p class="text-muted">@old?.NxCameras.Count</p>
                                     </td>                                    
                                     <td>
-                                        @if (old?.YandexEda != null)
+                                        @if (old?.YandexEda == true)
                                         {
                                                 <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
                                             }
@@ -79,7 +79,7 @@
                                             }
                                         </td>
                                     <td>
-                                        @if (old?.DeliveryClub != null)
+                                            @if (old?.DeliveryClub == true)
                                         {
                                             <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
                                         }

@@ -18,6 +18,7 @@ namespace Portal.Models.MSSQL.Location
         public List<LocationType> locationTypes { get; set; }
         public bool TTNew { get; set; }
         public List<RKNet_Model.Account.User> Users { get; set; }
+        public string original { get; set; }
     } 
 
 }

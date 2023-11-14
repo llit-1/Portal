@@ -46,13 +46,14 @@
         guidNewBase = "0";
     }
 
-    if (Model.TTNew)
+    if (Model?.LocationVersion == null || Model?.original == "0")
     {
         display = "d-none";
         disabled = "";
         formClass = "form-group";
     }
-    else
+
+    if(Model?.LocationVersion != null)
     {
         ttCode = $"value={@Model?.LocationVersion[0].Location.AggregatorsCode}";
     }
@@ -139,25 +140,23 @@
                             <option value="@organization.Guid">@organization.Name</option>
                         }
                     }
-
                 </select>
             </div>
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="SelectChange($('#ttOrganization'))" style="float:left"><i class="fa fa-fw fa-pencil"></i></button>
 
-            <!--редактировать-->
-            <button type="button" class="edit btn btn-default" onclick="SelectChange($('#ttOrganization'))" style="float:left"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
 
-            <!--сохранить-->
-            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
 
-            <!--сохранение...-->
-            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-
-            <!--отменить-->
-            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
         </div>    
 
         <!--код тт-->        
-        @if (Model.TTNew)
+        @if (Model?.LocationVersion == null)
         {
             ttCode = "";
         }
@@ -235,7 +234,7 @@
 
 
         <!--дата открытия-->
-        <label class="label-light">дата открытия</label>
+        <label class="label-light" style="margin-top: 15px;">дата открытия</label>
         <div class="@formClass" style="margin-bottom:15px">
             <input id="openDate" type="date" class="form-control" value="@openDate" style="font-weight:bold" @disabled>
             <span class="input-group-btn @display">
@@ -284,20 +283,9 @@
             <div style="width:100%; float:left">
                 <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
 
-                    @* @foreach (var user in Model?.OldTT[0]?.Users.OrderBy(u => u.Name))
-                    {
-                        if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model.TTNew == false)
-                        {
-                            <option selected="selected" value="@user.Id">@user.Name</option>
-                        }
-                        else
-                        {
-                            <option value="@user.Id">@user.Name</option>
-                        }
-                    } *@
                     @foreach (var user in Model?.Users?.OrderBy(u => u.Name))
                     {
-                        if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model.TTNew == false)
+                        if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model?.LocationVersion != null)
                         {
                             <option selected="selected" value="@user.Id">@user.Name</option>
                         }
@@ -371,7 +359,7 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">подключенные камеры</label>
             <div id="cameras" style="width:100%; float:left">
-                @if(Model.TTNew == false)
+                @if (Model?.LocationVersion != null)
                 {
                     @foreach (var cam in Model.OldTT[0].NxCameras.OrderBy(c => c.Name))
                     {
@@ -399,13 +387,13 @@
         <h5 class="pull-left" style="margin-top:50px">Интеграции</h5>        
 
         <!--разделитель-->
-        <hr style="width:100%" />
+        <hr style="width:100%; margin-bottom: 15px;" />
 
         <!--яндекс еда-->
         <div class="pull-right" style="padding-bottom:10px; width:100%">
             <label id="switchLabel" style="margin-right:15px">Яндекс Еда</label>
             <div class="material-switch pull-right">
-                @if (Model.TTNew == false)
+                @if (Model?.LocationVersion != null)
                 {
                     <input class="slider" id="yandexEda" type="checkbox" checked="@Model?.OldTT[0].YandexEda">
                 }
@@ -421,7 +409,7 @@
         <div class="pull-right" style="padding-bottom:10px; width:100%">
             <label id="switchLabel" style="margin-right:15px">Delivery Club</label>
             <div class="material-switch pull-right">
-                @if (Model.TTNew == false)
+                @if (Model?.LocationVersion != null)
                 {
                     <input class="slider" id="deliveryClub" type="checkbox" checked="@Model?.OldTT[0].DeliveryClub">
                 }
@@ -990,7 +978,12 @@
     function SaveNewItem() {
 
         var tt = {};
-        tt.id = 0;
+        console.log(ttGuid)
+        tt.Guid = ttGuid ?? "0";
+        if (tt.Guid != "0")
+        {
+            tt.original = "1";
+        }
         tt.name = $('#ttName').val();
         tt.address = $('#ttAddress').val();
         tt.code = $('#ttCode').val();
@@ -1049,7 +1042,15 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
-                    ShowModal('Редактор ТТ', 'Торговая точка успешно добавлена');
+                    if(tt.Guid != "0")
+                    {
+                        ShowModal('Редактор ТТ', 'Версия успешно добавлена');
+                    }
+                    else
+                    {
+                        ShowModal('Редактор ТТ', 'Торговая точка успешно добавлена');
+                    }
+                    
                     //DataTable();
 
                     $('#modalWindow').on('hidden.bs.modal', function () {

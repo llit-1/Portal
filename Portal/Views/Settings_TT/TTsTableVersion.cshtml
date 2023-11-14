@@ -29,7 +29,7 @@
                             <tbody>
                                 @foreach (var tt in Model.LocationVersion.OrderBy(t => t.Name))
                                 {
-                                    var old = Model.OldTT.FirstOrDefault(x => x.Name == tt.Name);
+                                    var old = Model.OldTT.FirstOrDefault(x => x.Restaurant_Sifr == tt.Location.RKCode);
                                     var organization = "";
                                     if (tt?.Entity?.Name != null) organization = tt?.Entity.Name;
 
@@ -69,7 +69,7 @@
                                             <p class="text-muted">@old?.NxCameras.Count</p>
                                     </td>                                    
                                     <td>
-                                        @if (old?.YandexEda != null)
+                                            @if (old?.YandexEda == true)
                                         {
                                                 <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
                                             }
@@ -79,7 +79,7 @@
                                             }
                                         </td>
                                     <td>
-                                        @if (old?.DeliveryClub != null)
+                                            @if (old?.DeliveryClub == true)
                                         {
                                             <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
                                         }
@@ -163,8 +163,7 @@
         EditItem(itemName, itemGuid);
     });
     
-    var locGuid = $('.locGuid').text();
-    locGuid = locGuid.toString();
+    var locGuid = document.querySelector('.locGuid').textContent;
     console.log(locGuid)
     $('.addTTButton').attr("onClick", `AddItem("${locGuid}", "0")`);
 </script>

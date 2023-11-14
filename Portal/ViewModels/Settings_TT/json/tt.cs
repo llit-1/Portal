@@ -28,8 +28,9 @@ namespace Portal.ViewModels.Settings_Access.json
         public string attribute;
         public List<item> items;
 
-        // БД bdsql
+        // БД bdSql
         public string Guid;
         public string Organization;
+        public string original;
     }
 }
