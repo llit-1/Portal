@@ -603,6 +603,7 @@
     if (ttId == "False") {
         ttId = @Model?.OldTT[0].Id;
     }
+    var original = "@Model?.original";
     
     var ttRkSifr = @Model?.OldTT[0].Restaurant_Sifr;
     var mode = '';
@@ -978,7 +979,6 @@
     function SaveNewItem() {
 
         var tt = {};
-        console.log(ttGuid)
         tt.Guid = ttGuid ?? "0";
         if (tt.Guid != "0")
         {
@@ -1000,7 +1000,7 @@
         tt.deliveryClub = $('#deliveryClub').prop('checked');
 
         tt.cashes = [];
-
+        @*
         $('#cashes').children('a').each(function () {
             var cashId = $(this).attr('id');
             cashId = cashId.substr(5, cashId.length - 5);
@@ -1019,7 +1019,7 @@
 
         tt.cameras = ttCams;
 
-        /*
+        
         $('#cameras').children().each(function () {
             var camId = $(this).attr('id');
             var camName = $(this).text();            
@@ -1030,7 +1030,7 @@
             
             tt.cameras.push(cam);
         });
-        */
+            *@
 
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -1408,12 +1408,12 @@
 <script>
     function TTcamsPreview() {
         $('#camBody').empty();
-        if (ttId) {
+        if (ttId != "0" && ttId != null && ttId != 'undefined' && ttId != "True") {
             $('#camBody').load('/Settings_TT/TTCamsPreview?ttId=' + ttId);
         }
-        else {                        
+        else {
+
             var jsn = JSON.stringify(ttCams); 
-            
             jsn = jsn.replace(/\+/g, "%pp%");
             jsn = jsn.replace(/ /g, "%bkspc%");
 
@@ -1569,6 +1569,21 @@
 <script>
     let date;
     let closeDate;
+    @*
+    let locGuid = "@Model?.LocationVersion[0]?.Location?.Guid" ?? "0";
+    let TTName = document.getElementById('ttName').value;
+
+    if(original == "1")
+    {
+        $('#back').unbind('click');
+        $('#back').click(function () { 
+            location.hash = "#SettingsVersionTTs";
+            loadTTTableVersion(locGuid, TTName)
+        });
+    } else {
+        $('#back').unbind('click');
+        $('#back').click(function () { DataTable(); });
+    }*@
 
     // Закрытие точки
     function closeConfirm() {
@@ -1592,7 +1607,6 @@
         date = document.querySelector('.quizInput');
         if (date) {
             date = date.value;
-            console.log(date)
             openModalYesNo("Вы уверены?", "Да", "Отмена")
         } else {
             closeModal()

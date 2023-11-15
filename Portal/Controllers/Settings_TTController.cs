@@ -204,6 +204,7 @@ namespace Portal.Controllers
                             {
                                 tt.Name = ttJsn.name;
                                 ttNewBase.Name = ttJsn.name;
+                                break;
                             }
                             else
                             {
@@ -211,16 +212,6 @@ namespace Portal.Controllers
                                 result.Data = "Название торговой точки заполненно некорректно.";
                                 return new ObjectResult(result);
                             }
-
-                            var existName = db.TTs.FirstOrDefault(t => t.Name == tt.Name);
-                            var existNewBaseName = dbSql.LocationVersions.FirstOrDefault(x => x.Name ==  tt.Name);
-                            if (existName != null || existNewBaseName != null)
-                            {
-                                result.Ok = false;
-                                result.Data = "Торговая точка с названием \"" + existName.Name + "\" уже существует, введите другое имя.";
-                                return new ObjectResult(result);
-                            }
-                            break;
 
                         case "ttRestaurantSifr":
                             tt.Restaurant_Sifr = ttJsn.restaurant_Sifr;
@@ -658,104 +649,110 @@ namespace Portal.Controllers
 
 
                     // Кассы на новой ТТ
-                    foreach (var item in ttJsn.cashes)
+                    if (ttJsn.cashes != null)
                     {
-                        var cash = new RKNet_Model.Rk7XML.CashStation();
-
-                        IPAddress ip;
-                        var correctIp = IPAddress.TryParse(item.Ip, out ip);
-                        if (!correctIp)
+                        foreach (var item in ttJsn.cashes)
                         {
-                            result.Ok = false;
-                            result.Data = "для кассы " + item.Name + " указан некорректный ip адрес";
-                            return new ObjectResult(result);
-                        }
+                            var cash = new RKNet_Model.Rk7XML.CashStation();
 
-                        if (string.IsNullOrEmpty(item.Name))
-                        {
-                            result.Ok = false;
-                            result.Data = "Имя кассы не можеть быть пустым";
-                            return new ObjectResult(result);
-                        }
-
-                        // новая касса
-                        if (item.Id == 0)
-                        {
-                            // проверяем есть ли уже касса с таким ip в бд
-                            var cashExist = db.CashStations.Where(c => c.Ip == ip.ToString()).Count();
-                            if (cashExist > 0)
+                            IPAddress ip;
+                            var correctIp = IPAddress.TryParse(item.Ip, out ip);
+                            if (!correctIp)
                             {
-                                var existCash = db.CashStations.Include(t => t.TT).FirstOrDefault(c => c.Ip == ip.ToString());
                                 result.Ok = false;
-                                result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
+                                result.Data = "для кассы " + item.Name + " указан некорректный ip адрес";
                                 return new ObjectResult(result);
                             }
 
-                            // добавляем кассу в бд
-                            cash.Name = item.Name;
-                            cash.Ip = ip.ToString();
-                            cash.Midserver = item.Midserver;
-                            db.CashStations.Add(cash);
+                            if (string.IsNullOrEmpty(item.Name))
+                            {
+                                result.Ok = false;
+                                result.Data = "Имя кассы не можеть быть пустым";
+                                return new ObjectResult(result);
+                            }
+
+                            // новая касса
+                            if (item.Id == 0)
+                            {
+                                // проверяем есть ли уже касса с таким ip в бд
+                                var cashExist = db.CashStations.Where(c => c.Ip == ip.ToString()).Count();
+                                if (cashExist > 0)
+                                {
+                                    var existCash = db.CashStations.Include(t => t.TT).FirstOrDefault(c => c.Ip == ip.ToString());
+                                    result.Ok = false;
+                                    result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
+                                    return new ObjectResult(result);
+                                }
+
+                                // добавляем кассу в бд
+                                cash.Name = item.Name;
+                                cash.Ip = ip.ToString();
+                                cash.Midserver = item.Midserver;
+                                db.CashStations.Add(cash);
+                            }
                         }
                     }
 
-                    // камеры на новой тт
-                    ttCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
-                    foreach (var cam in ttJsn.cameras)
+                    if (ttJsn.cameras != null)
                     {
-                        var nxCamera = new RKNet_Model.VMS.NX.NxCamera();
-                        nxCamera.Name = cam.name;
-                        nxCamera.Guid = cam.id;
-                        nxCamera.NxSystem = db.NxSystems.FirstOrDefault(s => s.Id == cam.systemId);
-                        ttCameras.Add(nxCamera);
-                    }
-
-                    if (ttJsn?.original != null)
-                    {
-                        ttFromOldBD.Users = ttUsers;
-                        ttFromOldBD.NxCameras = ttCameras;
-                    }
-                    else
-                    {
-                        tt.Users = ttUsers;
-                        tt.NxCameras = ttCameras;
-                    }
-                    
-
-                    locversion.Location = location;
-                    locversion.Actual = 1;
-                    if(ttJsn.original == null)
-                    {
-                        db.TTs.Add(tt);
-                    }
-
-                    // добавляем сохраненные в БД кассы на ТТ                
-                    var ttt = db.TTs.FirstOrDefault(t => t.Code == int.Parse(ttJsn.code));
-                    foreach (var item in ttJsn.cashes)
-                    {
-                        var cash = db.CashStations.FirstOrDefault(c => c.Ip == item.Ip);
-                        ttt.CashStations.Add(cash);
-                    }
-                    if(ttJsn.original != null)
-                    {
-                        var helper = dbSql.LocationVersions.Include(x => x.Location).FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid));
-                        foreach (var item in dbSql.LocationVersions.Where(x => x.Location.Guid == helper.Location.Guid && x.Actual == 1))
+                        // камеры на новой тт
+                        ttCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
+                        foreach (var cam in ttJsn.cameras)
                         {
-                            item.Actual = 0;
+                            var nxCamera = new RKNet_Model.VMS.NX.NxCamera();
+                            nxCamera.Name = cam.name;
+                            nxCamera.Guid = cam.id;
+                            nxCamera.NxSystem = db.NxSystems.FirstOrDefault(s => s.Id == cam.systemId);
+                            ttCameras.Add(nxCamera);
+                        }
+
+                        if (ttJsn?.original != null)
+                        {
+                            ttFromOldBD.Users = ttUsers;
+                            ttFromOldBD.NxCameras = ttCameras;
+                        }
+                        else
+                        {
+                            tt.Users = ttUsers;
+                            tt.NxCameras = ttCameras;
                         }
                     }
-                    if (ttt != null)
-                    {
-                        db.TTs.Update(ttt);
-                    }
-                    if(locversion != null)
-                    {
-                        
-                        dbSql.Add(locversion);
-                        
-                        dbSql.SaveChanges();
-                        db.SaveChanges();
-                    }
+
+                        locversion.Location = location;
+                        locversion.Actual = 1;
+                        if (ttJsn.original == null)
+                        {
+                            db.TTs.Add(tt);
+                        }
+
+                        // добавляем сохраненные в БД кассы на ТТ                
+                        var ttt = db.TTs.FirstOrDefault(t => t.Code == int.Parse(ttJsn.code));
+                        foreach (var item in ttJsn.cashes)
+                        {
+                            var cash = db.CashStations.FirstOrDefault(c => c.Ip == item.Ip);
+                            ttt.CashStations.Add(cash);
+                        }
+                        if (ttJsn.original != null)
+                        {
+                            var helper = dbSql.LocationVersions.Include(x => x.Location).FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid));
+                            foreach (var item in dbSql.LocationVersions.Where(x => x.Location.Guid == helper.Location.Guid && x.Actual == 1))
+                            {
+                                item.Actual = 0;
+                            }
+                        }
+                        if (ttt != null)
+                        {
+                            db.TTs.Update(ttt);
+                        }
+                        if (locversion != null)
+                        {
+
+                            dbSql.Add(locversion);
+
+                            dbSql.SaveChanges();
+                            db.SaveChanges();
+                        }
+                    
                 }
             }
             catch (Exception e)

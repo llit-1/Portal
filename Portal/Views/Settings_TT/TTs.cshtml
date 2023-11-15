@@ -69,6 +69,7 @@
     }
 
     function loadTTTableVersion(locGuid, TTName) {
+        //location.hash = "#SettingsVersionTTs";
         $('#header').text(TTName);
         $('#back').unbind('click');
         $('#back').click(function () { loadTTTable() });

@@ -7,7 +7,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <table class="data-table nowrap">
+                        <table class="data-table nowrap" >
                             <thead>
                                 <tr>
                                     <th>Торговая точка</th>
@@ -24,9 +24,10 @@
                                     <th>Дата закрытия</th>
                                     <th class="hidden">OldId</th>
                                     <th class="hidden">LocGuid</th>
+                                    <th class="hidden">Actual</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="locationTable">
                                 @foreach (var tt in Model.LocationVersion.OrderBy(t => t.Name))
                                 {
                                     var old = Model.OldTT.FirstOrDefault(x => x.Restaurant_Sifr == tt.Location.RKCode);
@@ -102,6 +103,10 @@
                                     <td class="hidden">
                                         <p class="text-muted locGuid">@tt?.Location.Guid</p>
                                     </td>
+
+                                        <td class="hidden deactiveForLocationVersion">
+                                        <p class="text-muted">@tt?.Actual</p>
+                                    </td>
                                 </tr>
                                 }
 
@@ -142,7 +147,7 @@
     });
 
     // сортируем по-умолчанию по первому столбцу
-    table.order([0, 'asc']).draw();
+    table.order([14, 'desc']).draw();
 
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
@@ -164,7 +169,29 @@
     });
     
     var locGuid = document.querySelector('.locGuid').textContent;
-    console.log(locGuid)
     $('.addTTButton').attr("onClick", `AddItem("${locGuid}", "0")`);
+</script>
+
+<script>
+    const table = document.getElementById("locationTable"); //Находим таблицу
+    const rows = table.getElementsByTagName("tr"); //Получаем массив рядов
+    for (let i = 0; i < rows.length; i++) { //Проходимся по каждому ряду
+        if (rows[i].style.backgroundColor != 'rgb(255, 157, 157)') {
+            let cell = rows[i].getElementsByTagName('td') //Получаем список ячеек
+            // Проходимся по каждой ячейки в поисках "0"
+            for (let j = 0; j < cell.length; j++) {
+                let td = cell[j]
+                if (td.classList.contains('deactiveForLocationVersion')) {
+                    let text = td.getElementsByTagName('p')[0]
+                    if (text.textContent != '1') {
+                        rows[i].style.backgroundColor = "#b4b4b47e";
+                    }
+                    else {
+                        rows[i].style.backgroundColor = "#a4f3b57e";
+                    }
+                }
+            }
+        }
+    }
 </script>
 
