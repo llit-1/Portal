@@ -18,7 +18,7 @@
     Portal.Models.MSSQL.Location.LocationType locVerType = null;
     var guidNewBase = "0";
     var newAddress = "";
-
+    var oldId = "";
 
     if(Model.LocationVersion != null)
     {
@@ -40,6 +40,7 @@
         locVerOBD = Model.LocationVersion[0].OBD.ToString();
         locVerType = Model?.LocationVersion[0].Location.LocationType;
         guidNewBase = Model?.LocationVersion[0]?.Guid.ToString();
+        oldId = Model?.OldTT[0].Id.ToString();
     }
     else
     {
@@ -248,15 +249,15 @@
                 <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
             </span>
         </div>
-        @if(!Model.TTNew)
-        {
-            <!--дата закрытия-->
-            <label class="label-light">дата закрытия</label>
-            <div class="divForClose" style="margin-bottom:15px">
-            <input id="closeDate" type="date" class="form-control inputForClose" value="@closeDate" style="font-weight:bold" @disabled>
-            @if(!Model.TTNew)
+            
+            @if(Model?.LocationVersion != null)
             {
-                if(Model.LocationVersion[0].VersionEndDate.ToString() != "")
+                <!--дата закрытия-->
+                <label class="label-light">дата закрытия</label>
+                <div class="divForClose" style="margin-bottom:15px">
+                <input id="closeDate" type="date" class="form-control inputForClose" value="@Model?.LocationVersion[0]?.VersionEndDate?.ToString("yyyy-MM-dd")" style="font-weight:bold" disabled>
+
+                @if(Model.LocationVersion[0].VersionEndDate.ToString() != "")
                 {
                     <button class="btn btn-sm btn-success" onclick="openConfirm()">Открыть точку</button>
                 }
@@ -264,9 +265,9 @@
                 {
                     <button class="btn btn-sm btn-danger" onclick="closeConfirm()">Закрыть точку</button>
                 }
-            }
             </div>
-        }
+            }
+           
     </div>
 
     <!--пользователи-->
@@ -283,7 +284,7 @@
             <div style="width:100%; float:left">
                 <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
 
-                    @foreach (var user in Model?.Users?.OrderBy(u => u.Name))
+                    @foreach (var user in Model?.Users)
                     {
                         if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model?.LocationVersion != null)
                         {
@@ -532,7 +533,7 @@
 
             <!--кнопки-->
             <div class="modal-footer" style="position:absolute; bottom:10px; width:100%">
-                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="camListUpdate()">закрыть</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" >закрыть</button>
             </div>
 
         </div>
@@ -609,6 +610,7 @@
     var mode = '';
     var ttCams = [];
     var camId = 0;
+    var oldId = "@oldId";
 </script>
 
 <!--пользователи-->
@@ -709,6 +711,12 @@
 
         // отправляем данные в контроллер
         var tt = {};
+        let ttId = "";
+        if ("@Model.OldTT.Count()" == 1) {
+            ttId = "@Model.OldTT[0].Id";
+        } else {
+            ttId = "0"
+        }
         tt.id = ttId;
         tt.attribute = selectId;
         tt.Guid = "@guidNewBase";
@@ -869,6 +877,12 @@
         // отправляем данные в контроллер
         var tt = {};
         tt.type = $('#ttType').select2('val');
+        let ttId = "";
+        if ("@Model.OldTT.Count()" == 1) {
+            ttId = "@Model.OldTT[0].Id";
+        } else {
+            ttId = "0"
+        }
         tt.id = ttId;
         tt.Guid = ttGuid;
         tt.attribute = $(input).attr('id');
@@ -923,7 +937,13 @@
 
         var tt = {};
         tt.type = $('#ttType').select2('val');
-        tt.id = ttId;
+        let ttId = "";
+            if ("@Model.OldTT.Count()" == 1) {
+                ttId = "@Model.OldTT[0].Id";
+            } else {
+                ttId = "0"
+            }
+            tt.id = ttId;
         tt.Guid = ttGuid;
         tt.attribute = $(input).attr('id');
         tt.Organization = $('#ttOrganization').val();
@@ -991,6 +1011,13 @@
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
         tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
+        let ttId = "";
+        if ("@Model.OldTT.Count()" == 1) {
+            ttId = "@Model.OldTT[0].Id";
+        } else {
+            ttId = "0"
+        }
+        tt.id = ttId;
 
         tt.users = DataFromSelector($('#users'));
         tt.type = $('#ttType').select2('val');
@@ -1000,7 +1027,7 @@
         tt.deliveryClub = $('#deliveryClub').prop('checked');
 
         tt.cashes = [];
-        @*
+        
         $('#cashes').children('a').each(function () {
             var cashId = $(this).attr('id');
             cashId = cashId.substr(5, cashId.length - 5);
@@ -1017,9 +1044,8 @@
             tt.cashes.push(cash);
         });
 
-        tt.cameras = ttCams;
+        tt.cameras = [];
 
-        
         $('#cameras').children().each(function () {
             var camId = $(this).attr('id');
             var camName = $(this).text();            
@@ -1030,7 +1056,7 @@
             
             tt.cameras.push(cam);
         });
-            *@
+        
 
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -1073,7 +1099,6 @@
 
     // получение данных в селекторах
     function DataFromSelector(selector) {
-
         var items = [];
         var data = $(selector).select2('data');
 
@@ -1089,30 +1114,6 @@
         });
 
         return items;
-    }
-</script>
-
-<!--удаление тт-->
-<script>
-    function DeleteItem() {
-        var ttName = $('#ttName').val();
-        var confirmMessage = 'Торговая точка "' + ttName + '" будет удалена, продолжить?';
-
-        ShowModal("Подтвердите удаление", confirmMessage, 1);
-
-        // кнопка ok в модальном окне
-        $('#ok').on('click', function () {
-            $('#ok').off('click');
-            SpinnerShow();
-            $.get('/Settings_TT/TTDelete?ttId=' + ttId, function (result) {
-                if (result == "ok") {
-                    DataTable();
-                }
-                else {
-                    ShowModal('Ошибка', result);
-                }
-            });
-        });
     }
 </script>
 
@@ -1164,11 +1165,6 @@
         $('#ttRestaurantSifr').val(restaurantSifr); //добавляем значение в ячейку кода РК торговой точки
         SaveTTCashes('add'); 
         if(mode =='edit') { setTimeout(() => Save(document.getElementById('saveRestSifrButton')), 500); }//принудительно вызываем нажатие кнопки сохранить в ячейке кода РК торговой точки если мы редактируем данную ТТ
-
-        
-
-
-        //$("#addCashModal").modal("hide");
     }
 </script>
 
@@ -1264,12 +1260,17 @@
 <!--запись изменений касс на точке в БД-->
 <script>
     function SaveTTCashes(mode) {
-
         if (newTT) {
             $("#addCashModal").modal("hide");
             return false;
         }
         var tt = {};
+        let ttId = "";
+        if ("@Model.OldTT.Count()" == 1) {
+            ttId = "@Model.OldTT[0].Id";
+        } else {
+            ttId = "0"
+        }
         tt.id = ttId;
         tt.attribute = "cashes";
         tt.cashes = [];
@@ -1321,13 +1322,17 @@
 
 <!--выключатель Яндекс Еда-->
 <script>
-
     $('#yandexEda').change(function () {
         var enabled = $(this).is(':checked');
-
         if (!newTT) {
             // отправляем данные в контроллер
             var tt = {};
+            let ttId = "";
+            if ("@Model.OldTT.Count()" == 1) {
+                ttId = "@Model.OldTT[0].Id";
+            } else {
+                ttId = "0"
+            }
             tt.id = ttId;
             tt.guid = ttGuid;
             tt.attribute = "yandexEda";
@@ -1362,10 +1367,15 @@
 
     $('#deliveryClub').change(function () {
         var enabled = $(this).is(':checked');
-
         if (!newTT) {
             // отправляем данные в контроллер
             var tt = {};
+            let ttId = "";
+            if ("@Model.OldTT.Count()" == 1) {
+                ttId = "@Model.OldTT[0].Id";
+            } else {
+                ttId = "0"
+            }
             tt.id = ttId;
             tt.attribute = "deliveryClub";
             tt.guid = ttGuid;
@@ -1408,6 +1418,13 @@
 <script>
     function TTcamsPreview() {
         $('#camBody').empty();
+        let ttId = "";
+        if("@Model.OldTT.Count()" == 1) {
+            ttId = "@Model.OldTT[0].Id";
+        } else {
+            ttId = "0"
+        }
+        
         if (ttId != "0" && ttId != null && ttId != 'undefined' && ttId != "True") {
             $('#camBody').load('/Settings_TT/TTCamsPreview?ttId=' + ttId);
         }
@@ -1424,6 +1441,13 @@
 
 <!--добавление камеры-->
 <script>
+    let ttId = "";
+    if ("@Model.OldTT.Count()" == 1) {
+        ttId = "@Model.OldTT[0].Id";
+    } else {
+        ttId = "0"
+    }
+
     function AddCam() {
         $('#camBody').load('/Settings_TT/AddTTCam?ttId=' + ttId);
     }
@@ -1431,40 +1455,55 @@
 
 <!--закрытие модального окна-->
 <script>
+    let ttId = "";
+    if ("@Model.OldTT.Count()" == 1) {
+        ttId = "@Model.OldTT[0].Id";
+    } else {
+        ttId = "0"
+    }
+
     $("#camModal").on('hidden.bs.modal', function () {
         $('#cameras').empty();
-        var camList = [];
-        if (ttId) {
+        
+        if (ttId != "0") {
+            var camList = [];
             $.get('/Settings_TT/GetTTCams?ttId=' + ttId, function (ttCamList) {
-                $.each(ttCamList, function () {
+                ttCamList.forEach(ttCamList => {
                     var cam = {};
-                    cam.id = this.id;
-                    cam.name = this.name;
+                    cam.id = ttCamList.id;
+                    cam.name = ttCamList.name;
                     camList.push(cam);                    
                 });
-                CamsRefresh(camList);
+                camListUpdate(camList);
             });
         }
         else {
             camList = ttCams;
-            CamsRefresh(camList);
-        }        
+            camListUpdate(camList);
+        }
     });
 
-    function CamsRefresh(camList) {
-        $.each(camList, function () {
-            var camHtml = `<div id="${this.id}" class="list-group-item list-group-item-slim list-group-item-noaction">`;
-            camHtml += `<div style="display:inline">${this.name}</div>`;
+    function camListUpdate(camList) {
+        camList.forEach((elem) => {
+            var camHtml = `<div id="${elem.id}" class="list-group-item list-group-item-slim list-group-item-noaction">`;
+            camHtml += `<div style="display:inline">${elem.name}</div>`;
             camHtml += `<div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCamProps(this)"></label></div>`;
             camHtml += `</div>`;
             $('#cameras').append(camHtml);
-        });
+        })
     };
 </script>
 
 <!--удаление камеры-->
 <script>
-    function CamDelete(camId, ttId, camGuid, el) {               
+    let ttId = "";
+    if ("@Model.OldTT.Count()" == 1) {
+        ttId = "@Model.OldTT[0].Id";
+    } else {
+        ttId = "0"
+    }
+
+    function CamDelete(camId, ttId, camGuid, el) {        
         if(camId == 0)
         {       
             $(el).parent().parent().parent().parent().remove();
@@ -1493,6 +1532,12 @@
 
 <!--редактирование свойств камеры-->
 <script>
+    let ttId = "";
+    if ("@Model.OldTT.Count()" == 1) {
+        ttId = "@Model.OldTT[0].Id";
+    } else {
+        ttId = "0"
+    }
     function EditCamProps(el)
     {
         camId = $(el).parent().parent().attr('id');
@@ -1537,7 +1582,6 @@
     function SaveCamProps()
     {        
         var groupId = $('#camGroupSelector').val();
-        
         $.get(`/Settings_TT/SaveCamProps?camId=${camId}&groupId=${groupId}`, function(result) 
         { 
             if (result.ok == true) 
@@ -1569,21 +1613,19 @@
 <script>
     let date;
     let closeDate;
-    @*
-    let locGuid = "@Model?.LocationVersion[0]?.Location?.Guid" ?? "0";
-    let TTName = document.getElementById('ttName').value;
-
-    if(original == "1")
-    {
+    if("@Model.TTNew" == "True" && "@Model.original" == "0"){
         $('#back').unbind('click');
-        $('#back').click(function () { 
-            location.hash = "#SettingsVersionTTs";
-            loadTTTableVersion(locGuid, TTName)
-        });
+        $('#back').click(function () {
+            let TTName = document.getElementById('ttName').value;
+            loadTTTableVersion(locGuid, TTName);
+        })
     } else {
-        $('#back').unbind('click');
-        $('#back').click(function () { DataTable(); });
-    }*@
+            $('#back').unbind('click');
+            $('#back').click(function () {
+                DataTable();
+                $('.addTTButton').attr("onClick", "AddItem()");
+            })
+    }
 
     // Закрытие точки
     function closeConfirm() {

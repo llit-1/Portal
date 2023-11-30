@@ -24,11 +24,6 @@
             <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="AddItem()" style="margin-left:20px">добавить</a>
         </div>
 
-        <!--меню редактора-->
-        <!-- <div id="editMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-            <a href="#DeleteTT" class="btn btn-sm btn-danger hidden" onclick="DeleteItem()">удалить</a>
-        </div> -->
-
         <!--меню добавления -->
         <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
         </div>        
@@ -55,7 +50,6 @@
 
 <div id="page" style="margin-top:15px"></div>
 
-
 <!------------------------------------------------------------------------------------------------------------------->
 <!--загрузка таблицы-->
 <script>
@@ -70,11 +64,11 @@
 
     function loadTTTableVersion(locGuid, TTName) {
         //location.hash = "#SettingsVersionTTs";
+        $('.addTTButton').text("Добавить версию")
         $('#header').text(TTName);
         $('#back').unbind('click');
         $('#back').click(function () { loadTTTable() });
         SpinnerShow();
-        $('.addTTButton').text("Добавить версию")
         $('#page').load('/Settings_TT/TTsTableVersion?locGuid=' + locGuid, function () { SpinnerHide(); });
     }
 </script>
@@ -97,14 +91,20 @@
     DataTable();
 </script>
 
+
+
 <!--загрузка формы добавления-->
 <script>
+    $('.addTTButton').attr("onClick", "AddItem()");
+
     function AddItem(ttGuid, original = "1") {
         location.hash = "#AddTT";
         $('#header').text('Добавление торговой точки');
 
         $('#back').unbind('click');
-        $('#back').click(function () { DataTable(); });
+        $('#back').click(function () {
+            DataTable();
+        });
 
         $('#tableMenu').hide();
         $('#editMenu').hide();

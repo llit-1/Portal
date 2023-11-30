@@ -18,6 +18,6 @@ namespace Portal.Models.MSSQL.Location
         public DateTime? VersionStartDate { get; set; }
         public DateTime? VersionEndDate { get; set; }
         public int? Actual { get; set; }
-        public string Address {  get; set; }
+        public string? Address {  get; set; }
     }
 }

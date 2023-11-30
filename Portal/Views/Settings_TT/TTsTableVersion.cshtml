@@ -20,8 +20,8 @@
                                     <th>Камеры</th>                                    
                                     <th>Яндекс Еда</th>
                                     <th>Delivery Club</th>
-                                    <th>Дата открытия</th>
-                                    <th>Дата закрытия</th>
+                                    <th>Дата начала версии</th>
+                                    <th>Дата завершения версии</th>
                                     <th class="hidden">OldId</th>
                                     <th class="hidden">LocGuid</th>
                                     <th class="hidden">Actual</th>
@@ -30,7 +30,7 @@
                             <tbody id="locationTable">
                                 @foreach (var tt in Model.LocationVersion.OrderBy(t => t.Name))
                                 {
-                                    var old = Model.OldTT.FirstOrDefault(x => x.Restaurant_Sifr == tt.Location.RKCode);
+                                    var old = Model.OldTT.FirstOrDefault(x => x.Obd == tt.OBD);
                                     var organization = "";
                                     if (tt?.Entity?.Name != null) organization = tt?.Entity.Name;
 
@@ -90,10 +90,10 @@
                                         }
                                     </td>
                                     <td>
-                                        <p class="text-muted">@openDate</p>
+                                            <p class="text-muted">@tt?.VersionStartDate?.ToString("yyyy-MM-dd")</p>
                                     </td>
                                     <td>
-                                        <p class="text-muted">@closeDate</p>
+                                            <p class="text-muted">@tt?.VersionEndDate?.ToString("yyyy-MM-dd")</p>
                                     </td>
 
                                     <td class="hidden">
@@ -147,7 +147,8 @@
     });
 
     // сортируем по-умолчанию по первому столбцу
-    table.order([14, 'desc']).draw();
+    table.order([[10, 'desc'], [14, 'desc']]).draw();
+
 
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
@@ -161,15 +162,25 @@
 
 <!--клик по строке-->
 <script>
-    $('.activeRow').click(function () {
+    /*$('.activeRow').click(function () {
         var itemId = ($(this).find('.hidden').text())
         var itemGuid = this.id;
         var itemName = $(this).find('.ttName').text();
         EditItem(itemName, itemGuid);
-    });
+    });*/
     
     var locGuid = document.querySelector('.locGuid').textContent;
     $('.addTTButton').attr("onClick", `AddItem("${locGuid}", "0")`);
+
+
+    
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        DataTable();
+        $('.addTTButton').attr("onClick", "AddItem()");
+    })
+
+
 </script>
 
 <script>
@@ -194,4 +205,3 @@
         }
     }
 </script>
-

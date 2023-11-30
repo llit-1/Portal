@@ -156,12 +156,6 @@
 
 <!--клик по строке-->
 <script>
-    @*$('.activeRow').click(function () {
-        var itemId = ($(this).find('.hidden').text())
-        var itemGuid = this.id;
-        var itemName = $(this).find('.ttName').text();
-        EditItem(itemName, itemGuid);
-    });*@
     $('.activeRow').click(function () {
         var itemGuid = this.id;
         var locGuid = $(this).find('.locGuid').text()

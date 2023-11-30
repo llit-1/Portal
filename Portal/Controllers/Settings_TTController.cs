@@ -13,6 +13,7 @@ using RKNet_Model;
 using RKNet_Model.Account;
 using RKNet_Model.CashClient;
 using RKNet_Model.TT;
+using RKNet_Model.VMS.NX;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -79,7 +80,6 @@ namespace Portal.Controllers
 
             return PartialView(tVersions);
         }
-
         // Таблица версий ТТ
         public IActionResult TTsTableVersion(string locGuid)
         {
@@ -146,33 +146,29 @@ namespace Portal.Controllers
             } // Получаем информацию о точке, если создаем новую версию
             else
             {
-                ttSettings.LocationVersion = dbSql.LocationVersions
-                                                                  .Include(x => x.Location)
-                                                                  .Include(x => x.Location.LocationType)
-                                                                  .Include(x => x.Entity)
-                                                                  .Where(x => x.Location.Guid == Guid.Parse(ttGuid) && x.Actual == 1)
-                                                                  .ToList();
+                ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                   .Include(x => x.Location.LocationType)
+                                                                   .Include(x => x.Entity)
+                                                                   .Where(x => x.Location.Guid == Guid.Parse(ttGuid) && x.Actual == 1)
+                                                                   .ToList();
 
                 ttSettings.OldTT = db.TTs
                     .Include(t => t.Users)
                     .Include(t => t.CashStations)
                     .Include(t => t.NxCameras)
-                    .Where(t => t.Restaurant_Sifr == ttSettings.LocationVersion[0].Location.RKCode)
+                    .Where(t => t.Obd == ttSettings.LocationVersion[0].OBD)
                     .ToList();
 
                 ttSettings.TTNew = true;
             }
 
             ttSettings.Users = db.Users.ToList();
-
             ttSettings.locationTypes = dbSql.LocationTypes.ToList();
             ttSettings.Entities = dbSql.Entity.ToList();
             ttSettings.original = original;
 
             return PartialView(ttSettings);
         }
-
-
         // Сохранение ТТ
         public IActionResult TTSave(string ttjsn)
         {
@@ -182,7 +178,6 @@ namespace Portal.Controllers
                 ttjsn = ttjsn.Replace("%bkspc%", " ");
                 var ttJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.tt>(ttjsn);
                 
-
                 // существующая тт
                 if (ttJsn.Guid != "0" && ttJsn?.original == null)
                 {
@@ -410,7 +405,7 @@ namespace Portal.Controllers
                                 }
                             }
                             break;
-                            /*
+                            
                             case "cameras":
                                 tt.NxCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
                                 foreach (var item in ttJsn.items)
@@ -419,7 +414,6 @@ namespace Portal.Controllers
                                     tt.NxCameras.Add(camera);
                                 }
                                 break;
-                            */
                             }
                     if(tt != null)
                     {
@@ -453,9 +447,6 @@ namespace Portal.Controllers
                         location = dbSql.LocationVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid)).Location;
                     }
                     
-                        
-                    
-                    
                     TT ttFromOldBD = new();
                     if (ttJsn?.original != null && ttJsn.Guid != "0")
                     {
@@ -467,20 +458,19 @@ namespace Portal.Controllers
                     {
                         foreach (var item in ttJsn.users)
                         {
-                            ttUsers.Add(db.Users.First(u => u.Id == item.id));
+                            tt.Users.Add(db.Users.First(u => u.Id == item.id));
                         }
                     }
                     else
                     {
-                        tt.Users = new List<User>();
+                        ttFromOldBD.Users = new List<User>();
                         foreach (var item in ttJsn.users)
                         {
-                            var user = db.Users.FirstOrDefault(u => u.Id == item.id);
-                            tt.Users.Add(user);
+                            User user = db.Users.FirstOrDefault(u => u.Id == item.id);
+                            ttFromOldBD.Users.Add(user);
                         }
                     }
                     
-
                     // тип новой тт
                     if (!string.IsNullOrEmpty(ttJsn.type))
                     {
@@ -620,7 +610,7 @@ namespace Portal.Controllers
                     else
                     {
                         tt.OpenDate = null;
-                        locversion.VersionStartDate = open.Date;
+                        locversion.VersionStartDate = null;
                     }
 
                     // Дата закрытия
@@ -632,24 +622,35 @@ namespace Portal.Controllers
                         if (ttJsn?.original != null)
                         {
                             ttFromOldBD.CloseDate = close.Date;
+                            locversion.VersionEndDate = close.Date;
                         }
                         else
                         {
                            tt.CloseDate = close.Date;
+                           locversion.VersionEndDate = close.Date;
                         }
                     }
                     else
                     {
                         tt.CloseDate = null;
+                        locversion.VersionEndDate = null;
                     }
 
                     // интеграции
-                    tt.YandexEda = ttJsn.yandexEda;
-                    tt.DeliveryClub = ttJsn.deliveryClub;
+                    
+                    if (ttJsn?.original != null)
+                    {
+                        ttFromOldBD.YandexEda = ttJsn.yandexEda;
+                        ttFromOldBD.DeliveryClub = ttJsn.deliveryClub;
+                    }
+                    else
+                    {
+                        tt.YandexEda = ttJsn.yandexEda;
+                        tt.DeliveryClub = ttJsn.deliveryClub;
+                    }
 
-
-                    // Кассы на новой ТТ
-                    if (ttJsn.cashes != null)
+                        // Кассы на новой ТТ
+                        if (ttJsn.cashes != null)
                     {
                         foreach (var item in ttJsn.cashes)
                         {
@@ -674,64 +675,51 @@ namespace Portal.Controllers
                             // новая касса
                             if (item.Id == 0)
                             {
-                                // проверяем есть ли уже касса с таким ip в бд
-                                var cashExist = db.CashStations.Where(c => c.Ip == ip.ToString()).Count();
-                                if (cashExist > 0)
-                                {
-                                    var existCash = db.CashStations.Include(t => t.TT).FirstOrDefault(c => c.Ip == ip.ToString());
-                                    result.Ok = false;
-                                    result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
-                                    return new ObjectResult(result);
-                                }
-
                                 // добавляем кассу в бд
                                 cash.Name = item.Name;
-                                cash.Ip = ip.ToString();
+                                cash.Ip = item.Ip.ToString();
+                                cash.TT = tt;
                                 cash.Midserver = item.Midserver;
                                 db.CashStations.Add(cash);
+                            }
+                            // существующая касса
+                            else
+                            {
+                                cash = db.CashStations.FirstOrDefault(c => c.Id == item.Id);
+                                cash.Name = item.Name;
+                                cash.Midserver = item.Midserver;
+                                cash.Ip = ip.ToString();
+                                db.CashStations.Update(cash);
                             }
                         }
                     }
 
-                    if (ttJsn.cameras != null)
+                    if (ttJsn.original == null)
                     {
-                        // камеры на новой тт
-                        ttCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
-                        foreach (var cam in ttJsn.cameras)
-                        {
-                            var nxCamera = new RKNet_Model.VMS.NX.NxCamera();
-                            nxCamera.Name = cam.name;
-                            nxCamera.Guid = cam.id;
-                            nxCamera.NxSystem = db.NxSystems.FirstOrDefault(s => s.Id == cam.systemId);
-                            ttCameras.Add(nxCamera);
-                        }
-
-                        if (ttJsn?.original != null)
-                        {
-                            ttFromOldBD.Users = ttUsers;
-                            ttFromOldBD.NxCameras = ttCameras;
-                        }
-                        else
-                        {
-                            tt.Users = ttUsers;
+                            ttCameras = new List<RKNet_Model.VMS.NX.NxCamera>();
+                            foreach (var cam in ttJsn.cameras)
+                            {
+                                var nxCamera = new RKNet_Model.VMS.NX.NxCamera();
+                                var nxCam = db.NxCameras.FirstOrDefault(x => x.Guid == cam.id);
+                                if (nxCam != null)
+                                {
+                                    nxCamera.Name = cam.name;
+                                    nxCamera.Guid = cam.id;
+                                    nxCamera.NxSystem = db.NxSystems.FirstOrDefault(s => s.Id == cam.systemId);
+                                    nxCamera.CamGroup = nxCam.CamGroup;
+                                }
+                                ttCameras.Add(nxCamera);
+                            }
                             tt.NxCameras = ttCameras;
-                        }
                     }
 
-                        locversion.Location = location;
+                    locversion.Location = location;
                         locversion.Actual = 1;
                         if (ttJsn.original == null)
                         {
                             db.TTs.Add(tt);
                         }
-
-                        // добавляем сохраненные в БД кассы на ТТ                
-                        var ttt = db.TTs.FirstOrDefault(t => t.Code == int.Parse(ttJsn.code));
-                        foreach (var item in ttJsn.cashes)
-                        {
-                            var cash = db.CashStations.FirstOrDefault(c => c.Ip == item.Ip);
-                            ttt.CashStations.Add(cash);
-                        }
+                        
                         if (ttJsn.original != null)
                         {
                             var helper = dbSql.LocationVersions.Include(x => x.Location).FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid));
@@ -740,15 +728,10 @@ namespace Portal.Controllers
                                 item.Actual = 0;
                             }
                         }
-                        if (ttt != null)
-                        {
-                            db.TTs.Update(ttt);
-                        }
+                        
                         if (locversion != null)
                         {
-
                             dbSql.Add(locversion);
-
                             dbSql.SaveChanges();
                             db.SaveChanges();
                         }
@@ -762,36 +745,6 @@ namespace Portal.Controllers
             }
             return new ObjectResult(result);
         }
-
-        // Удаление ТТ
-        public IActionResult TTDelete(int ttId)
-        {
-            try
-            {
-                var tt = db.TTs
-                    .Include(t => t.Users)
-                    .Include(t => t.CashStations)
-                    .Include(t => t.NxCameras)
-                    .Include(t => t.Type)
-                    .Include(t => t.Organization)
-                    .FirstOrDefault(t => t.Id == ttId);
-
-                if (tt.CashStations != null)
-                    db.CashStations.RemoveRange(tt.CashStations);
-                if (tt.NxCameras != null)
-                    db.NxCameras.RemoveRange(tt.NxCameras);
-
-                db.TTs.Remove(tt);
-                db.SaveChanges();
-
-                return new ObjectResult("ok");
-            }
-            catch (Exception e)
-            {
-                return new ObjectResult(e.ToString());
-            }
-        }
-
         // Выбранные элементы коллекций на ТТ
         public IActionResult GetTTItems(int ttId, string selectId, string ttGuid)
         {
@@ -824,14 +777,12 @@ namespace Portal.Controllers
                     return new ObjectResult("empty");
             }
         }
-
         // Id ТТ по имени
         public IActionResult GetTTId(string ttName)
         {
             var ttId = db.TTs.FirstOrDefault(t => t.Name == ttName).Id;
             return new ObjectResult(ttId);
         }
-
         // Запрос имени кассы Р-Кипер
         public IActionResult GetCashName(string cashIp)
         {
@@ -884,7 +835,6 @@ namespace Portal.Controllers
 
             return new ObjectResult(requestResult);
         }
-
         // Свободный код точки для новой ТТ
         public IActionResult NewTTCode()
         {
@@ -898,7 +848,6 @@ namespace Portal.Controllers
 
             return new ObjectResult(newTTCode);
         }
-
         // Организации ***********************************************************
         // Шапка + разметка для вывода
         public IActionResult Organizations()
@@ -916,7 +865,6 @@ namespace Portal.Controllers
                     ? dbSql.LocationVersions.Include(t => t.Entity).Include(t => t.Location).ToList()
                     : new List<LocationVersions>()
             };
-
             return PartialView(model);
         }
 
@@ -1035,7 +983,6 @@ namespace Portal.Controllers
             List<LocationType> locationType = dbSql.LocationTypes.ToList();
 
             LocationTypeAndCountLocation locationTypeAndCountLocations = new();
-
             locationTypeAndCountLocations.Location = location;
             locationTypeAndCountLocations.LocationType = locationType;
             
@@ -1076,10 +1023,7 @@ namespace Portal.Controllers
                 // существующий тип
                 if (typeJsn.id != "0")
                 {
-
                     LocationType locType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(typeJsn.id));
-
-
 
                     if (!string.IsNullOrEmpty(typeJsn.name))
                     {
@@ -1100,7 +1044,6 @@ namespace Portal.Controllers
                         return new ObjectResult(result);
                     }
                            
-
                     dbSql.LocationTypes.Update(locType);
                 }
                 // новый тип
@@ -1138,26 +1081,6 @@ namespace Portal.Controllers
                 result.Data = e.ToString();
             }
             return new ObjectResult(result);
-        }
-
-        // Удаление типа
-        public IActionResult TypeDelete(int Id)
-        {
-            try
-            {
-                var type = db.TTtypes
-                    .Include(t => t.TTs)
-                    .FirstOrDefault(t => t.Id == Id);
-
-                db.TTtypes.Remove(type);
-                db.SaveChanges();
-
-                return new ObjectResult("ok");
-            }
-            catch (Exception e)
-            {
-                return new ObjectResult(e.ToString());
-            }
         }
 
         // Выбранные элементы коллекций на типе

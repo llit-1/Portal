@@ -31,21 +31,19 @@
 
         <!--разделитель-->
         <hr style="width:100%" />
-
-        <!--название-->
-        <label class="label-light">название</label>
-        <div class="@formClass" style="margin-bottom:15px">
-            @if(Model.isNew == false)
-            {
-                <input id="typeName" type="text" class="form-control" value="@Model.LocationType[0].Name" style="font-weight:bold">
-            }
-            else
-            {
-                <input id="typeName" type="text" class="form-control" value="" style="font-weight:bold">
-            }
+            <!--название-->
+            <label class="label-light">название</label>
+            <div class="@formClass" style="margin-bottom:15px">
+                @if(Model.isNew == false)
+                {
+                    <input id="typeName" type="text" class="form-control" value="@Model.LocationType[0].Name" style="font-weight:bold">
+                }
+                else
+                {
+                    <input id="typeName" type="text" class="form-control" value="" style="font-weight:bold">
+                }
             
-        </div>
-
+            </div>
         <hr />
 
     </div>
@@ -68,7 +66,7 @@
                     {
                         if (Model.isNew == false)
                         {
-                            if (Model.LocationType.FirstOrDefault(t => t.Guid == tt.LocationType.Guid) != null)
+                            if (Model.LocationType.FirstOrDefault(t => t?.Guid == tt?.LocationType?.Guid) != null)
                             {
                                 <option selected="selected" value="@tt.Guid">@tt.Name</option>
                             }

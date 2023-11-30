@@ -21,7 +21,7 @@
                                             <p class="list-item-heading itemName">@type.Name</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@Model.Location.Where(x => x.LocationType.Guid == type.Guid).Count()</p>
+                                            <p class="text-muted">@Model.Location.Where(x => x.LocationType?.Guid == type?.Guid).Count()</p>
                                         </td>
                                     </tr>
                                 }
