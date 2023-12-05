@@ -64,6 +64,7 @@ function AutoLogout() {
 
     function autoLogout(time) {
         var remain = time * 60; // остаток времени в секундах
+        
         setInterval(function () {
             $("#time").html(remain);
             remain = remain - 1;
@@ -71,6 +72,10 @@ function AutoLogout() {
                 window.location.replace('Account/Logout');
             }
         }, 1000);
+
+        setTimeout((x => {
+            remain = 0;
+        }), remain * 1000)
     }
 }
 AutoLogout();
