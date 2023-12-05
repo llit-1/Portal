@@ -9,6 +9,7 @@ using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Calculator;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 
@@ -300,12 +301,29 @@ namespace Portal.Controllers
             }
             catch (Exception ex)
             {
+                WriteErrorToLogFile(logjsn);
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result);
             }
             return new ObjectResult(result);
         }
+
+        static void WriteErrorToLogFile(string logjsn)
+        {
+            string errorLogFilePath = "errorLog.txt";
+
+            // Используем явное указание пространства имен для File из System.IO
+            using (StreamWriter writer = System.IO.File.AppendText(errorLogFilePath))
+            {
+                writer.WriteLine($"Время ошибки: {DateTime.Now}");
+                writer.WriteLine($"Данные из JSON: {logjsn}");
+                writer.WriteLine(new string('-', 50));
+            }
+
+            Console.WriteLine("Информация об ошибке успешно записана в файл.");
+        }
+
     }
 
 }
