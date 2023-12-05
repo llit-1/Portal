@@ -9,6 +9,8 @@ namespace Portal.ViewModels.Settings_Access.json
     public class item
     {
         public int id;
+        public string guid;
         public string text;
+        public string guidOrg;
     }
 }

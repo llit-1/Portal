@@ -34,7 +34,6 @@
 <!--слайдеры-->
 <script>
     function Slider(sw) {
-
         var enabled = false;
         if ($(sw).is(':checked')) {
             enabled = true;
@@ -42,9 +41,8 @@
 
         var camId = sw.id.substr(7, sw.id.length - 7);
         var camName = $(sw).parent().parent().find('.name').text();
-
-        if (ttId) {
-            $.get('/Settings_TT/CameraChange?ttId=' + ttId + '&systemId=@Model.NxSystemId' + '&camName=' + camName + '&camGuid=' + camId+ '&enabled=' + enabled, function (result) {
+        if (oldId) {
+            $.get('/Settings_TT/CameraChange?ttId=' + oldId + '&systemId=@Model.NxSystemId' + '&camName=' + camName + '&camGuid=' + camId + '&enabled=' + enabled, function (result) {
                 if (!result.ok) {
                     $(sw).prop('checked', false);
                     alert(result.exceptionText);
@@ -68,10 +66,7 @@
 
             if (enabled) {
                 ttCams.push(cam);
-            }
-
-            
-            
+            }            
         }
     };
 

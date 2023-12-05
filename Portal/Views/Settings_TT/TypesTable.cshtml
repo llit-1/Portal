@@ -1,4 +1,4 @@
-﻿@model List<RKNet_Model.TT.Type>
+﻿@model Portal.Models.MSSQL.Location.LocationTypeAndCountLocation
 <!--таблица типов-->
 <div class="panel panel-default" style="margin-bottom:0px">
     <div class="panel-body">
@@ -14,15 +14,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var type in Model.OrderBy(t => t.Name))
+                                @foreach (var type in Model.LocationType.OrderBy(t => t.Name))
                                 {
-
-                                    <tr id="@type.Id" class="activeRow" onclick="">
+                                    <tr id="@type.Guid" class="activeRow" onclick="">
                                         <td>
                                             <p class="list-item-heading itemName">@type.Name</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@type.TTs.Count</p>
+                                            <p class="text-muted">@Model.Location.Where(x => x.LocationType?.Guid == type?.Guid).Count()</p>
                                         </td>
                                     </tr>
                                 }

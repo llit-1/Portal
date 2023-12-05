@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 namespace Portal.ViewModels.Settings_Access.json
 {
     public class tt
@@ -28,5 +27,10 @@ namespace Portal.ViewModels.Settings_Access.json
         // для редактора
         public string attribute;
         public List<item> items;
+
+        // БД bdSql
+        public string Guid;
+        public string Organization;
+        public string original;
     }
 }

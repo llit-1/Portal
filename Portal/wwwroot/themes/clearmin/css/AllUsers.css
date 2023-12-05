@@ -236,6 +236,7 @@
     padding-top: 5px;
     transition: border-color linear 1.2s;
     transition: box-shadow linear 1.2s;
+    min-height: 37px;
 }
 
 .rightBlockPersonData__versions{
@@ -490,11 +491,10 @@
     }
 }
 
-.dataTables_scrollBody{
+/* .dataTables_scrollBody{
     max-height: 680px !important;
-}
+} */
 
 #user-form{
     display: flex;
 }
-

@@ -296,13 +296,44 @@ namespace Portal.Controllers
                                 worksheet.Cell(i + 2, 5).Value = saleObjectsAgregators[i].OrderNumber;
                                 worksheet.Cell(i + 2, 6).Value = saleObjectsAgregators[i].Date;
                             }
-
-                            using (var stream = new MemoryStream())
+                             using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
                                     FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
+                                };
+                            }
+                        }
+                    }
+
+                case "Inventarization":
+                    {
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && c.Currency == 1000721)).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Товар";
+                            worksheet.Cell(1, 2).Value = "Количество";
+                            worksheet.Cell(1, 3).Value = "Цена";
+                            worksheet.Cell(1, 4).Value = "Тип списания";
+                            worksheet.Cell(1, 5).Value = "Дата и время списания";
+                            for (int i = 0; i < saleObjects.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
+                                worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
+                                worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
+                                worksheet.Cell(i + 2, 5).Value = saleObjects[i].Date;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                //stream.Flush();
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
                                 };
                             }
                         }

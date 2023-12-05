@@ -1,7 +1,7 @@
 // CSS стили модального окна
 const modalStyle = `
     position: fixed;
-    z-index: 1;
+    z-index: 100;
     left: 0;
     top: 0;
     width: 100%;
@@ -13,6 +13,7 @@ const modalStyle = `
 // Создаем div элемент для модального окна
 const modalDiv = document.createElement('div');
 modalDiv.style = modalStyle;
+modalDiv.classList.add('closeModal')
 document.body.appendChild(modalDiv);
 
 // CSS стили контента модального окна
@@ -74,4 +75,29 @@ function openModal(header, body) {
     modalHeader.textContent = header;
     modalBody.innerHTML = body.replace(/\n/g, '<br>');
     modalDiv.style.display = 'block';
+}
+
+// 
+function openModalQuestion(header, button) {
+    modalHeader.textContent = header;
+    modalDiv.style.display = 'block';
+    modalBody.innerHTML = `<div class='quizModal'> <input type='date' class='quizInput'><button class='btn btn-sm btn-danger' onClick='getDateFromModal()'>${button}</button></div>`;
+}
+
+function openModalQuestionOpen(header, button) {
+    modalHeader.textContent = header;
+    modalDiv.style.display = 'block';
+    modalBody.innerHTML = `<div class='quizModal'><button class='btn btn-sm btn-danger' onClick='clearCloseDate()'>${button}</button></div>`;
+}
+
+function openModalYesNo(header, buttonYes, buttonNo) {
+    modalHeader.textContent = header;
+    modalDiv.style.display = 'block';
+    modalBody.innerHTML = `<div class='quizModal'><button class='btn btn-sm btn-danger' onClick='YesOrNoModal()'>${buttonYes}</button><button class='btn btn-sm btn-success' onClick='closeModal()'>${buttonNo}</button></div>`;
+}
+
+// Закрыть модальное окно
+function closeModal() {
+    const modal = document.querySelector('.closeModal');
+    modal.click();
 }

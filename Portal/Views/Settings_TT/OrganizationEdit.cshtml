@@ -1,4 +1,4 @@
-﻿@model Portal.ViewModels.Settings_TT.OrganizationSettings
+﻿@model Portal.Models.MSSQL.Location.EntityLocationModel
 @{
     // загрузка модальных окошек в представление
     await Html.RenderPartialAsync("ModalWindows");
@@ -9,14 +9,6 @@
     var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
     var yandexHost = Portal.Models.ApiRequest.Host + "/yandex/";
     var deliveryClubHost = Portal.Models.ApiRequest.Host + "/deliveryclub/";
-
-
-    if (Model.isNew)
-    {
-        display = "d-none";
-        disabled = "";
-        formClass = "form-group";
-    }
 }
 
 <div class="row flex bg-white" style="margin:0px">
@@ -32,17 +24,54 @@
         <!--название-->
         <label class="label-light">название</label>
         <div class="@formClass" style="margin-bottom:15px">
-            <input id="orgName" type="text" class="form-control" value="@Model.Organization.Name" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-            </span>
+            @if(Model?.New != 1)
+            {
+                <input id="orgName" type="text" class="form-control" value="@Model.Entities[0].Name" style="font-weight:bold">
+            }
+            else
+            {
+                <input id="orgName" type="text" class="form-control" value="" style="font-weight:bold" >
+            }
+
+            <label class="label-light pd-5" style="width:100%">принадлежность организации</label>
+                <select id="owner" class="" data-width="100%">
+
+                @if(Model.New == 1)
+                {
+                    <option value="1">Принадлежит</option>
+                    <option value="0">Не принадлежит</option>
+                }
+                else
+                {
+                    if(@Model.Entities[0].Owner == 1)
+                    {
+                        <option value="1" selected>Принадлежит</option>
+                        <option value="0">Не принадлежит</option>
+                    }
+                    else
+                    {
+                        <option value="1">Принадлежит</option>
+                        <option value="0" selected>Не принадлежит</option>
+                    }
+                }
+
+
+                </select>
+
+            @*@if(!true)
+            {
+                <span class="input-group-btn @display">
+                    <!--редактировать-->
+                    <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                    <!--сохранить-->
+                    <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                    <!--сохранение...-->
+                    <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                    <!--отменить-->
+                    <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+                </span>
+            }*@
+           
         </div>                                 
 
     </div>
@@ -58,20 +87,28 @@
         <!--селектор точек-->
         <div class="form-group">
             <label class="label-light" style="width:100%">селектор тт</label>
-            <div style="width:100%; float:left">
-                <select id="tts" class="form-control selectors" data-width="100%" multiple="multiple">
+            <div style="width:100%; float:center">
+                <select id="tts" class="form-control selectors" data-width="100%" multiple="multiple" disabled>
 
-                    @foreach (var tt in Model.TTs.OrderBy(t => t.Name))
+                    @if(Model.LocationVersions != null)
                     {
-                        if (Model.Organization.TTs.FirstOrDefault(t => t.Id == tt.Id) != null)
+                        @foreach (var tt in Model.LocationVersions.OrderBy(t => t.Name))
                         {
-                            <option selected="selected" value="@tt.Id">@tt.Name</option>
-                        }
-                        else
-                        {
-                            <option value="@tt.Id">@tt.Name</option>
+                            if(Model?.New != 1)
+                            {
+                                if (Model.Entities[0]?.Guid == tt.Entity?.Guid)
+                                {
+                                    <option selected="selected" value="@tt.Guid">@tt.Name</option>
+                                }
+                            }
+                            else 
+                            {
+                                <option value="@tt.Guid">@tt.Name</option>
+                            }
+                            
                         }
                     }
+                    
 
                 </select>
             </div>
@@ -87,104 +124,8 @@
         </div>
     </div>
 
-    @*<!--интеграции-->
-    <div class="col-md-4 col-lg-4" @blockStyle>
-        <!--яндекс еда-->
-        <h5 class="pull-left">Яндекс Еда</h5>        
-
-        <!--разделитель-->
-        <hr style="width:100%" />
-
-        <!--адрес сервера Api яндекса-->
-       <label class="label-light" style="width:100%">адрес сервера Api</label>
-       <input id="yanndexHost" type="text" class="form-control" value="@yandexHost" style="font-weight:bold" disabled>
-       <br />
-
-        <!--логин яндекса-->
-       <label class="label-light" style="width:100%">client_id</label>        
-       <div class="@formClass" style="margin-bottom:15px">
-            <input id="yandexClient" type="text" class="form-control" value="@Model.Organization.YandexLogin" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-            </span>
-        </div>
-
-        <!--пароль яндекса-->
-       <label class="label-light" style="width:100%">client_secret</label>        
-       <div class="@formClass" style="margin-bottom:15px">
-            <input id="yandexSecret" type="password" class="form-control" value="@Model.Organization.YandexPassword" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-                <!--показать пароль-->
-                <button type="button" class="eye btn btn-default"><i class="fa fa-fw fa-eye"></i></button>
-            </span>
-        </div>
-        
-
-        <!--деливери клаб-->
-        <h5 class="pull-left" style="margin-top:50px">Delivery Club</h5>        
-
-        <!--разделитель-->
-        <hr style="width:100%" />
-
-        <!--адрес сервера Api Delivery Club-->
-       <label class="label-light" style="width:100%">адрес сервера Api</label>
-       <input id="deliveryClubHost" type="text" class="form-control" value="@deliveryClubHost" style="font-weight:bold" disabled>
-       <br />
-
-        <!--логин деливери клаб-->
-       <label class="label-light" style="width:100%">client_id</label>        
-       <div class="@formClass" style="margin-bottom:15px">
-            <input id="deliveryClubClient" type="text" class="form-control" value="@Model.Organization.DeliveryClubLogin" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-            </span>
-        </div>
-
-        <!--пароль деливери клаб-->
-       <label class="label-light" style="width:100%">client_secret</label>        
-       <div class="@formClass" style="margin-bottom:15px">
-            <input id="deliveryClubSecret" type="password" class="form-control" value="@Model.Organization.DeliveryClubPassword" style="font-weight:bold" @disabled>
-            <span class="input-group-btn @display">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-                <!--показать пароль-->
-                <button type="button" class="eye btn btn-default"><i class="fa fa-fw fa-eye"></i></button>
-            </span>
-        </div>
-        
-
-    </div>*@
-
     <!--кнопки сохранить/отмена-->
-    @if (Model.isNew)
+    @if(true)
     {
         blockStyle += ";width:100%";
         <div class="col-12" @blockStyle>
@@ -193,13 +134,33 @@
         </div>
     }
 
+
+        
+    
+
 </div>
 
 <!----------------------------скрипты----------------------------------->
 <!--переменные-->
 <script>
-    var newOrg = @Html.Raw(Json.Serialize(Model.isNew));
-    var orgId = @Model.Organization.Id;
+    var newOrg;
+    if ('@Model?.New' != 1) {
+        newOrg = false
+    }
+    else
+    {
+        newOrg = true
+    }
+     
+    var orgId;
+    if ('@Model?.New' == 1)
+    {
+        orgId = "0";
+    } 
+    else 
+    {
+        orgId = "@Model?.Entities[0].Guid";
+    }
 </script>
 
 <!--торговые точки-->
@@ -243,86 +204,6 @@
 
             $(selCont).css('width', 'calc(100% - 86px)');
         }
-    }
-
-    // кнопка сохранить
-    function SaveSelect(save) {
-
-        var cancel = $(save).parent().find('.cancel');
-        var edit = $(save).parent().find('.edit');
-        var spinner = $(save).parent().find('.saving');
-
-        var selector = $(save).parent().find('select');
-        var multiple = $(selector).prop('multiple');
-        var selCont = $(selector).parent();
-        var selectId = $(selector).prop('id');
-
-        // убираем кнопку "отмена"
-        $(cancel).addClass('d-none');
-
-        // включаем спиннер на кнопке
-        $(save).addClass('d-none');
-        $(spinner).removeClass('d-none');
-
-        // отправляем данные в контроллер
-        var organization = {};
-        organization.id = orgId;
-        organization.attribute = selectId;
-        organization.items = [];
-
-        var data = $(selector).select2('data');
-
-        $(data).each(function () {
-
-            var item = {};
-            item.id = this.id;
-            item.text = this.text;
-            organization.items.push(item);
-        });
-
-        var orgjsn = JSON.stringify(organization);
-        orgjsn = orgjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
-
-        $.ajax({
-            type: "POST",
-            url: '/Settings_TT/OrganizationSave',
-            data: { orgjsn: orgjsn },
-            datatype: "text",
-            success: function (result) {
-
-                if (result.ok) {
-                    // выключаем спиннер на кнопке
-                    $(spinner).addClass('d-none');
-
-                    // скрываем кнопки
-                    $(save).addClass('d-none');
-                    $(cancel).addClass('d-none');
-
-                    // меняем ширину селектора
-                    $(selCont).css('width', '100%');
-
-                    // получаем коллекцию ваыбранных элементов из бд (контроль)
-                    SelectItems(ttId, selectId);
-
-                    // включаем кнопку редактировать
-                    if (!multiple) {
-                        selector.parent().css('width', 'calc(100% - 43px)');
-                        $(edit).removeClass('d-none');
-                        selector.prop("disabled", true);
-                    }
-                }
-                else {
-                    ShowModal('Редактор организации', result.data);
-
-                    // выключаем спиннер на кнопке и возвращаем кнопки
-                    $(spinner).addClass('d-none');
-                    $(save).removeClass('d-none');
-                    $(cancel).removeClass('d-none');
-                }
-            },
-            error: function (error) { ShowModal('Редактор организации', error.responseText); }
-        });
-
     }
 
     // кнопка отмена
@@ -418,18 +299,12 @@
 
         // отправляем данные в контроллер
         var organization = {};
-        organization.id = orgId;
-        organization.attribute = $(input).attr('id');
-
-        organization.name = $('#orgName').val();
-        //organization.yandexClient = $('#yandexClient').val();
-        //organization.yandexSecret = $('#yandexSecret').val();
-        //organization.deliveryClubClient = $('#deliveryClubClient').val();
-        //organization.deliveryClubSecret = $('#deliveryClubSecret').val();
+        organization.Guid = orgId;
+        organization.Name = $('#orgName').val();
+        organization.Owner = $('#owner').val();
         
         var orgjsn = JSON.stringify(organization);
         orgjsn = orgjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
-
         $.ajax({
             type: "POST",
             url: '/Settings_TT/OrganizationSave',
@@ -449,11 +324,11 @@
                     $(input).prop('disabled', true);
 
                     // обновляем заголовок страницы
-                    $('#header').text(tt.name);
+                    $('#header').text(organization.Name);
                 }
                 else {
                     SpinnerHide();
-                    ShowModal('Редактор организации', result.data);
+                    ShowModal('Редактор организации', result.errorMessage);
 
                     // выключаем спиннер на кнопке и возвращаем кнопки
                     $(spinner).addClass('d-none');
@@ -480,7 +355,6 @@
         // блокируем поле ввода
         $(input).val(oldValue);
         $(input).prop('disabled', true);
-
     }
 
 </script>
@@ -490,18 +364,13 @@
     function SaveNewItem() {
 
         var organization = {};
-        organization.id = 0;
-        organization.name = $('#orgName').val();
-        //organization.yandexClient = $('#yandexClient').val();
-        //organization.yandexSecret = $('#yandexSecret').val();
-        //organization.deliveryClubClient = $('#deliveryClubClient').val();
-        //organization.deliveryClubSecret = $('#deliveryClubSecret').val();
+        organization.Guid = orgId;
+        organization.Name = $('#orgName').val();
+        organization.Owner = $('#owner').val();
 
-        organization.tts = DataFromSelector($('#tts'));
 
         var orgjsn = JSON.stringify(organization);
         orgjsn = orgjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
-
         $.ajax({
             type: "POST",
             url: '/Settings_TT/OrganizationSave',
@@ -509,7 +378,14 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
-                    ShowModal('Редактор орагнизации', 'Новая организация успешно добавлена');
+                    if(@Model.New == 1)
+                    {
+                        ShowModal('Редактор орагнизации', 'Новая организация успешно добавлена');
+                    }
+                    else {
+                        ShowModal('Редактор орагнизации', 'Изменения сохранены');
+                    }
+                    
                     //DataTable();
 
                     $('#modalWindow').on('hidden.bs.modal', function () {
@@ -523,10 +399,10 @@
                     });
                 }
                 else {
-                    ShowModal('Редактор организации', result.data);
+                    ShowModal('Редактор организации', result.errorMessage);
                 }
             },
-            error: function (error) { ShowModal('Редактор организации', error.responseText); }
+            error: function (error) { ShowModal('Редактор организации', error); }
         });
     }
 
@@ -546,49 +422,4 @@
 
         return items;
     }
-</script>
-
-<!--удаление организации-->
-<script>
-    function DeleteItem() {
-        var orgName = $('#orgName').val();
-        var confirmMessage = 'Организация "' + orgName + '" будет удалена, продолжить?';
-
-        ShowModal("Подтвердите удаление", confirmMessage, 1);
-
-        // кнопка ok в модальном окне
-        $('#ok').on('click', function () {
-            $('#ok').off('click');
-            SpinnerShow();
-            $.get('/Settings_TT/OrganizationDelete?Id=' + orgId, function (result) {
-                if (result == "ok") {
-                    DataTable();
-                }
-                else {
-                    ShowModal('Ошибка', result);
-                }
-            });
-        });
-    }
-</script>
-
-<!--показать пароль-->
-<script>
-    $(".eye").mousedown(function () {
-        var input = $(this).parent().parent().children('input');
-        if(input.attr('type') == 'password')
-        {
-            input.attr('type', 'text');
-        }
-        else
-        {
-            input.attr('type', 'password');
-        }
-    });
-
-    //$(".eye").mouseup(function () {
-    //    $('#yanndexSecret').attr('type', 'password');
-    //});
-
-
 </script>

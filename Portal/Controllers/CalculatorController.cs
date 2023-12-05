@@ -89,6 +89,10 @@ namespace Portal.Controllers
                     calculatorInformation.Name = "Калькулятор Хлеба";
                     calculatorInformation.PicturePath = "~/svg/color_panels/breads.svg";
                     break;
+                case "06BE0412-8D99-4111-99A9-98172E0D3930":
+                    calculatorInformation.Name = "Прочий ассортимента";
+                    calculatorInformation.PicturePath = "~/svg/color_panels/breads.svg";
+                    break;
                 default:
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }

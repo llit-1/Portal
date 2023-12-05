@@ -21,12 +21,7 @@
         <!--меню таблицы-->
         <div id="tableMenu" class="col-md-12" style="padding:0px">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <a href="#AddTT" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
-        </div>
-
-        <!--меню редактора-->
-        <div id="editMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-            <a href="#DeleteTT" class="btn btn-sm btn-danger" onclick="DeleteItem()">удалить</a>
+            <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="AddItem()" style="margin-left:20px">добавить</a>
         </div>
 
         <!--меню добавления -->
@@ -38,7 +33,7 @@
         <div class="pull-right" style="padding-bottom:10px; padding-top:10px; width:100%">
             <label id="closedTTSwitch" style="margin-right:15px">Отображать закрытые точки</label>
             <div class="material-switch pull-right">
-                <input class="slider" id="closedTT" type="checkbox" onchange="loadTTTable()" checked="checked">
+                <input class="slider" id="closedTT" type="checkbox" onchange="loadTTTable()">
                 <label for="closedTT" class="label-warning"></label>
             </div>
         </div>
@@ -55,15 +50,26 @@
 
 <div id="page" style="margin-top:15px"></div>
 
-
 <!------------------------------------------------------------------------------------------------------------------->
 <!--загрузка таблицы-->
 <script>
     function loadTTTable() {
+        $('#header').text('Торговые точки');
+        $('.addTTButton').text("Добавить")
         let closedTT = document.getElementById('closedTT').checked;
         let ecTT = document.getElementById('ecTT').checked;
         SpinnerShow();
         $('#page').load('/Settings_TT/TTsTable?closedTT=' + closedTT + '&ecTT=' + ecTT, function () { SpinnerHide(); });
+    }
+
+    function loadTTTableVersion(locGuid, TTName) {
+        //location.hash = "#SettingsVersionTTs";
+        $('.addTTButton').text("Добавить версию")
+        $('#header').text(TTName);
+        $('#back').unbind('click');
+        $('#back').click(function () { loadTTTable() });
+        SpinnerShow();
+        $('#page').load('/Settings_TT/TTsTableVersion?locGuid=' + locGuid, function () { SpinnerHide(); });
     }
 </script>
 
@@ -85,14 +91,20 @@
     DataTable();
 </script>
 
+
+
 <!--загрузка формы добавления-->
 <script>
-    function AddItem() {
+    $('.addTTButton').attr("onClick", "AddItem()");
+
+    function AddItem(ttGuid, original = "1") {
         location.hash = "#AddTT";
         $('#header').text('Добавление торговой точки');
 
         $('#back').unbind('click');
-        $('#back').click(function () { DataTable(); });
+        $('#back').click(function () {
+            DataTable();
+        });
 
         $('#tableMenu').hide();
         $('#editMenu').hide();
@@ -100,13 +112,13 @@
 
         $('#page').empty();
         SpinnerShow();
-        $('#page').load('/Settings_TT/TTEdit?ttId=0', function () { SpinnerHide() });
+        $('#page').load('/Settings_TT/TTEdit?ttGuid=' + ttGuid + '&original=' + original, function () { SpinnerHide() });
     }
 </script>
 
 <!--загрузка редактора-->
 <script>
-    function EditItem(itemName, itemId) {
+    function EditItem(itemName, itemGuid) {
         location.hash = "#AccessEditor";
         $('#header').text(itemName);
 
@@ -119,7 +131,7 @@
 
         $('#page').empty();
         SpinnerShow();
-        $('#page').load('/Settings_TT/TTEdit?ttId=' + itemId, SpinnerHide());
+        $('#page').load(`/Settings_TT/TTEdit?ttGuid=${itemGuid}&original=1`, SpinnerHide());
     }
 </script>
 

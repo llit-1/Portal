@@ -1,4 +1,5 @@
-﻿@model List<RKNet_Model.TT.Organization>
+﻿@model Portal.Models.MSSQL.Location.EntityLocationModel
+
 <!--таблица организаций-->
 <div class="panel panel-default" style="margin-bottom:0px">
     <div class="panel-body">
@@ -10,20 +11,33 @@
                             <thead>
                                 <tr>
                                     <th>Организация</th>
-                                    <th>Кол-во ТТ</th>                                    
+                                    <th>Кол-во ТТ</th>       
+                                    <th>Принадлежность к ЛЛ</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var organization in Model.OrderBy(o => o.Name))
+                                @foreach (var organization in Model.Entities)
                                 {
-
-                                    <tr id="@organization.Id" class="activeRow" onclick="">
+                                    <tr id="@organization.Guid" class="activeRow" onclick="">
                                         <td>
                                             <p class="list-item-heading itemName">@organization.Name</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@organization.TTs.Count</p>
-                                        </td>                                        
+                                            <p class="text-muted">@Model.LocationVersions.Where(c => c.Entity?.Guid == @organization.Guid).Count()</p>
+                                        </td>
+                                        @if(organization.Owner == 1)
+                                        {
+                                            <td>
+                                                <p class="text-muted">Принадлежит</p>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                <p class="text-muted">Не принадлежит</p>
+                                            </td>
+                                        }
+
                                     </tr>
                                 }
 

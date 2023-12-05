@@ -1,19 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System;
-
-
+using System.Collections.Generic;
 
 namespace Portal.Models.MSSQL.Location
 {
     [ComplexType]
-    public class Location
+    public class LocationTypeAndCountLocation
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Guid { get; set; }
-        public string Name { get; set; }
-        public LocationType? LocationType { get; set; }
-        public int RKCode { get; set; }
-        public int? AggregatorsCode { get; set; }
+        public List<Location> Location { get; set; }
+        public List<LocationType> LocationType { get; set; }
+        public bool isNew { get; set; }
     }
 }
