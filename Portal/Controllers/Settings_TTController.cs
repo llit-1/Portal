@@ -144,6 +144,23 @@ namespace Portal.Controllers
 
                 }
             } // Получаем информацию о точке, если создаем новую версию
+            else if(original == "2")
+            {
+                ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                   .Include(x => x.Location.LocationType)
+                                                                   .Include(x => x.Entity)
+                                                                   .Where(x => x.Location.Guid == Guid.Parse(ttGuid) && x.Actual == 1)
+                                                                   .ToList();
+
+                ttSettings.OldTT = db.TTs
+                    .Include(t => t.Users)
+                    .Include(t => t.CashStations)
+                    .Include(t => t.NxCameras)
+                    .Where(t => t.Obd == ttSettings.LocationVersion[0].OBD)
+                    .ToList();
+
+                ttSettings.TTNew = true;
+            }
             else
             {
                 ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
@@ -678,7 +695,7 @@ namespace Portal.Controllers
                                 // добавляем кассу в бд
                                 cash.Name = item.Name;
                                 cash.Ip = item.Ip.ToString();
-                                cash.TT = tt;
+                                cash.TT = ttFromOldBD;
                                 cash.Midserver = item.Midserver;
                                 db.CashStations.Add(cash);
                             }

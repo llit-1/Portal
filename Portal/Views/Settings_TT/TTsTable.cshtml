@@ -156,12 +156,17 @@
 
 <!--клик по строке-->
 <script>
+
+    
+
     $('.activeRow').click(function () {
         var itemGuid = this.id;
         var locGuid = $(this).find('.locGuid').text()
+        var qq = $(this).find('.locGuid').text()
         var itemName = $(this).find('.ttName').text();
         var headerName = "Версии для " + itemName;
-        loadTTTableVersion(locGuid, headerName)
+        @*loadTTTableVersion(locGuid, headerName)*@
+        EditItem(itemName, locGuid, 2)
     });
 </script>
 

@@ -97,10 +97,13 @@
 }
 
 .ttbut {
-    background: #F4A460;
-    width: 170px;
-    height: 30px;
+    background: #f47920;
     margin: 5px;
+    border: none;
+    color: white;
+    width: 190px;
+    height: 40px;
+    border-radius: 2px;
 }
 
 .button__placeholder {

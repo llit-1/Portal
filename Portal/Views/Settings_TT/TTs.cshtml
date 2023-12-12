@@ -29,7 +29,7 @@
         </div>        
     </div>
     <!--Отображать закрытые точки -->
-    <div style="float:right; display:inline-block">
+    <div style="float:right; display:inline-block" class="hiddenForEditTT">
         <div class="pull-right" style="padding-bottom:10px; padding-top:10px; width:100%">
             <label id="closedTTSwitch" style="margin-right:15px">Отображать закрытые точки</label>
             <div class="material-switch pull-right">
@@ -76,6 +76,12 @@
 <!--загрузка окна-->
 <script>
     function DataTable() {
+        var divForButtonLocVer = document.getElementById('divForButtonLocVer')
+        if (divForButtonLocVer)
+        {
+            divForButtonLocVer.remove()
+        }
+        
         //location.hash = "#SettingsTTs";
         $('#header').text('Торговые точки');
 
@@ -118,7 +124,7 @@
 
 <!--загрузка редактора-->
 <script>
-    function EditItem(itemName, itemGuid) {
+    function EditItem(itemName, itemGuid, original = 1) {
         location.hash = "#AccessEditor";
         $('#header').text(itemName);
 
@@ -131,8 +137,6 @@
 
         $('#page').empty();
         SpinnerShow();
-        $('#page').load(`/Settings_TT/TTEdit?ttGuid=${itemGuid}&original=1`, SpinnerHide());
+        $('#page').load(`/Settings_TT/TTEdit?ttGuid=${itemGuid}&original=${original}`, SpinnerHide());
     }
 </script>
-
-

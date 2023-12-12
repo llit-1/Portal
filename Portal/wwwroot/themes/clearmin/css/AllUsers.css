@@ -491,10 +491,19 @@
     }
 }
 
-/* .dataTables_scrollBody{
-    max-height: 680px !important;
-} */
-
 #user-form{
     display: flex;
+}
+
+#buttonLocVer {
+    background-color: #d9d9d9;
+    border: 1px solid #8d8d8d;
+    border-radius: 2px;
+    height: 28px;
+    
+}
+
+#divForButtonLocVer {
+    margin-top: 20px;
+    float: right;
 }
