@@ -84,7 +84,7 @@ namespace Portal
             services.AddHostedService<HostedServices.SkuStopService>();
 
             services.AddResponseCaching();
-
+            services.AddHttpClient();
             // Выдача потокового видео
             services.AddScoped<Portal.Services.IStreamVideoService, Portal.Services.StreamVideoService>();
         }

@@ -11,7 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Claims;
+using Microsoft.Extensions.Http;
+using System.Text;
 
 namespace Portal.Controllers
 {
@@ -22,12 +26,14 @@ namespace Portal.Controllers
         private DB.CalculatorDBContext CalculatorDb;
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
+        private IHttpClientFactory _httpClientFactory;
 
-        public CalculatorController(DB.CalculatorDBContext calculatorDbContext, DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
+        public CalculatorController(DB.CalculatorDBContext calculatorDbContext, DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext, IHttpClientFactory _httpClientFactoryConnect)
         {
             CalculatorDb = calculatorDbContext;
             db = context;
             dbSql = dbSqlContext;
+            _httpClientFactory = _httpClientFactoryConnect;
         }
 
 
@@ -301,9 +307,14 @@ namespace Portal.Controllers
             }
             catch (Exception ex)
             {
-                WriteErrorToLogFile(logjsn);
-                result.Ok = false;
-                result.ErrorMessage = ex.Message;
+                logjsn = logjsn.Replace("%bkspc%", " ");
+                CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
+                calculatorLog.Date = DateTime.Now;
+                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
+                var httpClient = _httpClientFactory.CreateClient();
+                string microserviceUrl = "http://rknet-server:45732/Buffer";
+                HttpResponseMessage response = httpClient.PostAsJsonAsync(microserviceUrl, calculatorLog).Result;
+
                 return new ObjectResult(result);
             }
             return new ObjectResult(result);
