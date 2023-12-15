@@ -1615,7 +1615,10 @@
     hiddenForEditTT.classList.add('hidden')
 
     let headerDiv = document.getElementById('headMenu')
-    headerDiv.innerHTML += "<div id='divForButtonLocVer'><button id='buttonLocVer'> Посмотреть версии ТТ </button></div>"
+    if("@guidNewBase" != "0")
+    {
+        headerDiv.innerHTML += "<div id='divForButtonLocVer'><button id='buttonLocVer'> Посмотреть версии ТТ </button></div>"
+    }
 </script>
 
 
@@ -1623,11 +1626,34 @@
     var divForButtonLocVer = document.getElementById('divForButtonLocVer')
     let date;
     let closeDate;
-    let locName = "@Html.Raw(Model.LocationVersion[0].Name.ToString())"
-    $('#buttonLocVer').click(function() {
-        divForButtonLocVer.remove();
-        loadTTTableVersion('@Model.LocationVersion[0].Location.Guid', locName)
-    })
+    let locName = "";
+    @{
+        var checkparam = "0";
+        var helper1 = "0";
+        var guidLocation = "";
+    }
+    @if(Model?.LocationVersion?.Count > 1)
+    {
+        helper1 = "1";
+        checkparam = Model?.LocationVersion[0]?.Name?.ToString();
+        guidLocation = Model?.LocationVersion[0]?.Location?.Guid.ToString();
+    }
+
+    if (@helper1 == "1") {
+        locName = "@Html.Raw(checkparam)"
+    }
+    if(@helper1 == "1")
+    {
+        $('#buttonLocVer').click(function () {
+            divForButtonLocVer.remove();
+            loadTTTableVersion('@guidLocation', locName)
+        })
+    } else {
+        $('#buttonLocVer').click(function () {
+            DataTable();
+        })
+    }
+    
 
     if("@Model.TTNew" == "True" && "@Model.original" == "0"){
         $('#back').unbind('click');
@@ -1639,7 +1665,6 @@
     } else {
             $('#back').unbind('click');
             $('#back').click(function () {
-            divForButtonLocVer.remove();
                 DataTable();
                 $('.addTTButton').attr("onClick", "AddItem()");
             })

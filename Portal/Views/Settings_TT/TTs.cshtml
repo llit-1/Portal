@@ -104,6 +104,7 @@
     $('.addTTButton').attr("onClick", "AddItem()");
 
     function AddItem(ttGuid, original = "1") {
+        ttGuid == 'undefined' ? ttGuid = 0 : ttGuid;
         location.hash = "#AddTT";
         $('#header').text('Добавление торговой точки');
 
