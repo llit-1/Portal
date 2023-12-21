@@ -9,5 +9,6 @@ namespace Portal.Models
         public PersonalityVersion PersonalitiesVersions { get; set; }
         public Personality Personalities { get; set; }
         public List<int> StatusError { get; set; }
+        public List<Entity> Entity { get; set; }
     }
 }

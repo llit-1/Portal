@@ -142,9 +142,9 @@
                     <label class="label-light">Юр. лицо разнесения затрат</label>
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                         <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
-                            @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.Entity?.Guid) != null)
+                            @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.EntityCostGuid) != null)
                             {
-                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.Entity.Guid">@Model.PersonalitiesVersions.Entity.Name</option>
+                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.EntityCostGuid">@Model.Entity.FirstOrDefault(x => x.Guid == Model.PersonalitiesVersions.EntityCostGuid).Name</option>
                             }
                             @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
                             {

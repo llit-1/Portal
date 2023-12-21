@@ -28,58 +28,114 @@
                                 </tr>
                             </thead>
                             <tbody id="tablePerson">
-                                @for(var x=0; x < Model.Count();x++)
+                                @for(var x=0; x < 50;x++)
                                 {
-                                    <tr id="@Model[x].Personalities.Guid" class="activeRow">
-                                        <td class="tdPersonTable">
-                                            <p class="list-item-heading userName">@Model[x].PersonalitiesVersions.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Surname</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Patronymic</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Location.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable hidden">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.HireDate.ToString("dd.MM.yyyy")</p>
-                                        </td>
-                                        <td class="tdPersonTable hidden">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.DismissalsDate</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Schedule.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Entity?.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions?.EntityCost?.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable hidden">
-                                            <p class="text-muted">@Model[x].PersonalitiesVersions.Actual</p>
-                                        </td>
-                                            @if (Model[x].StatusError[0] == 0)
-                                            {
-                                                <td class="tdPersonTable vertical-flex" style='padding-left: 24px !important;'>
-                                                    <p class='green_p'></p>
+                                    if(x <= 450)
+                                        {
+                                            <tr id="@Model[x].Personalities.Guid" class="activeRow">
+                                                <td class="tdPersonTable">
+                                                    <p class="list-item-heading userName">@Model[x].PersonalitiesVersions.Name</p>
                                                 </td>
-                                            }
-                                            @if (Model[x].StatusError[0] == 1)
-                                            {
-                                                <td class="tdPersonTable vertical-flex" align='center' style='padding-left: 24px !important;'>
-                                                    <p class='red_p'></p>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Surname</p>
                                                 </td>
-                                            }
-                                    </tr>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Patronymic</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Location.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable hidden">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.HireDate.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                                <td class="tdPersonTable hidden">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.DismissalsDate</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Schedule.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Entity?.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].Entity.FirstOrDefault(y => y.Guid == Model[x].PersonalitiesVersions.EntityCostGuid).Name</p>
+                                                </td>
+                                                <td class="tdPersonTable hidden">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Actual</p>
+                                                </td>
+                                                @if (Model[x].StatusError[0] == 0)
+                                                {
+                                                    <td class="tdPersonTable vertical-flex" style='padding-left: 24px !important;'>
+                                                        <p class='green_p'></p>
+                                                    </td>
+                                                }
+                                                @if (Model[x].StatusError[0] == 1)
+                                                {
+                                                    <td class="tdPersonTable vertical-flex" align='center' style='padding-left: 24px !important;'>
+                                                        <p class='red_p'></p>
+                                                    </td>
+                                                }
+                                            </tr>
+                                        } else
+                                        {
+                                            <tr id="@Model[x].Personalities.Guid" class="activeRow hidden">
+                                                <td class="tdPersonTable">
+                                                    <p class="list-item-heading userName">@Model[x].PersonalitiesVersions.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Surname</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Patronymic</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Location.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable hidden">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.HireDate.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                                <td class="tdPersonTable hidden">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.DismissalsDate</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Schedule.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Entity?.Name</p>
+                                                </td>
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@Model[x].Entity.FirstOrDefault(y => y.Guid == Model[x].PersonalitiesVersions.EntityCostGuid).Name</p>
+                                                </td>
+                                                <td class="tdPersonTable hidden">
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Actual</p>
+                                                </td>
+                                                @if (Model[x].StatusError[0] == 0)
+                                                {
+                                                    <td class="tdPersonTable vertical-flex" style='padding-left: 24px !important;'>
+                                                        <p class='green_p'></p>
+                                                    </td>
+                                                }
+                                                @if (Model[x].StatusError[0] == 1)
+                                                {
+                                                    <td class="tdPersonTable vertical-flex" align='center' style='padding-left: 24px !important;'>
+                                                        <p class='red_p'></p>
+                                                    </td>
+                                                }
+                                            </tr>
+                                        }
+
                                 }
                             </tbody>
                         </table>
@@ -126,6 +182,9 @@
 
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
+        document.querySelectorAll('.activeRow').forEach(elem => {
+            elem.classList.remove('hidden')
+        })
         table.search($(this).val()).draw();
     });
 

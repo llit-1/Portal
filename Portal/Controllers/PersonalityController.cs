@@ -49,7 +49,6 @@ namespace Portal.Controllers
                     {
                         List<int> StatusError = new();
                         PersonalityModel model = new PersonalityModel();
-
                         var count = 0;
 
                         List<Guid> temp = new();
@@ -94,6 +93,7 @@ namespace Portal.Controllers
                         model.StatusError = StatusError;
                         model.Personalities = person;
                         model.PersonalitiesVersions = personalityVersion;
+                        model.Entity = dbSql.Entity.ToList();
                         models.Add(model);
                     }
 
@@ -106,6 +106,8 @@ namespace Portal.Controllers
                                                                                      .Include(c => c.Schedule)
                                                                                      .Include(c => c.Entity)
                                                                                      .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.Actual == 1 && c.VersionEndDate == null);
+
+
                     if (personalityVersion != null)
                     {
                         List<int> StatusError = new();
@@ -154,6 +156,7 @@ namespace Portal.Controllers
                         model.StatusError = StatusError;
                         model.Personalities = person;
                         model.PersonalitiesVersions = personalityVersion;
+                        model.Entity = dbSql.Entity.ToList();
                         models.Add(model);
                     }
                 }
@@ -221,7 +224,7 @@ namespace Portal.Controllers
                     personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
                     personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
                     personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
-                    personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
+                    personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                     DateTime now = DateTime.Now;
                     personalityVersion.VersionStartDate = personalityJson.HireDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == newPersonalityGuid);
@@ -253,7 +256,7 @@ namespace Portal.Controllers
                     personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
                     personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
                     personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
-                    personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
+                    personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                     personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                     personalityVersion.Actual = personalityJson.Actual;
@@ -289,7 +292,7 @@ namespace Portal.Controllers
                 personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
                 personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
                 personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
-                personalityVersion.EntityCost = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost);
+                personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                 personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                 personalityVersion.Actual = personalityJson.Actual;
 
@@ -330,7 +333,6 @@ namespace Portal.Controllers
                                                                                       .Include(c => c.Location)
                                                                                       .Include(c => c.JobTitle)
                                                                                       .Include(c => c.Entity)
-                                                                                      .Include(c => c.EntityCost)
                                                                                       .Include(c => c.Schedule)
                                                                                       .Where(c => c.Personalities.Guid == Guid.Parse(typeGuid))
                                                                                       .OrderBy(c => c.VersionStartDate)
@@ -380,6 +382,7 @@ namespace Portal.Controllers
             }
 
             personalityVersionModel.Errors = ErrorsInDAtes;
+            personalityVersionModel.Entity = dbSql.Entity.ToList();
 
             return PartialView(personalityVersionModel);
         }
