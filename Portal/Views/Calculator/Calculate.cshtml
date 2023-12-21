@@ -38,6 +38,8 @@
                     <tr>
                         <th>№</th>
                         <th>Наименование</th>
+                        <th>Время дефроста</th>
+                        <th>Режим выпечки</th>
                         <th>Осталось</th>
                         <th>План</th>
                         <th>Факт</th>
@@ -49,10 +51,12 @@
                         <tr>
                             <td>@(i + 1)</td>
                             <td>@Model.Items[i].ItemOnTT.Item.Name</td>
+                            <td class="defrostTime" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
+                            <td class="bakingMode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
                             <td>
                                 <input class="inputObject" type="text" size='4' oninput='calculate(this)'>
                             </td>
-                            <td class="answer" style="text-align: center" id=@i>0</td>
+                            <td class="answer" style="text-align: center" id=@i>0</td>                            
                             <td class="hidden">
                                 <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
                                 <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
@@ -71,7 +75,7 @@
                                 <input class="nextPeriodCoefficient" value="@Model.NextPeriodCoefficient">
                                 <input class="nextSecondPeriodCoefficient" value="@Model.NextSecondPeriodCoefficient">
                                 <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
-                                <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">                               
+                                <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
                             </td>
                             <td>
                                 <input class="fact" type="text" size='4' oninput='factChange(this)'>
@@ -207,10 +211,6 @@
 
         await sendLog(log);
     }
-</script>
-
-<script>
-
 </script>
 
 <script>

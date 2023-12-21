@@ -11,7 +11,7 @@ namespace Portal.Models.MSSQL
         public string ItemName { get; set; }
         public int TTCode { get; set; }
         public string TTName { get; set; }
-        public int Rest { get; set; }
+        public int? Rest { get; set; }
         public int Result { get; set; }
         public int? Fact { get; set; }
         public DateTime Date { get; set; }

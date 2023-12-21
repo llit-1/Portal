@@ -11,5 +11,7 @@ namespace Portal.Models.MSSQL.Calculator
         public Guid ItemsGroup { get; set; }
         public double Coefficient { get; set; }
         public int Sequence { get; set; }
+        public string DefrostTime { get; set; }
+        public string BakingMode { get; set; }
     }
 }
