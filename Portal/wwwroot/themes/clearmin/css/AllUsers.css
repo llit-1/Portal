@@ -463,20 +463,8 @@
         padding: 1px;
     }
 
-
-    /*.personData {*/
-    /*    width: 85vw;*/
-    /*    justify-content: space-around;*/
-    /*}*/
-
     .titlePersontable {
         margin-top: 40px;
-    }
-
-
-    #personTable {
-        height: fit-content;
-
     }
 
     .text-muted {
@@ -506,4 +494,17 @@
 #divForButtonLocVer {
     margin-top: 20px;
     float: right;
+}
+
+.classForStyles {
+    margin: 0;
+    margin-top: 10px;
+}
+
+#ScheduleGUID:disabled {
+    background: #ededed;
+}
+
+#EntityCostGUID:disabled {
+    background: #ededed;
 }

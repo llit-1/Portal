@@ -102,19 +102,22 @@
                 <label class="label-light">Дата увольнения</label>
                     <input type="date" class="inputPersonData dissDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
 
-                    <label class="label-light">Смена</label>
+                    <label class="label-light">Время смены</label>
                     @* Выбор смены *@
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                         <select required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Schedule.Name">
                             @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
                             {
-                                if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
+                                if (schedule.BeginTime == Model.PersonalitiesVersions.Schedule.BeginTime && schedule.EndTime == Model.PersonalitiesVersions.Schedule.EndTime && schedule.Name == Model.PersonalitiesVersions.Schedule.Name)
                                 {
-                                    <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                    <option selected="selected" value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
                                 }
                                 else
-                                {   
-                                    <option value="@schedule.Guid">@schedule.Name</option>
+                                {
+                                    if (Model.PersonalitiesVersions.Schedule.Name == schedule.Name)
+                                    {
+                                        <option value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
+                                    }
                                 }
                             }
                         </select>
@@ -273,7 +276,7 @@
                     <input required type="date" class="inputPersonData" id="HireDate">
                     <label class="label-light">Дата увольнения</label>
                     <input type="date" class="inputPersonData dissDate" id="DismissalsDate">
-                    <label class="label-light">Смена</label>
+                    <label class="label-light">Время смены</label>
                     @* Выбор смены *@
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                         <select placeholder="Выберите смену" required id="ScheduleGUID" class="inputPersonData" data-width="100%">
@@ -281,7 +284,7 @@
                             {
                                 if (Model.Schedules.FirstOrDefault(g => g.Guid == schedule.Guid) != null)
                                 {
-                                    <option selected="selected" value="@schedule.Guid">@schedule.Name</option>
+                                    <option selected="selected" value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
                                 }
                                 else
                                 {
@@ -375,12 +378,7 @@
     } else {
         $('#back').unbind('click');
         $('#back').click(function () { PersonalityVersions(personGUID, 2) });
-        
     }
-    
-
-        
-    
 
     function clearInputs() {
         // Получаем все элементы input на странице и очищаем их значение
@@ -442,8 +440,10 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
-                    SpinnerShow();
-                    location.hash = '#Personality'
+                    $('#page').load('/Personality/Personality', function () {
+                        location.hash = `#${personGUID}`
+                        SpinnerHide();
+                    });
                 }
                 else {
                     openModal('Ошибка', result)
@@ -455,10 +455,10 @@
 </script>
 
 <script>
-    const HireDate = document.getElementById('HireDate'); // Дата приема на работу
-    const VersionStartDate = document.getElementById('VersionStartDate') // Дата старта версии
-    const VersionEndDate = document.getElementById('VersionEndDate') // Дата старта версии
-    const DismissalsDate = document.getElementById('DismissalsDate') // Дата увольнения
+    const HireDate = document.getElementById('HireDate');
+    const VersionStartDate = document.getElementById('VersionStartDate')
+    const VersionEndDate = document.getElementById('VersionEndDate')
+    const DismissalsDate = document.getElementById('DismissalsDate')
 
     HireDate.addEventListener('input', () => {
         const HireDateValue = HireDate.value;
@@ -466,12 +466,76 @@
         DismissalsDate.min = HireDateValue;
     })
 
+    // Если нет значение даты приема на работу, то вставляем сегодняшее число и ограничиваем рендж даты увольнения
+    if (!HireDate.value) {
+        HireDate.value = "@DateTime.Now.ToString("yyyy-MM-dd")";
+        DismissalsDate.min = "@DateTime.Now.ToString("yyyy-MM-dd")";
+    }
+
+    // Подборка графика по выбранной должности
+    const ScheduleGUID = document.getElementById('ScheduleGUID');
+    const jobTitlePerson = document.getElementById('jobTitlePerson');
+
+    if (!jobTitlePerson.value) { 
+        ScheduleGUID.disabled = true;
+    }
+
+    jobTitlePerson.addEventListener('input', () => {
+        jobTitlePersonValue = jobTitlePerson.options[jobTitlePerson.selectedIndex].text;
+        $.ajax({
+            type: 'POST',
+            url: `/Personality/GetScheduleList?jobTitleName=${jobTitlePersonValue}`,
+            data: { name: jobTitlePersonValue },
+            success: function (data) {
+                ScheduleGUID.disabled = false;
+                let string = '';
+                data.forEach(elem => {
+                    string += `<option selected="selected" value = ${elem.guid} > ${elem.beginTime} - ${elem.endTime} </option>`;
+                })
+                let data1 = data;
+                ScheduleGUID.innerHTML = `${string}`
+            }
+        });
+    })
+
+    // Ограничение минимума конца версии
     VersionStartDate.addEventListener('input', () => {
         VersionEndDate.min = VersionStartDate.value;
     })
-
+    //Ограничение максимума начала версии
     VersionEndDate.addEventListener('input', () => {
         VersionStartDate.max = VersionEndDate.value;
+    })
+
+    // Подборка юр.лица разнесения затрат по выбранному юр.лицу
+    const EntityGUID = document.getElementById('EntityGUID');
+    const EntityCostGUID = document.getElementById('EntityCostGUID');
+
+    if (!EntityGUID.value) {
+        EntityCostGUID.disabled = true;
+    }
+
+    EntityGUID.addEventListener('input', () => {
+        EntityGUIDValue = EntityGUID.options[EntityGUID.selectedIndex].text;
+        $.ajax({
+            type: 'POST',
+            url: `/Personality/GetEntityList?entityName=${EntityGUIDValue}`,
+            data: { name: EntityGUIDValue },
+            success: function (data) {
+                EntityCostGUID.disabled = false;
+                let string = '';
+                if (data.length > 30) { 
+                    data.forEach(elem => {
+                        string += `<option selected="selected" value = ${elem.guid}> ${elem.name} </option>`;
+                    })
+                } else {
+                    data.forEach(elem => {
+                        string += `<option selected="selected" value = ${elem.costEntityGuid} > ${elem.costEntityName} </option>`;
+                    })
+                }
+                EntityCostGUID.innerHTML = `${string}`
+            }
+        });
     })
 </script>
 
@@ -480,7 +544,9 @@
     function editUser() {
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
+        console.log(personGUID)
         const personVersionGUID = document.getElementById('personVersionGUID').value;
+        console.log(personVersionGUID)
         Personality.Guid = personVersionGUID;
         Personality.Name = $('#namePerson').val();
         Personality.Surname = $('#surnamePerson').val();
@@ -510,7 +576,9 @@
             success: function (result) {
                 if (result.ok) {
                     SpinnerShow();
-                    location.hash = '#Personality'
+                    $('#page').load('/Personality/Personality', function () {
+                        location.hash = `#${personGUID}`
+                        SpinnerHide(); });
                 }
                 else {
                     openModal('Ошибка', result.errorMessage)
@@ -521,4 +589,6 @@
             }
         });
     }
+
+    
 </script>

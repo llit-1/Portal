@@ -110,7 +110,7 @@ namespace Portal.Controllers
                                                                         .Include(c => c.JobTitle)
                                                                         .Include(c => c.Schedule)
                                                                         .Include(c => c.Location)
-                                                                        .Where(c => c.VersionStartDate <= date && (c.VersionEndDate == null || c.VersionEndDate >= date) && c.Actual == 1)
+                                                                        .Where(c => c.VersionStartDate <= date && (c.VersionEndDate == null || c.VersionEndDate >= date))
                                                                         .ToList();
 
             TTData tTData = new TTData();
@@ -197,7 +197,7 @@ namespace Portal.Controllers
                     {
                         return ($"Конфликт рабочего времени!\nСотрудник: {timeSheets[i].Personalities.Name}\n" +
                                 $"Уже активен на точке: {checkingTimeSeets[0].Location.Name}\n" +
-                                $"Временной слот {checkingTimeSeets[0].Begin} - {checkingTimeSeets[0].End}");
+                                $"Временной слот {timeSheets[0].Begin} - {timeSheets[0].End}");
                     }
                     selectedDatetime = timeSheets[i].End;
                 }
