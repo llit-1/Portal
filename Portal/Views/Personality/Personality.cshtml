@@ -58,10 +58,10 @@
 
             if (closedPersonality) {
                 SpinnerShow();
-                $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
+                $('#page').load('/Personality/PersonalityTable?showUnActual=1&page=1', function () { SpinnerHide(); });
             } else {
                 SpinnerShow();
-                $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
+                $('#page').load('/Personality/PersonalityTable?showUnActual=0&page=1', function () { SpinnerHide(); });
             }
             
         }   
@@ -145,4 +145,6 @@
             SpinnerHide()
         });
     }
+
+    
 </script>

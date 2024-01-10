@@ -18,7 +18,7 @@ namespace Portal.Models.MSSQL.PersonalityVersions
         public DateTime? DismissalsDate { get; set; }
         public Personality.Schedule? Schedule { get; set; }
         public Personality.Entity? Entity { get; set; }
-        public Personality.Entity? EntityCost { get; set; }
+        public Guid EntityCostGuid { get; set; }
         public DateTime? VersionStartDate { get; set; }
         public DateTime? VersionEndDate { get; set; }
         public Personality.Personality Personalities { get; set; }

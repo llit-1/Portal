@@ -13,5 +13,6 @@ namespace Portal.Models
         public List<PersonalityVersion> PersonalitiesVersions { get; set; }
         public string NewPerson { get; set; }
         public List<Guid> Errors { get; set; }
+        public List<Entity> Entity {  get; set; }
     }
 }

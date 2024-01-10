@@ -31,6 +31,7 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.Personality.Schedule> Schedules { get; set; } // типы смен
         public DbSet<Models.MSSQL.TimeSheet> TimeSheets { get; set; } // типы смен
         public DbSet<Models.MSSQL.Personality.Entity> Entity { get; set; } // ЮЛ
+        public DbSet<Models.MSSQL.Personality.EntityCost> EntityCost { get; set; } // ЮЛ
         public DbSet<SaleObject> SaleObjects { get; set; }
         public DbSet<SaleObjectsAgregators> SaleObjectsAgregators { get; set; }
     }
