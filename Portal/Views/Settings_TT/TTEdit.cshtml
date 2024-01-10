@@ -998,7 +998,9 @@
 <!--сохранить новую тт-->
 <script>
     function SaveNewItem() {
-        divForButtonLocVer.remove();
+        if (document.getElementById('divForButtonLocVer')) {
+            divForButtonLocVer.remove();
+        }
         var tt = {};
         tt.Guid = ttGuid ?? "0";
         if (tt.Guid != "0")
