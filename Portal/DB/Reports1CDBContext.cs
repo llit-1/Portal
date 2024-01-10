@@ -13,7 +13,7 @@ namespace Portal.DB
             base.OnModelCreating(modelBuilder);
         }
 
-        public DbSet<MarriageOnTT> MarriagesOnTT { get; set; } // справочник товаров
-
+        public DbSet<MarriageOnTT> MarriagesOnTT { get; set; } // акты брака
+        public DbSet<ShipmentByGP> ShipmentsByGP { get; set; } // отгрузка
     }
 }

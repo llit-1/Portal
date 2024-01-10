@@ -330,7 +330,6 @@ namespace Portal.Controllers
                             using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
-                                //stream.Flush();
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
                                     FileDownloadName = Report + "(" + Begin + "_" + End + ".xlsx",
@@ -338,6 +337,46 @@ namespace Portal.Controllers
                             }
                         }
                     }
+
+
+                case "Shipment":
+                    {
+                        int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == restaraunt).Obd;
+                        var shipmentsByGP = reports1CSql.ShipmentsByGP.Where(c => c.DateOfShipmentChange >= begin && c.DateOfShipmentChange < end && c.ConsigneeCodeN == obd).ToList();
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Родитель";
+                            worksheet.Cell(1, 2).Value = "Артикул";
+                            worksheet.Cell(1, 3).Value = "Номенклатура";
+                            worksheet.Cell(1, 4).Value = "Количество";
+                            worksheet.Cell(1, 5).Value = "Склад";
+                            worksheet.Cell(1, 6).Value = "Цена заказа";
+                            worksheet.Cell(1, 7).Value = "Дата";
+                            for (int i = 0; i < shipmentsByGP.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = shipmentsByGP[i].Parent;
+                                worksheet.Cell(i + 2, 2).Value = shipmentsByGP[i].Article;
+                                worksheet.Cell(i + 2, 3).Value = shipmentsByGP[i].Nomenclature;
+                                worksheet.Cell(i + 2, 4).Value = shipmentsByGP[i].Quantity;
+                                worksheet.Cell(i + 2, 5).Value = shipmentsByGP[i].Warehouse;
+                                worksheet.Cell(i + 2, 6).Value = shipmentsByGP[i].OrderPrice;
+                                worksheet.Cell(i + 2, 7).Value = shipmentsByGP[i].DateOfShipmentChange;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
+                                };
+                            }
+                        }
+
+                    }
+
+
                 default:
                     return null;
             }
