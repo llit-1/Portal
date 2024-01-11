@@ -87,7 +87,7 @@ namespace Portal.Controllers
 
         public IActionResult PersonalityTable(string showUnActual, string page, string searchItem)
         {
-            if(int.Parse(page) == 0)
+            if(int.Parse(page) == 1)
             {
                 page = "1";
             } else
@@ -143,7 +143,7 @@ namespace Portal.Controllers
             // всего страниц
             int maxPage = (int)Math.Ceiling((double)countPage / 30);
             // сколько страниц осталось относительно текущей
-            int pageLeft = maxPage - int.Parse(page) + 1;
+            int pageLeft = maxPage - int.Parse(page);
 
             foreach (var person in personalities)
             {
@@ -171,7 +171,14 @@ namespace Portal.Controllers
 
                 PersonalityModel model = new PersonalityModel();
                 model.maxPage = maxPage;
-                model.currentPage = int.Parse(page) - 1;
+                if(int.Parse(page) == 1)
+                {
+                    model.currentPage = int.Parse(page);
+                } else
+                {
+                    model.currentPage = int.Parse(page) - 1;
+                }
+                
                 model.StatusError = checkError(personalityVersion, person);
                 model.Personalities = person;
                 model.PersonalitiesVersions = personalityVersion;
@@ -184,7 +191,6 @@ namespace Portal.Controllers
         [HttpGet]
         public IActionResult GetData()
         {
-            // Здесь реализуйте логику получения данных, начиная с skip и взятием take записей.
             List<PersonalityModel> models = new List<PersonalityModel>();
             List<Personality> personalities = dbSql.Personalities.Skip(30).ToList();
             foreach (var person in personalities)
@@ -199,13 +205,11 @@ namespace Portal.Controllers
 
                 PersonalityModel model = new PersonalityModel();
 
-                
-
                 model.StatusError = checkError(personalityVersion, person);
                 model.Personalities = person;
                 model.PersonalitiesVersions = personalityVersion;
-
                 model.Entity = dbSql.Entity.ToList();
+
                 models.Add(model);
             }
 

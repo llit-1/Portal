@@ -300,20 +300,23 @@ namespace Portal.Controllers
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
                 calculatorLog.Date = DateTime.Now;
                 calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
+                var httpClient = _httpClientFactory.CreateClient();
+                string microserviceUrl = "http://rknet-server:45732/Buffer";
+                HttpResponseMessage response = httpClient.PostAsJsonAsync(microserviceUrl, calculatorLog).Result;
+
+                /*logjsn = logjsn.Replace("%bkspc%", " ");
+                CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
+                calculatorLog.Date = DateTime.Now;
+                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
                 dbSql.CalculatorLogs.Add(calculatorLog);
                 CalculatorLogTest calculatorLogsTest = new CalculatorLogTest(calculatorLog);
                 dbSql.CalculatorLogsTest.Add(calculatorLogsTest);
-                dbSql.SaveChanges();
+                dbSql.SaveChanges();*/
             }
             catch (Exception ex)
             {
                 logjsn = logjsn.Replace("%bkspc%", " ");
-                CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
-                calculatorLog.Date = DateTime.Now;
-                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
-                var httpClient = _httpClientFactory.CreateClient();
-                string microserviceUrl = "http://rknet-server:45732/Buffer";
-                HttpResponseMessage response = httpClient.PostAsJsonAsync(microserviceUrl, calculatorLog).Result;
+                WriteErrorToLogFile(logjsn);
 
                 return new ObjectResult(result);
             }

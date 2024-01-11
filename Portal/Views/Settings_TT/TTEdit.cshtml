@@ -1634,7 +1634,7 @@
         var helper1 = "0";
         var guidLocation = "";
     }
-    @if(Model?.LocationVersion?.Count > 1)
+    @if(Model?.LocationVersion?.Count > 0)
     {
         helper1 = "1";
         checkparam = Model?.LocationVersion[0]?.Name?.ToString();
@@ -1648,6 +1648,7 @@
     {
         $('#buttonLocVer').click(function () {
             divForButtonLocVer.remove();
+            console.log()
             loadTTTableVersion('@guidLocation', locName)
         })
     } else {

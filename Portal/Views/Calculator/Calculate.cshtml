@@ -38,8 +38,8 @@
                     <tr>
                         <th>№</th>
                         <th>Наименование</th>
-                        <th>Время дефроста</th>
-                        <th>Режим выпечки</th>
+                        <th class="defrostTime">Время дефроста</th>
+                        <th class="bakingMode">Режим выпечки</th>
                         <th>Осталось</th>
                         <th>План</th>
                         <th>Факт</th>
@@ -183,7 +183,7 @@
 
 <script>
     async function WriteLog(log) {
-        let attempts = 0;
+        /*let attempts = 0;
         const maxAttempts = 10;
         const timeout = 3000;
 
@@ -210,13 +210,55 @@
         }
 
         await sendLog(log);
+        */
+
+        var logjsn = JSON.stringify(log);
+        logjsn = logjsn.replace(/ /g, "%bkspc%"); // экранирование пробелов
+
+        try {
+            await $.ajax({
+                type: "POST",
+                url: '/Calculator/LogSave',
+                data: { logjsn: logjsn },
+                dataType: "text",
+                success: function (result) {
+                    if (!result.ok) {
+                        openModal('Ошибка', "Ошибка контроллера. Попробуйте повторить попытку позже");
+                    }
+                },
+            });
+        } catch {
+            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+        }
     }
 </script>
 
 <script>
-    function ttbutClick(thisBut){
-     let butref = '/Calculator/Calculate?typeGuid=' + '@Html.Raw(Model.ItemsGroup.Guid)' + '&tt=' + thisBut.id
-     loadContent(location.hash.replace('#', ''), butref)
+    function ttbutClick(thisBut) {
+        let butref = '/Calculator/Calculate?typeGuid=' + '@Html.Raw(Model.ItemsGroup.Guid)' + '&tt=' + thisBut.id
+        loadContent(location.hash.replace('#', ''), butref)
     }
+</script>
+
+<!-- Логика добавления\удаление столбцов на телефоне -->
+<script>
+    const defrostTime = document.querySelectorAll('.defrostTime');
+    const bakingMode = document.querySelectorAll('.bakingMode');
+    let width = document.body.clientWidth;
+    hideOrShow();
+
+    function hideOrShow() {
+        if (width < 490) {
+            defrostTime.forEach(x => x.classList.add('hidden'))
+            bakingMode.forEach(x => x.classList.add('hidden'))
+        } else {
+            defrostTime.forEach(x => x.classList.remove('hidden'))
+            bakingMode.forEach(x => x.classList.remove('hidden'))
+        }
+    }
+
+    window.addEventListener('resize', (e) => {
+        hideOrShow()
+    })
 </script>
 <!-------------------------------------------------------------------->
