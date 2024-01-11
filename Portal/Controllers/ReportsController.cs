@@ -53,7 +53,7 @@ namespace Portal.Controllers
             log.Description = "/Reports/ProfitFree";
             log.IpAdress = HttpContext.Session.GetString("ip");
             log.Save();
-
+            SettingsInternal.lastUser = User.Identity.Name;
             return PartialView(reportsView);
         }
 
