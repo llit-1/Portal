@@ -315,15 +315,15 @@ namespace Portal.Controllers
             }
             catch (Exception ex)
             {
-                logjsn = logjsn.Replace("%bkspc%", " ");
-                WriteErrorToLogFile(logjsn);
+                logjsn = logjsn.Replace("%bkspc%", " ");                
+                WriteErrorToLogFile(logjsn, ex.Message);
                 result.Ok = false;
                 return new ObjectResult(result);
             }
             return new ObjectResult(result);
         }
 
-        static void WriteErrorToLogFile(string logjsn)
+        static void WriteErrorToLogFile(string logjsn, string error)
         {
             string errorLogFilePath = "errorLog.txt";
 
@@ -332,6 +332,7 @@ namespace Portal.Controllers
             {
                 writer.WriteLine($"Время ошибки: {DateTime.Now}");
                 writer.WriteLine($"Данные из JSON: {logjsn}");
+                writer.WriteLine(error);
                 writer.WriteLine(new string('-', 50));
             }
 
