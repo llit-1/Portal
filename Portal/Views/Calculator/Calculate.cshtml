@@ -244,11 +244,11 @@
 <script>
     const defrostTime = document.querySelectorAll('.defrostTime');
     const bakingMode = document.querySelectorAll('.bakingMode');
-    let width = document.body.clientWidth;
     hideOrShow();
 
     function hideOrShow() {
-        if (width < 490) {
+        let width = document.body.clientWidth;
+        if (width < 490) { 
             defrostTime.forEach(x => x.classList.add('hidden'))
             bakingMode.forEach(x => x.classList.add('hidden'))
         } else {
