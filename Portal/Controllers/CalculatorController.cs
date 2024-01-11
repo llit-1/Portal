@@ -317,7 +317,7 @@ namespace Portal.Controllers
             {
                 logjsn = logjsn.Replace("%bkspc%", " ");
                 WriteErrorToLogFile(logjsn);
-
+                result.Ok = false;
                 return new ObjectResult(result);
             }
             return new ObjectResult(result);

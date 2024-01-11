@@ -222,7 +222,8 @@
                 data: { logjsn: logjsn },
                 dataType: "text",
                 success: function (result) {
-                    if (!result.ok) {
+                    const ok = JSON.parse(result)
+                    if (!ok.ok) {
                         openModal('Ошибка', "Ошибка контроллера. Попробуйте повторить попытку позже");
                     }
                 },
