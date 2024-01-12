@@ -53,7 +53,24 @@ namespace Portal.Controllers
             log.Description = "/Reports/ProfitFree";
             log.IpAdress = HttpContext.Session.GetString("ip");
             log.Save();
-            SettingsInternal.lastUser = User.Identity.Name;
+            try
+            {
+                if (dbSql.LastUser.FirstOrDefault() == null)
+                {
+                    dbSql.LastUser.Add(new Models.MSSQL.LastUser { User = User.Identity.Name });
+                }
+                else
+                {
+                    dbSql.LastUser.FirstOrDefault().User = User.Identity.Name;
+                }               
+                dbSql.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+           
             return PartialView(reportsView);
         }
 

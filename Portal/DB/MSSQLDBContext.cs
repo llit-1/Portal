@@ -34,5 +34,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.Personality.EntityCost> EntityCost { get; set; } // ЮЛ
         public DbSet<SaleObject> SaleObjects { get; set; }
         public DbSet<SaleObjectsAgregators> SaleObjectsAgregators { get; set; }
+        public DbSet<LastUser> LastUser { get; set; }
     }
 }

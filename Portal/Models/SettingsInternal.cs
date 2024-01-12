@@ -8,12 +8,11 @@ namespace Portal.Models
     public class SettingsInternal
     {
         // Версия
-        public static string portalVersion = "2.14.6.9";
+        public static string portalVersion = "2.14.6.10";
 
         // Текущая конфигурация приложения
         public static Microsoft.Extensions.Configuration.IConfiguration Configuration;
 
-        public static string lastUser = "Иванов Иван Иванович";
         
 
         // ЗАКАЗЫ ---------------------------------------
