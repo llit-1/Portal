@@ -65,7 +65,8 @@
                         <tr class="row-group-01" id="rowTracking mainTR_@tt.Location.Guid" style="vertical-align: middle;">
                             <td style="vertical-align: middle;" width=30% ><label><input class="hidden" type="checkbox" id="@tt.Location.Guid"><b>@tt.Location.Name</b></label></td>
                             <td style="vertical-align: middle;" id="tdcell" width=20%></td>
-                            <td style="vertical-align: middle;" align="right" colspan="1" width=20%></td>
+                            <td style="vertical-align: middle;" id="tdcell" width=5%></td>
+                            <td style="vertical-align: middle;" align="right" colspan="1" width=10%></td>
                         </tr>
                         <!--Даты-->
                         @foreach (var day in tt.DateDatas)
@@ -95,7 +96,8 @@
                                 <td style="vertical-align: middle;" align="left"><label id="IdForGetDate"><input class="hidden" type="checkbox" id='@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>@day.Date.ToString("dd-MM-yyyy")</label></td>
                                 <td style="vertical-align: middle;" align="center"> @countPerson</td>
                                 <td class="hidden">@tt.Location.Guid</td>
-                                <td style="vertical-align: middle;" align="right"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
+                                <td style="vertical-align: middle;" align="right"><label class="md-assessment ico ClassForGetDate trackTableView" onclick="loadTask(this, event)"></label></td>
+                                <td style="vertical-align: middle;" align="center"><label class="md-edit ico ClassForGetDate" onclick="loadTracking(this)"></label></td>
                             </tr>
                             <!--Сотрудники-->
                             @foreach (var person in day.TimeSheets.OrderBy(g => g.Personalities.Name))
@@ -104,6 +106,7 @@
                                     <td class="hidden">@person.Guid</td>
                                     <td style="vertical-align: middle;" align="left">@person.Personalities.Name</td>
                                     <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitle.Name</td>
+                                    <td style="text-align:center; vertical-align: middle;" align="center"></td>
                                     <td align="right">@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
                                 </tr>
                             } 
@@ -153,7 +156,6 @@
 
     let date = str.parentElement.parentElement.children[0].children[0].textContent;
             let guid = str.parentElement.parentElement.children[2].textContent;
-            event.stopPropagation()
             p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
             $('#page').load(p);
             $('#loading').show();
@@ -288,4 +290,180 @@
         autoScreenLoad();
         $('#loading').hide();  
     });
+</script>
+
+<script>
+    window.addEventListener('resize', () => {
+        if(window.innerWidth < 1020) {
+            document.querySelectorAll('.trackTableView').forEach(elem => elem.classList.add('hidden'))
+        } else {
+            document.querySelectorAll('.trackTableView').forEach(elem => elem.classList.remove('hidden'))
+        }
+    })
+
+    @* function showTooltip(item) {
+        item.children[0].classList.remove('hidden')
+    }
+
+    function hideTooltip(item) {
+        item.children[0].classList.add('hidden')
+    } *@
+
+    function loadTask(item, event) {
+        event.stopPropagation();
+        event.preventDefault();
+        // Собираем информацию по выбранному дню
+        const guid = item.parentElement.parentElement.children[0].children[0].children[0].id;
+        const guidDay = ".person_" + guid;
+        const listPerson = document.querySelectorAll(guidDay);
+        const personArr = [];
+        listPerson.forEach(person => {
+            const obj = {};
+            obj.name = person.children[1].textContent.trim();
+            obj.jobTitle = person.children[2].textContent.trim();
+            obj.time = person.children[4].textContent.trim();
+            personArr.push(obj)
+        })
+    
+        // Создаем элемент modalWindow
+        const modalWindow = document.createElement('div');
+        modalWindow.id = 'modalWindow';
+        modalWindow.classList.add('modalWindow');
+
+        // Создаем элемент centerMainTable
+        const centerMainTable = document.createElement('div');
+        centerMainTable.classList.add('centerMainTable');
+
+        // Создаем элемент mainTabel
+        let mainTabel = document.createElement('div');
+        mainTabel.classList.add('antiPropagation');
+        mainTabel.id = 'mainTabel';
+
+        // Добавляем mainTabel в centerMainTable
+        centerMainTable.appendChild(mainTabel);
+
+        // Добавляем centerMainTable в modalWindow
+        modalWindow.appendChild(centerMainTable);
+
+        // Добавляем modalWindow в контейнер
+        document.getElementById('global').appendChild(modalWindow);
+        
+        mainTabel = document.getElementById('mainTabel');
+        
+        if (personArr.length) {
+            const ddTabel = document.createElement('div');
+            ddTabel.classList.add('days');
+            ddTabel.classList.add('antiPropagation');
+            mainTabel.appendChild(ddTabel);
+
+            for (let i = 0; i < personArr.length; i++) {
+                let tableindex = document.createElement('div');
+                tableindex.classList.add(`tabel_${i}`);
+                tableindex.classList.add('antiPropagation');
+                tableindex.classList.add('tabel');
+                
+                let tablenameindex = document.createElement('div');
+                tablenameindex.classList.add(`name_${i}`);
+                tablenameindex.classList.add('name');
+                tablenameindex.classList.add('antiPropagation');
+                tablenameindex.textContent = personArr[i].name;
+
+                let tabletimeindex = document.createElement('div');
+                tabletimeindex.classList.add(`time_${i}`);
+                tabletimeindex.classList.add(`time`);
+                tabletimeindex.classList.add('antiPropagation');
+                
+                tableindex.appendChild(tablenameindex);
+                tableindex.appendChild(tabletimeindex);
+
+                mainTabel.appendChild(tableindex);
+            }
+
+            const daysBlock = document.querySelector('.days');
+            
+            for (let i = 0; i <= 23; i++) {
+                daysBlock.innerHTML += `<div id='hour_${i}' class='day antiPropagation'>${i}</div>`
+            }
+
+            let maxWidth = document.querySelector('.days').clientWidth;
+
+            let widthText = 250;
+            let totalWidth = maxWidth - widthText;
+            let widthForEachHour = totalWidth / 23;
+            let widthForEachMinute = widthForEachHour / 60;
+            document.querySelectorAll('.day').forEach(x => x.style.width = `${widthForEachHour}px`)
+
+            function sharp(time, widthForEachHour) {
+                for (let i = 0; i <= 24; i++) {
+                    document.querySelector('.days').innerHTML += `<span class='verticalLine antiPropagation'></span>`;
+                    time.innerHTML += `<span class='verticalLine antiPropagation'></span>`
+                }
+                const line = document.querySelectorAll('.verticalLine');
+                let count = 0;
+                line.forEach((x) => {
+                    if (count > widthForEachHour * 24) {
+                        count = 0
+                    }
+
+                    x.style.paddingLeft = `${count}px`;
+                    count += widthForEachHour;
+                })
+            }
+
+            for (let i = 0; i < personArr.length; i++) {
+                let fullTime = personArr[i].time;
+                //Получаем стартовый час
+                let startTimeHours = +(fullTime.split(' ')[0].split(':')[0]);
+                //Получаем стартовую минуту
+                let startTimeMinutes = +(fullTime.split(' ')[0].split(':')[1]);
+                //Получаем конечный час
+                let endTimeHours = +(fullTime.split(' ')[2].split(':')[0]);
+                if (endTimeHours == 0) {
+                    endTimeHours = 24
+                }
+                //Получаем конечную минуту
+                let endTimeMinutes = +(fullTime.split(' ')[2].split(':')[1]);
+
+                let time = document.querySelector(`.time_${i}`);
+                time.innerHTML = `
+                <div class='lineTime antiPropagation' style="z-index: ${i+3}">
+                    <b class='antiPropagation'>${personArr[i].jobTitle}</b>
+                </div>
+                    @* <div class='lineTime' style="z-index: ${i+3}" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
+                        <div class="tooltipModal hidden" id="myTooltip">
+                            <b>${personArr[i].name}</b>
+                            ${personArr[i].time}
+                        </div>
+                    </div> *@
+                `
+                let timeLine = document.querySelectorAll('.lineTime');
+
+                // Отступ полоски времени
+                let timeWidth = startTimeHours * widthForEachHour;
+                // Определяем отступ с учетом минут
+                timeWidth = timeWidth + (startTimeMinutes * widthForEachMinute);
+                // Ширина полоски времени
+                let widthWithHours = ((endTimeHours * widthForEachHour) - (startTimeHours * widthForEachHour)) - (startTimeMinutes * widthForEachMinute) + (endTimeMinutes * widthForEachMinute);
+
+                timeLine[i].style.marginLeft = `${timeWidth}px`;
+                timeLine[i].style.width = `${widthWithHours}px`;
+                sharp(time, widthForEachHour)
+                }
+        } else {
+            mainTabel.innerHTML += `<bold class='antiPropagation'>Нет смен для отображения</bold>`
+            mainTabel.style.border = 'none';
+        }
+        document.getElementById('modalWindow').addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('modalWindow').remove();
+        })
+
+        document.querySelectorAll('.antiPropagation').forEach(elem => {
+            elem.addEventListener('click', e => {
+                e.stopPropagation();
+                e.preventDefault();
+            })
+        })
+    }
 </script>
