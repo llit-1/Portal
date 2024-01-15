@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace Portal.Models
     public class SettingsInternal
     {
         // Версия
-        public static string portalVersion = "2.14.6.10";
+        public static string portalVersion = "2.14.6.11";
 
         // Текущая конфигурация приложения
         public static Microsoft.Extensions.Configuration.IConfiguration Configuration;
