@@ -54,7 +54,7 @@
                             <td class="defrostTime" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
                             <td class="bakingMode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
                             <td>
-                                <input class="inputObject" type="text" size='4' oninput='calculate(this)'>
+                                <input class="inputObject" maxlength="4" type="text" size='4' oninput='calculate(this)'>
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>                            
                             <td class="hidden">
@@ -78,7 +78,7 @@
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
                             </td>
                             <td>
-                                <input class="fact" type="text" size='4' oninput='factChange(this)'>
+                                <input class="fact" maxlength="4" type="text" size='4' oninput='factChange(this)'>
                             </td>
                         </tr>
                     }
