@@ -325,10 +325,10 @@
             personArr.push(obj)
         })
     
-        // Создаем элемент modalWindow
-        const modalWindow = document.createElement('div');
-        modalWindow.id = 'modalWindow';
-        modalWindow.classList.add('modalWindow');
+        // Создаем элемент modalWindowTracking
+        const modalWindowTracking = document.createElement('div');
+        modalWindowTracking.id = 'modalWindowTracking';
+        modalWindowTracking.classList.add('modalWindowTracking');
 
         // Создаем элемент centerMainTable
         const centerMainTable = document.createElement('div');
@@ -342,11 +342,11 @@
         // Добавляем mainTabel в centerMainTable
         centerMainTable.appendChild(mainTabel);
 
-        // Добавляем centerMainTable в modalWindow
-        modalWindow.appendChild(centerMainTable);
+        // Добавляем centerMainTable в modalWindowTracking
+        modalWindowTracking.appendChild(centerMainTable);
 
-        // Добавляем modalWindow в контейнер
-        document.getElementById('global').appendChild(modalWindow);
+        // Добавляем modalWindowTracking в контейнер
+        document.getElementById('global').appendChild(modalWindowTracking);
         
         mainTabel = document.getElementById('mainTabel');
         
@@ -429,13 +429,15 @@
                 <div class='lineTime antiPropagation' style="z-index: ${i+3}">
                     <b class='antiPropagation'>${personArr[i].jobTitle}</b>
                 </div>
+
                     @* <div class='lineTime' style="z-index: ${i+3}" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
                         <div class="tooltipModal hidden" id="myTooltip">
                             <b>${personArr[i].name}</b>
                             ${personArr[i].time}
                         </div>
-                    </div> *@
-                `
+                    </div> 
+                `*@
+
                 let timeLine = document.querySelectorAll('.lineTime');
 
                 // Отступ полоски времени
@@ -453,10 +455,10 @@
             mainTabel.innerHTML += `<bold class='antiPropagation'>Нет смен для отображения</bold>`
             mainTabel.style.border = 'none';
         }
-        document.getElementById('modalWindow').addEventListener('click', e => {
+        document.getElementById('modalWindowTracking').addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
-            document.getElementById('modalWindow').remove();
+            document.getElementById('modalWindowTracking').remove();
         })
 
         document.querySelectorAll('.antiPropagation').forEach(elem => {
@@ -465,5 +467,7 @@
                 e.preventDefault();
             })
         })
+
     }
+
 </script>

@@ -1,4 +1,4 @@
-﻿#modalWindow {
+﻿#modalWindowTracking {
     position: fixed;
     width: 100vw;
     height: fit-content;
@@ -11,7 +11,7 @@
     justify-content: center;
 }
 
-    #modalWindow > .divHeader {
+    #modalWindowTracking > .divHeader {
         display: flex;
         justify-content: space-between;
         width: 100%;
@@ -23,9 +23,9 @@
         border-bottom: 1px solid #808080;
     }
 
-#modalWindow > .divHeader > div {
-    width: 80%;
-}
+        #modalWindowTracking > .divHeader > div {
+            width: 80%;
+        }
 
 #mainTabel > span {
     font-size: 28px;
