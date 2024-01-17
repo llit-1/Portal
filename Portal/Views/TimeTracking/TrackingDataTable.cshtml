@@ -137,10 +137,9 @@
             $(items).each(function () {
                 var check01 = $(this).children('td').children('label').children('input');
                 var items01 = '.person_' + $(check01).attr('id');
-                if ($(check01).prop('checked')) {
+                    
                     $(check01).prop('checked', false);
                     $(items01).addClass('hidden');
-                }
             });
 
             $(check).prop('checked', false);
@@ -404,7 +403,6 @@
                     if (count > widthForEachHour * 24) {
                         count = 0
                     }
-
                     x.style.paddingLeft = `${count}px`;
                     count += widthForEachHour;
                 })
@@ -435,8 +433,8 @@
                             <b>${personArr[i].name}</b>
                             ${personArr[i].time}
                         </div>
-                    </div> 
-                `*@
+                    </div> *@
+                `
 
                 let timeLine = document.querySelectorAll('.lineTime');
 
