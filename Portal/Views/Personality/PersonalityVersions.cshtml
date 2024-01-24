@@ -265,3 +265,16 @@
             }
         }
 </script>
+
+@* Возврат пользователя на старницу с настраиваемым сотрудником *@
+<script>
+    let currentPage = '@Model.CurrentPage';
+    let searchItem = '';
+    
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        $('#header').text('Пользователи');
+        $('#tableMenu').show();
+        $('#page').load(`/Personality/PersonalityTable?showUnActual=1&page=${currentPage}&searchItem=${searchItem}`, function () {});
+    });
+</script>

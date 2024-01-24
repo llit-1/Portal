@@ -12,8 +12,8 @@
                         <table class="data-table nowrap" id="tableDataPerson" > 
                             <thead>
                                 <tr>
-                                    <th>Имя</th>
                                     <th>Фамилия</th>
+                                    <th>Имя</th>
                                     <th>Отчество</th>
                                     <th>Дата рождения</th>
                                     <th>Должность</th>
@@ -32,10 +32,10 @@
                                 {
                                             <tr id="@Model[x].Personalities.Guid" class="activeRow">
                                                 <td class="tdPersonTable">
-                                                    <p class="list-item-heading userName">@Model[x].PersonalitiesVersions.Name</p>
+                                                    <p class="list-item-heading">@Model[x].PersonalitiesVersions.Surname</p>
                                                 </td>
                                                 <td class="tdPersonTable">
-                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.Surname</p>
+                                                    <p class="userName text-muted">@Model[x].PersonalitiesVersions.Name</p>
                                                 </td>
                                                 <td class="tdPersonTable">
                                                     <p class="text-muted">@Model[x].PersonalitiesVersions.Patronymic</p>
@@ -67,6 +67,7 @@
                                                 <td class="tdPersonTable hidden">
                                                     <p class="text-muted">@Model[x].PersonalitiesVersions.Actual</p>
                                                 </td>
+                                                
                                                 @if (Model[x].StatusError[0] == 0)
                                                 {
                                                     <td class="tdPersonTable vertical-flex" style='padding-left: 24px !important;'>
@@ -96,8 +97,10 @@
     </div>
 </div>
 
+@*Добавление блока с пагинацией*@
 <ul id="logPages" class="pagination shadowed classForStyles">
     <li id="leftPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-left"></i></span></a></li>
+    @*Вычисление кол-ва страниц и выбор активной*@
     @{
         var numPages = 1;
         var totalPages = 1;
@@ -138,28 +141,20 @@
 
 
 <script>
-    //if (document.getElementById("logPages").children.length > 2) { 
-        // Обработка нажатий на номер страницы
-        var selectedPage = "@Model[0].currentPage";
-        var numPages = @Html.Raw(Json.Serialize(numPages));
-        var totalPages = "@Model[0].maxPage";
-        var firstPage = @Html.Raw(Json.Serialize(firstPage));
-        var lastPage = @Html.Raw(Json.Serialize(lastPage));
-    //}
-        
-    
-    
+    var selectedPage = "@Model[0].currentPage";
+    var numPages = @Html.Raw(Json.Serialize(numPages));
+    var totalPages = "@Model[0].maxPage";
+    var firstPage = @Html.Raw(Json.Serialize(firstPage));
+    var lastPage = @Html.Raw(Json.Serialize(lastPage));
 
-    // выбор номера страницы
+    // Получение номера станрницы на которую тыкнули
     $('#logPages').children('li').children('a').click(function () {
-
         if (!$(this).parent('li').hasClass('ignore')) {
             if (!$(this).parent('li').hasClass('active')) {
                 selectedPage = $(this).text();
                 $('#logPages').children('li').removeClass('active');
                 $(this).parent('li').addClass('active');
                 let a = $(this).parent('li')
-                
                 GetData(selectedPage);
             }
         }
@@ -167,9 +162,6 @@
 
     // перемотка номеров вправо
     $('#rightPages').click(function () {
-        console.log(lastPage)
-        console.log(totalPages)
-        console.log(numPages)
         if (lastPage < totalPages) {
             let i = 1;
             while (i <= numPages) {
@@ -189,7 +181,6 @@
             firstPage = firstPage + numPages;
             lastPage = lastPage + numPages;
         }
-
     });
 
     // перемотка номеров влево
@@ -201,7 +192,6 @@
                 var pageNumber = firstPage - i;
                 var id = "#page_" + i;
                 $(id).text(pageNumber);
-
                 if (pageNumber < 1) $(id).hide();
                 else {
                     $(id).show();
@@ -212,9 +202,11 @@
             }
             firstPage = firstPage + numPages;
             lastPage = lastPage + numPages;
+            $(`#page_1`).click();
         }
-
     });
+
+    
 </script>
 
 
@@ -244,6 +236,7 @@
 
 <!--инициализация таблицы-->
 <script>
+    // Функция откладки поиска сотрудника в таблице
     function debounce(func, delay) {
         let timer;
         return function () {
@@ -288,7 +281,6 @@
                 SpinnerHide();
             },
             error: function (error) {
-                console.log(document.getElementById("tablePerson"))
                 document.getElementById("tablePerson").innerHTML = `<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">Совпадений не найдено</td></tr>`;
             }
         });
@@ -310,8 +302,6 @@
     $('#buttonAdd').click(function () {
         AddItem(0, 1)
     })
-    
-    
 </script>
 
 @* Выделение ряда неактивного пользователя *@
@@ -330,11 +320,8 @@
         }
     }
 
-    if(location.hash != '#Personality') {
-        $('#page').load(`/Personality/PersonalityVersions?typeGuid=${location.hash.split('#')[1]}&newPerson=2`, function () {
-            SpinnerHide();
-        });
-    }
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#staff" });
 </script>
 
 

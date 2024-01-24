@@ -33,6 +33,7 @@ namespace Portal.Controllers
             return PartialView();
         }
 
+        /* Проверка дат на пересечение и прочие ошибки */
         public List<int> checkError(PersonalityVersion personalityVersion, Personality person)
         {
             List<int> StatusError = new();
@@ -84,29 +85,22 @@ namespace Portal.Controllers
             return StatusError;
         }
 
-
+        /* Отображение таблицы с сотрудниками, принимает актуальность, номер страницы и\или отдельно взятого пользователя */
         public IActionResult PersonalityTable(string showUnActual, string page, string searchItem)
         {
             if(int.Parse(page) == 1)
             {
                 page = "1";
-            } else
-            {
-                page = (int.Parse(page) + 1).ToString();
             }
-            List<PersonalityModel> models = new List<PersonalityModel> ();
-            
-            // Выбор нужных записей для страницы
-            List<Personality> personalities;
 
+            // Выбор нужных записей для страницы
+            List<PersonalityModel> models = new List<PersonalityModel> ();
+            List<Personality> personalities;
+            
+            /* Считаем кол-во уникальных сотрудников */
             int countPage = dbSql.Personalities.Count();
 
-            // Если записей будет меньше чем предполагалось
-            if( (int.Parse(page) * 30) > countPage)
-            {
-                page = (int.Parse(page) - 1).ToString();
-            }
-
+            /* Расчет необходимых данных для страницы */
             if (searchItem == null)
             { 
                 personalities = dbSql.Personalities.Skip((int.Parse(page) - 1) * 30).Take(30).OrderBy(x => x.Name).ToList();
@@ -137,8 +131,6 @@ namespace Portal.Controllers
                 }
                 
             }
-
-            // всего записей
             
             // всего страниц
             int maxPage = (int)Math.Ceiling((double)countPage / 30);
@@ -150,35 +142,16 @@ namespace Portal.Controllers
                 PersonalityVersion personalityVersion;
 
                 // Выбор записей для активных \ не активных пользователей
-                if (showUnActual == "1")
-                {
-                    personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
-                                                                  .Include(c => c.Location)
-                                                                  .Include(c => c.Personalities)
-                                                                  .Include(c => c.Schedule)
-                                                                  .Include(c => c.Entity)
-                                                                  .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.VersionEndDate == null);
-                }
-                else
-                {
-                    personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle) 
-                                                                  .Include(c => c.Location)
-                                                                  .Include(c => c.Personalities)
-                                                                  .Include(c => c.Schedule)
-                                                                  .Include(c => c.Entity)
-                                                                  .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.Actual == 1 && c.VersionEndDate == null);
-                }                
+                personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
+                                                              .Include(c => c.Location)
+                                                              .Include(c => c.Personalities)
+                                                              .Include(c => c.Schedule)
+                                                              .Include(c => c.Entity)
+                                                              .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.VersionEndDate == null);             
 
                 PersonalityModel model = new PersonalityModel();
                 model.maxPage = maxPage;
-                if(int.Parse(page) == 1)
-                {
-                    model.currentPage = int.Parse(page);
-                } else
-                {
-                    model.currentPage = int.Parse(page) - 1;
-                }
-                
+                model.currentPage = int.Parse(page);
                 model.StatusError = checkError(personalityVersion, person);
                 model.Personalities = person;
                 model.PersonalitiesVersions = personalityVersion;
@@ -188,34 +161,7 @@ namespace Portal.Controllers
             return PartialView(models.ToList());
         }
 
-        [HttpGet]
-        public IActionResult GetData()
-        {
-            List<PersonalityModel> models = new List<PersonalityModel>();
-            List<Personality> personalities = dbSql.Personalities.Skip(30).ToList();
-            foreach (var person in personalities)
-            {
-                PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
-                                                                                     .Include(c => c.Location)
-                                                                                     .Include(c => c.Personalities)
-                                                                                     .Include(c => c.Schedule)
-                                                                                     .Include(c => c.Entity)
-                                                                                     .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.Actual == 1 && c.VersionEndDate == null);
-
-
-                PersonalityModel model = new PersonalityModel();
-
-                model.StatusError = checkError(personalityVersion, person);
-                model.Personalities = person;
-                model.PersonalitiesVersions = personalityVersion;
-                model.Entity = dbSql.Entity.ToList();
-
-                models.Add(model);
-            }
-
-            return Json(models);
-        }
-
+        /* Редактирование карточки сотрудника */
         public IActionResult PersonalityEdit(string typeGuid, string newPerson)
         {
             PersonalityEditModel model = new();
@@ -229,6 +175,7 @@ namespace Portal.Controllers
                                                               .Include(c => c.Personalities)
                                                               .Include(c => c.Entity)
                                                               .FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+
                 model.PersonalitiesVersions = personalityVersion;
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
             }
@@ -263,9 +210,11 @@ namespace Portal.Controllers
             model.Locations = dbSql.Locations.ToList();
             model.JobTitles = dbSql.JobTitles.ToList();
             model.Entity = dbSql.Entity.ToList();
+            //model.CurrentPage = getUserPage(model.PersonalitiesVersions.Personalities.Guid.ToString());
             return PartialView(model);
         }
 
+        /* Получение списка зависимостей Должностей\Тайм-слотов */
         [HttpPost]
         public IActionResult GetScheduleList(string jobTitleName)
         {
@@ -273,31 +222,17 @@ namespace Portal.Controllers
             return Json(result);
         }
 
-        [HttpPost]
-        public IActionResult GetEntityList(string entityName)
-        {
-            var result = dbSql.EntityCost.Where(x => x.EntityName == entityName).OrderBy(x => x.EntityName).ToList();
-            if (result == null || result.Count < 1)
-            {
-                var result2 = dbSql.Entity.ToList();
-                return Json(result2);
-            }
-            else
-            {
-                return Json(result);
-            }
-        }
-
-
+        /* Добавление сотрудника */
         public IActionResult PersonalityAdd(string json)
         {
-            var result = new RKNet_Model.Result<string>();
+            var result = new Result<string>();
             try
             {
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
                 if (personalityJson.NewPerson == "1")
                 {
-                    Models.MSSQL.Personality.Personality personality = new Personality();
+                    /* Добавление нового сотрудника и его первой версии */
+                    Personality personality = new Personality();
                     personality.Name = personalityJson.Surname + " " + personalityJson.Name + " " + personalityJson.Patronymic;
                     personality.BirthDate = personalityJson.BirthDate;
                     dbSql.Add(personality);
@@ -323,18 +258,18 @@ namespace Portal.Controllers
                 }
                 else
                 {
+                    /* Добавление новой версии уже существующего пользователя */
                     DateTime now = DateTime.Now;
-                    // �������� �� ������ �������� ����� ���������� ������, ��� ������� ���������� 
                     if(personalityJson?.VersionEndDate == null)
                     {
                         if(dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null) != null)
                         {
-                            dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = now.AddDays(-1);
+                            dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = personalityJson.VersionStartDate.Value.AddDays(-1);
                             dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).Actual = 0;
                         }
                     }
 
-                    Models.MSSQL.Personality.Personality personality = new Personality();
+                    Personality personality = new Personality();
                     Guid newPersonalityGuid = personalityJson.Guid;
                     PersonalityVersion personalityVersion = new();
                     personalityVersion.Name = personalityJson.Name;
@@ -353,9 +288,6 @@ namespace Portal.Controllers
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
-                    
-
-
                 return new OkObjectResult(result);
             }
             catch (Exception ex)
@@ -368,7 +300,7 @@ namespace Portal.Controllers
 
         public IActionResult PersonalityPut(string json)
         {
-            var result = new RKNet_Model.Result<string>();
+            var result = new Result<string>();
             try
             {
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
@@ -415,6 +347,7 @@ namespace Portal.Controllers
             }
         }
 
+        /* Вывод версий сотрудника и проверка дат на пересечение */
         public IActionResult PersonalityVersions(string typeGuid, string newPerson)
         {
             PersonalityVersionModel personalityVersionModel = new();
@@ -477,9 +410,30 @@ namespace Portal.Controllers
 
             personalityVersionModel.Errors = ErrorsInDAtes;
             personalityVersionModel.Entity = dbSql.Entity.ToList();
+            personalityVersionModel.CurrentPage = getUserPage(typeGuid);
 
             return PartialView(personalityVersionModel);
         }
 
+        public int getUserPage(string GuidUser)
+        {
+            List<Personality> personality = dbSql.Personalities.ToList();
+            var countUser = personality.Count();
+            int numberOfUser = 1;
+            int result;
+            for(var i = 0; i < countUser; i++)
+            {
+                if (personality[i].Guid != Guid.Parse(GuidUser))
+                {
+                    continue;
+                }
+                numberOfUser = i + 1;
+            }
+
+            result = (int)Math.Ceiling((double)numberOfUser / 30);
+
+
+            return result;
+        }
     }
 }

@@ -2,8 +2,9 @@
 
 <!--Блок добавления\редактирования работника-->
 <div class="panel panel-default panel-default-person modalPersonWidth"  id="personTable" style="margin-bottom:0px">
-    <!--Выпадающий список состояний работника-->
     <div class="titlePersontable">
+
+        @*Изменение хедера на странице*@
         @if(Model.NewPerson == "1")
         {
             <h3>Данные пользователя</h3>
@@ -13,41 +14,40 @@
             <h3>Данные версии пользователя</h3>
         }
 
-            
-            @if(@Model.NewPerson != null)
-            {
-                <input class="hidden" id="NewPerson" value="@Model.NewPerson"/>
-            }
-            
-            @if (Model?.PersonalitiesVersions == null || Model.PersonalitiesVersions?.Actual == 1)
-            {
-                <select class=" actual" id='actual'>
-                    <option value="1" selected='selected' class="optionForColor">Активен</option>
-                    <option value="2" class="optionForColor">Отстранен</option>
-                    <option value="0" class="optionForColor">Уволен</option>
-                </select>
-            }
-            else if (Model.PersonalitiesVersions?.Actual == 2)
-            {
-                <select class=" actual" id='actual' >
-                    <option value="1" class="optionForColor">Активен</option>
-                    <option value="2" selected='selected' class="optionForColor">Отстранен</option>
-                    <option value="0" class="optionForColor">Уволен</option>
-                </select>
-            }
-            else
-            {
-                <select class=" actual" id='actual' >
-                    <option value="1" class="optionForColor">Активен</option>
-                    <option value="2" class="optionForColor">Отстранен</option>
-                    <option value="0" selected='selected' class="optionForColor">Уволен</option>
-                </select>
-            }
-
+        @if(@Model.NewPerson != null)
+        {
+            <input class="hidden" id="NewPerson" value="@Model.NewPerson"/>
+        }
         
+        <!--Выпадающий список состояний работника-->
+        @if (Model?.PersonalitiesVersions == null || Model.PersonalitiesVersions?.Actual == 1)
+        {
+            <select class=" actual" id='actual'>
+                <option value="1" selected='selected' class="optionForColor">Активен</option>
+                <option value="2" class="optionForColor">Отстранен</option>
+                <option value="0" class="optionForColor">Уволен</option>
+            </select>
+        }
+        else if (Model.PersonalitiesVersions?.Actual == 2)
+        {
+            <select class=" actual" id='actual' >
+                <option value="1" class="optionForColor">Активен</option>
+                <option value="2" selected='selected' class="optionForColor">Отстранен</option>
+                <option value="0" class="optionForColor">Уволен</option>
+            </select>
+        }
+        else
+        {
+            <select class=" actual" id='actual' >
+                <option value="1" class="optionForColor">Активен</option>
+                <option value="2" class="optionForColor">Отстранен</option>
+                <option value="0" selected='selected' class="optionForColor">Уволен</option>
+            </select>
+        }
+    </div>
 
-    </div> 
-        <hr>
+    <hr>
+
     <!--Наполнение данных, если они есть-->
     <div class="personData">
         <!--Первый столбец-->
@@ -55,6 +55,7 @@
         {
             <form id="user-form">
                 <div class="leftBlockPersonData">
+                    @* Добавление и заполнение данных *@
                     <label class="label-light">Фамилия</label>
                     <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.PersonalitiesVersions.Surname">
                     <label class="label-light">Имя</label>
@@ -80,6 +81,7 @@
                             }
                         </select>
                     </div>
+
                 </div>
                 
                 <div class="rightBlockPersonData">
@@ -97,9 +99,9 @@
                         </select>
                     </div>
 
-                <label class="label-light">Дата приема на работу</label>
+                    <label class="label-light">Дата приема на работу</label>
                     <input required type="date" class="inputPersonData" id="HireDate" min="1900-01-01" value="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")">
-                <label class="label-light">Дата увольнения</label>
+                    <label class="label-light">Дата увольнения</label>
                     <input type="date" class="inputPersonData dissDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
 
                     <label class="label-light">Время смены</label>
@@ -360,12 +362,29 @@
     // Смена состояния сотрудника в зависимости от заполненности даты увольнения
     const actualPicker = document.querySelector('.actual');
     const valueDismissalsDate = document.querySelector('.dissDate');
+
+    if (valueDismissalsDate.value) {
+        document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
+        document.getElementById('VersionStartDate').disabled = true;
+    } else {
+        document.getElementById('VersionStartDate').disabled = false;
+    }
+
     valueDismissalsDate.addEventListener('input', () => {
+        @* Изменение статуса сотрудника при изменении даты увольнения *@
         if(valueDismissalsDate.value != '') {
-            actualPicker.innerHTML = "<option value='1'>Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";              
+            actualPicker.innerHTML = "<option value='1'>Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";       
         } else {
             actualPicker.innerHTML = "<option value='1' selected>Активен</option><option value='2' >Отстранен</option><option value='0' >Уволен</option>";
         }
+        @* Изменение даты начала версии при изменении даты увольнения *@
+        if (valueDismissalsDate.value) {
+            document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
+            document.getElementById('VersionStartDate').disabled = true;
+        } else {
+            document.getElementById('VersionStartDate').disabled = false;
+        }
+        
     })
 
     // Возврат к таблице
@@ -440,9 +459,10 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
-                    $('#page').load('/Personality/Personality', function () {
-                        location.hash = `#${personGUID}`
-                        SpinnerHide();
+                    $('#page').load('/Personality/PersonalityTable?showUnActual=1&page=1', function () {
+                        $('#page').load(`/Personality/PersonalityVersions?typeGuid=${personGUID}&newPerson=2`, function () {
+                            $('#tableMenu').show();
+                        });
                     });
                 }
                 else {
@@ -507,36 +527,6 @@
         VersionStartDate.max = VersionEndDate.value;
     })
 
-    // Подборка юр.лица разнесения затрат по выбранному юр.лицу
-    const EntityGUID = document.getElementById('EntityGUID');
-    const EntityCostGUID = document.getElementById('EntityCostGUID');
-
-    if (!EntityGUID.value) {
-        EntityCostGUID.disabled = true;
-    }
-
-    EntityGUID.addEventListener('input', () => {
-        EntityGUIDValue = EntityGUID.options[EntityGUID.selectedIndex].text;
-        $.ajax({
-            type: 'POST',
-            url: `/Personality/GetEntityList?entityName=${EntityGUIDValue}`,
-            data: { name: EntityGUIDValue },
-            success: function (data) {
-                EntityCostGUID.disabled = false;
-                let string = '';
-                if (data.length > 30) { 
-                    data.forEach(elem => {
-                        string += `<option selected="selected" value = ${elem.guid}> ${elem.name} </option>`;
-                    })
-                } else {
-                    data.forEach(elem => {
-                        string += `<option selected="selected" value = ${elem.costEntityGuid} > ${elem.costEntityName} </option>`;
-                    })
-                }
-                EntityCostGUID.innerHTML = `${string}`
-            }
-        });
-    })
 </script>
 
 @* Отправляем JSON (Редактирование пользователя) *@
@@ -544,9 +534,7 @@
     function editUser() {
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
-        console.log(personGUID)
         const personVersionGUID = document.getElementById('personVersionGUID').value;
-        console.log(personVersionGUID)
         Personality.Guid = personVersionGUID;
         Personality.Name = $('#namePerson').val();
         Personality.Surname = $('#surnamePerson').val();
@@ -575,10 +563,11 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
-                    SpinnerShow();
-                    $('#page').load('/Personality/Personality', function () {
-                        location.hash = `#${personGUID}`
-                        SpinnerHide(); });
+                    $('#page').load('/Personality/PersonalityTable?showUnActual=1&page=1', function () {
+                        $('#page').load(`/Personality/PersonalityVersions?typeGuid=${personGUID}&newPerson=2`, function () {
+                            $('#tableMenu').show();
+                        });
+                    });
                 }
                 else {
                     openModal('Ошибка', result.errorMessage)

@@ -15,5 +15,6 @@ namespace Portal.Models
         public List<MSSQL.Location.Location> Locations { get; set; }
         public List<Entity> Entity { get; set; }
         public string NewPerson { get; set; }
+        public int CurrentPage { get; set; }
     }
 }

@@ -14,5 +14,6 @@ namespace Portal.Models
         public string NewPerson { get; set; }
         public List<Guid> Errors { get; set; }
         public List<Entity> Entity {  get; set; }
+        public int CurrentPage { get; set; }
     }
 }
