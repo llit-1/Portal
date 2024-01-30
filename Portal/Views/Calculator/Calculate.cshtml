@@ -76,6 +76,7 @@
                                 <input class="nextSecondPeriodCoefficient" value="@Model.NextSecondPeriodCoefficient">
                                 <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
+                                <input class="itemMinShowCase" value="@Model.Items[i].ItemOnTT.Item.MinShowCase">
                             </td>
                             <td>
                                 <input class="fact" maxlength="4" type="text" size='4' oninput='factChange(this)'>
@@ -120,12 +121,14 @@
         let nextSecondPeriodCoefficient = trObject.querySelector('.nextSecondPeriodCoefficient').value.replace(/(,)/, ".");
         let itemCode = trObject.querySelector('.itemCode').value;
         let itemName = trObject.querySelector('.itemName').value;
+        let itemMinShowCase = trObject.querySelector('.itemMinShowCase').value;
         let resp;
         switch (@Model.Reaction)
          {
             case 1:
                 if(+inputObject.value < +averageProductionPeriod){
                     resp = Math.round((+averageRestOfThisPeriod - +averageProductionPeriod) * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient)
+
                     break;
                 }
                 resp = Math.round(+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value);
@@ -146,6 +149,9 @@
                 break;
          }
         if (resp < 0) {resp = 0}
+
+        resp = getResultWithMinShowCase(inputObject.value, resp, itemMinShowCase);
+
         answerObject.textContent = resp;
 
         var log = {};
@@ -157,6 +163,17 @@
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
         WriteLog(log)
+    }
+</script>
+
+<script>
+    // Получение результата в зависимости от минимального значения продукции
+    function getResultWithMinShowCase(Rest = 0, Result, MinShowCase) {
+        if (Result >= MinShowCase - Rest) {
+            return Result;
+        } else {
+            return MinShowCase - Rest;
+        }
     }
 </script>
 

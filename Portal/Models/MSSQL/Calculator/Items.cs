@@ -13,5 +13,6 @@ namespace Portal.Models.MSSQL.Calculator
         public int Sequence { get; set; }
         public string DefrostTime { get; set; }
         public string BakingMode { get; set; }
+        public int MinShowCase { get; set; }
     }
 }
