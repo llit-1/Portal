@@ -424,6 +424,7 @@ namespace Portal.Controllers
 
                             if (item.delivery == "Завтра") itemDays += 1;
                             if (item.delivery == "Послезавтра") itemDays += 2;
+                            if (item.delivery == "За_З_дня") itemDays += 3;
 
                             if (days < itemDays) days = itemDays;
                         }

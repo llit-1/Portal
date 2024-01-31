@@ -63,7 +63,7 @@
                                 @foreach (var dd in Model.Groups.GroupBy(d => d.DeliveryDate).OrderBy(k => k.Key))
                                 {
                                     <tr class="row-group-02" id="@dd.Key">
-                                        <td class="TableGroup"><input type="checkbox" class="hidden"><label>@dd.Key</label></td>
+                                        <td class="TableGroup"><input type="checkbox" class="hidden"><label>@dd.Key.Replace("_", " ")</label></td>
                                     </tr>
 
                                     @foreach (var group in dd.GroupBy(g => g.Name).OrderBy(k => k.Key))
@@ -529,10 +529,10 @@
 <!--сгруппированная категория групп завтра/послезавтра-->
 <script>
     $('.row-group-02').click(function () {
-
         var checkbox = $(this).find('input');
         var icon = $(this).find('.ico');
         var items = $('.items_' + this.id);
+        items.classList
 
         if (checkbox.is(':checked')) {
 
