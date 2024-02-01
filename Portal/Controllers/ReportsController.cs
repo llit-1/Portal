@@ -205,7 +205,7 @@ namespace Portal.Controllers
 
                 case "Sales":
                     {
-                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && (c.Currency == 1 || c.Currency == 4))).ToList();
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && (c.Currency == 1 || c.Currency == 4 || c.Currency == 1022559 || c.Currency == 1022563 || c.Currency == 1022600))).ToList();
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Лист 1");
@@ -264,7 +264,7 @@ namespace Portal.Controllers
 
                 case "WriteOut":
                     {
-                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && c.Currency != 1 && c.Currency != 4 && c.Currency != 1003299 && c.Currency != 1000716 && c.Currency != 1000721)).ToList();
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && c.Currency != 1 && c.Currency != 4 && c.Currency != 1003299 && c.Currency != 1000716 && c.Currency != 1000721 && c.Currency != 1022559 && c.Currency != 1022563 && c.Currency != 1022600)).ToList();
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Лист 1");
