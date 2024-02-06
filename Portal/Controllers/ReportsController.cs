@@ -9,6 +9,7 @@ using Microsoft.PowerBI.Api.Models;
 using Microsoft.Rest;
 using Newtonsoft.Json.Linq;
 using Portal.Models;
+using Portal.Models.MSSQL.Reports1C;
 using Portal.Models.PowerBi;
 using System;
 using System.Collections.Generic;
@@ -360,6 +361,8 @@ namespace Portal.Controllers
                     {
                         int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == restaraunt).Obd;
                         var shipmentsByGP = reports1CSql.ShipmentsByGP.Where(c => c.DateOfShipmentChange >= begin && c.DateOfShipmentChange < end && c.ConsigneeCodeN == obd).ToList();
+                        var strikeItOut = reports1CSql.StrikeItOut.Where(c => c.Date >= begin && c.Date < end && c.ConsigneeCodeN == obd).ToList();
+                        var shipmentsByGPStrikeItOut = ShipmentByGPStrikeItOut.Collect(shipmentsByGP, strikeItOut);
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Лист 1");
@@ -370,15 +373,21 @@ namespace Portal.Controllers
                             worksheet.Cell(1, 5).Value = "Склад";
                             worksheet.Cell(1, 6).Value = "Цена заказа";
                             worksheet.Cell(1, 7).Value = "Дата";
-                            for (int i = 0; i < shipmentsByGP.Count; i++)
+                            worksheet.Cell(1, 8).Value = "Количество вычерка";
+                            worksheet.Cell(1, 9).Value = "Цена вычерка";
+                            worksheet.Cell(1, 10).Value = "Причина вычерка";
+                            for (int i = 0; i < shipmentsByGPStrikeItOut.Count; i++)
                             {
-                                worksheet.Cell(i + 2, 1).Value = shipmentsByGP[i].Parent;
-                                worksheet.Cell(i + 2, 2).Value = shipmentsByGP[i].Article;
-                                worksheet.Cell(i + 2, 3).Value = shipmentsByGP[i].Nomenclature;
-                                worksheet.Cell(i + 2, 4).Value = shipmentsByGP[i].Quantity;
-                                worksheet.Cell(i + 2, 5).Value = shipmentsByGP[i].Warehouse;
-                                worksheet.Cell(i + 2, 6).Value = shipmentsByGP[i].OrderPrice;
-                                worksheet.Cell(i + 2, 7).Value = shipmentsByGP[i].DateOfShipmentChange;
+                                worksheet.Cell(i + 2, 1).Value = shipmentsByGPStrikeItOut[i].Parent;
+                                worksheet.Cell(i + 2, 2).Value = shipmentsByGPStrikeItOut[i].Article;
+                                worksheet.Cell(i + 2, 3).Value = shipmentsByGPStrikeItOut[i].Nomenclature;
+                                worksheet.Cell(i + 2, 4).Value = shipmentsByGPStrikeItOut[i].Quantity;
+                                worksheet.Cell(i + 2, 5).Value = shipmentsByGPStrikeItOut[i].Warehouse;
+                                worksheet.Cell(i + 2, 6).Value = shipmentsByGPStrikeItOut[i].OrderPrice;
+                                worksheet.Cell(i + 2, 7).Value = shipmentsByGPStrikeItOut[i].DateOfShipmentChange;
+                                worksheet.Cell(i + 2, 8).Value = shipmentsByGPStrikeItOut[i].StrikeITOutQuantity;
+                                worksheet.Cell(i + 2, 9).Value = shipmentsByGPStrikeItOut[i].StrikeITOutAmount;
+                                worksheet.Cell(i + 2, 10).Value = shipmentsByGPStrikeItOut[i].StrikeITOutReasonForReturn;
                             }
 
                             using (var stream = new MemoryStream())

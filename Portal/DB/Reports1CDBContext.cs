@@ -15,5 +15,6 @@ namespace Portal.DB
 
         public DbSet<MarriageOnTT> MarriagesOnTT { get; set; } // акты брака
         public DbSet<ShipmentByGP> ShipmentsByGP { get; set; } // отгрузка
+        public DbSet<StrikeItOut> StrikeItOut { get; set; } //вычерки
     }
 }
