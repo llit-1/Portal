@@ -16,6 +16,10 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using Microsoft.Extensions.Http;
 using System.Text;
+using Portal.ViewModels.Settings_TT;
+using DocumentFormat.OpenXml.Spreadsheet;
+using RKNet_Model.TT;
+using Portal.Models.MSSQL.Location;
 
 namespace Portal.Controllers
 {
@@ -105,8 +109,21 @@ namespace Portal.Controllers
 
             calculatorInformation.ItemsGroup = CalculatorDb.ItemsGroups.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
-            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3))
-                                                    .FirstOrDefault(c => c.Login == userLogin);
+
+            List<Models.MSSQL.Location.Location> location = dbSql.Locations.Include(x => x.LocationType)
+                                                                           .ToList();
+
+            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null)).FirstOrDefault(c => c.Login == userLogin);
+
+            for (int i = 0; i < user.TTs.Count; i++)
+            {
+                var ttWithType = location.FirstOrDefault(x => x.RKCode == user.TTs[i]?.Restaurant_Sifr);
+                if(ttWithType?.LocationType?.Name == "УЦ" || ttWithType?.LocationType?.Name == "Офис")
+                {
+                    user.TTs.RemoveAll(x => x.Id == user.TTs[i].Id);
+                }
+            }
+
             calculatorInformation.User = User.Identity.Name;
             calculatorInformation.Date = DateTime.Now;
             if (String.IsNullOrEmpty(tt))
@@ -219,7 +236,7 @@ namespace Portal.Controllers
 
 
 
-            List<Items> items = CalculatorDb.Items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)
+            List<Models.MSSQL.Calculator.Items> items = CalculatorDb.Items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)
                                                   .OrderBy(c => c.Sequence)  // сортировка для таблицы
                                                   .ToList();
             calculatorInformation.Items = new List<CalculatorItem>();
