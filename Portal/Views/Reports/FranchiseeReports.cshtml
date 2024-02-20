@@ -94,6 +94,14 @@
                                     <img src="~/svg/download.svg" width="30px">
                                 </td>
                             </tr>
+
+                            <tr class="row-group-01" id="Prices" style="vertical-align: middle;" onclick="downloadReport(this)">
+                                <td style="vertical-align: middle;" width=30%><label><input class="hidden" type="checkbox"><b>Прайсы</b></label></td>
+                                <td style="vertical-align: middle;" id="tdcell" width=20%></td>
+                                <td style="vertical-align: middle;" align="right">
+                                    <img src="~/svg/download.svg" width="30px">
+                                </td>
+                            </tr>
                            
 
                         </tbody>
@@ -165,6 +173,11 @@
         let sel = document.getElementById('updateAllSelector');
         let calendarBegin = document.getElementById('calendarBegin').value;
         let calendarEnd = document.getElementById('calendarEnd').value;
+        if (tr.id === "Prices") {
+            let date = new Date();
+            calendarBegin = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+            calendarEnd = calendarBegin;
+        }
         if(calendarBegin === ''){
             alert("Не указана начальная дата");
             return;            

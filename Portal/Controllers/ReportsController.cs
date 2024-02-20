@@ -13,6 +13,7 @@ using Portal.Models.MSSQL.Reports1C;
 using Portal.Models.PowerBi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -396,6 +397,37 @@ namespace Portal.Controllers
                                 return new FileContentResult(stream.ToArray(), "application/zip")
                                 {
                                     FileDownloadName = Report + "(" + Begin + "_" + End + ").xlsx",
+                                };
+                            }
+                        }
+                    }
+                case "Prices":
+                    {
+                        int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == restaraunt).Obd;
+                        var shipmentsByGP = reports1CSql.ShipmentsByGP.Where(c => c.DateOfShipmentChange >= DateTime.Now.AddDays(-30) && c.ConsigneeCodeN == obd).ToList();
+                        shipmentsByGP = shipmentsByGP.GroupBy(c => new {c.Article, c.Nomenclature}).Select(i => i.OrderByDescending(c => c.DateOfShipmentChange).First()).ToList();
+
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Лист 1");
+                            worksheet.Cell(1, 1).Value = "Артикул";
+                            worksheet.Cell(1, 2).Value = "Номенклатура";
+                            worksheet.Cell(1, 3).Value = "Цена";
+                            worksheet.Cell(1, 4).Value = "Дата";
+                            for (int i = 0; i < shipmentsByGP.Count; i++)
+                            {
+                                worksheet.Cell(i + 2, 1).Value = shipmentsByGP[i].Article;
+                                worksheet.Cell(i + 2, 2).Value = shipmentsByGP[i].Nomenclature;
+                                worksheet.Cell(i + 2, 3).Value = shipmentsByGP[i].OrderPrice / shipmentsByGP[i].Quantity;
+                                worksheet.Cell(i + 2, 4).Value = shipmentsByGP[i].DateOfShipmentChange;
+                            }
+
+                            using (var stream = new MemoryStream())
+                            {
+                                workbook.SaveAs(stream);
+                                return new FileContentResult(stream.ToArray(), "application/zip")
+                                {
+                                    FileDownloadName = Report + "(" + DateTime.Now + ").xlsx",
                                 };
                             }
                         }
