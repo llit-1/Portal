@@ -35,38 +35,38 @@
 
     try
     {
-        <!--блок элементов сверху-->
-        <div class="row" style="margin-top: 0px; margin-bottom:10px">
+    <!--блок элементов сверху-->
+                <div class="row" style="margin-top: 0px; margin-bottom:10px">
 
-            <!--Назад-->
-            <div class="col-sm-1 el-marging" style="width:100px; cursor:pointer" onclick="loadUrl('/ttOrders/OrdersList?orderTypeId=@Model.orderType.Id')">
-                <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
-            </div>
+                    <!--Назад-->
+                    <div class="col-sm-1 el-marging" style="width:100px; cursor:pointer" onclick="loadUrl('/ttOrders/OrdersList?orderTypeId=@Model.orderType.Id')">
+                        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+                    </div>
 
-        </div>
+                </div>
 
-        <div class="row" id="fordres_editor">
-            <!--группы-->
-            <div class="col-sm-2">
-                <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+                <div class="row" id="fordres_editor">
+                    <!--группы-->
+                    <div class="col-sm-2">
+                        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
 
-                    <table class="table">
-                        <tr>
-                            <th class="bg-primary">группа</th>
-                        </tr>
-                    </table>
+                            <table class="table">
+                                <tr>
+                                    <th class="bg-primary">группа</th>
+                                </tr>
+                            </table>
 
-                    <div class="scroll">
-                        <table class="table table-hover" id="groupTable">
-                            @if (Model.orderType.Id == 1)
+                            <div class="scroll">
+                                <table class="table table-hover" id="groupTable">
+                                    @if (Model.orderType.Id == 1)
                             {
-                                @foreach (var dd in Model.Groups.GroupBy(d => d.DeliveryDate).OrderBy(k => k.Key))
+                                        @foreach (var dd in Model.Groups.GroupBy(d => d.DeliveryDate).OrderBy(k => k.Key))
                                 {
-                                    <tr class="row-group-02" id="@dd.Key">
-                                        <td class="TableGroup"><input type="checkbox" class="hidden"><label>@dd.Key.Replace("_", " ")</label></td>
-                                    </tr>
+                                            <tr class="row-group-02" id="@dd.Key">
+                                                <td class="TableGroup"><input type="checkbox" class="hidden"><label>@dd.Key.Replace("_", " ")</label></td>
+                                            </tr>
 
-                                    @foreach (var group in dd.GroupBy(g => g.Name).OrderBy(k => k.Key))
+                                            @foreach (var group in dd.GroupBy(g => g.Name).OrderBy(k => k.Key))
                                     {
                                         var id = group.Key.Replace(" ", "") + dd.Key.Replace(" ", "");
                                         id = id.Replace("+", "");
@@ -74,13 +74,13 @@
                                         id = id.Replace(".", "");
                                         id = id.Replace("/", "");
 
-                                        <tr class="GroupTR items_@dd.Key hidden" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@dd.Key')"><td>@group.Key</td></tr>
+                                                <tr class="GroupTR items_@dd.Key hidden" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@dd.Key')"><td>@group.Key</td></tr>
                                     }
                                 }
                             }
                             else
                             {
-                                @foreach (var group in Model.Groups.GroupBy(g => g.Name).OrderBy(k => k.Key))
+                                        @foreach (var group in Model.Groups.GroupBy(g => g.Name).OrderBy(k => k.Key))
                                 {
                                     var id = group.Key.Replace(" ", "");
                                     id = id.Replace("+", "");
@@ -88,160 +88,164 @@
                                     id = id.Replace(".", "");
                                     id = id.Replace("/", "");
 
-                                    <tr class="GroupTR items_@id" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@group.FirstOrDefault().DeliveryDate')">
-                                        <td>@group.Key</td>
-                                    </tr>
+                                            <tr class="GroupTR items_@id" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@group.FirstOrDefault().DeliveryDate')">
+                                                <td>@group.Key</td>
+                                            </tr>
                                 }
                             }
-                        </table>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!--SKU-->
-            <div class="col-sm-5">
-                <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
+                    <!--SKU-->
+                    <div class="col-sm-5">
+                        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
 
-                    <table class="table">
-                        <tr class="bg-primary">
-                            <th width="40%" class="text-center">наименование</th>
-                            <th width="11%" class="text-center mobile-hide">мин. шт.</th>
-                            @if (Model.orderType.Id == 1)
+                            <table class="table">
+                                <tr class="bg-primary">
+                                    <th width="40%" class="text-center">наименование</th>
+                                    <th width="11%" class="text-center mobile-hide">мин. шт.</th>
+                                    @if (Model.orderType.Id == 1)
                             {
-                                <th width="11%" class="text-center mobile-hide">время</th>
-                                <th width="13%" class="text-center mobile-hide">доставка</th>
+                                        <th width="11%" class="text-center mobile-hide">время</th>
+                                        <th width="13%" class="text-center mobile-hide">доставка</th>
                             }
-                            <th width="7%" class="text-center"></th>
-                        </tr>
-                    </table>
+                                    <th width="7%" class="text-center"></th>
+                                </tr>
+                            </table>
 
-                    <div class="scroll" id="skuTables">
+                            <div class="scroll" id="skuTables">
+
+                            </div>
+
+                        </div>
+
+                        <!--добавить все-->
+                        <div class="col-4" style="height:40px">
+                            <button class="btn btn-sm btn-default" type="button" href="javascript:void(0)" onclick="selectAllSku()" style="float:right; margin-left:20px">добавить все</button>
+                        </div>
 
                     </div>
 
-                </div>
+                    <!--заказ-->
+                    <div class="col-sm-5">
+                        <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
 
-                <!--добавить все-->
-                <div class="col-4" style="height:40px">
-                    <button class="btn btn-sm btn-default" type="button" href="javascript:void(0)" onclick="selectAllSku()" style="float:right; margin-left:20px">добавить все</button>
-                </div>
-
-            </div>
-
-            <!--заказ-->
-            <div class="col-sm-5">
-                <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
-
-                    <table class="table">
-                        <tr class="bg-primary">
-                            <td>
-                                <label for="ttSelect">тт</label>
-                                <select class="form-control form-control-sm" id="ttSelect">
-                                    <option selected disabled>выберите точку</option>
-                                    @foreach (var tt in Model.TTs)
+                            <table class="table">
+                                <tr class="bg-primary">
+                                    <td>
+                                        <label for="ttSelect">тт</label>
+                                        <select class="form-control form-control-sm" id="ttSelect">
+                                            <option selected disabled>выберите точку</option>
+                                            @foreach (var tt in Model.TTs)
                                     {
                                         if (Model.mode == "edit" & Model.orderEditNumber > 0 & tt.Code == order.TTCode)
                                         {
-                                            <option selected value="@tt.Id">@tt.Name</option>
+                                                    <option selected value="@tt.Id">@tt.Name</option>
                                         }
                                         else
                                         {
-                                            <option value="@tt.Id">@tt.Name</option>
+                                                    <option value="@tt.Id">@tt.Name</option>
                                         }
                                     }
-                                </select>
-                            </td>
-                            <td>
-                                <label class="mobile-hide" for="orderName">имя</label>
-                                <input class="form-control form-control-sm mobile-hide" id="orderName" type="text" placeholder="@Model.defaultName()" value="@order.OrderName" />
-                            </td>
-                            <td>
-                                <label for="orderDate">дата доставки</label>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <label class="mobile-hide" for="orderName">имя</label>
+                                        <input class="form-control form-control-sm mobile-hide" id="orderName" type="text" placeholder="@Model.defaultName()" value="@order.OrderName" />
+                                    </td>
+                                    <td>
+                                        <label for="orderDate">дата доставки</label>
 
-                                @if (Model.mode == "edit" & Model.orderEditNumber > 0)
+                                        @if (Model.mode == "edit" & Model.orderEditNumber > 0)
                                 {
                                     if(Model.orderType.Id == 1)
                                     {
-                                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
+                                                <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
                                     }
                                     else
                                     {
-                                        <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
+                                                <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
                                     }
                                 }
                                 else
                                 {
                                     if (Model.orderType.Id == 1)
                                     {
-                                        <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" />
+                                                <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" />
                                     }
                                     else
                                     {
                                         if (Model.orderType.Id == 2)
                                         {
-                                            <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@weekDelivery" />
+                                                    <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@weekDelivery" />
                                         }
                                         if (Model.orderType.Id == 3 || Model.orderType.Id == 4)
                                         {
-                                            <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@monthDelivery" />
+                                                    <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@monthDelivery" />
                                         }
                                     }
                                 }
-                            </td>
-                        </tr>
-                    </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-                    <table class="table">
-                        <tr class="bg-primary">
-                            <th width="70%" class="text-left">наименование</th>
-                            <th width="20%" class="text-left">кол-во</th>
-                            <th width="10%" class="text-center"></th>
-                        </tr>
-                    </table>
+                            <table class="table">
+                                <tr class="bg-primary">
+                                    <th width="70%" class="text-left">наименование</th>
+                                    <th width="20%" class="text-left">кол-во</th>
+                                    <th width="10%" class="text-center"></th>
+                                </tr>
+                            </table>
 
-                    <!--sku  в заказе-->
-                    <div class="scroll" id="SkuInOrder">
-                        <table class="table" id="FOrdersItemsTable">
-                            <tr>
-                            </tr>
-                            @if (Model.orderEditNumber > 0)
+                            <!--sku  в заказе-->
+                            <div class="scroll" id="SkuInOrder">
+                                <table class="table" id="FOrdersItemsTable">
+                                    <tr>
+                                    </tr>
+                                    @if (Model.orderEditNumber > 0)
                             {
                                 foreach (var item in Model.forders)
                                 {
                                     var selid = "sel" + item.Article;
 
-                                    <tr id="@item.Article">
-                                        <td id="name_@item.Article" width="70%">@item.SKU</td>
-                                        <td>
-                                            <select class="form-control form-control-sm" id="@selid" style="min-width:90px">
-                                            </select>
-                                        </td>
-                                        <td width="10%"><label class="md-remove-circle-outline ico" onclick="RemoveItemsFOrder('@item.Article')"></label></td>
-                                        <td class="hidden"><input id="minCountInput_@item.Article" value="@item.minCount" /></td>
-                                        <td id="hiddenCount_@item.Article" class="hidden">@item.Count</td>
-                                        <td class="hidden"><input id="formingTimeInput_@item.Article" value="до @item.maxTime" /></td>
-                                        <td class="hidden"><input id="delivery_@item.Article" value="@item.minDeliveryDate" /></td>
-                                    </tr>
+                                            <tr id="@item.Article">
+                                                <td id="name_@item.Article" width="70%">@item.SKU</td>
+                                                <td>
+                                                    <select class="form-control form-control-sm" id="@selid" style="min-width:90px">
+                                                    </select>
+                                                </td>
+                                                <td width="10%"><label class="md-remove-circle-outline ico" onclick="RemoveItemsFOrder('@item.Article')"></label></td>
+                                                <td class="hidden"><input id="minCountInput_@item.Article" value="@item.minCount" /></td>
+                                                @if (Model.orderType.Id == 4)
+                                            {
+                                                    <td class="hidden"><input id="maxCountInput_@item.Article" value="@Model.items.FirstOrDefault(c => c.Article == item.Article).MaxOrder" /></td>
+                                            }                                                                                 
+                                                <td id="hiddenCount_@item.Article" class="hidden">@item.Count</td>
+                                                <td class="hidden"><input id="formingTimeInput_@item.Article" value="до @item.maxTime" /></td>
+                                                <td class="hidden"><input id="delivery_@item.Article" value="@item.minDeliveryDate" /></td>
+                                            </tr>
                                 }
                             }
-                        </table>
+                                </table>
+                            </div>
+
+
+                        </div>
+
+                        <!--кнопки сохранить/отмена-->
+                        <div class="col-4" style="height:40px">
+                            <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder()" style="float:right">оформить заказ</button>
+                        </div>
                     </div>
-
-
                 </div>
-
-                <!--кнопки сохранить/отмена-->
-                <div class="col-4" style="height:40px">
-                    <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder()" style="float:right">оформить заказ</button>
-                </div>
-            </div>
-        </div>
 
 
     }
     catch (Exception e)
     {
-        <p>@e.ToString()</p>
+                <p>@e.ToString()</p>
     }
 }
 
@@ -318,7 +322,7 @@
 
 <!--добавление позиции в блок заказа-->
 <script>
-    function AddItemToFOrder(article, skuName, el) {
+    function AddItemToFOrder(article, skuName, el, maxOrder) {
         // подсвечиваем строку sku
         $(el).parent().parent().tempClass("clicked", 200);
 
@@ -388,8 +392,16 @@
                             .append($('<input>')
                                 .attr('id', 'minCountInput_' + article)
                                 .attr('value', $('#minCount_' + article).text())
+                            )                       
+                        )
+                        .append($('<td>')
+                            .attr('class', 'hidden')
+                            .append($('<input>')
+                                .attr('id', 'maxCountInput_' + article)
+                                .attr('value', maxOrder)
                             )
                         )
+
                     );
 
                 // рассчитываем опции количества для селектора
@@ -473,8 +485,18 @@
 <script>
     function itemCounts(article) {
         if (orderType == 4) {
-            $('#sel' + article).attr('disabled', true);
-            $('#sel' + article).append($('<option selected>').text(1));
+            let minCount = 1
+            let maxCount = parseInt($('#maxCountInput_' + article).val());
+            if (maxCount == 1) {
+                $('#sel' + article).attr('disabled', true);
+                $('#sel' + article).append($('<option selected>').text(1))
+            }
+            else { 
+
+                for (var x = minCount; x <= maxCount; x += 1) {
+                    $('#sel' + article).append($('<option>').text(x));
+                }
+            }
         }
         else {
             var minCount;

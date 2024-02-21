@@ -1,16 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using OfficeOpenXml;
+using Portal.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.IO;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
-using Newtonsoft.Json;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using Portal.Models;
-using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 
 namespace Portal.Controllers
@@ -25,7 +23,7 @@ namespace Portal.Controllers
         {
             mssql = contextMssql;
             db = contextSqlite;
-        }        
+        }
 
         // Список заказов
         public IActionResult OrdersList(string dateString, string ttString, int orderTypeId)
@@ -55,7 +53,7 @@ namespace Portal.Controllers
                         ordersView.forders = mssql.FranchOrders.Where(o => o.DeliveryDate == date & o.OrderTypeId == orderTypeId).ToList();
                         break;
                 }
-                
+
                 // заказы по ТТ пользователя
                 var login = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
                 var user = db.Users.Include(t => t.TTs).FirstOrDefault(u => u.Login.ToLower() == login.ToLower());
@@ -89,10 +87,10 @@ namespace Portal.Controllers
 
         // Редактор заказа
         public IActionResult OrderEdit(string mode, int orderNumber, int orderTypeId)
-        {           
+        {
             var fordresView = new ViewModels.FranchOrdersView();
             fordresView.orderEditNumber = orderNumber;
-            fordresView.orderType = db.OrderTypes.FirstOrDefault(t => t.Id == orderTypeId);            
+            fordresView.orderType = db.OrderTypes.FirstOrDefault(t => t.Id == orderTypeId);
 
             try
             {
@@ -121,11 +119,11 @@ namespace Portal.Controllers
                     default:
                         break;
                 }
-                                
+
                 using (ExcelPackage excelPackage = new ExcelPackage(excelFile))
-                {                    
+                {
                     ExcelWorksheet production = excelPackage.Workbook.Worksheets.FirstOrDefault(x => x.Name == listName);
-                    var rowsCount = production.Dimension.End.Row;                    
+                    var rowsCount = production.Dimension.End.Row;
 
                     for (var x = 2; x <= rowsCount; x++)
                     {
@@ -142,7 +140,9 @@ namespace Portal.Controllers
                                 group.Name = production.Cells[x, 2].Value.ToString();
                                 group.DeliveryDate = "В последний день месяца";
                                 break;
-                        }                        
+                        }
+
+
                         fordresView.Groups.Add(group);
                     }
                 }
@@ -164,7 +164,7 @@ namespace Portal.Controllers
                 {
                     case "new":
                         fordresView.orderNumber = int.Parse(DateTime.Now.ToString("MMddHHmmss")); // генерируем номер заказа                        
-                        
+
                         // логируем
                         log = new LogEvent<int>(User);
                         log.Name = "Создание заказа";
@@ -207,16 +207,58 @@ namespace Portal.Controllers
 
                     default:
                         break;
-                }                
+                }
 
+
+                var OrdersTable = new List<FOrderXLS>();
+                using (ExcelPackage excelPackage = new ExcelPackage(excelFile))
+                {
+                    ExcelWorksheet production = excelPackage.Workbook.Worksheets.FirstOrDefault(x => x.Name == listName);
+                    var rowsCount = production.Dimension.End.Row;
+
+                    for (var x = 2; x <= rowsCount; x++)
+                    {
+                        var forder = new FOrderXLS();
+
+                        // фильтр по признаку собственное управление / партнерское управление
+                        var typeFilter = "0";
+                        var enabled = "0";
+                        // фильтр отключенных позиций для всех
+                        switch (orderTypeId)
+                        {
+
+                            case 4:
+                                forder.Sku = production.Cells[x, 1].Value.ToString();
+                                var skuString = forder.Sku.Replace(" ", "").Replace("\"", "").Replace("(", "").Replace(")", "").Replace(",", "").Replace(".", "");
+                                var maxLength = 15;
+                                if (skuString.Length > maxLength)
+                                    skuString = skuString.Substring(0, maxLength);
+
+                                forder.Article = "ценник_" + skuString;
+                                forder.MinOrder = "1";
+                                forder.Group = production.Cells[x, 2].Value.ToString();
+                                forder.FormingDate = "Последний день месяца";
+                                forder.FormingTime = "23:00";
+                                forder.DeliveryDate = "В последний день месяца";
+                                forder.MaxOrder = production.Cells[x, 4].Value.ToString();
+                                enabled = production.Cells[x, 3].Value.ToString();
+                                typeFilter = "1";
+                                break;
+                        }
+                        var skuFilter = "1";
+                        if (enabled == "1" & typeFilter == "1" & skuFilter == "1")
+                            OrdersTable.Add(forder);
+                    }
+                }
+                fordresView.items = OrdersTable;
                 return PartialView(fordresView);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return new ObjectResult(e.ToString());
             }
         }
-        
+
         // Список позиций для заказа
         public IActionResult SkuList(string group, string delivery, int orderTypeId)
         {
@@ -257,9 +299,9 @@ namespace Portal.Controllers
                     default:
                         break;
                 }
-                
+
                 var OrdersTable = new List<FOrderXLS>();
-                
+
                 using (ExcelPackage excelPackage = new ExcelPackage(excellFile))
                 {
                     ExcelWorksheet production = excelPackage.Workbook.Worksheets.FirstOrDefault(x => x.Name == listName);
@@ -288,9 +330,9 @@ namespace Portal.Controllers
                                 forder.FormingDate = production.Cells[x, 5].Value.ToString();
                                 forder.FormingTime = production.Cells[x, 6].Value.ToString();
                                 forder.DeliveryDate = production.Cells[x, 7].Value.ToString();
-                                
+
                                 enabled = production.Cells[x, 8].Value.ToString();
-                                
+
                                 if (User.IsInRole("ttorders_ll"))
                                 {
                                     typeFilter = production.Cells[x, 9].Value.ToString();
@@ -301,7 +343,7 @@ namespace Portal.Controllers
                                     typeFilter = production.Cells[x, 10].Value.ToString();
                                 }
                                 break;
-                            case 4:                                
+                            case 4:
                                 forder.Sku = production.Cells[x, 1].Value.ToString();
                                 var skuString = forder.Sku.Replace(" ", "").Replace("\"", "").Replace("(", "").Replace(")", "").Replace(",", "").Replace(".", "");
                                 var maxLength = 15;
@@ -314,13 +356,13 @@ namespace Portal.Controllers
                                 forder.FormingDate = "Последний день месяца";
                                 forder.FormingTime = "23:00";
                                 forder.DeliveryDate = "В последний день месяца";
-
+                                forder.MaxOrder = production.Cells[x, 4].Value.ToString();
                                 enabled = production.Cells[x, 3].Value.ToString();
-                                typeFilter = "1";                                
+                                typeFilter = "1";
                                 break;
                         }
 
-                        
+
 
                         // фильтр для некоторых пользователей некоторых позиций
                         var skuFilter = "1";
@@ -331,20 +373,20 @@ namespace Portal.Controllers
                         // 36-Кирик, 72-Розница Обводный
                         //var userIds = new List<int> { 36, 72};
                         //if (userIds.Contains(user.Id) & forder.Group == "Гастрономия")
-                            //skuFilter = "0";
+                        //skuFilter = "0";
 
                         // применение фильтров
-                        if (enabled == "1" & typeFilter =="1" & skuFilter == "1")
+                        if (enabled == "1" & typeFilter == "1" & skuFilter == "1")
                             OrdersTable.Add(forder);
                     }
                 }
                 var ordersByGroup = OrdersTable.Where(o => o.Group == group & o.DeliveryDate == delivery).ToList();
-                
+
                 ordersView.items = ordersByGroup;
 
                 return PartialView(ordersView);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return new ObjectResult(e.ToString());
             }
@@ -355,9 +397,9 @@ namespace Portal.Controllers
         public IActionResult SaveOrder(string json)
         {
             var result = new RKNet_Model.Result<string>();
-            
+
             try
-            {                
+            {
                 json = json.Replace("pp", "+");
                 var order = JsonConvert.DeserializeObject<order>(json);
 
@@ -374,7 +416,7 @@ namespace Portal.Controllers
                 // проверка на ввод количества
                 foreach (var item in order.items)
                 {
-                    if(item.count == null)
+                    if (item.count == null)
                     {
                         result.Ok = false;
                         result.Data = "Не указано количество для позиции " + item.name;
@@ -442,17 +484,17 @@ namespace Portal.Controllers
                 }
                 else // еженедельный или ежемесячный заказ
                 {
-                    var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);                    
-                   
+                    var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+
                     var nextMonthDays = DateTime.DaysInMonth(today.Year, today.Month) - today.Day + 1;
                     var nextWeekDays = 8 - (int)today.DayOfWeek;
                     var nextPeriod = today;
 
-                    switch(order.type)
+                    switch (order.type)
                     {
-                        case 2:  
+                        case 2:
                             nextPeriod = today.AddDays(nextWeekDays);
-                            if(today.DayOfWeek == DayOfWeek.Monday & DateTime.Now.Hour < 12)
+                            if (today.DayOfWeek == DayOfWeek.Monday & DateTime.Now.Hour < 12)
                             {
                                 nextPeriod = nextPeriod.AddDays(-7);
                             }
@@ -461,7 +503,7 @@ namespace Portal.Controllers
                         case 4:
                             nextPeriod = today.AddDays(nextMonthDays);
                             break;
-                    }                                        
+                    }
 
                     var existOrders = mssql.FranchOrders.Where(o => o.TTCode == tt.Code & o.OrderTypeId == order.type & o.DeliveryDate >= nextPeriod).Count();
                     if (existOrders > 0 & order.mode != "edit")
@@ -478,7 +520,7 @@ namespace Portal.Controllers
 
                 // исключаем дублирование строк с SKU перед сохранением (режим редактирования и возможные ошибки)
                 var orderRange = mssql.FranchOrders.Where(f => f.OrderNumber == order.number);
-                if(orderRange != null)
+                if (orderRange != null)
                     mssql.FranchOrders.RemoveRange(orderRange);
 
 
@@ -486,7 +528,7 @@ namespace Portal.Controllers
 
                 foreach (var item in order.items)
                 {
-                    var franchOrder = new Models.MSSQL.FranchOrder();                    
+                    var franchOrder = new Models.MSSQL.FranchOrder();
 
                     franchOrder.OrderNumber = order.number;
                     franchOrder.OrderName = order.name;
@@ -497,8 +539,8 @@ namespace Portal.Controllers
                     franchOrder.SKU = item.name;
                     franchOrder.minCount = int.Parse(item.mincount);
                     franchOrder.Count = int.Parse(item.count);
-                    if(orderType.Id == 1)
-                    franchOrder.maxTime = item.formingTime.Substring(3, item.formingTime.Length - 3);
+                    if (orderType.Id == 1)
+                        franchOrder.maxTime = item.formingTime.Substring(3, item.formingTime.Length - 3);
                     franchOrder.FormingDateTime = DateTime.Now;
                     franchOrder.minDeliveryDate = item.delivery;
                     franchOrder.DeliveryDate = DateTime.ParseExact(order.date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
@@ -514,8 +556,8 @@ namespace Portal.Controllers
                 //var oldDate = DateTime.Now.AddDays(-30);
                 //var old = mssql.FranchOrders.Where(f => f.DeliveryDate <= oldDate);
                 //mssql.FranchOrders.RemoveRange(old);
-                
-                mssql.SaveChanges();                
+
+                mssql.SaveChanges();
                 result.Data = "Заказ успешно размещен.";
 
                 // логируем
@@ -528,7 +570,7 @@ namespace Portal.Controllers
 
                 return new ObjectResult(result);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 result.Ok = false;
                 result.Data = e.ToString();
@@ -557,7 +599,7 @@ namespace Portal.Controllers
 
                 return new ObjectResult(result);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 result.Ok = false;
                 result.Data = e.ToString();
@@ -565,7 +607,7 @@ namespace Portal.Controllers
             }
         }
 
-        
+
         //------------------------------------------------------------------------------------
 
         // класс для десериализации данных заказа с формы
@@ -580,16 +622,16 @@ namespace Portal.Controllers
             public int type;
 
             public class item
-            {                
+            {
                 public string name;
                 public string article;
                 public string count;
                 public string mincount;
                 public string delivery;
                 public string formingTime;
-            }            
+            }
         }
     }
 
-    
+
 }
