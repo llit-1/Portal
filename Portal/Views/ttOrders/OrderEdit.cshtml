@@ -220,7 +220,7 @@
                                                 <td class="hidden"><input id="minCountInput_@item.Article" value="@item.minCount" /></td>
                                                 @if (Model.orderType.Id == 4)
                                             {
-                                                    <td class="hidden"><input id="maxCountInput_@item.Article" value="@Model.items.FirstOrDefault(c => c.Article == item.Article).MaxOrder" /></td>
+                                                    <td class="hidden"><input id="maxCountInput_@item.Article" value="@Model.items.FirstOrDefault(c => c.Article == item.Article)?.MaxOrder" /></td>
                                             }                                                                                 
                                                 <td id="hiddenCount_@item.Article" class="hidden">@item.Count</td>
                                                 <td class="hidden"><input id="formingTimeInput_@item.Article" value="до @item.maxTime" /></td>

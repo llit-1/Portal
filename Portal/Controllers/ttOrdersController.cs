@@ -234,7 +234,7 @@ namespace Portal.Controllers
                                 if (skuString.Length > maxLength)
                                     skuString = skuString.Substring(0, maxLength);
 
-                                forder.Article = "ценник_" + skuString;
+                                forder.Article = production.Cells[x, 5].Value.ToString();
                                 forder.MinOrder = "1";
                                 forder.Group = production.Cells[x, 2].Value.ToString();
                                 forder.FormingDate = "Последний день месяца";
@@ -350,7 +350,7 @@ namespace Portal.Controllers
                                 if (skuString.Length > maxLength)
                                     skuString = skuString.Substring(0, maxLength);
 
-                                forder.Article = "ценник_" + skuString;
+                                forder.Article = production.Cells[x, 5].Value.ToString();
                                 forder.MinOrder = "1";
                                 forder.Group = production.Cells[x, 2].Value.ToString();
                                 forder.FormingDate = "Последний день месяца";
