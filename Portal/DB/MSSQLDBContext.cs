@@ -35,5 +35,6 @@ namespace Portal.DB
         public DbSet<SaleObject> SaleObjects { get; set; }
         public DbSet<SaleObjectsAgregators> SaleObjectsAgregators { get; set; }
         public DbSet<LastUser> LastUser { get; set; }
+        public DbSet<CurrencyType> CurrencyTypes { get; set; }
     }
 }
