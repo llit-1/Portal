@@ -171,7 +171,8 @@ namespace Portal.Controllers
             DateTime end = DateTime.ParseExact(End, "yyyy-MM-dd", null).AddDays(1);
             var menuItems = rk7Sql.MenuItems.ToList();
             var currencies = rk7Sql.Currencies.ToList();
-            List<int> saleCurencies = dbSql.CurrencyTypes.Where(c => c.Type == 0).Select(c => c.Currency).ToList();
+            List<int> saleCurrenciesTypes = dbSql.CurrencyTypes.Where(c => c.Type == 0).Select(c => c.Rk7CurrencyType).ToList();
+            List<int> saleCurrencies = rk7Sql.Currencies.Where(c => saleCurrenciesTypes.Contains(c.Parent)).Select(c => c.Sifr).ToList();
             switch (Report)
             {
                 case "DefectReports":
@@ -208,7 +209,7 @@ namespace Portal.Controllers
 
                 case "Sales":
                     {
-                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && saleCurencies.Contains(c.Currency))).ToList();
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && saleCurrencies.Contains(c.Currency))).ToList();
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Лист 1");
@@ -267,7 +268,7 @@ namespace Portal.Controllers
 
                 case "WriteOut":
                     {
-                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && c.Currency != 1003299 && c.Currency != 1000716 && c.Currency != 1000721 && !saleCurencies.Contains(c.Currency))).ToList();
+                        var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == restaraunt && c.Deleted == 0 && c.Date >= begin && c.Date < end && c.Currency != 1003299 && c.Currency != 1000716 && c.Currency != 1000721 && !saleCurrencies.Contains(c.Currency))).ToList();
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Лист 1");

@@ -7,5 +7,6 @@ namespace Portal.Models.MSSQL.RK7
     {
         public int Sifr { get; set; }
         public string Name { get; set; }
+        public int Parent { get; set; }
     }
 }

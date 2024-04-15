@@ -5,7 +5,7 @@ namespace Portal.Models.MSSQL
     public class CurrencyType
     {
         [Key]
-        public int Currency { get; set; }
+        public int Rk7CurrencyType { get; set; }
         public int Type { get; set; }
     }
 }
