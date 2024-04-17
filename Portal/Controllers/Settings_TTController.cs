@@ -225,6 +225,14 @@ namespace Portal.Controllers
                                 return new ObjectResult(result);
                             }
 
+                        case "latitude":
+                            ttNewBase.Location.Latitude = ttJsn.latitude;
+                            break;
+
+                        case "longitude":
+                            ttNewBase.Location.Longitude = ttJsn.longitude;
+                            break;
+
                         case "ttRestaurantSifr":
                             tt.Restaurant_Sifr = ttJsn.restaurant_Sifr;
                             ttNewBase.Location.RKCode = ttJsn.restaurant_Sifr;
@@ -432,7 +440,8 @@ namespace Portal.Controllers
                                 }
                                 break;
                             }
-                    if(tt != null)
+
+                        if (tt != null)
                     {
                         db.TTs.Update(tt);
                         db.SaveChanges();
@@ -492,6 +501,8 @@ namespace Portal.Controllers
                     if (!string.IsNullOrEmpty(ttJsn.type))
                     {
                         location.LocationType = dbSql.LocationTypes.FirstOrDefault(t => t.Guid == Guid.Parse(ttJsn.type));
+                        location.Latitude = ttJsn.latitude;
+                        location.Longitude = ttJsn.longitude;
                     }
 
                     // организация новой тт
@@ -926,6 +937,10 @@ namespace Portal.Controllers
                 if(org.Name == "")
                 {
                     throw new Exception("Введите корректное имя");
+                }
+                if (dbSql.Entity.FirstOrDefault(x => x.Name == org.Name) != null)
+                {
+                    throw new Exception("Запись с таким названием уже создана");
                 }
                 Entity entity;
                 if (org.Guid.ToString() == "0")

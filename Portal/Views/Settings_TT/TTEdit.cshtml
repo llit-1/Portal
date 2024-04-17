@@ -19,6 +19,8 @@
     var guidNewBase = "0";
     var newAddress = "";
     var oldId = "";
+    Double? latitude = 0.0;
+    Double? longitude = 0.0;
 
     if(Model.LocationVersion != null)
     {
@@ -41,6 +43,8 @@
         locVerType = Model?.LocationVersion[0].Location.LocationType;
         guidNewBase = Model?.LocationVersion[0]?.Guid.ToString();
         oldId = Model?.OldTT[0].Id.ToString();
+        latitude = Model.LocationVersion[0].Location.Latitude;
+        longitude = Model.LocationVersion[0].Location.Longitude;
     }
     else
     {
@@ -421,6 +425,42 @@
                 
                 <label for="deliveryClub" class="label-warning"></label>
             </div>
+        </div>
+
+        <!--интеграции-->
+        <h5 class="pull-left" style="margin-top:50px">Координаты</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%; margin-bottom: 15px;" />
+
+        <label class="label-light">Широта</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="latitude" type="text" class="form-control" value="@latitude" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
+        </div>
+
+        <label class="label-light">Долгота</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="longitude" type="text" class="form-control" value="@longitude" style="font-weight:bold" @disabled>
+            <span class="input-group-btn @display">
+                <!--редактировать-->
+                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                <!--сохранить-->
+                <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                <!--сохранение...-->
+                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                <!--отменить-->
+                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+            </span>
         </div>
 
     </div>
@@ -895,6 +935,8 @@
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
+        tt.latitude = $('#latitude').val();
+        tt.longitude = $('#longitude').val();
         
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -955,6 +997,7 @@
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
+     
 
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -1028,6 +1071,9 @@
 
         tt.yandexEda = $('#yandexEda').prop('checked');
         tt.deliveryClub = $('#deliveryClub').prop('checked');
+
+        tt.latitude = $('#latitude').val();
+        tt.longitude = $('#longitude').val();
 
         tt.cashes = [];
         
