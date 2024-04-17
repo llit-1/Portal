@@ -101,7 +101,7 @@ namespace Portal.Controllers
                     break;
                 case "06BE0412-8D99-4111-99A9-98172E0D3930":
                     calculatorInformation.Name = "Прочий ассортимента";
-                    calculatorInformation.PicturePath = "~/svg/color_panels/breads.svg";
+                    calculatorInformation.PicturePath = "~/svg/color_panels/other-food.png";
                     break;
                 default:
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
@@ -196,6 +196,18 @@ namespace Portal.Controllers
                     thisTimeGroup = timeGroups[i];
                     calculatorInformation.ThisTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == thisTimeGroup && c.DayGroup == thisDayGroup);
 
+
+                    if (timeGroups.Count == 1)
+                    {
+                        nextTimeGroup = timeGroups[0];
+                        nextSecondTimeGroup = timeGroups[0];
+                        calculatorInformation.NextTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextTimeGroup && c.DayGroup == nextDayGroup);
+                        calculatorInformation.NextSecondTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextSecondTimeGroup && c.DayGroup == nextDayGroup);
+                        break;
+                    }
+
+
+
                     if (timeGroups.Count == i + 1)
                     {
                         nextTimeGroup = timeGroups[0];
@@ -204,6 +216,7 @@ namespace Portal.Controllers
                         calculatorInformation.NextSecondTimeDayGroup = CalculatorDb.TimeDayGroups.FirstOrDefault(c => c.TimeGroup == nextSecondTimeGroup && c.DayGroup == nextDayGroup);
                         break;
                     }
+
                     if (timeGroups.Count == i + 2)
                     {
                         nextTimeGroup = timeGroups[i + 1];
