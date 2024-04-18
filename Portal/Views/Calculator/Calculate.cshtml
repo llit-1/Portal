@@ -125,10 +125,12 @@
         let resp;
         switch (@Model.Reaction)
          {
+            case 0:
+                resp = 0;
+                break;
             case 1:
                 if(+inputObject.value < +averageProductionPeriod){
                     resp = Math.round((+averageRestOfThisPeriod - +averageProductionPeriod) * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient)
-
                     break;
                 }
                 resp = Math.round(+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value);
