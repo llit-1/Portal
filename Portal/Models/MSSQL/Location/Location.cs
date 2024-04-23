@@ -17,5 +17,6 @@ namespace Portal.Models.MSSQL.Location
         public int? AggregatorsCode { get; set; }
         public Double? Latitude { get; set; }
         public Double? Longitude { get; set; }
+        public int Actual {  get; set; }
     }
 }

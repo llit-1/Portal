@@ -72,7 +72,7 @@ namespace Portal.Controllers
                             .Where(t => !t.Closed)
                             .ToList();
 
-            if (closedTT==false) { loc.RemoveAll(item => item.VersionEndDate != null); }
+            if (closedTT==false) { loc.RemoveAll(item => item.VersionEndDate != null && item.Location.Actual != 0); }
             if (ecTT==false) { loc.RemoveAll(item => item.Location?.LocationType?.Name == "УЦ"); }
 
             tVersions.LocationVersion = loc;
@@ -306,11 +306,13 @@ namespace Portal.Controllers
                             {
                                 tt.OpenDate = open.Date;
                                 ttNewBase.VersionStartDate = open.Date;
+                                ttNewBase.Location.Actual = 1;
                             }
                             else
                             {
                                 tt.OpenDate = null;
                                 ttNewBase.VersionStartDate = null;
+                                ttNewBase.Location.Actual = 1;
                             }
 
                             break;
@@ -322,6 +324,7 @@ namespace Portal.Controllers
 
                             if (Ok)
                             {
+                                ttNewBase.Location.Actual = 0;
                                 tt.CloseDate = close.Date;
                                 ttNewBase.VersionEndDate = close.Date;
                                 
@@ -339,8 +342,11 @@ namespace Portal.Controllers
 
                             foreach (var item in ttJsn.items)
                             {
-                                tt.Type = db.TTtypes.FirstOrDefault(t => t.Id == item.id);
                                 ttNewBase.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(item.guidOrg));
+                                if (ttNewBase.Location.LocationType.Name == "Тестовая")
+                                {
+                                    tt.Type = db.TTtypes.FirstOrDefault(t => t.Name == "Спальник");
+                                }
                             }
 
                             break;
@@ -501,6 +507,15 @@ namespace Portal.Controllers
                     if (!string.IsNullOrEmpty(ttJsn.type))
                     {
                         location.LocationType = dbSql.LocationTypes.FirstOrDefault(t => t.Guid == Guid.Parse(ttJsn.type));
+
+                        if (location.LocationType.Name == "Тестовая")
+                        {
+                            ttFromOldBD.Type = db.TTtypes.FirstOrDefault(t => t.Name == "Спальник");
+                        } else {
+                            ttFromOldBD.Type = db.TTtypes.FirstOrDefault(t => t.Name == location.LocationType.Name);
+                        }
+
+                        
                         location.Latitude = ttJsn.latitude;
                         location.Longitude = ttJsn.longitude;
                     }
@@ -633,6 +648,7 @@ namespace Portal.Controllers
                         {
                             tt.OpenDate = open.Date;
                         }
+                        locversion.Location.Actual = 1;
                         locversion.VersionStartDate = open.Date;
                     }
                     else
@@ -651,11 +667,13 @@ namespace Portal.Controllers
                         {
                             ttFromOldBD.CloseDate = close.Date;
                             locversion.VersionEndDate = close.Date;
+                            locversion.Location.Actual = 0;
                         }
                         else
                         {
                            tt.CloseDate = close.Date;
                            locversion.VersionEndDate = close.Date;
+                            locversion.Location.Actual = 0;
                         }
                     }
                     else
