@@ -144,7 +144,7 @@ namespace Portal.Controllers
         {
             FranchiseeReportsModel franchiseeReportsModel = new FranchiseeReportsModel();
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
-            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3)).FirstOrDefault(c => c.Login == userLogin);
+            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type.Id != 3)).FirstOrDefault(c => c.Login == userLogin);
             string UserStr = User.Identity.Name;
             if (String.IsNullOrEmpty(TTcode))
             {
