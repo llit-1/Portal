@@ -249,6 +249,8 @@
             });
         } catch {
             openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+            document.querySelectorAll(".answer").forEach(x => x.textContent = 0)
+            document.querySelectorAll(".inputObject").forEach(x => x.value = "")
         }
     }
 </script>
