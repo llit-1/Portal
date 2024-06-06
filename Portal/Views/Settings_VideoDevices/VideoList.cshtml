@@ -1,0 +1,106 @@
+@model List<Portal.Controllers.Settings_VideoDevicesController.VideoFileInfo>
+
+<div>
+    <h2>Upload Video</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="videoFile" name="videoFile" accept="video/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+</div>
+
+
+ <div class="ttvideo_container">
+    <div class="ttvideo_container_main">
+        <div> Номер в очереди </div>
+        <div> Название видео </div>
+        <div> Размер видео </div>
+        <div> Просмотр </div>
+    </div>
+
+    @if (Model != null)
+    {
+        var count = 1;
+
+        @foreach (var video in Model)
+        {
+            <div class="ttvideo_container_main">
+                <div> @count </div>
+                <div> @video.Name </div>
+                <div> @video.SizeInMB Мб</div>
+                <div>
+                    <video class="videoTV" width="160px" height="90px" controls="controls" preload="none" loop="loop" muted="muted" volume="0">
+                        <source src="/Settings_VideoDevices/GetFile?path=@video.FullName">
+                    </video>
+                </div>
+            </div>
+
+            count++;
+        }
+    }
+    
+ </div>
+
+ <style>
+
+    .ttvideo_container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: 5px;
+        border: 1px solid black;
+        border-radius: 5px;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+    .ttvideo_container_main {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px;
+        border: 1px solid black;
+        border-radius: 5px;
+    }
+
+    .ttvideo_container_main > div {
+        width: 25%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #videoFile {
+        width: 130px;
+        padding: 10px;
+    }
+
+ </style>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData();
+        var fileInput = document.getElementById('videoFile');
+        var file = fileInput.files[0];
+        formData.append('videoFile', file);
+        SpinnerShow();
+        $.ajax({
+            type: 'POST',
+            url: `/Settings_VideoDevices/UploadVideo`,
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (result) {
+                    SpinnerShow();
+                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+            },
+            error: function (xhr, status, error) {
+                console.log("Error: " + error);
+            }
+        });
+    });
+
+</script>

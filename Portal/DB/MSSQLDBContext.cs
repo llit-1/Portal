@@ -36,5 +36,7 @@ namespace Portal.DB
         public DbSet<SaleObjectsAgregators> SaleObjectsAgregators { get; set; }
         public DbSet<LastUser> LastUser { get; set; }
         public DbSet<CurrencyType> CurrencyTypes { get; set; }
+        public DbSet<Models.MSSQL.VideoDevices> VideoDevices { get; set; } // Информация об устройстве
+        public DbSet<Models.MSSQL.VideoInfo> VideoInfo { get; set; } // Информация о видео
     }
 }

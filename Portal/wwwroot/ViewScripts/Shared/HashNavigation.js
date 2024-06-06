@@ -82,7 +82,8 @@ $(function () {
         // Настройки
         if (hash == '#settings') loadContent(hash.replace('#', ''), '/Home/Settings');                                  // настройки -> плитка
         if (hash == '#SettingsMain') loadContent(hash.replace('#', ''), '/Settings/Main');                              // настройки -> общие
-        if (hash == '#SettingsAccess') loadTabMenu(hash.replace('#', ''), '/Settings_Access/TabMenu');                  // настройки -> права доступа       
+        if (hash == '#SettingsAccess') loadTabMenu(hash.replace('#', ''), '/Settings_Access/TabMenu');                  // настройки -> права доступа    
+        if (hash == '#SettingsVideoDevices') loadTabMenu(hash.replace('#', ''), '/Settings_VideoDevices/TabMenu');      // настройки -> видео на ТТ  
         if (hash == '#SettingsTT') loadTabMenu(hash.replace('#', ''), '/Settings_TT/TabMenu');                          // настройки -> торговые точки
         if (hash == '#SettingsVideo') loadTabMenu(hash.replace('#', ''), '/Settings/Video');                            // настройки -> видеонаблюдение
         if (hash == '#SettingsRk') loadTabMenu(hash.replace('#', ''), '/Settings/Rk');                                  // настройки -> р-кипер
