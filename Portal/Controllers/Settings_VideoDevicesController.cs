@@ -49,7 +49,7 @@ namespace Portal.Controllers
             {
                 ip = ip.Replace("%bkspc%", " ");
                 var httpClient = _httpClientFactory.CreateClient();
-                string microserviceUrl = "http://" + ip;
+                string microserviceUrl = "http://" + ip + "/?action=getIP";
                 HttpResponseMessage response = httpClient.GetAsync(microserviceUrl).Result;
             }
             catch (Exception ex)
@@ -156,7 +156,7 @@ namespace Portal.Controllers
         }
 
         [AllowAnonymous]
-[HttpGet]
+        [HttpGet]
         public IActionResult GetVideoListForTv()
         {
             try
@@ -283,7 +283,7 @@ namespace Portal.Controllers
             }
         }
 
-        public IActionResult SwapPosition(string guid, int newposition)
+        public async Task<IActionResult> SwapPosition(string guid, int newposition)
         {
             var result = new RKNet_Model.Result<string>();
             try
@@ -291,7 +291,7 @@ namespace Portal.Controllers
                 var oldpos = dbSql.VideoInfo.FirstOrDefault(x => x.Position == newposition).Position = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position;
                 var npos = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position = newposition;
                 dbSql.SaveChanges();
-                UpdateDataOnDevices();
+                await UpdateDataOnDevices();
                 result.Ok = true;
                 return new OkObjectResult(result);
             }
@@ -303,8 +303,6 @@ namespace Portal.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpPost]
         public async Task<IActionResult> UpdateDataOnDevices()
         {
             List<VideoDevices> devices = dbSql.VideoDevices.ToList();
@@ -314,7 +312,7 @@ namespace Portal.Controllers
             {
                 if (!string.IsNullOrEmpty(device.Ip))
                 {
-                    var result = await SendRequestToDeviceAsync(device.Ip);
+                    var result = await SendRequestToDeviceAsync(device.Ip.Trim());
                     results.Add(result);
                 }
             }
@@ -322,30 +320,36 @@ namespace Portal.Controllers
             return Ok(results);
         }
 
-        private async Task<string> SendRequestToDeviceAsync(string ip)
+        public async Task<string> SendRequestToDeviceAsync(string ip)
         {
+            var result = new RKNet_Model.Result<string>();
             try
             {
+                ip = ip.Replace("%bkspc%", " ");
                 var httpClient = _httpClientFactory.CreateClient();
-                var requestUrl = $"https://{ip}/?action=update";
-                var response = await httpClient.GetAsync(requestUrl);
+                string microserviceUrl = "http://" + ip + "?action=update";
+                HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return $"Success: {ip}";
+                    result.Ok = true;
+                    result.Data = "Success: " + ip;
                 }
                 else
                 {
-                    return $"Failed: {ip} - {response.StatusCode}";
+                    result.Ok = false;
+                    result.ErrorMessage = $"Failed: {ip} - {response.StatusCode}";
                 }
             }
             catch (Exception ex)
             {
-                return $"Error: {ip} - {ex.Message}";
+                result.Ok = false;
+                result.ErrorMessage = $"Error: {ip} - {ex.Message}";
             }
+            return result.Ok.ToString(); // Преобразование RKNet_Model.Result<string> в строку, или вы можете изменить тип возвращаемого значения на IActionResult
         }
 
-        public IActionResult DeleteVideo(string guid) 
+        public async Task<IActionResult> DeleteVideo(string guid) 
         {
             var result = new RKNet_Model.Result<string>();
             try
@@ -370,10 +374,10 @@ namespace Portal.Controllers
                     dbSql.Remove(videoInfo);
                     dbSql.SaveChanges();
 
-                    UpdateDataOnDevices();
+                    await UpdateDataOnDevices();
 
                     result.Ok = true;
-                    return new OkObjectResult(result);
+                    return new ObjectResult(result);
                 } else
                 {
                     result.Ok = false;
@@ -384,7 +388,7 @@ namespace Portal.Controllers
             {
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
-                return new ObjectResult(result);
+                return new ObjectResult(result); ;
             }
         }
     }

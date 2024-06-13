@@ -90,7 +90,7 @@
                                                     <p class="list-item-heading" style="text-align: center">@item.SizeInMB Мб</p>
                                                 </td>
                                                 <td class="" width="20%">
-                                                    <video class="videoTV"  controls="controls" style="max-width: 25vw" preload="none" muted="muted" volume="0">
+                                                    <video class="videoTV"  controls="controls" style="max-width: 14vw" preload="none" muted="muted" volume="0">
                                                         <source src="/Settings_VideoDevices/GetFile?path=@item.FullName">
                                                     </video>
                                                 </td>
@@ -106,7 +106,7 @@
                         }
                         catch
                         {
-                            <div></div>
+                            <div> Видео пока нет, но их можно добавить</div>
                         }
                     </div>
                 </div>
@@ -151,6 +151,7 @@
         height: 40px;
         text-align: center;
         border-radius: 10px;
+        border-color: #CCCCCC;
      }
 
     .ttvideo_container {
@@ -361,8 +362,9 @@
 
     function selectVideo(elem) { 
         $('#videoFile').click()
-        
     }
+
+
 
     const deleteVideo = document.querySelector('.deleteVideo')
     deleteVideo.classList.remove('sorting')
