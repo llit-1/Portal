@@ -38,7 +38,7 @@ namespace Portal.Controllers
         [HttpGet]
         public JsonResult GetLocationList()
         {
-            List<Location> locations = dbSql.Locations.ToList();
+            List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
             return Json(locations);
         }
 
@@ -97,12 +97,19 @@ namespace Portal.Controllers
                 {
                     VideoFileInfo info = new VideoFileInfo();
                     var fileInfo = new System.IO.FileInfo(filename);
+                    info.Guid = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Guid;
+                    info.Position = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Position;
+                    if(info.Guid == null || info.Position == null)
+                    {
+                        continue;
+                    }
                     info.FullName = fileInfo.FullName;
                     info.Name = fileInfo.Name;
                     info.SizeInMB = Math.Round(fileInfo.Length / (1024.0 * 1024.0), 2);
                     list.Add(info);
                 }
-            return PartialView(list);
+            var totallist = list.OrderBy(x => x.Position).ToList();
+            return PartialView(totallist);
         }
 
         // Загрузка файла по пути
@@ -141,6 +148,7 @@ namespace Portal.Controllers
 
         public class VideoFileInfo
         {
+            public Guid Guid { get; set; }
             public int Position { get; set; }
             public string FullName { get; set; }
             public string Name { get; set; }
@@ -148,25 +156,25 @@ namespace Portal.Controllers
         }
 
         [AllowAnonymous]
-        public List<VideoFileInfo> GetVideoListForTv()
+[HttpGet]
+        public IActionResult GetVideoListForTv()
         {
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
-            // разэкранирование "плюс" и "пробел"
-            path = path.Replace("plustoreplace", "+");
-            path = path.Replace("backspacetoreplace", " ");
-            List<VideoFileInfo> list = new List<VideoFileInfo>();
-                string[] allfiles = Directory.GetFiles(path);
-                foreach (string filename in allfiles)
+            try
+            {
+                List<VideoInfo> info = dbSql.VideoInfo.OrderBy(x => x.Position).ToList();
+                if (info.Count == 0)
                 {
-                    VideoFileInfo info = new VideoFileInfo();
-                    var fileInfo = new System.IO.FileInfo(filename);
-                    info.Position = dbSql.VideoInfo.Count() + 1;
-                    info.FullName = fileInfo.FullName;
-                    info.Name = fileInfo.Name;
-                    list.Add(info);
+                    return Json(new { message = "No video info available" });
                 }
-
-            return list;
+                else
+                {
+                    return Json(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         public async Task<IActionResult> UploadVideo(IFormFile videoFile)
@@ -187,12 +195,17 @@ namespace Portal.Controllers
                     await videoFile.CopyToAsync(stream);
                 }
 
+                foreach (var item in dbSql.VideoInfo.ToList())
+                {
+                    item.Position += 1;
+                }
                 VideoInfo info = new VideoInfo();
+                info.Position = 0;
                 info.Name = videoFile.FileName;
                 info.Path = filePath;
                 dbSql.VideoInfo.Add(info);
                 dbSql.SaveChanges();
-
+                UpdateDataOnDevices();
                 return Json(new { message = "File uploaded successfully" });
             }
             catch (Exception ex)
@@ -242,6 +255,136 @@ namespace Portal.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        public IActionResult DeleteDevice(string guid)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                var device = dbSql.VideoDevices.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+                if (device == null)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Device not found";
+                    return new ObjectResult(result);
+                }
+                dbSql.VideoDevices.Remove(device);
+                dbSql.SaveChanges();
+                result.Ok = true;
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
+
+        public IActionResult SwapPosition(string guid, int newposition)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                var oldpos = dbSql.VideoInfo.FirstOrDefault(x => x.Position == newposition).Position = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position;
+                var npos = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position = newposition;
+                dbSql.SaveChanges();
+                UpdateDataOnDevices();
+                result.Ok = true;
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> UpdateDataOnDevices()
+        {
+            List<VideoDevices> devices = dbSql.VideoDevices.ToList();
+            var results = new List<string>();
+
+            foreach (var device in devices)
+            {
+                if (!string.IsNullOrEmpty(device.Ip))
+                {
+                    var result = await SendRequestToDeviceAsync(device.Ip);
+                    results.Add(result);
+                }
+            }
+
+            return Ok(results);
+        }
+
+        private async Task<string> SendRequestToDeviceAsync(string ip)
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                var requestUrl = $"https://{ip}/?action=update";
+                var response = await httpClient.GetAsync(requestUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return $"Success: {ip}";
+                }
+                else
+                {
+                    return $"Failed: {ip} - {response.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ip} - {ex.Message}";
+            }
+        }
+
+        public IActionResult DeleteVideo(string guid) 
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+                VideoInfo videoInfo = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+                if(videoInfo != null) 
+                {
+                    if (System.IO.File.Exists(path + "\\" + videoInfo.Name))
+                    {
+                        System.IO.File.Delete(path + "\\" + videoInfo.Name);
+                    }
+
+                    foreach (var item in dbSql.VideoInfo.ToList())
+                    {
+                        if(item.Position > videoInfo.Position)
+                        {
+                            item.Position -= 1;
+                        }
+                    }
+
+                    dbSql.Remove(videoInfo);
+                    dbSql.SaveChanges();
+
+                    UpdateDataOnDevices();
+
+                    result.Ok = true;
+                    return new OkObjectResult(result);
+                } else
+                {
+                    result.Ok = false;
+                    return new ObjectResult(result);
+                }  
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
             }
         }
     }

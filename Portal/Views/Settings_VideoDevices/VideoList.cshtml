@@ -1,47 +1,157 @@
 @model List<Portal.Controllers.Settings_VideoDevicesController.VideoFileInfo>
 
-<div>
+<div class="hidden">
     <h2>Upload Video</h2>
     <form id="uploadForm" enctype="multipart/form-data">
         <input type="file" id="videoFile" name="videoFile" accept="video/*" required>
-        <button type="submit">Upload</button>
+        <button type="button" id="uploadButton">Upload</button>
     </form>
     <div id="result"></div>
 </div>
 
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12" style="display:inline-block">
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
- <div class="ttvideo_container">
-    <div class="ttvideo_container_main">
-        <div> Номер в очереди </div>
-        <div> Название видео </div>
-        <div> Размер видео </div>
-        <div> Просмотр </div>
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+            <button class="btn btn-sm btn-success addTTButton" onclick="selectVideo(this)" style="margin-left:20px">Выбрать видео</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="uploadVideo()" style="margin-left:20px" id="downloadButton">Загрузить видео</button>
+        </div>
+
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+        </div>
     </div>
+</div>
 
-    @if (Model != null)
-    {
-        var count = 1;
+<div class="panel panel-default" id="personTable" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        @try
+                        {
+                            <table class="data-table nowrap" id="tableDataPerson">
+                                <thead>
+                                    <tr>
+                                        <th width="12%" align="right" valign="middle" style="text-align: center">Номер в очереди</th>
+                                        <th>Название видео</th>
+                                        <th style="text-align: center">Размер видео</th>
+                                        <th style="text-align: center">Просмотр</th>
+                                        <th align="left" style="text-align: left" class="deleteVideo">Удалить</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablePerson">
+                                    @if (Model != null)
+                                    {
+                                        var count = 0;
+                                        
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr id="@item.Guid" class="activeRow">
+                                                <td class="" align="center" style="padding-left: 0px">
+                                                    <p class="list-item-heading">
+                                                        <select onchange="SwapPosition(this)">
+                                                            @for (var i = 0;i < Model.Count; i++)
+                                                            {
+                                                                @if(i == item.Position)
+                                                                {
+                                                                    <option selected = "true">
+                                                                        @i
+                                                                    </option>
+                                                                } else
+                                                                {
+                                                                    <option>
+                                                                        @i
+                                                                    </option>
+                                                                }
 
-        @foreach (var video in Model)
-        {
-            <div class="ttvideo_container_main">
-                <div> @count </div>
-                <div> @video.Name </div>
-                <div> @video.SizeInMB Мб</div>
-                <div>
-                    <video class="videoTV" width="160px" height="90px" controls="controls" preload="none" loop="loop" muted="muted" volume="0">
-                        <source src="/Settings_VideoDevices/GetFile?path=@video.FullName">
-                    </video>
+                                                }
+                                                        </select>
+                                                    </p>
+                                                </td>
+                                                <td class="">
+                                                    <p class="list-item-heading check_connection">@item.Name</p>
+                                                </td>
+                                                <td class="check_ip" width="20%" valign="middle">
+                                                    <p class="list-item-heading" style="text-align: center">@item.SizeInMB Мб</p>
+                                                </td>
+                                                <td class="" width="20%">
+                                                    <video class="videoTV"  controls="controls" style="max-width: 25vw" preload="none" muted="muted" volume="0">
+                                                        <source src="/Settings_VideoDevices/GetFile?path=@item.FullName">
+                                                    </video>
+                                                </td>
+                                                <td  width="10%" align="center">
+                                                    <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="deleteVideoModal('@item.Guid')" style="margin: 0;"> </label>
+                                                </td>
+                                            </tr>
+                                            count++;
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        catch
+                        {
+                            <div></div>
+                        }
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            count++;
-        }
-    }
-    
- </div>
+ <script>
+    var height = $('#global').height();
+
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    table.order([0, 'asc']).draw();
+
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    $('.view-filter').hide();
+ </script>
 
  <style>
+    .list-item-heading > select {
+        width: 40px;
+        height: 40px;
+        text-align: center;
+        border-radius: 10px;
+     }
 
     .ttvideo_container {
         display: flex;
@@ -78,13 +188,156 @@
 
  </style>
 
-<script>
-    document.getElementById('uploadForm').addEventListener('submit', function (event) {
-        event.preventDefault();
+<style>
+    .modalVideo {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+        padding-top: 60px;
+    }
 
-        var formData = new FormData();
+
+    .modal-contentVideo {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 30%;
+        height: 25%;
+    }
+
+
+    .modal-formVideo {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .modal-formVideo > label, .ipInputVideo {
+            font-size: 14px;
+            padding-left: 0px;
+        }
+
+        .modal-formVideo label {
+            margin-top: 10px;
+        }
+
+        .modal-formVideo input,
+        .modal-formVideo select {
+            border: 1px solid #aaa;
+        }
+
+        .modal-formVideo input,
+        .modal-formVideo select,
+        .modal-formVideo button {
+            font-size: 12px;
+            width: 100%;
+            height: 30px;
+            border-radius: 2px;
+        }
+
+    .divForSubmitButton {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-formVideo button {
+        margin-top: 20px;
+        background-color: #2ECC71;
+        color: white;
+        border: 1px solid #1E854A;
+        width: 100px;
+        cursor: pointer;
+        text-align: center;
+        padding: 0;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-family: Roboto, Arial, sans-serif;
+        border-radius: 2px;
+    }
+
+        .modal-formVideo button:hover {
+            background-color: #45a049;
+        }
+</style>
+
+<style>
+    #modalDelete {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .buttonForDeleteGreen {
+        margin-top: 20px;
+        background-color: #2ECC71;
+        color: white;
+        border: 1px solid #1E854A;
+        width: 100px;
+        cursor: pointer;
+        text-align: center;
+        padding: 0;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-family: Roboto, Arial, sans-serif;
+        border-radius: 2px;
+        height: 30px;
+    }
+
+    .buttonForDeleteRed {
+        margin-top: 20px;
+        color: white;
+        background-color: #E74C3C;
+        border: 1px solid #E43725;
+        width: 100px;
+        cursor: pointer;
+        text-align: center;
+        padding: 0;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-family: Roboto, Arial, sans-serif;
+        border-radius: 2px;
+        height: 30px;
+    }
+
+        .buttonForDeleteRed:hover {
+            background-color: #D62C1A;
+        }
+
+    .buttonForDeleteGreen:hover {
+        background-color: #25A25A;
+    }
+
+    .modal-contentVideoDelete {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 30%;
+        height: fit-content;
+    }
+</style>
+
+<script>
+    function uploadVideo() {
         var fileInput = document.getElementById('videoFile');
         var file = fileInput.files[0];
+        if (!file) {
+            alert("Please select a video file.");
+            return;
+        }
+        var formData = new FormData();
         formData.append('videoFile', file);
         SpinnerShow();
         $.ajax({
@@ -94,13 +347,114 @@
             contentType: false,
             processData: false,
             success: function (result) {
-                    SpinnerShow();
-                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                $('#result').text(result.message);
+                $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () {
+                    SpinnerHide();
+                });
             },
             error: function (xhr, status, error) {
                 console.log("Error: " + error);
+                SpinnerHide();
             }
         });
-    });
+    }
 
+    function selectVideo(elem) { 
+        $('#videoFile').click()
+        
+    }
+
+    const deleteVideo = document.querySelector('.deleteVideo')
+    deleteVideo.classList.remove('sorting')
+</script>
+
+@* Смена позиции видео и обновление данных на устройстве *@
+<script>
+    function SwapPosition(elem) {
+        SpinnerShow();
+        try {
+            $.ajax({
+                type: "POST",
+                url: `/Settings_VideoDevices/SwapPosition?guid=${elem.parentElement.parentElement.parentElement.id}&newposition=${elem.value}`,
+                dataType: "text",
+                success: function (result) {
+                    updateDataOnDevices()
+                },
+            });
+        } catch {
+            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+
+        }
+    }
+
+    function updateDataOnDevices() {
+        SpinnerShow();
+        try {
+            $.ajax({
+                type: "POST",
+                url: `/Settings_VideoDevices/UpdateDataOnDevices`,
+                dataType: "text",
+                success: function (result) {
+                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                },
+            });
+        } catch {
+            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+
+        }
+    }
+</script>
+
+@* Удаление видео *@
+<script>
+    function deleteVideo(guid) {
+        try {
+            SpinnerShow()
+            $.ajax({
+                type: "POST",
+                url: `/Settings_VideoDevices/DeleteVideo?guid=${guid}`,
+                dataType: "text",
+                success: function (result) {
+                    myModalVideo.remove()
+                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                },
+            });
+        } catch {
+            SpinnerHide()
+            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+
+        }
+    }
+
+    function deleteVideoModal(guid) {
+        global.innerHTML += `
+                        <div id="myModalVideo" class="modalVideo">
+                            <div class="modal-contentVideoDelete">
+                                <div id="modalDelete" class="modalDelete">
+                                    <p>Удалить устройство из списка?</p>
+                                    <div class="">
+                                                <button class="buttonForDeleteRed" onClick='deleteVideo("${guid}")'>Да</button>
+                                        <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`
+
+        const myModalVideo = document.getElementById('myModalVideo')
+        myModalVideo.style.display = "block";
+        window.onclick = function (event) {
+            if (event.target == myModalVideo) {
+                myModalVideo.remove()
+            }
+        }
+    }
+
+    function noFn() {
+        myModalVideo.remove()
+    }
+</script>
+
+<script>
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#settings" });
 </script>
