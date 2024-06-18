@@ -177,6 +177,28 @@ namespace Portal.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult GetVideoListArray(string ip)
+        {
+            try
+            {
+                VideoDevices info = dbSql.VideoDevices.Include(x => x.Location).FirstOrDefault(x => x.Ip == ip);
+                if (info == null)
+                {
+                    return Json(new { message = "No video info available" });
+                }
+                else
+                {
+                    return Json(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         public async Task<IActionResult> UploadVideo(IFormFile videoFile)
         {
             string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";

@@ -648,7 +648,7 @@ namespace Portal.Controllers
                         {
                             tt.OpenDate = open.Date;
                         }
-                        locversion.Location.Actual = 1;
+                        location.Actual = 1;
                         locversion.VersionStartDate = open.Date;
                     }
                     else
@@ -667,13 +667,13 @@ namespace Portal.Controllers
                         {
                             ttFromOldBD.CloseDate = close.Date;
                             locversion.VersionEndDate = close.Date;
-                            locversion.Location.Actual = 0;
+                            location.Actual = 0;
                         }
                         else
                         {
                            tt.CloseDate = close.Date;
                            locversion.VersionEndDate = close.Date;
-                            locversion.Location.Actual = 0;
+                           location.Actual = 0;
                         }
                     }
                     else

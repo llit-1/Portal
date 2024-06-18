@@ -168,9 +168,6 @@ margin-top: 10px;
 .table-no-border td {
 border: none !important;
 }
-.btn.disabled, .btn[disabled], fieldset[disabled] .btn {
-background-color: #F47920 !important;
-}
 .d-none {
 display: none;
 }

@@ -28,7 +28,7 @@
         <div id="tableMenu" class="col-md-12" style="padding:0px">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
             <button class="btn btn-sm btn-success addTTButton" onclick="selectVideo(this)" style="margin-left:20px">Выбрать видео</button>
-            <button class="btn btn-sm btn-success addTTButton" onclick="uploadVideo()" style="margin-left:20px" id="downloadButton">Загрузить видео</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="uploadVideo()" style="margin-left:20px" id="downloadButton" disabled>Загрузить видео</button>
         </div>
 
         <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
@@ -278,6 +278,11 @@
         align-items: center;
     }
 
+    #modalDelete > p {
+        padding: 0px;
+        font-family: "Roboto";
+    }
+
     .buttonForDeleteGreen {
         margin-top: 20px;
         background-color: #2ECC71;
@@ -324,7 +329,6 @@
         background-color: #fefefe;
         margin: 10% auto;
         padding: 20px;
-        border: 1px solid #888;
         width: 30%;
         height: fit-content;
     }
@@ -417,6 +421,7 @@
                 url: `/Settings_VideoDevices/DeleteVideo?guid=${guid}`,
                 dataType: "text",
                 success: function (result) {
+                    console.log("Success")
                     myModalVideo.remove()
                     $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
                 },
@@ -433,7 +438,7 @@
                         <div id="myModalVideo" class="modalVideo">
                             <div class="modal-contentVideoDelete">
                                 <div id="modalDelete" class="modalDelete">
-                                    <p>Удалить устройство из списка?</p>
+                                    <p>Удалить видео?</p>
                                     <div class="">
                                                 <button class="buttonForDeleteRed" onClick='deleteVideo("${guid}")'>Да</button>
                                         <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
@@ -454,6 +459,18 @@
     function noFn() {
         myModalVideo.remove()
     }
+
+    (() => {
+        const videoFile = document.getElementById('videoFile')
+        const downloadButton = document.getElementById('downloadButton')
+        downloadButton.style.backgroundColor = "#2ECC71"
+        videoFile.addEventListener('change', () => {
+            if (videoFile.file != null || videoFile.file != 'undefined') { 
+                downloadButton.style.backgroundColor = "#2ECC71"
+                downloadButton.disabled = false
+            }
+        })
+    })()
 </script>
 
 <script>
