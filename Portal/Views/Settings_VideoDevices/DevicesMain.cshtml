@@ -41,9 +41,10 @@
                                     <tr>
                                         <th>ТТ</th>
                                         <th>IP</th>
-                                        <th align="left" style="text-align: left">Статус</th>
-                                        <th>Получить скриншот</th>
-                                        <th align="center">Удалить</th>
+                                        <th align="left" style="text-align:center">Статус</th>
+                                        <th class="hidden">Получить скриншот</th>
+                                        <th align="center" style="text-align:center">Удалить</th>
+                                        <th align="center" style="text-align:center">Перезапустить</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
@@ -56,14 +57,18 @@
                                             <td class="">
                                                 <p class="list-item-heading check_connection">@item.Ip</p>
                                             </td>
-                                            <td class="check_ip" width="10%" valign="middle" style="text-align: center">
-                                                <p class="list-item-heading">Соединение...</p>
+                                            <td class="check_ip" width="5%" valign="middle" style="text-align: center;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24"><g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" /></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" /><animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" /></path></g></svg>
                                             </td>
-                                            <td class="" width="10%">
+                                            <td class="hidden" width="10%">
                                                 <p class="list-item-heading" oninvalid="middle"> Пока без скриншотов </p>
                                             </td>
                                             <td class="" width="10%" align="center">
                                                 <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="deleteDevice('@item.Guid')" style="margin: 0;"> </label>
+                                            </td>
+                                            <td class="" width="10%" align="center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" onclick="reloadDevice('@item.Ip')" width="1.8em" height="1.8em" viewBox="0 0 24 24"><path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" /></svg>
+                                                @* <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24"><g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" /></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" /><animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" /></path></g></svg> *@
                                             </td>
                                         </tr>
                                     }
@@ -116,7 +121,7 @@
     height -= $('#headMenu').height();
 
     var table = $(".data-table").DataTable({
-        "ordering": true,
+        "ordering": false,
         "order": [0, 'asc'],
         searching: true,
         bLengthChange: false,
@@ -401,6 +406,21 @@
         height: fit-content;
     }
 </style>
+
+<script>
+    function reloadDevice(ip) {
+        SpinnerShow();
+        $.ajax({
+            type: 'GET',
+            url: `/Settings_VideoDevices/ReloadDevice?ip=${ip}`,
+            success: function (result) {
+                if (result.ok) {
+                    SpinnerHide();
+                }
+            }
+        })
+    }
+</script>
 
 <script>
     $('#back').unbind('click');

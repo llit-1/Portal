@@ -27,8 +27,8 @@
 
         <div id="tableMenu" class="col-md-12" style="padding:0px">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <button class="btn btn-sm btn-success addTTButton" onclick="selectVideo(this)" style="margin-left:20px">Выбрать видео</button>
-            <button class="btn btn-sm btn-success addTTButton" onclick="uploadVideo()" style="margin-left:20px" id="downloadButton" disabled>Загрузить видео</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="selectVideo(this)" style="margin-left:20px">1. Выбрать видео</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="uploadVideo()" style="margin-left:20px" id="downloadButton" disabled>2. Загрузить видео</button>
         </div>
 
         <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
@@ -45,13 +45,13 @@
                         @try
                         {
                             <table class="data-table nowrap" id="tableDataPerson">
-                                <thead>
+                                <thead style="padding-bottom: 10px;">
                                     <tr>
                                         <th width="12%" align="right" valign="middle" style="text-align: center">Номер в очереди</th>
                                         <th>Название видео</th>
                                         <th style="text-align: center">Размер видео</th>
                                         <th style="text-align: center">Просмотр</th>
-                                        <th align="left" style="text-align: left" class="deleteVideo">Удалить</th>
+                                        <th align="left" style="text-align: center" class="deleteVideo">Удалить</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
@@ -89,7 +89,7 @@
                                                 <td class="check_ip" width="20%" valign="middle">
                                                     <p class="list-item-heading" style="text-align: center">@item.SizeInMB Мб</p>
                                                 </td>
-                                                <td class="" width="20%">
+                                                <td style="text-align:center" width="20%">
                                                     <video class="videoTV"  controls="controls" style="max-width: 14vw" preload="none" muted="muted" volume="0">
                                                         <source src="/Settings_VideoDevices/GetFile?path=@item.FullName">
                                                     </video>
@@ -122,7 +122,7 @@
     height -= $('#headMenu').height();
 
     var table = $(".data-table").DataTable({
-        "ordering": true,
+        "ordering": false,
         "order": [0, 'asc'],
         searching: true,
         bLengthChange: false,

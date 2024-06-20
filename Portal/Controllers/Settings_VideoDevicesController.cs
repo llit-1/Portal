@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Threading.Tasks;
 
 namespace Portal.Controllers
@@ -42,24 +43,91 @@ namespace Portal.Controllers
             return Json(locations);
         }
 
-        public IActionResult TryToConnectDevice(string ip)
+        public async Task<IActionResult> TryToConnectDevice(string ip)
         {
             var result = new RKNet_Model.Result<string>();
             try
             {
                 ip = ip.Replace("%bkspc%", " ");
                 var httpClient = _httpClientFactory.CreateClient();
-                string microserviceUrl = "http://" + ip + "/?action=getIP";
-                HttpResponseMessage response = httpClient.GetAsync(microserviceUrl).Result;
+                string microserviceUrl = $"http://{ip}/?action=getIP";
+                HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
+                string currentVersion = GetActualVersion().Split(".apk")[0];
+                string responseString = await response.Content.ReadAsStringAsync();
+
+                if (responseString != currentVersion)
+                {
+                    string request = $"http://{ip}/?action=download&param1={currentVersion}";
+                    HttpResponseMessage res = await httpClient.GetAsync(request);
+                }
+                else
+                {
+                    result.Data = "Устройство в актуальной версии";
+                }
+
+                result.Ok = true;
             }
             catch (Exception ex)
             {
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
-                return new ObjectResult(result);
             }
             return new ObjectResult(result);
         }
+
+
+        [AllowAnonymous]
+        public String GetActualVersion()
+        {
+            // разэкранирование "плюс" и "пробел"
+            var result = new RKNet_Model.Result<string>();
+            result.Ok = false;
+            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+            string[] allfiles = Directory.GetFiles(path);
+            foreach (string filename in allfiles)
+            {
+                var fileInfo = new System.IO.FileInfo(filename);
+                if (fileInfo.Name.EndsWith(".apk"))
+                {
+                    result.Ok = true;
+                    return fileInfo.Name;
+                } else
+                {
+                    continue;
+                }
+                
+            }
+            return "Error";
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult GetAPK(string filename)
+        {
+            // разэкранирование "плюс" и "пробел"
+            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ\\";
+            string filePath = Path.Combine(path, filename, ".apk").Replace("plustoreplace", "+").Replace("backspacetoreplace", " ");
+
+            // Получение информации о файле
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Exists)
+            {
+                return NotFound("File not found");
+            }
+
+            byte[] fileBytes;
+            try
+            {
+                fileBytes = System.IO.File.ReadAllBytes(filePath);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
+            return File(fileBytes, "application/vnd.android.package-archive", fileInfo.Name);
+        }
+
 
         public IActionResult AddDevice(string locationGuid, string ip)
         {
@@ -97,6 +165,10 @@ namespace Portal.Controllers
                 {
                     VideoFileInfo info = new VideoFileInfo();
                     var fileInfo = new System.IO.FileInfo(filename);
+                    if(fileInfo.Name.EndsWith(".apk"))
+                    {
+                        continue;
+                    }
                     info.Guid = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Guid;
                     info.Position = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Position;
                     if(info.Guid == null || info.Position == null)
@@ -412,6 +484,35 @@ namespace Portal.Controllers
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result); ;
             }
+        }
+
+        public async Task<IActionResult> ReloadDevice(string ip)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                ip = ip.Replace("%bkspc%", " ");
+                var httpClient = _httpClientFactory.CreateClient();
+                string microserviceUrl = "http://" + ip + "?action=reload";
+                HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Ok = true;
+                    result.Data = "Success: " + ip;
+                }
+                else
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = $"Failed: {ip} - {response.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = $"Error: {ip} - {ex.Message}";
+            }
+            return new ObjectResult(result);
         }
     }
 }
