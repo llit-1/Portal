@@ -58,6 +58,11 @@ namespace Portal
                 options.MultipartBodyLengthLimit = 304857600;
             });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AllowAnonymous", policy => policy.RequireAssertion(_ => true));
+            });
+
             services.AddRazorPages().AddRazorRuntimeCompilation();
             if (IsTest)
             { 

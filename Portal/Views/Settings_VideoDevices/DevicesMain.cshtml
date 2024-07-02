@@ -1,8 +1,7 @@
-@model List<Portal.Models.MSSQL.VideoDevices>
+@model Portal.Models.JsonModels.DeviceMainJson
 
 <meta charset="UTF-8">
-
-<div id="headMenu" class="row" style="margin:0px">
+<div id="headMenu" class="row" style="margin:0">
     <div class="col-12" style="display:inline-block">
         <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
             <tbody>
@@ -12,23 +11,23 @@
                         <label style="margin-left:10px; cursor:pointer">назад</label>
                     </td>
                     <td>
-                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                        <h2 id="header" style="margin:0; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <div id="tableMenu" class="col-md-12" style="padding:0px">
+        <div id="tableMenu" class="col-md-12" style="padding:0">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
             <button class="btn btn-sm btn-success addTTButton" onclick="addDevice()" style="margin-left:20px">Добавить устройство</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="restartAllDevice()" style="margin-left:20px">Перезагрузить все</button>
         </div>
 
-        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-        </div>
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0"></div>
     </div>
 </div>
 
-<div class="panel panel-default" id="personTable" style="margin-bottom:0px">
+<div class="panel panel-default" id="personTable" style="margin-bottom:0">
     <div class="panel-body">
         <div class="row mb-4 mt-3">
             <div class="col-12">
@@ -41,34 +40,64 @@
                                     <tr>
                                         <th>ТТ</th>
                                         <th>IP</th>
-                                        <th align="left" style="text-align:center">Статус</th>
-                                        <th class="hidden">Получить скриншот</th>
-                                        <th align="center" style="text-align:center">Удалить</th>
-                                        <th align="center" style="text-align:center">Перезапустить</th>
+                                        <th align="center" style="text-align: center;">Порядок видео</th>
+                                        <th align="center" style="text-align: center;">Статус</th>
+                                        <th align="center" style="text-align: center;">Получить скриншот</th>
+                                        <th align="center" style="text-align: center;">Ориентация экрана</th>
+                                        <th align="center" style="text-align: center;">Перезапустить</th>
+                                        <th align="center" style="text-align: center;">Удалить</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
-                                    @foreach (var item in Model)
+                                    @foreach (var item in Model.videoDevices)
                                     {
                                         <tr id="@item.Guid" class="activeRow">
-                                            <td class="">
-                                                <p class="list-item-heading">@item.Location.Name</p>
+                                            <td onclick="EditDevice('@item.Guid')"><p class="list-item-heading">@item.Location.Name</p></td>
+                                            <td onclick="EditDevice('@item.Guid')"><p class="list-item-heading check_connection">@item.Ip</p></td>
+                                            <td onclick="EditDevice('@item.Guid')"  align="center"><p class="list-item-heading check_connection">@item?.VideoList</p></td>
+                                            <td class="check_ip" align="center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+                                                    <g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2">
+                                                        <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z">
+                                                            <animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" />
+                                                        </path>
+                                                        <path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12">
+                                                            <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" />
+                                                            <animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" />
+                                                        </path>
+                                                    </g>
+                                                </svg>
                                             </td>
-                                            <td class="">
-                                                <p class="list-item-heading check_connection">@item.Ip</p>
+                                            <td align="center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" onclick="getScreenshot('@item.Ip')" width="2em" height="2em" viewBox="0 0 24 24">
+                                                    <path fill="currentColor" d="M21 21V3H3v18zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z" />
+                                                </svg>
                                             </td>
-                                            <td class="check_ip" width="5%" valign="middle" style="text-align: center;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24"><g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" /></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" /><animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" /></path></g></svg>
+                                            <td align="center">
+                                                <p class="list-item-heading">
+                                                    <select class="selectOrientation" onchange="selectOrientation(this, '@item.Ip.ToString().Trim()')">
+                                                        @foreach(var orientation in Model.videoOrientation)
+                                                        {
+                                                            if(item?.Orientation?.Guid != null && item?.Orientation?.Guid == orientation.Guid)
+                                                            {
+                                                                <option value="@orientation.Guid" selected>@orientation.Name</option>
+                                                            } else
+                                                            {
+                                                                <option value="@orientation.Guid">@orientation.Name</option>
+                                                            }
+
+                                                        }
+                                                        
+                                                    </select>
+                                                </p>
                                             </td>
-                                            <td class="hidden" width="10%">
-                                                <p class="list-item-heading" oninvalid="middle"> Пока без скриншотов </p>
+                                            <td align="center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="restartButton" onclick="reloadDevice('@item.Ip')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
+                                                    <path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" />
+                                                </svg>
                                             </td>
-                                            <td class="" width="10%" align="center">
-                                                <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="deleteDevice('@item.Guid')" style="margin: 0;"> </label>
-                                            </td>
-                                            <td class="" width="10%" align="center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" onclick="reloadDevice('@item.Ip')" width="1.8em" height="1.8em" viewBox="0 0 24 24"><path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" /></svg>
-                                                @* <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24"><g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" /></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" /><animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" /></path></g></svg> *@
+                                            <td align="center">
+                                                <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="deleteDevice('@item.Guid')" style="margin: 0;"></label>
                                             </td>
                                         </tr>
                                     }
@@ -88,207 +117,169 @@
 
 @* Проверяем соеднинение с устройством *@
 <script>
-    const check_connection = document.querySelectorAll(".check_connection")
-    check_connection.forEach(x => {
+    document.querySelectorAll(".check_connection").forEach(x => {
         try {
             $.ajax({
                 type: "POST",
                 url: `/Settings_VideoDevices/TryToConnectDevice?ip=${x.textContent}`,
                 dataType: "text",
                 success: function (result) {
-                    const ok = JSON.parse(result)
-                    if (ok.ok) {
-                        x.parentNode.parentNode.children[2].innerHTML = `<p class="green_p"></p>`
-                    } else {
-                        x.parentNode.parentNode.children[2].innerHTML = `<p class="red_p"></p>`
-                    }
+                    const ok = JSON.parse(result);
+                    const statusCell = x.parentNode.parentNode.children[3];
+                    statusCell.innerHTML = ok.ok ? `<p class="green_p"></p>` : `<p class="red_p"></p>`;
                 },
             });
         } catch {
             openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
         }
-    })
+    });
 </script>
-
-
 
 <script>
     $('#PageHeader').text('Видео на ТТ');
 
-    var height = $('#global').height();
-
-    height -= $('#cm-header').height();
-    height -= $('#headMenu').height();
+    var height = $('#global').height() - $('#cm-header').height() - $('#headMenu').height();
 
     var table = $(".data-table").DataTable({
         "ordering": false,
-        "order": [0, 'asc'],
         searching: true,
         bLengthChange: false,
         destroy: true,
         info: false,
         paging: false,
         sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
-        responsive: !0,
-        deferRender: !0,
+        responsive: true,
+        deferRender: true,
         scrollY: height,
-        scrollCollapse: !0
+        scrollCollapse: true
     });
 
     table.order([0, 'asc']).draw();
 
-    $("#searchDatatable").on("keyup", function (event) {
+    $("#searchDatatable").on("keyup", function () {
         table.search($(this).val()).draw();
     });
 
     $('.view-filter').hide();
 </script>
 
-<style>
-    .modalVideo {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgb(0,0,0);
-        background-color: rgba(0,0,0,0.4);
-        padding-top: 60px;
-    }
-
-
-    .modal-contentVideo {
-        background-color: #fefefe;
-        margin: 10% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 30%;
-        height: 25%;
-    }
-
-
-    .modal-formVideo {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .modal-formVideo > label, .ipInputVideo {
-        font-size: 14px;
-        padding-left: 0px;
-    }
-
-    .modal-formVideo label {
-        margin-top: 10px;
-    }
-
-    .modal-formVideo input,
-    .modal-formVideo select {
-        border: 1px solid #aaa;
-    }
-
-    .modal-formVideo input,
-    .modal-formVideo select,
-    .modal-formVideo button {
-        font-size: 12px;
-        width: 100%;
-        height: 30px;
-        border-radius: 2px;
-    }
-
-    .divForSubmitButton {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-formVideo button {
-        margin-top: 20px;
-        background-color: #2ECC71;
-        color: white;
-        border: 1px solid #1E854A;
-        width: 100px;
-        cursor: pointer;
-        text-align: center;
-        padding: 0;
-        font-size: 11px;
-        text-transform: uppercase;
-        font-weight: bold;
-        font-family: Roboto, Arial, sans-serif;
-        border-radius: 2px;
-    }
-
-    .modal-formVideo button:hover {
-        background-color: #45a049;
-    }
-</style>
-
 <script>
+    function removeSelect(elem) {
+        elem.parentElement.remove();
+    }
+
+    function addInputWithPosition(items) {
+        const containerForInputs = document.querySelector(".input-container");
+        const newDiv = document.createElement("div");
+        newDiv.classList.add("containerForSelect");
+
+        const newSelect = document.createElement("select");
+        newSelect.className = "positionOption"
+        newSelect.innerHTML = items;
+
+        const newSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        newSvg.setAttribute("width", "1.5em");
+        newSvg.setAttribute("height", "1.5em");
+        newSvg.setAttribute("viewBox", "0 0 512 512");
+
+        const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path1.setAttribute("d", "M256 90c44.3 0 86 17.3 117.4 48.6C404.7 170 422 211.7 422 256s-17.3 86-48.6 117.4C342 404.7 300.3 422 256 422s-86-17.3-117.4-48.6C107.3 342 90 300.3 90 256s17.3-86 48.6-117.4C170 107.3 211.7 90 256 90m0-42C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48z");
+        path1.setAttribute("fill", "currentColor");
+
+        const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path2.setAttribute("d", "M363 277H149v-42h214v42z");
+        path2.setAttribute("fill", "currentColor");
+
+        newSvg.appendChild(path1);
+        newSvg.appendChild(path2);
+
+        newSvg.addEventListener("click", function () {
+            removeSelect(this);
+        });
+
+        newDiv.appendChild(newSelect);
+        newDiv.appendChild(newSvg);
+
+        containerForInputs.appendChild(newDiv);
+    }
+
     function addDevice() {
         $.ajax({
             type: 'GET',
             url: '/Settings_VideoDevices/GetLocationList',
             success: function (result) {
-                if (result.length > 0) {
-                    const global = document.getElementById('global')
+                if (result) {
+                    const global = document.getElementById('global');
+                    let videoList = ""
+                    result.item1.forEach(x => {
+                        videoList += `<option>${x.name.trim()}</option>`.trim()
+                    })
                     global.innerHTML += `
                             <div id="myModalVideo" class="modalVideo">
                                 <div class="modal-contentVideo">
                                     <form class="modal-formVideo" id="modalFormVideo">
-                                    <label for="addressSelectVideo" class="label-light">Выберите ТТ:</label>
-                                    <select id="addressSelectVideo" name="address" required></select>
-                                    <label for="ipInputVideo" class="label-light">Укажите IP:</label>
-                                    <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required>
-                                    <div class="divForSubmitButton">
-                                        <button type="submit">ДОБАВИТЬ</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    `
+                                        <label for="addressSelectVideo" class="label-light">Выберите ТТ:</label>
+                                        <select id="addressSelectVideo" name="address" required></select>
+                                        <label for="ipInputVideo" class="label-light">Укажите IP:</label>
+                                        <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required>
 
-                    const addressSelect = document.getElementById('addressSelectVideo')
-                    result.forEach(x => {
-                        addressSelect.innerHTML += `<option value="${x.guid}">${x.name}</option>`          
-                    })
-                    
-                    var modal = document.getElementById("myModalVideo");
+                                        <div class="containerForInputs">
+                                            <label class="label-light" style="padding-left: 0; margin-left: 0; padding-bottom: 5px;">Изменить порядок видео</label>
+                                            <div class="input-container"></div>
+                                                    <div class="addPosition" onClick='addInputWithPosition("${videoList}")'> + </div>
+                                        </div>
+
+                                        <div class="divForSubmitButton">
+                                            <button type="submit">ДОБАВИТЬ</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>`;
+
+                    const addressSelect = document.getElementById('addressSelectVideo');
+                    result.item2.forEach(x => {
+                        addressSelect.innerHTML += `<option value="${x.guid}">${x.name}</option>`;
+                    });
+
+                    const modal = document.getElementById("myModalVideo");
                     modal.style.display = "block";
                     window.onclick = function (event) {
                         if (event.target == modal) {
-                            modal.remove()
+                            modal.remove();
                         }
-                    }
+                    };
 
                     $('#back').unbind('click');
                     $('#back').click(function () { location.hash = "#settings" });
 
                     document.getElementById("modalFormVideo").onsubmit = function (event) {
                         event.preventDefault();
-                        var address = document.getElementById("addressSelectVideo").value;
-                        var ip = document.getElementById("ipInputVideo").value;
+                        const address = document.getElementById("addressSelectVideo").value;
+                        const ip = document.getElementById("ipInputVideo").value;
+                        let arrPosition = []
+                        const allSelect = document.querySelectorAll(".positionOption")
+                        allSelect.forEach(x => {
+                            if (x) {
+                                arrPosition.push(x.value)
+                            }
+                        })
+                        const result = "[" + arrPosition.toString() + "]"
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
-                            url: `/Settings_VideoDevices/AddDevice?locationGuid=${address}&ip=${ip}`,
-                            success: function (result) {    
+                            url: `/Settings_VideoDevices/AddDevice?locationGuid=${address}&ip=${ip}&arr=${result}`,
+                            success: function (result) {
                                 if (result.ok) {
-                                    myModalVideo.remove()
+                                    modal.remove();
                                     $('#container-fluid').load('/Settings_VideoDevices/DevicesMain', function () { SpinnerHide(); });
                                 }
                             },
                             error: function () {
-                                myModalVideo.remove()
-                                console.log("Ошибка")
-                                SpinnerHide()
+                                modal.remove();
+                                SpinnerHide();
                             }
-                        })
-
+                        });
                         modal.style.display = "none";
-
                     }
                 } else {
                     console.log("Not Ok");
@@ -300,33 +291,33 @@
         });
     }
 
-    function deleteDevice(obj) {
+    function deleteDevice(guid) {
+        const global = document.getElementById('global');
         global.innerHTML += `
-                    <div id="myModalVideo" class="modalVideo">
-                        <div class="modal-contentVideoDelete">
-                            <div id="modalDelete" class="modalDelete">
-                                <p>Удалить устройство из списка?</p>
-                                <div class="">
-                                        <button class="buttonForDeleteRed" onClick='yesFn("${obj}")'>Да</button>
-                                    <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
-                                </div>
+                <div id="myModalVideo" class="modalVideo">
+                    <div class="modal-contentVideoDelete">
+                        <div id="modalDelete" class="modalDelete">
+                            <p>Удалить устройство из списка?</p>
+                            <div>
+                                <button class="buttonForDeleteRed" onClick='yesFn("${guid}")'>Да</button>
+                                <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
                             </div>
                         </div>
-                    </div>`
+                    </div>
+                </div>`;
 
-        const myModalVideo = document.getElementById('myModalVideo')
+        const myModalVideo = document.getElementById('myModalVideo');
         myModalVideo.style.display = "block";
         window.onclick = function (event) {
             if (event.target == myModalVideo) {
-                myModalVideo.remove()
+                myModalVideo.remove();
             }
-            $('#back').unbind('click');
-            $('#back').click(function () { location.hash = "#settings" });
-        }
+        };
     }
 
     function noFn() {
-        myModalVideo.remove()
+        const myModalVideo = document.getElementById('myModalVideo');
+        myModalVideo.remove();
     }
 
     function yesFn(guid) {
@@ -336,78 +327,55 @@
             url: `/Settings_VideoDevices/DeleteDevice?guid=${guid}`,
             success: function (result) {
                 if (result.ok) {
-                    myModalVideo.remove()
-                    $('#container-fluid').load('/Settings_VideoDevices/DevicesMain', function () { SpinnerHide(); });
+                    const myModalVideo = document.getElementById('myModalVideo');
+                    myModalVideo.remove();
+                    SpinnerShow();
+                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                    
                 }
             }
-        })
-    }
-</script>
-
-<style>
-    #modalDelete {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        });
     }
 
-    #modalDelete > p {
-            padding: 0px;
-            font-family: "Roboto";
-        }
+    function getScreenshot(ip) {
+        SpinnerShow();
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/Settings_VideoDevices/GetScreenshot?ip=${ip}`, true);
+        xhr.responseType = 'blob';
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                const url = URL.createObjectURL(xhr.response);
+                const global = document.getElementById('global');
+                global.innerHTML += `
+                        <div id="myModalVideo" class="modalVideo">
+                            <div class="modal-contentVideoDelete" style="width: fit-content;">
+                                <div id="modalDelete" class="modalDelete">
+                                    <img style="max-width: 500px; max-height: 300px; border: 1px solid #ECE7E6;" id="screenshot" src="" alt="Ошибка запроса скриншота" />
+                                </div>
+                            </div>
+                        </div>`;
 
-    .buttonForDeleteGreen {
-        margin-top: 20px;
-        background-color: #2ECC71;
-        color: white;
-        border: 1px solid #1E854A;
-        width: 100px;
-        cursor: pointer;
-        text-align: center;
-        padding: 0;
-        font-size: 11px;
-        text-transform: uppercase;
-        font-weight: bold;
-        font-family: Roboto, Arial, sans-serif;
-        border-radius: 2px;
-        height: 30px;
+                const myModalVideo = document.getElementById('myModalVideo');
+                myModalVideo.style.display = "block";
+                window.onclick = function (event) {
+                    if (event.target == myModalVideo) {
+                        myModalVideo.remove();
+                    }
+                };
+                document.getElementById('screenshot').src = url;
+                SpinnerHide();
+            } else {
+                alert('Не удалось получить скриншот');
+                SpinnerHide();
+            }
+        };
+        xhr.onerror = function () {
+            alert('Не удалось получить скриншот');
+            SpinnerHide();
+        };
+        xhr.send();
     }
 
-    .buttonForDeleteRed {
-        margin-top: 20px;
-        color: white;
-        background-color: #E74C3C;
-        border: 1px solid #E43725;
-        width: 100px;
-        cursor: pointer;
-        text-align: center;
-        padding: 0;
-        font-size: 11px;
-        text-transform: uppercase;
-        font-weight: bold;
-        font-family: Roboto, Arial, sans-serif;
-        border-radius: 2px;
-        height: 30px;
-    }
-
-    .buttonForDeleteRed:hover {
-        background-color: #D62C1A;
-    }
-
-    .buttonForDeleteGreen:hover {
-        background-color: #25A25A;
-    }
-
-    .modal-contentVideoDelete {
-        background-color: #fefefe;
-        margin: 10% auto;
-        padding: 20px;
-        width: 30%;
-        height: fit-content;
-    }
-</style>
-
-<script>
     function reloadDevice(ip) {
         SpinnerShow();
         $.ajax({
@@ -418,11 +386,170 @@
                     SpinnerHide();
                 }
             }
+        });
+    }
+
+    function restartAllDevice() {
+        const restartButtons = document.querySelectorAll(".restartButton")
+        restartButtons.forEach(x => {
+            x.click
         })
+    }
+
+    function selectOrientation(elem, ip) {
+        SpinnerShow();
+        $.ajax({
+            type: 'POST',
+            url: `/Settings_VideoDevices/SelectOrientation?value=${elem.value}&ip=${ip}`,
+            success: function (result) {
+                if (result.ok) {
+                    SpinnerHide();
+                }
+            }
+        });
     }
 </script>
 
 <script>
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#settings" });
+</script>
+
+
+<script>
+    function EditDevice(guid)
+    {
+        $.ajax({
+            type: 'GET',
+            url: `/Settings_VideoDevices/GetLocationListWithGuid?guid=${guid}`,
+            success: function (result) {
+                if (result) {
+                    const global = document.getElementById('global');
+                    let videoList = ""
+                    result.item1.forEach(x => {
+                        videoList += `<option>${x.name.trim()}</option>`.trim()
+                    })
+                    global.innerHTML += `
+                            <div id="myModalVideo" class="modalVideo">
+                                <div class="modal-contentVideo">
+                                    <form class="modal-formVideo" id="modalFormVideo">
+                                        <label for="addressSelectVideo" class="label-light">Выберите ТТ:</label>
+                                        <select id="addressSelectVideo" name="address" required></select>
+                                        <label for="ipInputVideo" class="label-light">Укажите IP:</label>
+                                        <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required value="${result.item3.ip}">
+
+                                        <div class="containerForInputs">
+                                            <label class="label-light" style="padding-left: 0; margin-left: 0; padding-bottom: 5px;">Изменить порядок видео</label>
+                                            <div class="input-container"></div>
+                                                    <div class="addPosition" onClick='addInputWithPosition("${videoList}")'> + </div>
+                                        </div>
+
+                                        <div class="divForSubmitButton">
+                                            <button type="submit">СОХРАНИТЬ</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>`;
+
+                    const addressSelect = document.getElementById('addressSelectVideo');
+                    result.item2.forEach(x => {
+                        if (x.guid == result.item3.guid) {
+                            addressSelect.innerHTML += `<option value="${x.guid}" selected>${x.name}</option>`;
+                        } else {
+                            addressSelect.innerHTML += `<option value="${x.guid}">${x.name}</option>`;
+                        }
+                        
+                    });
+
+                    if (result.item3.videoList !== "[]") {
+                        let arr = result.item3.videoList.replace(/[\[\]]/g, '').split(',').map(item => item.trim());
+                        arr.forEach(x => {
+                            addInputWithPositionFromBD(videoList, x)
+                        })
+                    }
+
+                    const modal = document.getElementById("myModalVideo");
+                    modal.style.display = "block";
+                    window.onclick = function (event) {
+                        if (event.target == modal) {
+                            modal.remove();
+                        }
+                    };
+                    document.getElementById("modalFormVideo").onsubmit = function (event) {
+                        event.preventDefault();
+                      
+                        const address = document.getElementById("addressSelectVideo").value;
+                        const ip = document.getElementById("ipInputVideo").value;
+                        let arrPosition = []
+                        const allSelect = document.querySelectorAll(".positionOption")
+                        allSelect.forEach(x => {
+                            if (x) {
+                                arrPosition.push(x.value)
+                            }
+                        })
+                        const result = "[" + arrPosition.toString() + "]"
+                        modal.remove();
+                        SpinnerShow();
+                        $.ajax({
+                            type: 'POST',
+                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${address}&ip=${ip}&arr=${result}`,
+                            success: function (result) {
+                                if (result.ok) {
+                                    SpinnerHide();
+                                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                                }
+                            },
+                            error: function () {
+                                modal.remove();
+                                SpinnerHide();
+                            }
+                        });
+                        modal.style.display = "none";
+                    }
+                } else {
+                    console.log("Not Ok");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log("Error: " + error);
+            }
+        });
+    }
+
+    function addInputWithPositionFromBD(items, selected) 
+    {
+        const containerForInputs = document.querySelector(".input-container");
+        const newDiv = document.createElement("div");
+        newDiv.classList.add("containerForSelect");
+
+        const newSelect = document.createElement("select");
+        newSelect.className = "positionOption"
+        newSelect.innerHTML = items;
+        newSelect.innerHTML += `<option selected>${selected}</option>`
+
+        const newSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        newSvg.setAttribute("width", "1.5em");
+        newSvg.setAttribute("height", "1.5em");
+        newSvg.setAttribute("viewBox", "0 0 512 512");
+
+        const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path1.setAttribute("d", "M256 90c44.3 0 86 17.3 117.4 48.6C404.7 170 422 211.7 422 256s-17.3 86-48.6 117.4C342 404.7 300.3 422 256 422s-86-17.3-117.4-48.6C107.3 342 90 300.3 90 256s17.3-86 48.6-117.4C170 107.3 211.7 90 256 90m0-42C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48z");
+        path1.setAttribute("fill", "currentColor");
+
+        const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path2.setAttribute("d", "M363 277H149v-42h214v42z");
+        path2.setAttribute("fill", "currentColor");
+
+        newSvg.appendChild(path1);
+        newSvg.appendChild(path2);
+
+        newSvg.addEventListener("click", function () {
+            removeSelect(this);
+        });
+
+        newDiv.appendChild(newSelect);
+        newDiv.appendChild(newSvg);
+
+        containerForInputs.appendChild(newDiv);
+    }
 </script>

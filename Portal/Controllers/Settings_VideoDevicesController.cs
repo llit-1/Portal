@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Presentation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Policy;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Portal.Controllers
 {
@@ -30,17 +33,22 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
+
         public IActionResult DevicesMain()
         {
-            List<VideoDevices> videoDevices = dbSql.VideoDevices.Include(x => x.Location).ToList();
-            return PartialView(videoDevices);
+            Portal.Models.JsonModels.DeviceMainJson deviceMainJson = new Models.JsonModels.DeviceMainJson();
+            deviceMainJson.videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).ToList(); ;
+            deviceMainJson.videoOrientation = dbSql.VideoOrientation.ToList();
+            return PartialView(deviceMainJson);
         }
 
         [HttpGet]
-        public JsonResult GetLocationList()
+        public IActionResult GetLocationList()
         {
+            List<VideoInfo> videoInfos = dbSql.VideoInfo.OrderBy(x => x.Name).ToList();
             List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
-            return Json(locations);
+            var model = Tuple.Create(videoInfos, locations);
+            return Json(model);
         }
 
         public async Task<IActionResult> TryToConnectDevice(string ip)
@@ -77,7 +85,7 @@ namespace Portal.Controllers
 
 
         [AllowAnonymous]
-        public String GetActualVersion()
+        public string GetActualVersion()
         {
             // разэкранирование "плюс" и "пробел"
             var result = new RKNet_Model.Result<string>();
@@ -100,14 +108,12 @@ namespace Portal.Controllers
             return "Error";
         }
 
-        [HttpGet]
         [AllowAnonymous]
         public IActionResult GetAPK(string filename)
         {
             // разэкранирование "плюс" и "пробел"
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ\\";
-            string filePath = Path.Combine(path, filename, ".apk").Replace("plustoreplace", "+").Replace("backspacetoreplace", " ");
-
+            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+            string filePath = path + "\\" + filename + ".apk";
             // Получение информации о файле
             var fileInfo = new FileInfo(filePath);
             if (!fileInfo.Exists)
@@ -129,7 +135,7 @@ namespace Portal.Controllers
         }
 
 
-        public IActionResult AddDevice(string locationGuid, string ip)
+        public IActionResult AddDevice(string locationGuid, string ip, string arr)
         {
             var result = new Result<string>();
             try
@@ -138,7 +144,8 @@ namespace Portal.Controllers
                 videoDevices.Location = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(locationGuid));
                 videoDevices.Status = 1;
                 videoDevices.Ip = ip.Trim();
-                videoDevices.VideoList = "[]";
+                videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
+                videoDevices.VideoList = arr.Trim();
                 dbSql.Add(videoDevices);
                 dbSql.SaveChanges();
                 result.Ok = true;
@@ -229,7 +236,7 @@ namespace Portal.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetVideoListForTv()
+        public IActionResult GetVideoListForTv(string ip)
         {
             try
             {
@@ -377,6 +384,8 @@ namespace Portal.Controllers
             }
         }
 
+
+
         public async Task<IActionResult> SwapPosition(string guid, int newposition)
         {
             var result = new RKNet_Model.Result<string>();
@@ -440,8 +449,51 @@ namespace Portal.Controllers
                 result.Ok = false;
                 result.ErrorMessage = $"Error: {ip} - {ex.Message}";
             }
-            return result.Ok.ToString(); // Преобразование RKNet_Model.Result<string> в строку, или вы можете изменить тип возвращаемого значения на IActionResult
+            return result.Ok.ToString();
         }
+
+        public IActionResult EditCustomVideoArray(string VideoName)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                List<VideoDevices> videoDevices = dbSql.VideoDevices.ToList();
+                foreach (var videoDevice in videoDevices)
+                {
+                    if (!string.IsNullOrEmpty(videoDevice.VideoList) && videoDevice.VideoList != "[]")
+                    {
+                        List<string> list = ConvertToList(videoDevice.VideoList);
+                        if (list.Contains(VideoName.Trim()))
+                        {
+                            list.Remove(VideoName.Trim());
+                            videoDevice.VideoList = JsonSerializer.Serialize(list).Replace("\"", "");
+                        }
+                    }
+                }
+                dbSql.SaveChanges();
+
+                result.Ok = true;
+                return new ObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
+
+        private List<string> ConvertToList(string input)
+        {
+            // Убираем квадратные скобки и делим строку на элементы
+            input = input.Trim('[', ']');
+            List<string> list = input.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(s => s.Trim(' ', '"'))
+                                     .ToList();
+            return list;
+        }
+
+
 
         public async Task<IActionResult> DeleteVideo(string guid) 
         {
@@ -468,6 +520,7 @@ namespace Portal.Controllers
                     dbSql.Remove(videoInfo);
                     dbSql.SaveChanges();
 
+                    EditCustomVideoArray(videoInfo.Name);
                     await UpdateDataOnDevices();
 
                     result.Ok = true;
@@ -514,6 +567,100 @@ namespace Portal.Controllers
             }
             return new ObjectResult(result);
         }
+
+        public async Task<IActionResult> GetScreenshot(string ip)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                ip = ip.Replace("%bkspc%", " ");
+                var httpClient = _httpClientFactory.CreateClient();
+                string microserviceUrl = "http://" + ip + "?action=screen";
+                HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsByteArrayAsync();
+                    return File(content, "image/png");
+                }
+                else
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = $"Failed: {ip} - {response.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = $"Error: {ip} - {ex.Message}";
+            }
+            return new ObjectResult(result);
+        }
+
+        public async Task<IActionResult> SelectOrientation(string value, string ip)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                ip = ip.Replace("%bkspc%", " ");
+                var httpClient = _httpClientFactory.CreateClient();
+                var orientationGuid = dbSql.VideoOrientation.FirstOrDefault(x => x.Guid == Guid.Parse(value));
+                string microserviceUrl = "http://" + ip + "?action=orientation&param1=" + orientationGuid.Number;
+                HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    
+                    var orientation = dbSql.VideoDevices.FirstOrDefault(x => x.Ip == ip.Trim()).Orientation = orientationGuid;
+                    result.Ok = true;
+                    result.Data = "Success: " + ip;
+                    dbSql.SaveChanges();
+                }
+                else
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = $"Failed: {ip} - {response.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = $"Error: {ip} - {ex.Message}";
+            }
+            return new ObjectResult(result);
+        }
+
+        [HttpGet]
+        public IActionResult GetLocationListWithGuid(string guid)
+        {
+            List<VideoInfo> videoInfos = dbSql.VideoInfo. OrderBy(x => x.Name).ToList();
+            List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
+            VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+            var model = Tuple.Create(videoInfos, locations, videoDevices);
+            return Json(model);
+        }
+        public IActionResult SaveDevice(string locationGuid, string ip, string arr)
+        {
+            var result = new Result<string>();
+            try
+            {
+                VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Ip == ip.Trim());
+                videoDevices.Location = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(locationGuid));
+                videoDevices.Status = 1;
+                videoDevices.Ip = ip.Trim();
+                videoDevices.VideoList = arr.Trim();
+                dbSql.SaveChanges();
+                result.Ok = true;
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
+
     }
 }
 

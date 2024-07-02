@@ -38,5 +38,6 @@ namespace Portal.DB
         public DbSet<CurrencyType> CurrencyTypes { get; set; }
         public DbSet<Models.MSSQL.VideoDevices> VideoDevices { get; set; } // Информация об устройстве
         public DbSet<Models.MSSQL.VideoInfo> VideoInfo { get; set; } // Информация о видео
+        public DbSet<Models.MSSQL.VideoOrientation> VideoOrientation { get; set; } // Информация о видео
     }
 }

@@ -1,0 +1,185 @@
+#modalDelete {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#modalDelete > p {
+    padding: 0;
+    font-family: "Roboto";
+}
+
+.buttonForDeleteGreen, .buttonForDeleteRed {
+    margin-top: 20px;
+    width: 100px;
+    cursor: pointer;
+    text-align: center;
+    padding: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-family: Roboto, Arial, sans-serif;
+    border-radius: 2px;
+    height: 30px;
+}
+
+.buttonForDeleteGreen {
+    background-color: #2ECC71;
+    color: white;
+    border: 1px solid #1E854A;
+}
+
+.buttonForDeleteRed {
+    background-color: #E74C3C;
+    color: white;
+    border: 1px solid #E43725;
+}
+
+.buttonForDeleteGreen:hover {
+    background-color: #25A25A;
+}
+
+.buttonForDeleteRed:hover {
+    background-color: #D62C1A;
+}
+
+.modal-contentVideoDelete {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    width: 30%;
+    height: fit-content;
+}
+
+.modalVideo {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding-top: 60px;
+}
+
+.modal-contentVideo {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 30%;
+    height: fit-content;
+}
+
+.modal-formVideo {
+    display: flex;
+    flex-direction: column;
+}
+
+    .modal-formVideo > label,
+    .ipInputVideo {
+        font-size: 14px;
+        padding-left: 0;
+    }
+
+    .modal-formVideo label {
+        margin-top: 10px;
+    }
+
+    .modal-formVideo input,
+    .modal-formVideo select {
+        border: 1px solid #aaa;
+    }
+
+    .modal-formVideo input,
+    .modal-formVideo select,
+    .modal-formVideo button {
+        font-size: 12px;
+        width: 100%;
+        height: 30px;
+        border-radius: 2px;
+    }
+
+.divForSubmitButton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-formVideo button {
+    margin-top: 20px;
+    background-color: #2ECC71;
+    color: white;
+    border: 1px solid #1E854A;
+    width: 100px;
+    cursor: pointer;
+    text-align: center;
+    padding: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-family: Roboto, Arial, sans-serif;
+    border-radius: 2px;
+}
+
+    .modal-formVideo button:hover {
+        background-color: #45a049;
+    }
+
+.addPosition {
+    border: 1px solid gray;
+    padding: 5px;
+    border-radius: 10px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    width: 20%;
+    margin: 10px 0;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.input-container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+    .input-container > div > select {
+        width: 70%;
+        height: 50px;
+        border-radius: 15px;
+    }
+
+.containerForSelect {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.containerForInputs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.containerForSelect > svg {
+    cursor: pointer;
+}
+
+.selectOrientation {
+    padding: 3px;
+    border: 1px solid #ECE7E6;
+    border-radius: 6px;
+}
