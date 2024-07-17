@@ -13,8 +13,9 @@ namespace Portal.Models.MSSQL.Location
         public Guid Guid { get; set; }
         public string Name { get; set; }
         public LocationType? LocationType { get; set; }
-        public int RKCode { get; set; }
+        public int? RKCode { get; set; }
         public int? AggregatorsCode { get; set; }
+        public Location? Parent { get; set; }
         public Double? Latitude { get; set; }
         public Double? Longitude { get; set; }
         public int Actual {  get; set; }

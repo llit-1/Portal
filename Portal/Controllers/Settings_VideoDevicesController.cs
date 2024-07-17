@@ -633,7 +633,7 @@ namespace Portal.Controllers
         [HttpGet]
         public IActionResult GetLocationListWithGuid(string guid)
         {
-            List<VideoInfo> videoInfos = dbSql.VideoInfo. OrderBy(x => x.Name).ToList();
+            List<VideoInfo> videoInfos = dbSql.VideoInfo.OrderBy(x => x.Name).ToList();
             List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
             VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
             var model = Tuple.Create(videoInfos, locations, videoDevices);
@@ -644,12 +644,43 @@ namespace Portal.Controllers
             var result = new Result<string>();
             try
             {
-                VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Ip == ip.Trim());
+                VideoDevices videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).FirstOrDefault(x => x.Ip == ip.Trim());
                 videoDevices.Location = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(locationGuid));
                 videoDevices.Status = 1;
                 videoDevices.Ip = ip.Trim();
                 videoDevices.VideoList = arr.Trim();
                 dbSql.SaveChanges();
+                result.Ok = true;
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
+
+        [AllowAnonymous]
+        public IActionResult CheckDeviceIp(string ip)
+        {
+            var result = new Result<string>();
+            try
+            {
+                VideoDevices video = dbSql.VideoDevices.FirstOrDefault(x => x.Ip == (ip.Trim() + ":8080"));
+                if(video == null)
+                {
+                    VideoDevices videoDevices = new();
+                    videoDevices.Location = dbSql.Locations.FirstOrDefault();
+                    videoDevices.Status = 1;
+                    videoDevices.Ip = ip.Trim() + ":8080";
+                    videoDevices.VideoList = "[]";
+                    videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
+                    dbSql.Add(videoDevices);
+                    dbSql.SaveChanges();
+                    result.Ok = true;
+                    return new OkObjectResult(result);
+                }
                 result.Ok = true;
                 return new OkObjectResult(result);
             }

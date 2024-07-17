@@ -352,10 +352,7 @@
             contentType: false,
             processData: false,
             success: function (result) {
-                $('#result').text(result.message);
-                $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () {
-                    SpinnerHide();
-                });
+                location.reload()
             },
             error: function (xhr, status, error) {
                 console.log("Error: " + error);
@@ -421,9 +418,7 @@
                 url: `/Settings_VideoDevices/DeleteVideo?guid=${guid}`,
                 dataType: "text",
                 success: function (result) {
-                    console.log("Success")
-                    myModalVideo.remove()
-                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                    location.reload()
                 },
             });
         } catch {

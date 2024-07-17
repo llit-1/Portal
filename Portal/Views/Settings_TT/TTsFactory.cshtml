@@ -1,0 +1,61 @@
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12" style="display:inline-block">
+        <!--блок заголовка-->
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--заголовок-->
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--меню таблицы-->
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+            <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="AddItem()" style="margin-left:20px">добавить</a>
+        </div>
+
+        <!--меню добавления -->
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+        </div>        
+    </div>
+</div>
+
+<div id="page" style="margin-top:15px"></div>
+
+<!------------------------------------------------------------------------------------------------------------------->
+<!--загрузка таблицы-->
+<script>
+    function loadTTTable() {
+        $('#header').text('Завод');
+        $('.addTTButton').text("Добавить")
+        SpinnerShow();
+        $('#page').load('/Settings_TT/TTsFactoryTable', function () { SpinnerHide(); });
+    }
+</script>
+
+<!--загрузка окна-->
+<script>
+    function DataTable() {
+        $('#header').text('Завод');
+
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#settings" });
+
+        $('#tableMenu').show();
+        $('#editMenu').hide();
+        $('#addMenu').hide();
+        $('#page').empty();        
+        loadTTTable();
+    }
+    DataTable();
+</script>

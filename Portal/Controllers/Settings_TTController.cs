@@ -17,6 +17,7 @@ using RKNet_Model.VMS.NX;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -47,6 +48,10 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
+        public IActionResult TTsFactory()
+        {
+            return PartialView();
+        }
 
         // Таблица ТТ
         public IActionResult TTsTable(bool closedTT, bool ecTT)
@@ -62,6 +67,7 @@ namespace Portal.Controllers
                                                                .Include(x => x.Entity)
                                                                .Include(x => x.Location.LocationType)
                                                                .Where(x => x.Actual == 1)
+                                                               .Where(x => x.Location.LocationType.Name != "Завод" || x.Location.LocationType.Name != "Цех")
                                                                .ToList();
 
             var tts = db.TTs.Include(t => t.Users)
@@ -80,6 +86,25 @@ namespace Portal.Controllers
 
             return PartialView(tVersions);
         }
+        // Таблица ТТ для заводов
+        public IActionResult TTsFactoryTable()
+        {
+            if (db.TTs is null)
+            {
+                return Ok();
+            }
+
+            List<LocationVersions> locationFactory = dbSql.LocationVersions
+                .Include(x => x.Location)
+                .Include(x => x.Location.LocationType)
+                .Include(x => x.Entity)
+                .Where(x => x.Actual == 1)
+                .Where(x => x.Location.LocationType.Guid == Guid.Parse("80423E42-DC1E-4311-AD0B-08DCA4A09C33") || x.Location.LocationType.Guid == Guid.Parse("D3A0363D-2EC4-48E4-AD0C-08DCA4A09C33"))
+                .ToList();
+
+            return PartialView(locationFactory);
+        }
+
         // Таблица версий ТТ
         public IActionResult TTsTableVersion(string locGuid)
         {
@@ -126,7 +151,7 @@ namespace Portal.Controllers
                                                                        .Where(x => x.Guid == Guid.Parse(ttGuid))
                                                                        .ToList();
 
-                    int helper = ttSettings.LocationVersion[0].Location.RKCode;
+                    int helper = (int)ttSettings.LocationVersion[0].Location.RKCode;
 
                     ttSettings.OldTT = db.TTs
                     .Include(t => t.Users)
@@ -186,6 +211,152 @@ namespace Portal.Controllers
 
             return PartialView(ttSettings);
         }
+
+        public IActionResult TTFactoryAdd()
+        {
+            TTsFactoryEdit tsFactoryEdit = new TTsFactoryEdit();
+            List<Entity> entity = dbSql.Entity.ToList();
+            List<LocationVersions> locationVersion = dbSql.LocationVersions.Where(x => x.Actual == 1).Where(x => x.Location.LocationType.Name == "Завод" || x.Location.LocationType.Name == "Цех").ToList();
+            List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
+            tsFactoryEdit.entity = entity;
+            tsFactoryEdit.locationTypes = locationTypes;
+            tsFactoryEdit.location = locationVersion;
+
+            return PartialView(tsFactoryEdit);
+        }
+
+        public IActionResult TTFactoryEdit(string guid)
+        {
+            TTsFactoryEditData tsFactoryEdit = new TTsFactoryEditData();
+            LocationVersions locationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                     .Include(x => x.Location.LocationType)
+                                                                     .Include(x => x.Entity)
+                                                                     .FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+
+            List<Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
+            List<Entity> entity = dbSql.Entity.ToList();
+            List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
+            tsFactoryEdit.entity = entity;
+            tsFactoryEdit.locationTypes = locationTypes;
+            tsFactoryEdit.location = locationVersion;
+            tsFactoryEdit.loca = locations;
+
+            return PartialView(tsFactoryEdit);
+        }
+        public IActionResult TTFactorySave(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                json = json.Replace("%bkspc%", " ");
+                var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
+
+                LocationVersions locationVersions = dbSql.LocationVersions.Include(x => x.Location)
+                                                                          .Include(x => x.Location.LocationType)
+                                                                          .Include(x => x.Entity)
+                                                                          .FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.guid));
+
+
+                locationVersions.Location.Name = ttJsn.Name;
+                locationVersions.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
+                locationVersions.Location.RKCode = 0;
+                locationVersions.Location.AggregatorsCode = null;
+                if (ttJsn.parent != "" && ttJsn.parent != null)
+                {
+                    locationVersions.Location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
+                }
+                else
+                {
+                    locationVersions.Location.Parent = null;
+                }
+                locationVersions.Location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Actual = 1;
+
+
+                locationVersions.Name = ttJsn.Name;
+                locationVersions.OBD = null;
+                locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
+                locationVersions.Actual = 1;
+                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                if (ttJsn.close != "")
+                {
+                    locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);
+                }
+                else
+                {
+                    locationVersions.VersionEndDate = null;
+                }
+                locationVersions.Address = ttJsn.address;
+
+                dbSql.SaveChanges();
+
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                result.Ok = false;
+                result.Data = e.ToString();
+            }
+            return new ObjectResult(result);
+        }
+        public IActionResult TTFactorySaveNew(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                json = json.Replace("%bkspc%", " ");
+                var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
+
+                LocationVersions locationVersions = new LocationVersions();
+                Location location = new Location();
+
+                location.Name = ttJsn.Name;
+                location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
+                location.RKCode = 0;
+                location.AggregatorsCode = null;
+                if (ttJsn.parent != "")
+                {
+                    location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
+                } 
+                else
+                {
+                    location.Parent = null;
+                }
+                
+                location.Latitude = Double.Parse(ttJsn.latitude, CultureInfo.InvariantCulture);
+                location.Longitude = Double.Parse(ttJsn.longitude, CultureInfo.InvariantCulture);
+                location.Actual = 1;
+
+                locationVersions.Location = location;
+                locationVersions.Name = ttJsn.Name;
+                locationVersions.OBD = null;
+                locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
+                locationVersions.Actual = 1;
+                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                if(ttJsn.close != "")
+                {
+                    locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);
+                } 
+                else
+                {
+                    locationVersions.VersionEndDate = null;
+                }
+                locationVersions.Address = ttJsn.address;
+
+                dbSql.Locations.Add(location);
+                dbSql.LocationVersions.Add(locationVersions);
+                dbSql.SaveChanges();
+
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                result.Ok = false;
+                result.Data = e.ToString();
+            }
+            return new ObjectResult(result);
+        }
         // Сохранение ТТ
         public IActionResult TTSave(string ttjsn)
         {
@@ -226,11 +397,11 @@ namespace Portal.Controllers
                             }
 
                         case "latitude":
-                            ttNewBase.Location.Latitude = ttJsn.latitude;
+                            ttNewBase.Location.Latitude =  Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
                             break;
 
                         case "longitude":
-                            ttNewBase.Location.Longitude = ttJsn.longitude;
+                            ttNewBase.Location.Longitude = Double.Parse(ttJsn.longitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
                             break;
 
                         case "ttRestaurantSifr":
@@ -516,8 +687,8 @@ namespace Portal.Controllers
                         }
 
                         
-                        location.Latitude = ttJsn.latitude;
-                        location.Longitude = ttJsn.longitude;
+                        location.Latitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                        location.Longitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
                     }
 
                     // организация новой тт

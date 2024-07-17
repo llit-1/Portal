@@ -245,12 +245,9 @@
                     modal.style.display = "block";
                     window.onclick = function (event) {
                         if (event.target == modal) {
-                            modal.remove();
+                            closeModal()
                         }
                     };
-
-                    $('#back').unbind('click');
-                    $('#back').click(function () { location.hash = "#settings" });
 
                     document.getElementById("modalFormVideo").onsubmit = function (event) {
                         event.preventDefault();
@@ -270,12 +267,10 @@
                             url: `/Settings_VideoDevices/AddDevice?locationGuid=${address}&ip=${ip}&arr=${result}`,
                             success: function (result) {
                                 if (result.ok) {
-                                    modal.remove();
-                                    $('#container-fluid').load('/Settings_VideoDevices/DevicesMain', function () { SpinnerHide(); });
                                 }
                             },
                             error: function () {
-                                modal.remove();
+                                closeModal()
                                 SpinnerHide();
                             }
                         });
@@ -310,7 +305,6 @@
         myModalVideo.style.display = "block";
         window.onclick = function (event) {
             if (event.target == myModalVideo) {
-                myModalVideo.remove();
             }
         };
     }
@@ -327,11 +321,6 @@
             url: `/Settings_VideoDevices/DeleteDevice?guid=${guid}`,
             success: function (result) {
                 if (result.ok) {
-                    const myModalVideo = document.getElementById('myModalVideo');
-                    myModalVideo.remove();
-                    SpinnerShow();
-                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
-                    
                 }
             }
         });
@@ -359,12 +348,16 @@
                 myModalVideo.style.display = "block";
                 window.onclick = function (event) {
                     if (event.target == myModalVideo) {
-                        myModalVideo.remove();
+                        closeModal()
                     }
                 };
                 document.getElementById('screenshot').src = url;
                 SpinnerHide();
+                $('#back').unbind('click');
+                $('#back').click(function () { location.hash = "#settings" });
             } else {
+                $('#back').unbind('click');
+                $('#back').click(function () { location.hash = "#settings" });
                 alert('Не удалось получить скриншот');
                 SpinnerHide();
             }
@@ -384,6 +377,8 @@
             success: function (result) {
                 if (result.ok) {
                     SpinnerHide();
+                    $('#back').unbind('click');
+                    $('#back').click(function () { location.hash = "#settings" });
                 }
             }
         });
@@ -404,19 +399,13 @@
             success: function (result) {
                 if (result.ok) {
                     SpinnerHide();
+                    $('#back').unbind('click');
+                    $('#back').click(function () { location.hash = "#settings" });
                 }
             }
         });
     }
-</script>
 
-<script>
-    $('#back').unbind('click');
-    $('#back').click(function () { location.hash = "#settings" });
-</script>
-
-
-<script>
     function EditDevice(guid)
     {
         $.ajax({
@@ -453,7 +442,7 @@
 
                     const addressSelect = document.getElementById('addressSelectVideo');
                     result.item2.forEach(x => {
-                        if (x.guid == result.item3.guid) {
+                        if (x.guid == result.item3.location.guid) {
                             addressSelect.innerHTML += `<option value="${x.guid}" selected>${x.name}</option>`;
                         } else {
                             addressSelect.innerHTML += `<option value="${x.guid}">${x.name}</option>`;
@@ -472,7 +461,7 @@
                     modal.style.display = "block";
                     window.onclick = function (event) {
                         if (event.target == modal) {
-                            modal.remove();
+                            closeModal()
                         }
                     };
                     document.getElementById("modalFormVideo").onsubmit = function (event) {
@@ -488,7 +477,7 @@
                             }
                         })
                         const result = "[" + arrPosition.toString() + "]"
-                        modal.remove();
+                        closeModal()
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
@@ -496,11 +485,14 @@
                             success: function (result) {
                                 if (result.ok) {
                                     SpinnerHide();
-                                    $('#container-fluid').load('/Settings_VideoDevices/VideoList', function () { SpinnerHide(); });
+                                    $('#back').unbind('click');
+                                    $('#back').click(function () { location.hash = "#settings" });
                                 }
                             },
                             error: function () {
-                                modal.remove();
+                                $('#back').unbind('click');
+                                $('#back').click(function () { location.hash = "#settings" });
+                                closeModal()
                                 SpinnerHide();
                             }
                         });
@@ -552,4 +544,17 @@
 
         containerForInputs.appendChild(newDiv);
     }
+
+    function closeModal() {
+        const modal = document.getElementById("myModalVideo");
+        if (modal) {
+            modal.remove();
+            location.reload()
+            $('#back').unbind('click');
+            $('#back').click(function () { location.hash = "#settings" });
+        }
+    }
+
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#settings" });
 </script>

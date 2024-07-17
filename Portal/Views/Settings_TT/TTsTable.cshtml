@@ -17,7 +17,7 @@
                                     <th>Тип</th>
                                     <th>Пользователи</th>
                                     <th>Кассы</th>
-                                    <th>Камеры</th>                                    
+                                    <th>Камеры</th>
                                     <th>Яндекс Еда</th>
                                     <th>Delivery Club</th>
                                     <th>Дата открытия</th>
@@ -31,46 +31,46 @@
                                 {
                                     var old = Model.OldTT.FirstOrDefault(x => x.Name == tt.Name);
                                     var organization = "";
-                                    if (tt?.Entity?.Name != null) organization = tt?.Entity.Name;
+                                    @if (tt?.Entity?.Name != null) organization = tt?.Entity.Name;
 
                                     var ttType = "";
-                                    if (tt?.Location?.LocationType?.Name != null) ttType = tt?.Location.LocationType.Name;
+                                    @if (tt?.Location?.LocationType?.Name != null) ttType = tt?.Location.LocationType.Name;
 
                                     var openDate = "";
-                                    if (tt?.VersionStartDate != null) openDate = tt?.VersionStartDate.Value.ToString("yyyy-MM-dd");
+                                    @if (tt?.VersionStartDate != null) openDate = tt?.VersionStartDate.Value.ToString("yyyy-MM-dd");
 
                                     var closeDate = "";
-                                    if (tt?.VersionEndDate != null) closeDate = tt?.VersionEndDate.Value.ToString("yyyy-MM-dd");
-                                    
+                                    @if (tt?.VersionEndDate != null) closeDate = tt?.VersionEndDate.Value.ToString("yyyy-MM-dd");
 
-                                <tr id="@tt?.Guid" class="activeRow" onclick="">
-                                    <td>
-                                        <p class="list-item-heading ttName">@tt?.Name</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-muted">@organization</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-muted">@tt.Location.AggregatorsCode</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-muted">@tt?.OBD</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-muted">@ttType</p>
-                                    </td>
-                                    <td>
+
+                                    <tr id="@tt?.Guid" class="activeRow" onclick="">
+                                        <td>
+                                            <p class="list-item-heading ttName">@tt?.Name</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@organization</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt.Location.AggregatorsCode</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt?.OBD</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@ttType</p>
+                                        </td>
+                                        <td>
                                             <p class="text-muted">@old?.Users.Count</p>
-                                    </td>
-                                    <td>
+                                        </td>
+                                        <td>
                                             <p class="text-muted">@old?.CashStations.Count</p>
-                                    </td>
-                                    <td>
+                                        </td>
+                                        <td>
                                             <p class="text-muted">@old?.NxCameras.Count</p>
-                                    </td>                                    
-                                    <td>
-                                        @if (old?.YandexEda == true)
-                                        {
+                                        </td>
+                                        <td>
+                                            @if (old?.YandexEda == true)
+                                            {
                                                 <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
                                             }
                                             else
@@ -78,31 +78,31 @@
                                                 <p class="text-muted"><i class="fa fa-fw fa-minus"></i></p>
                                             }
                                         </td>
-                                    <td>
+                                        <td>
                                             @if (old?.DeliveryClub == true)
-                                        {
-                                            <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
-                                        }
-                                        else
-                                        {
+                                            {
+                                                <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
+                                            }
+                                            else
+                                            {
                                                 <p class="text-muted"><i class="fa fa-fw fa-minus"></i></p>
-                                        }
-                                    </td>
-                                    <td>
-                                        <p class="text-muted">@openDate</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-muted">@closeDate</p>
-                                    </td>
+                                            }
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@openDate</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@closeDate</p>
+                                        </td>
 
-                                    <td class="hidden">
-                                        <p class="text-muted">@old?.Id</p>
-                                    </td>
+                                        <td class="hidden">
+                                            <p class="text-muted">@old?.Id</p>
+                                        </td>
 
-                                    <td class="hidden">
-                                        <p class="text-muted locGuid">@tt?.Location.Guid</p>
-                                    </td>
-                                </tr>
+                                        <td class="hidden">
+                                            <p class="text-muted locGuid">@tt?.Location.Guid</p>
+                                        </td>
+                                    </tr>
                                 }
 
                             </tbody>
@@ -157,7 +157,7 @@
 <!--клик по строке-->
 <script>
 
-    
+
 
     $('.activeRow').click(function () {
         var itemGuid = this.id;
@@ -165,8 +165,8 @@
         var qq = $(this).find('.locGuid').text()
         var itemName = $(this).find('.ttName').text();
         var headerName = "Версии для " + itemName;
-        @*loadTTTableVersion(locGuid, headerName)*@
-        EditItem(itemName, locGuid, 2)
+    @*loadTTTableVersion(locGuid, headerName)*@
+            EditItem(itemName, locGuid, 2)
     });
 </script>
 

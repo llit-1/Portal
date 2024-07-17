@@ -1,0 +1,252 @@
+<div class="yyyyy">
+    <div class="wrapperForSettingsFactory">
+        <div id="back">
+            <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+            <label style="margin-left:10px; cursor:pointer; margin-bottom:0px;">назад</label>
+        </div>
+        
+
+        <input class="searchFactory" type="text" placeholder='ФИО' oninput="nameHandler()">
+
+        <select>
+            <option>Кондитерский цех</option>
+            <option>Мучной цех</option>
+        </select>
+
+        <input type="month" value="2024-06" class="dateSelector">
+    </div>
+
+    
+
+    <div class="wrapperForButtons">
+        <button value="11" class="mySwitchButton mySwitchButton_1 active">1-10</button>
+        <button value="21" class="mySwitchButton mySwitchButton_2">11-20</button>
+        <button value="31" class="mySwitchButton mySwitchButton_3">21-31</button>
+    </div>
+
+</div>
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th rowspan="2">ФИО</th>
+            <th rowspan="2">Должность</th>
+            @{
+                for(var i = 1; i < 33; i++)
+                {
+                    if(i < 11)
+                    {
+                        <th colspan="2" class="upperthday" id="upperthday_@i">@i</th>
+                    } else
+                    {
+                        <th class="hidden upperthday" id="upperthday_@i" colspan="2">@i</th>
+                    }
+
+                }
+            }
+            <th rowspan="2">Итого, час</th>
+        </tr>
+        <tr>
+            @{
+                var a = true;
+                for (var i = 0; i < 63; i++)
+                {
+                    if(i < 20)
+                    {
+                        if (a)
+                        {
+                            a = false;
+                            <th class="thday" id="thday_@i">д</th>
+                        }
+                        else
+                        {
+                            a = true;
+                            <th class="thday" id="thday_@i">н</th>
+                        }
+                    } else
+                    {
+                        if (a)
+                        {
+                            a = false;
+                            <th id="thday_@i" class="thday hidden">д</th>
+                        }
+                        else
+                        {
+                            a = true;
+                            <th id="thday_@i" class="thday hidden">н</th>
+                        }
+                    }
+                }
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            for(var b = 0; b < 150; b++)
+            {
+                            <tr>
+                                <td class='name1'>Кургузов В.С.</td>
+                                <td class='job1'>Повар</td>
+                                @{
+                            var p = true;
+                            for (var i = 0; i < 63; i++)
+                            {
+                                if (i < 20)
+                                {
+                                    if(@p) {
+                                        p = false;
+                                                        <td id="tdday_@i">8</td>
+                                    } else {
+                                        p = true;
+                                                        <td id="tdday_@i"></td>
+                                    }
+                                }
+                                else
+                                {
+                                                    <td id="tdday_@i" class="hidden">8</td>
+                                }
+                            }
+                                }
+                                <td>160 ч.</td>
+                                <td><label class="md-edit ico ClassForGetDate" onclick="" style="margin-bottom: -5px;"></label></td>
+                            </tr>
+            }
+        }
+        
+    </tbody>
+</table>
+
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid black;
+        text-align: center;
+        padding: 5px;
+    }
+
+    thead {
+        background-color: rgb(238, 123, 15);
+        color: white;
+    }
+
+    input, select, .dateSelector {
+        padding
+        width: 250px;
+        height: 34px;
+        padding: 2px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .mySwitchButton {
+        color: white;
+        width: 100px;
+        height: 30px;
+        padding: 0px;
+        /* margin: 0px; */
+        border: 0;
+        background: #acacac63;
+        
+    }
+
+    .wrapperForButtons > .active {
+            background: #F47920;
+            color: white;
+            border: 1px solid #80808073;
+        box-shadow: inset 0px 0px 10px -2px #6f6f6f82;
+        }
+
+    .mySwitchButton_1 {
+        border-radius: 10px 0px 0px 10px;
+    }
+
+    .mySwitchButton_2 {
+        margin: 0px -3px 0px -4px;
+        border: 1px solid #80808073;
+        border-bottom: 0px;
+        border-top: 0px;
+    }
+
+    .mySwitchButton_3 {
+        border-radius: 0px 10px 10px 0px;
+    }
+
+    .wrapperForSettingsFactory {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .yyyyy {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0px 20px 0px;
+    }
+
+    #back {
+        display: inline-flex;
+        align-items: center;
+        padding-right: 20px;
+    }
+</style>
+
+
+<script defer>
+    document.getElementById('PageHeader').textContent = "Учет табеля (Завод)"
+
+    Date.prototype.daysInMonth = function() {
+        return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate();
+    };
+    console.log(new Date().daysInMonth())
+
+
+    const mySwitchButton = document.querySelectorAll('.mySwitchButton')
+    mySwitchButton.forEach(x => {
+        x.addEventListener('click', (e) => {
+            document.querySelectorAll('.mySwitchButton').forEach(y => y.classList.remove('active'))
+            x.classList.add('active')
+            const count = e.target.value == 11 ? 1 : +e.target.value - 10
+            document.querySelectorAll('.thday').forEach(x => x.classList.add('hidden'))
+            document.querySelectorAll('.upperthday').forEach(x => x.classList.add('hidden'))
+            let max = +event.target.value;
+            for (let i = count; i < max; i++) {
+                
+                document.getElementById(`upperthday_${i}`).classList.remove('hidden')
+            }
+
+            for (let i = count * 2; i < max * 2; i++) {
+                document.getElementById(`thday_${i}`).classList.remove('hidden')
+            }
+        })
+    })
+
+
+
+    function nameHandler() {
+        const elem = document.querySelector('.searchFactory').value
+        document.querySelectorAll('.name1').forEach(x => {
+            x.classList.remove('hidden')
+        })
+        document.querySelectorAll('.name1').forEach(x => {
+            x.textContent?.toLowerCase().includes(elem.toLowerCase()) ? x.parentElement?.classList.remove('hidden') : x.parentElement?.classList.add('hidden')
+        })
+    }
+</script>
+
+
+<script>
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        location.hash = "#staff"
+    });
+</script>

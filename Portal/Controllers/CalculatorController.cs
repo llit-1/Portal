@@ -68,8 +68,10 @@ namespace Portal.Controllers
         public IActionResult Sandwitches()
         {
             // логируем
+
             var log = new LogEvent<string>(User);
             log.Name = "Запуск калькулятора сэндвичей";
+            
             log.Description = "/Calculator/Sandwitches";
             log.IpAdress = HttpContext.Session.GetString("ip");
             log.Save();
@@ -77,9 +79,14 @@ namespace Portal.Controllers
             return PartialView();
         }
 
-
         public IActionResult Calculate(string typeGuid, string tt)
         {
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            var log = new LogEvent<string>(User);
+            log.Name = "Запуск калькулятора выпечки";
+            log.Description = "/Calculator/Vipechka";
+            log.IpAdress = HttpContext.Session.GetString("ip");
+            log.Save(userAgent, HttpContext.Session.Id);
             CalculatorInformation calculatorInformation = new CalculatorInformation();
             switch (typeGuid.ToUpper())
             {

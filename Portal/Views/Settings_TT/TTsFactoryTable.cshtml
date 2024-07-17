@@ -1,0 +1,128 @@
+@model List<Portal.Models.MSSQL.Location.LocationVersions>
+
+<!--таблица тт-->
+<div class="panel panel-default" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Наименование</th>
+                                    <th>Организация</th>
+                                    <th>Тип</th>
+                                    <th>Принадлежность</th>
+                                    <th>Дата открытия</th>
+                                    <th>Дата закрытия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tt in Model.OrderBy(t => t.Name))
+                                {
+
+                                    <tr id="@tt?.Guid" class="activeRow" onclick="">
+                                        <td>
+                                            <p class="list-item-heading ttName">@tt?.Name</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt?.Entity.Name</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt?.Location.LocationType.Name</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt?.Location?.Parent</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt?.VersionStartDate</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted">@tt?.VersionEndDate</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!----------------------------------------------------------------------->
+<!--вычисление высоты таблицы-->
+<script>
+    var height = $('#global').height();
+
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+<script>
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
+</script>
+
+<!--клик по строке-->
+<script>
+    $('.activeRow').click(function () {
+        const guid = this.id;
+        $('#back').unbind('click');
+        $('#back').click(function () {
+            $('#page').load("/Settings_TT/TTsFactoryTable", function () { SpinnerHide(); });
+        });
+
+        $('#tableMenu').hide();
+        $('#editMenu').hide();
+        $('#addMenu').show();
+        $('#page').empty();
+        $('#page').load(`/Settings_TT/TTFactoryEdit?guid=${guid}`, function () { SpinnerHide() });
+    });
+
+    function AddItem() {
+        location.hash = "#AddTT";
+        $('#header').text('Добавление завода \\ цеха');
+
+        $('#back').unbind('click');
+        $('#back').click(function () {
+            $('#page').load('/Settings_TT/TTsFactoryTable', function () { SpinnerHide(); });
+        });
+
+        $('#tableMenu').hide();
+        $('#editMenu').hide();
+        $('#addMenu').show();
+        $('#page').empty();
+        SpinnerShow();
+        $('#page').load('/Settings_TT/TTFactoryAdd', function () { SpinnerHide() });
+    }
+</script>
+

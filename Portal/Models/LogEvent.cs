@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RKNet_Model;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Portal.Models
 {
@@ -16,7 +19,6 @@ namespace Portal.Models
         public string Description;
         public string IpAdress;
         public T Object;
-
         private RKNet_Model.Account.User User;
         private DB.SQLiteDBContext sqlite;
         private DB.MSSQLDBContext mssql;
@@ -79,18 +81,98 @@ namespace Portal.Models
             // выключатель модуля
             enabled = sqlite.Modules.FirstOrDefault(m => m.Name == "Logging").Enabled;
         }
+        private IHttpClientFactory _httpClientFactory;
 
         // запись лога в БД
-        public void Save()
-        {                                    
+        public void Save(string userAgent = "", string SessionID = "")
+        {
             if (enabled)
-            {                           
+            {
                 var log = new RKNet_Model.MSSQL.Log();
-
                 log.dateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                 log.userId = User.Id;
                 log.userName = User.Name;
                 log.userJobTitle = User.JobTitle;
+                // Определяем браузер
+                if (userAgent.Contains("MSIE"))
+                {
+                    log.Browser = "Internet Explorer";
+                }
+                else if (userAgent.Contains("Chrome"))
+                {
+                    log.Browser = "Chrome";
+                }
+                else if (userAgent.Contains("Firefox"))
+                {
+                    log.Browser = "Firefox";
+                }
+                else if (userAgent.Contains("Safari") && userAgent.Contains("Version"))
+                {
+                    log.Browser = "Safari";
+                }
+                else
+                {
+                    log.Browser = "Unknown";
+                }
+
+                // Определяем операционную систему
+                if (userAgent.Contains("Windows NT 10.0"))
+                {
+                    log.OS = "Windows 10";
+                }
+                else if (userAgent.Contains("Windows NT 6.3"))
+                {
+                    log.OS = "Windows 8.1";
+                }
+                else if (userAgent.Contains("Windows NT 6.2"))
+                {
+                    log.OS = "Windows 8";
+                }
+                else if (userAgent.Contains("Windows NT 6.1"))
+                {
+                    log.OS = "Windows 7";
+                }
+                else if (userAgent.Contains("Windows NT 6.0"))
+                {
+                    log.OS = "Windows Vista";
+                }
+                else if (userAgent.Contains("Windows NT 5.1") || userAgent.Contains("Windows NT 5.2"))
+                {
+                    log.OS = "Windows XP";
+                }
+                else if (userAgent.Contains("Mac OS X"))
+                {
+                    int startIndex = userAgent.IndexOf("Mac OS X") + "Mac OS X".Length + 1;
+                    int endIndex = userAgent.IndexOf(")", startIndex);
+                    if (startIndex < endIndex)
+                    {
+                        log.OS = userAgent.Substring(startIndex, endIndex - startIndex);
+                    }
+                    else
+                    {
+                        log.OS = "Mac OS X";
+                    }
+                }
+                else if (userAgent.Contains("Android"))
+                {
+                    // Для Android можно выделить версию операционной системы
+                    // Например:
+                    int startIndex = userAgent.IndexOf("Android") + "Android".Length + 1;
+                    int endIndex = userAgent.IndexOf(";", startIndex);
+                    if (startIndex < endIndex)
+                    {
+                        log.OS = userAgent.Substring(startIndex, endIndex - startIndex);
+                    }
+                    else
+                    {
+                        log.OS = "Android";
+                    }
+                }
+                else
+                {
+                    log.OS = "Unknown";
+                }
+                log.SessionID = SessionID;
                 log.Name = Name;
                 log.IpAdress = IpAdress;
                 log.Description = Description;

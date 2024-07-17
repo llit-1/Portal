@@ -30,7 +30,6 @@ namespace Portal.Controllers
             dbSql = dbSqlContext;
         }
         public IActionResult TrackingDataTable(string begin, string end, string locationguid)
-
         {
             DateTime beginDateTime = new();
             DateTime endDateTime = new();

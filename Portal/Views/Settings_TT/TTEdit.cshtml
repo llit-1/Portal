@@ -35,7 +35,7 @@
         }
 
         locVerName = Model.LocationVersion[0].Name;
-        locVerRKCode = Model.LocationVersion[0].Location.RKCode;
+        locVerRKCode = (int)Model.LocationVersion[0].Location.RKCode;
         oldAddress = Model?.OldTT[0]?.Address;
         newAddress = Model.LocationVersion[0].Address;
         locVerEntity = Model.LocationVersion[0].Entity;
