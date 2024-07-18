@@ -20,9 +20,11 @@ namespace Portal.Controllers
     public class AccountController : Controller
     {
         private DB.SQLiteDBContext db;
-        public AccountController(DB.SQLiteDBContext context)
+        private DB.MSSQLDBContext dbSql;
+        public AccountController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
             db = context;
+            dbSql = dbSqlContext;
         }
 
         // Логин - ввод данных    
@@ -47,7 +49,13 @@ namespace Portal.Controllers
                     if (!string.IsNullOrEmpty(model.userIp))
                     {
                         HttpContext.Session.SetString("ip", model.userIp);
+                    } 
+                    else
+                    {
+                        HttpContext.Session.SetString("ip", HttpContext.Connection.RemoteIpAddress.ToString());
                     }
+
+                    
 
                     // убираем у логина все, после с символа @
                     if (login.Contains("@")) login = login.Substring(0, login.IndexOf('@'));
@@ -58,6 +66,24 @@ namespace Portal.Controllers
                         .Include(g => g.Groups)
                         .Include(t => t.TTs)
                         .FirstOrDefaultAsync(u => u.Login.ToLower() == login);
+
+                    Models.MSSQL.UserSessions session = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
+                    if (session != null)
+                    {
+                        session.SessionID = HttpContext.Session.Id;
+                        session.Date = DateTime.Now;
+                        dbSql.SaveChanges();
+                    } 
+                    else
+                    {
+                        Portal.Models.MSSQL.UserSessions newSession = new Portal.Models.MSSQL.UserSessions();
+                        newSession.Id = user.Id;
+                        newSession.UserName = user.Name.ToLower();
+                        newSession.SessionID = HttpContext.Session.Id;
+                        newSession.Date = DateTime.Now;
+                        dbSql.UserSessions.Add(newSession);
+                        dbSql.SaveChanges();
+                    }
 
                     // если пользователь есть в БД
                     if (user != null)

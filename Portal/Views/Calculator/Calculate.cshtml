@@ -242,12 +242,27 @@
                 dataType: "text",
                 success: function (result) {
                     const ok = JSON.parse(result)
+                    
                     if (!ok.ok) {
-                        openModal('Ошибка', "Ошибка контроллера. Попробуйте повторить попытку позже");
+                        switch(ok.errorMessage){
+                            case "401":
+                                fetch('/Account/Logout')
+                                openModal('Ошибка', "Ошибка сессии. Попробуйте повторно авторизироваться");
+                                document.querySelector('.closeModal').addEventListener('click', () => {
+                                    location.reload()
+                                })
+                                document.querySelector('.closeModal > div > span').addEventListener('click', () => {
+                                    location.reload()
+                                })
+                            break
+                            default:
+                                openModal('Ошибка', "Ошибка контроллера. Попробуйте повторить попытку позже");
+
+                        }
                     }
                 },
             });
-        } catch {
+        } catch(e) {
             openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
             document.querySelectorAll(".answer").forEach(x => x.textContent = 0)
             document.querySelectorAll(".inputObject").forEach(x => x.value = "")

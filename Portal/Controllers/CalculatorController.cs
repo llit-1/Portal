@@ -20,6 +20,7 @@ using Portal.ViewModels.Settings_TT;
 using DocumentFormat.OpenXml.Spreadsheet;
 using RKNet_Model.TT;
 using Portal.Models.MSSQL.Location;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
@@ -68,10 +69,9 @@ namespace Portal.Controllers
         public IActionResult Sandwitches()
         {
             // логируем
-
+            
             var log = new LogEvent<string>(User);
             log.Name = "Запуск калькулятора сэндвичей";
-            
             log.Description = "/Calculator/Sandwitches";
             log.IpAdress = HttpContext.Session.GetString("ip");
             log.Save();
@@ -328,32 +328,42 @@ namespace Portal.Controllers
             return PartialView(calculatorInformation);
         }
 
-        public IActionResult LogSave(string logjsn)
+        public async Task<IActionResult> LogSave(string logjsn)
         {
             var result = new RKNet_Model.Result<string>();
             try
             {
+                if (!Global.Functions.CheckSessionID(dbSql, HttpContext.Session.Id))
+                {
+                    throw new Exception("401");
+                }
                 logjsn = logjsn.Replace("%bkspc%", " ");
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
                 calculatorLog.Date = DateTime.Now;
-                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
+
+                if (HttpContext.Session.IsAvailable)
+                {
+                    calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Session is not available");
+                }
+
                 var httpClient = _httpClientFactory.CreateClient();
                 string microserviceUrl = "http://rknet-server:45732/Buffer";
-                HttpResponseMessage response = httpClient.PostAsJsonAsync(microserviceUrl, calculatorLog).Result;
+                HttpResponseMessage response = await httpClient.PostAsJsonAsync(microserviceUrl, calculatorLog);
 
-                /*logjsn = logjsn.Replace("%bkspc%", " ");
-                CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
-                calculatorLog.Date = DateTime.Now;
-                calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
-                dbSql.CalculatorLogs.Add(calculatorLog);
-                CalculatorLogTest calculatorLogsTest = new CalculatorLogTest(calculatorLog);
-                dbSql.CalculatorLogsTest.Add(calculatorLogsTest);
-                dbSql.SaveChanges();*/
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Ok = true;
+                }
             }
             catch (Exception ex)
             {
-                logjsn = logjsn.Replace("%bkspc%", " ");                
+                logjsn = logjsn.Replace("%bkspc%", " ");
                 WriteErrorToLogFile(logjsn, ex.Message);
+                result.ErrorMessage = ex.Message;
                 result.Ok = false;
                 return new ObjectResult(result);
             }
