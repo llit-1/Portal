@@ -33,13 +33,13 @@
                                             <p class="text-muted">@tt?.Location.LocationType.Name</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@tt?.Location?.Parent</p>
+                                            <p class="text-muted">@tt?.Location?.Parent?.Name</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@tt?.VersionStartDate</p>
+                                            <p class="text-muted">@tt?.VersionStartDate?.ToString("yyyy-MM-dd")</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@tt?.VersionEndDate</p>
+                                            <p class="text-muted">@tt?.VersionEndDate?.ToString("yyyy-MM-dd")</p>
                                         </td>
                                     </tr>
                                 }

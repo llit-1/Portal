@@ -5,6 +5,7 @@
 using Portal.Models.MSSQL;
 using System.Collections.Generic;
 using Portal.Models.MSSQL.Location;
+using RKNet_Model.Account;
 
 namespace Portal.Models.JsonModels
 {
@@ -14,5 +15,7 @@ namespace Portal.Models.JsonModels
         public LocationVersions location { get; set; }
         public List<LocationType> locationTypes { get; set; }
         public List<Location> loca { get; set; }
+        public List<User> users { get; set; }
+        public List<BindingLocationToUsers> pickedusers { get; set; }
     }
 }

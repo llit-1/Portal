@@ -1,0 +1,85 @@
+﻿<div class="row flex bg-white" style="margin:0px">
+    <!--данные тт-->
+    <div class="col-md-4 col-lg-4" style="padding:30px;padding-top:10px;padding-bottom:20px;">
+        <!--заголовок-->
+        <h5 class="pull-left">Данные должности</h5>
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--имя тт-->
+        <label class="label-light">название</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="name" type="text" class="form-control" value="" style="font-weight:bold" required>
+        </div>
+
+        <label class="label-light">Начало смены</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="start" type="time" class="form-control" value="" style="font-weight:bold" required>
+        </div>
+
+        <label class="label-light">Конец смены</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="end" type="time" class="form-control" value="" style="font-weight:bold" required>
+        </div>
+
+        <!--кнопки сохранить/отмена-->
+        <div class="col-12" style="display: flex;justify-content: space-between;padding-top: 10px;">
+            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="AddTT()">Добавить</button>
+            <button type="button" id="clear" class="btn btn-sm btn-light default">Очистить</button>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    $('#users').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите пользователей..."
+    });
+
+    function AddTT() {
+        const job = document.getElementById("name").value;
+        const start = document.getElementById("start").value;
+        const end = document.getElementById("end").value;
+
+        $.ajax({
+            type: "POST",
+            url: `/Settings_TT/JobTitlesSaveNew?job=${job}&start=${start}&end=${end}`,
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    $('#header').text('Должность');
+                    $('#page').empty();
+                    $('#tableMenu').show();
+                    $('#page').load('/Settings_TT/JobTitlesTable', function () { SpinnerHide(); });
+                    $('#back').unbind('click');
+                    $('#back').click(function () { location.hash = "#settings" });
+                }
+                else {
+                    openModal('Ошибка', result)
+                }
+            },
+            error: function (error) { openModal('Ошибка', error) }
+        });
+    }
+
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        $('#header').text('Должность');
+        $('#page').empty();
+        $('#tableMenu').show();
+        $('#page').load('/Settings_TT/JobTitlesTable', function () { SpinnerHide(); });
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#settings" });
+    });
+</script>
+
+<script>
+    document.getElementById("clear").addEventListener('click', () => {
+        document.getElementById('name').textContent = ""
+        document.getElementById('name').value = ""
+    })
+</script>

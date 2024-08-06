@@ -247,7 +247,7 @@
                         switch(ok.errorMessage){
                             case "401":
                                 fetch('/Account/Logout')
-                                openModal('Ошибка', "Ошибка сессии. Попробуйте повторно авторизироваться");
+                                openModal('Ошибка', "Ошибка сессии. Попробуйте повторно авторизоваться");
                                 document.querySelector('.closeModal').addEventListener('click', () => {
                                     location.reload()
                                 })

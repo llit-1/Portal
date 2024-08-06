@@ -23,6 +23,7 @@ namespace Portal.Models.JsonModels
         public string? parent { get; set; }
         public string? latitude { get; set; }
         public string? longitude { get; set; }
+        public List<string?> usersid { get; set; }
     }
 }
 

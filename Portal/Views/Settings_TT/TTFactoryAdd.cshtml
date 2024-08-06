@@ -53,9 +53,10 @@
             <label class="label-light" style="width:100%">принадлежит</label>
             <div style="width:100%; float:left">
                 <select id="parent" class="form-control selectors" data-width="100%">
+                    <option></option>
                     @foreach (var type in Model?.location.OrderBy(t => t.Name))
                     {
-                        <option value="@type.Guid">@type.Name</option>
+                        <option value="@type.Location.Guid">@type.Location.Name</option>
                     }
                 </select>
             </div>
@@ -74,6 +75,28 @@
         <div class="" style="margin-bottom:15px">
             <input id="close" type="date" class="form-control" value="" style="font-weight:bold" disabled>
             <span class="input-group-btn">
+        </div>
+    </div>
+
+    <!--пользователи-->
+    <div class="col-md-4 col-lg-4" style="margin:0px">
+        <!--заголовок-->
+        <h5 class="pull-left">Пользователи</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор пользователей-->
+        <div class="form-group" style="padding-top: 10px;">
+            <label class="label-light" style="width:100%">селектор пользователей</label>
+            <div style="width:100%; float:left">
+                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
+                    @foreach (var user in Model.users)
+                    {
+                        <option value="@user.Id">@user.Name</option>
+                    }
+                </select>
+            </div>
         </div>
     </div>
 
@@ -97,7 +120,7 @@
         <!--кнопки сохранить/отмена-->
         <div class="col-12" style="display: flex;justify-content: space-between;padding-top: 10px;">
             <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="AddTT()">Добавить</button>
-            <button type="button" class="btn btn-sm btn-light default" onclick="">Очистить</button>
+            <button type="button" class="btn btn-sm btn-light default" id="clear">Очистить</button>
         </div>
 
     </div>
@@ -105,6 +128,17 @@
 
 
 <script>
+    function DataFromSelector(selector) {
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+            items.push(this.id);
+        });
+
+        return items;
+    }
+
     $('#users').select2({
         theme: "bootstrap4",
         language: "ru",
@@ -122,6 +156,8 @@
         loc.close = document.getElementById("close").value;
         loc.latitude = document.getElementById("latitude").value;
         loc.longitude = document.getElementById("longitude").value;
+        loc.usersid = DataFromSelector(document.getElementById('users'));
+        loc.parent = document.getElementById("parent").value;
         loc.actual = 1;
 
         const json = JSON.stringify(loc)
@@ -156,4 +192,17 @@
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#settings" });
     });
+</script>
+
+<script>        
+    document.getElementById("clear").addEventListener('click', () => {
+        document.getElementById("name").value = ""
+        document.getElementById("address").value = ""
+        document.getElementById("entity").value = ""
+        document.getElementById("type").value = ""
+        document.getElementById("open").value = ""
+        document.getElementById("close").value = ""
+        document.getElementById("latitude").value = ""
+        document.getElementById("longitude").value = ""
+    })
 </script>

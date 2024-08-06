@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Portal.Models.JsonModels;
+using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Location;
 using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
@@ -216,11 +217,17 @@ namespace Portal.Controllers
         {
             TTsFactoryEdit tsFactoryEdit = new TTsFactoryEdit();
             List<Entity> entity = dbSql.Entity.ToList();
-            List<LocationVersions> locationVersion = dbSql.LocationVersions.Where(x => x.Actual == 1).Where(x => x.Location.LocationType.Name == "Завод" || x.Location.LocationType.Name == "Цех").ToList();
+            List<LocationVersions> locationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                           .Include(x => x.Location.LocationType)
+                                                                           .Where(x => x.Actual == 1)
+                                                                           .Where(x => x.Location.LocationType.Name == "Завод" || x.Location.LocationType.Name == "Цех")
+                                                                           .ToList();
             List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
+            List<User> users = db.Users.ToList();
             tsFactoryEdit.entity = entity;
             tsFactoryEdit.locationTypes = locationTypes;
             tsFactoryEdit.location = locationVersion;
+            tsFactoryEdit.users = users;
 
             return PartialView(tsFactoryEdit);
         }
@@ -236,13 +243,19 @@ namespace Portal.Controllers
             List<Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
             List<Entity> entity = dbSql.Entity.ToList();
             List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
+            List<BindingLocationToUsers> bindingLocationToUsers = dbSql.BindingLocationToUsers.Where(x => x.LocationID == locationVersion.Guid).ToList();
             tsFactoryEdit.entity = entity;
             tsFactoryEdit.locationTypes = locationTypes;
             tsFactoryEdit.location = locationVersion;
             tsFactoryEdit.loca = locations;
+            tsFactoryEdit.users = db.Users.ToList();
+            tsFactoryEdit.pickedusers = bindingLocationToUsers;
+
+            
 
             return PartialView(tsFactoryEdit);
         }
+
         public IActionResult TTFactorySave(string json)
         {
             var result = new RKNet_Model.Result<string>();
@@ -289,6 +302,20 @@ namespace Portal.Controllers
                 }
                 locationVersions.Address = ttJsn.address;
 
+                List<Models.MSSQL.BindingLocationToUsers> toDelete = dbSql.BindingLocationToUsers.Where(x => x.LocationID == Guid.Parse(ttJsn.guid)).ToList();
+                toDelete.ForEach(x =>
+                {
+                    dbSql.BindingLocationToUsers.Remove(x);
+                });
+
+                ttJsn.usersid.ForEach(x =>
+                {
+                    BindingLocationToUsers bindingLocationToUsers = new BindingLocationToUsers();
+                    bindingLocationToUsers.LocationID = locationVersions.Guid;
+                    bindingLocationToUsers.UserID = int.Parse(x);
+                    dbSql.BindingLocationToUsers.Add(bindingLocationToUsers);
+                });
+
                 dbSql.SaveChanges();
 
                 return new ObjectResult(result);
@@ -315,7 +342,7 @@ namespace Portal.Controllers
                 location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
                 location.RKCode = 0;
                 location.AggregatorsCode = null;
-                if (ttJsn.parent != "")
+                if (ttJsn?.parent != "" || ttJsn?.parent != null)
                 {
                     location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
                 } 
@@ -323,9 +350,9 @@ namespace Portal.Controllers
                 {
                     location.Parent = null;
                 }
-                
-                location.Latitude = Double.Parse(ttJsn.latitude, CultureInfo.InvariantCulture);
-                location.Longitude = Double.Parse(ttJsn.longitude, CultureInfo.InvariantCulture);
+
+                locationVersions.Location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
                 location.Actual = 1;
 
                 locationVersions.Location = location;
@@ -346,6 +373,16 @@ namespace Portal.Controllers
 
                 dbSql.Locations.Add(location);
                 dbSql.LocationVersions.Add(locationVersions);
+
+                ttJsn.usersid.ForEach(x =>
+                {
+                    BindingLocationToUsers bindingLocationToUsers = new BindingLocationToUsers();
+                    bindingLocationToUsers.LocationID = locationVersions.Guid;
+                    bindingLocationToUsers.UserID = int.Parse(x);
+                    dbSql.BindingLocationToUsers.Add(bindingLocationToUsers);
+                });
+
+                
                 dbSql.SaveChanges();
 
                 return new ObjectResult(result);
@@ -1195,6 +1232,11 @@ namespace Portal.Controllers
             return PartialView();
         }
 
+        public IActionResult JobTitles()
+        {
+            return PartialView();
+        }
+
         // Таблица типов
         public IActionResult TypesTable()
         {
@@ -1209,6 +1251,71 @@ namespace Portal.Controllers
             
 
             return PartialView(locationTypeAndCountLocations);
+        }
+
+        public IActionResult JobTitlesAdd()
+        {
+            return PartialView();
+        }
+
+        public IActionResult JobTitlesEdit(string guid)
+        {
+            JobTitle jobTitle = dbSql.JobTitles.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+
+            return PartialView(jobTitle);
+        }
+
+        public IActionResult JobTitlesSaveNew(string job)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                if(dbSql.JobTitles.FirstOrDefault(x => x.Name.ToLower() == job.ToLower()) != null)
+                {
+                    throw new Exception("Данная должность была создана ранее!");
+                }
+
+                JobTitle jobTitle = new JobTitle();
+                jobTitle.Name = job;
+                dbSql.JobTitles.Add(jobTitle);
+                dbSql.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                result.Ok = false;
+                result.Data = e.ToString();
+            }
+            return new ObjectResult(result);
+        }
+
+        public IActionResult JobTitlesSave(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                json = json.Replace("%bkspc%", " ");
+                var ttJsn = JsonConvert.DeserializeObject<Portal.Models.MSSQL.Personality.JobTitle>(json);
+
+                if(ttJsn.Name != "" && ttJsn.Guid.ToString() != "")
+                {
+                    JobTitle jobTitle = dbSql.JobTitles.FirstOrDefault(x => x.Guid == ttJsn.Guid);
+                    jobTitle.Name = ttJsn.Name;
+                    dbSql.SaveChanges();
+                }
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                result.Ok = false;
+                result.Data = e.ToString();
+            }
+            return new ObjectResult(result);
+        }
+
+        public IActionResult JobTitlesTable()
+        {
+            List<Portal.Models.MSSQL.Personality.JobTitle> jobTitles = dbSql.JobTitles.ToList();
+            return PartialView(jobTitles);
         }
 
         // Редактор типов

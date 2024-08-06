@@ -1,123 +1,600 @@
+@model Portal.Controllers.TimesheetsFactoryController.TimeTrackingFactoryInterface
+
+@{
+    int month;
+    int year;
+    int currentMonthDays;
+    int pastMonthDays;
+    string date;
+
+
+    month = Model.CurrentDate.Month;
+    year = Model.CurrentDate.Year;
+    currentMonthDays = DateTime.DaysInMonth(year, month);
+    pastMonthDays = DateTime.DaysInMonth(year, month - 1);
+
+    if (month < 10)
+    {
+        date = year.ToString() + "-" + "0" + month.ToString();
+    }
+    else
+    {
+        date = year.ToString() + "-" + month.ToString();
+    }
+
+    bool isDay = true;
+    var color = "background-color: #ECE7E6";
+    var count = 1;
+}
+
 <div class="yyyyy">
     <div class="wrapperForSettingsFactory">
         <div id="back">
             <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
             <label style="margin-left:10px; cursor:pointer; margin-bottom:0px;">назад</label>
         </div>
-        
 
-        <input class="searchFactory" type="text" placeholder='ФИО' oninput="nameHandler()">
 
-        <select>
-            <option>Кондитерский цех</option>
-            <option>Мучной цех</option>
+        <input class="searchFactory" type="text" placeholder='ФИО' oninput="nameHandler(this)">
+
+        <select id="selectLocation" onchange="selectLocation(this)">
+            @foreach (var item in Model.LocationVersions)
+            {
+                if (item.Guid == Guid.Parse(Model.Location))
+                {
+                    <option value="@item.Guid" selected>@item.Name</option>
+                }
+                else
+                {
+                    <option value="@item.Guid">@item.Name</option>
+                }
+
+            }
         </select>
 
-        <input type="month" value="2024-06" class="dateSelector">
+        <input type="month" id="selectDate" value="@date" class="dateSelector" onchange="selectDate(this)">
+
+        <button class="btn btn-success" style="margin-left: 10px" onclick="getData()">Сохранить</button>
+
+        <button class="btn btn-success" style="margin-left: 10px" onclick="printPage()">Печать</button>
     </div>
 
-    
+
 
     <div class="wrapperForButtons">
-        <button value="11" class="mySwitchButton mySwitchButton_1 active">1-10</button>
-        <button value="21" class="mySwitchButton mySwitchButton_2">11-20</button>
-        <button value="31" class="mySwitchButton mySwitchButton_3">21-31</button>
+        <button value="10" class="mySwitchButton mySwitchButton_1 active">1-10</button>
+        <button value="20" class="mySwitchButton mySwitchButton_2">11-20</button>
+        <button value="@currentMonthDays" class="mySwitchButton mySwitchButton_3">21-@currentMonthDays</button>
     </div>
 
 </div>
 
 
-
 <table>
     <thead>
         <tr>
-            <th rowspan="2">ФИО</th>
-            <th rowspan="2">Должность</th>
-            @{
-                for(var i = 1; i < 33; i++)
-                {
-                    if(i < 11)
-                    {
-                        <th colspan="2" class="upperthday" id="upperthday_@i">@i</th>
-                    } else
-                    {
-                        <th class="hidden upperthday" id="upperthday_@i" colspan="2">@i</th>
-                    }
-
-                }
+            <th rowspan="2" style="text-wrap: nowrap;" width="20%">ФИО</th>
+            <th rowspan="2" width="15%">Должность</th>
+            @for (var i = 1; i <= currentMonthDays; i++)
+            {
+                <th colspan="2" class="upperthday" id="upperthday_@i.ToString()">@i</th>
             }
-            <th rowspan="2">Итого, час</th>
+            <th rowspan="2" style="text-wrap: nowrap;">Итого, час</th>
         </tr>
         <tr>
-            @{
-                var a = true;
-                for (var i = 0; i < 63; i++)
+            @for (var i = 1; i <= ((currentMonthDays) * 2); i++)
+            {
+                if (i < 11 || i > 72)
                 {
-                    if(i < 20)
+                    if (isDay)
                     {
-                        if (a)
-                        {
-                            a = false;
-                            <th class="thday" id="thday_@i">д</th>
-                        }
-                        else
-                        {
-                            a = true;
-                            <th class="thday" id="thday_@i">н</th>
-                        }
-                    } else
+                        <th class="thday hidden" id="thday_@i">д</th>
+                        isDay = !isDay;
+                    }
+                    else
                     {
-                        if (a)
-                        {
-                            a = false;
-                            <th id="thday_@i" class="thday hidden">д</th>
-                        }
-                        else
-                        {
-                            a = true;
-                            <th id="thday_@i" class="thday hidden">н</th>
-                        }
+                        <th class="thday hidden" id="thday_@i">н</th>
+                        isDay = !isDay;
+                    }
+                }
+                else
+                {
+                    if (isDay)
+                    {
+                        <th class="thday " id="thday_@i">д</th>
+                        isDay = !isDay;
+                    }
+                    else
+                    {
+                        <th class="thday " id="thday_@i">н</th>
+                        isDay = !isDay;
                     }
                 }
             }
         </tr>
     </thead>
     <tbody>
-        @{
-            for(var b = 0; b < 150; b++)
+        @foreach (var timesheets in Model.TimesheetsFactory)
+        {
+
+            <tr style="@color" id="@timesheets.PersonalityVersion.Guid" class="personality">
+                <td class='name1' style="text-wrap: nowrap;">@timesheets.PersonalityVersion.Personalities.Name</td>
+                <td class='job1' id="@timesheets.JobTitle.Guid">@timesheets.JobTitle.Name</td>
+
+                @foreach (var item in timesheets.ArrayHours)
+                {
+
+                    if (item == 0)
+                    {
+                        <td class='dayTable day_@count'><input maxlength="2" value="" /></td>
+                    }
+                    else
+                    {
+                        <td class='dayTable day_@count'><input maxlength="2" value="@item" /> </td>
+                    }
+                    count++;
+                }
+
+                <td style="text-wrap: nowrap;">@timesheets.ArrayHours.Sum() ч.</td>
+                <td class="addBlock" id="" onclick="copyTimeSheets(this)">
+                    <img src="/themes/clearmin/img/md/dark/copy.svg" height="38" width="24">
+                </td>
+            </tr>
+            if (color == "background-color: #ECE7E6")
             {
-                            <tr>
-                                <td class='name1'>Кургузов В.С.</td>
-                                <td class='job1'>Повар</td>
-                                @{
-                            var p = true;
-                            for (var i = 0; i < 63; i++)
-                            {
-                                if (i < 20)
-                                {
-                                    if(@p) {
-                                        p = false;
-                                                        <td id="tdday_@i">8</td>
-                                    } else {
-                                        p = true;
-                                                        <td id="tdday_@i"></td>
-                                    }
-                                }
-                                else
-                                {
-                                                    <td id="tdday_@i" class="hidden">8</td>
-                                }
-                            }
-                                }
-                                <td>160 ч.</td>
-                                <td><label class="md-edit ico ClassForGetDate" onclick="" style="margin-bottom: -5px;"></label></td>
-                            </tr>
+                color = "background-color: white";
             }
+            else
+            {
+                color = "background-color: #ECE7E6";
+            }
+            count = 1;
         }
-        
+        <tr id="addPersonButton" onclick="addRowForNewPerson()">
+            <td colspan="30">
+                <p class="addPerson">+</p>
+            </td>
+        </tr>
     </tbody>
 </table>
 
+<script>
+    const mySwitchButton = document.querySelectorAll('.mySwitchButton')
+    mySwitchButton.forEach(x => {
+        x.addEventListener('click', (e) => {
+            document.querySelectorAll('.mySwitchButton').forEach(y => y.classList.remove('active'))
+            x.classList.add('active')
+
+            const count = e.target.value == 31 ? 21 : +e.target.value - 9
+            document.querySelectorAll('.thday').forEach(x => x.classList.add('hidden'))
+            document.querySelectorAll('.upperthday').forEach(x => x.classList.add('hidden'))
+            let max = +event.target.value;
+
+            for (let i = count; i <= max; i++) {
+                document.getElementById(`upperthday_${i}`).classList.remove('hidden')
+            }
+
+            document.querySelectorAll('.dayTable').forEach(x => x.classList.add("hidden"))
+            for (let i = (count * 2) - 1; i <= max * 2; i++) {
+                document.getElementById(`thday_${i}`).classList.remove('hidden')
+                document.querySelectorAll(`.day_${i}`).forEach(x => { x.classList.remove('hidden') })
+            }
+        })
+    })
+    document.querySelector('.mySwitchButton_1').click()
+</script>
+
+<script>
+    function getData() {
+        const obj = {};
+        const Data = {};
+        document.querySelectorAll('.personality').forEach((elem, index) => {
+            const secondArr = [];
+            for (let i = 0; i < elem.children.length; i++) {
+                if (elem.children[i].classList.contains('dayTable')) {
+                    secondArr.push(elem.children[i].children[0].value);
+                }
+            }
+            console.log(elem)
+            const record = {
+                Entries: secondArr,
+                Job: elem.children[1].id,
+                Guid: elem.id,
+            };
+            Data[index] = record;
+        });
+        obj.Data = Data;
+        obj.location = document.getElementById('selectLocation').value;
+        obj.year = +document.getElementById('selectDate').value.split("-")[0];
+        obj.month = +document.getElementById('selectDate').value.split("-")[1];
+
+        console.log(obj)
+
+        const data = JSON.stringify(obj);
+        $.ajax({
+            type: "POST",
+            url: '/TimesheetsFactory/TimesheetsSave',
+            data: { json: data },
+            dataType: "text",
+            success: function (result) {
+                $('.container-fluid').load(`/TimesheetsFactory/TimesheetsMain?loc=${obj.location}&month=${obj.month}&year=` + obj.year);
+            },
+            error: function (error) {
+                openModal('Ошибка', error);
+            }
+        });
+    }
+
+    function selectLocation(elem) {
+        const value = document.getElementById('selectDate').value.split("-");
+        $('.container-fluid').load(`/TimesheetsFactory/TimesheetsMain?loc=${elem.value}&month=${+value[1]}&year=` + +value[0]);
+    }
+
+    function nameHandler(text) {
+        const persons = document.querySelectorAll('tr');
+        for (let i = 2; i < persons.length; i++) {
+            if (persons[i].children[0].textContent.toLowerCase().includes(text.value.toLowerCase())) {
+                persons[i].classList.remove('hidden')
+            } else {
+                persons[i].classList.add('hidden')
+            }
+        }
+    }
+
+    function selectDate(elem) {
+        const value = document.getElementById('selectDate').value.split("-");
+        const selectLocation = document.getElementById('selectLocation').value;
+        $('.container-fluid').load(`/TimesheetsFactory/TimesheetsMain?loc=${selectLocation}&month=${+value[1]}&year=` + +value[0]);
+    }
+
+    function printPage() {
+        document.querySelectorAll('.thday').forEach(x => x.classList.remove('hidden'))
+        document.querySelectorAll('.upperthday').forEach(x => x.classList.remove('hidden'))
+        document.querySelectorAll('.dayTable').forEach(x => x.classList.remove('hidden'))
+        
+        document.getElementById('cm-menu').classList.add('hidden')
+        document.getElementById('cm-header').classList.add('hidden')
+        document.getElementById('cm-footer').classList.add('hidden')
+        document.querySelector('#back').classList.add('hidden')
+        document.querySelector('.searchFactory').classList.add('hidden')
+        document.querySelectorAll('.btn-success').forEach(x => x.classList.add('hidden'))
+        document.querySelector('.wrapperForButtons').classList.add('hidden')
+        document.querySelector('.container-fluid').style = "margin: 2px; padding: 2px;"
+        document.getElementsByTagName('body').style = 'overflow-y: auto'
+        document.querySelectorAll('.addBlock').forEach(x => x.classList.add('hidden'))
+        document.querySelector('#addPersonButton').classList.add('hidden')
+        
+        print()
+
+        document.getElementById('cm-menu').classList.remove('hidden')
+        document.getElementById('cm-header').classList.remove('hidden')
+        document.getElementById('cm-footer').classList.remove('hidden')
+        document.querySelector('#back').classList.remove('hidden')
+        document.querySelector('.searchFactory').classList.remove('hidden')
+        document.querySelectorAll('.btn-success').forEach(x => x.classList.remove('hidden'))
+        document.querySelector('.wrapperForButtons').classList.remove('hidden')
+        document.querySelector('.container-fluid').style = "margin-left: 50px; padding: 0px 20px;"
+        document.getElementsByTagName('body').style = 'overflow-y: scroll'
+        document.querySelectorAll('.addBlock').forEach(x => x.classList.remove('hidden'))
+        document.querySelector('#addPersonButton').classList.remove('hidden')
+
+        document.querySelector('.mySwitchButton_1').click()
+    }
+
+    async function copyTimeSheets(elem) {
+        document.getElementById('addPersonButton').remove();
+        // Определяем цвет фона для новой строки
+        let color = "white";
+        const lastElem = document.querySelectorAll('.personality')[document.querySelectorAll('.personality').length - 1];
+        if (lastElem !== 'undefined' && lastElem?.style.background === "rgb(236, 231, 230)") {
+            color = "white";
+        } else {
+            color = "#ECE7E6";
+        }
+        document.querySelector('.mySwitchButton_1').click();
+
+        // Создаем новую строку
+        let row = document.createElement('tr');
+        row.style.background = color;
+        row.id = elem.parentElement.id;
+        row.classList.add('personality');
+
+        // Добавляем ячейку с именем
+        let nameCell = document.createElement('td');
+        nameCell.classList.add('name2');
+        nameCell.style.whiteSpace = "nowrap";
+        if (elem.parentElement.children[0].textContent.length > 200) {
+            nameCell.textContent = elem.parentElement.children[0].querySelector('select').selectedOptions[0].textContent
+        } else {
+            nameCell.textContent = elem.parentElement.children[0].textContent;
+        }
+        row.appendChild(nameCell);
+
+        // Создаем select для должностей
+        let jobCell = document.createElement('td');
+        jobCell.classList.add('job1');
+        jobCell.innerHTML = `<select class="form-control selectors onChange='setJobId(this)' job-select" data-width="100%" style="background-color: transparent;"><option>Выберете должность</option></select>`;
+        row.appendChild(jobCell);
+
+        const jobData = await fetch('TimesheetsFactory/GetJobList').then(response => response.json());
+        const jobSelect = jobCell.querySelector('.job-select');
+        jobData.forEach(job => {
+            let option = document.createElement('option');
+            option.id = job.guid;
+            option.textContent = job.name;
+            jobSelect.appendChild(option);
+        });
+
+        // Создаем ячейки для каждого дня
+        const currentMonthDays = @currentMonthDays; // Параметр, передаваемый с сервера
+        for (let i = 1; i <= currentMonthDays * 2; i++) {
+            let dayCell = document.createElement('td');
+            dayCell.classList.add('dayTable', `day_${i}`);
+            if (i > 20) {
+                dayCell.classList.add('hidden');
+            }
+            let input = document.createElement('input');
+            input.maxLength = 2;
+            input.value = '';
+            dayCell.appendChild(input);
+            row.appendChild(dayCell);
+        }
+
+        // Добавляем ячейку для часов
+        let hoursCell = document.createElement('td');
+        hoursCell.style.whiteSpace = "nowrap";
+        hoursCell.textContent = "0ч.";
+        row.appendChild(hoursCell);
+
+        // Добавляем кнопку для копирования строк
+        let addBlockCell = document.createElement('th');
+        addBlockCell.classList.add('addBlock');
+        let img = document.createElement('img');
+        img.src = "/themes/clearmin/img/md/dark/copy.svg";
+        img.height = 38;
+        img.width = 24;
+        addBlockCell.appendChild(img);
+        addBlockCell.onclick = () => copyTimeSheets(addBlockCell);
+        row.appendChild(addBlockCell);
+
+        // Добавляем новую строку в таблицу
+        document.querySelector('tbody').appendChild(row);
+
+        // Инициализируем select2 для нового select элемента
+        document.querySelectorAll('.job-select').forEach(x => {
+            if (!$(x).data('select2')) {
+                $(x).select2({
+                    theme: "bootstrap4",
+                    language: "ru",
+                    closeOnSelect: true,
+                    placeholder: "выберите сотрудника..."
+                });
+            }
+        });
+
+        // Добавляем кнопку для добавления новой строки
+        let addButtonRow = document.createElement('tr');
+        addButtonRow.id = "addPersonButton";
+        addButtonRow.onclick = addRowForNewPerson;
+
+        let addButtonCell = document.createElement('td');
+        addButtonCell.colSpan = 30;
+
+        let addButton = document.createElement('p');
+        addButton.classList.add('addPerson');
+        addButton.textContent = "+";
+
+        addButtonCell.appendChild(addButton);
+
+        addButtonRow.appendChild(addButtonCell);
+        document.querySelector('tbody').appendChild(addButtonRow);
+    }
+
+    async function addRowForNewPerson() {
+        document.getElementById('addPersonButton').remove();
+        let color = "white";
+        const lastElem = document.querySelectorAll('.personality')[document.querySelectorAll('.personality').length - 1];
+        if (lastElem != 'undefined' && lastElem?.style.background == "rgb(236, 231, 230)") {
+            color = "white";
+        } else {
+            color = "#ECE7E6";
+        }
+        document.querySelector('.mySwitchButton_1').click();
+
+        // Создаем новую строку
+        let row = document.createElement('tr');
+        row.style.background = color;
+        row.classList.add('personality');
+
+        // Создаем ячейку с select для пользователей
+        let nameCell = document.createElement('td');
+        nameCell.classList.add('name1');
+        nameCell.style.whiteSpace = "nowrap";
+        nameCell.innerHTML = `<select class="form-control selectors user-select" onchange="setNameId(this)" data-width="100%" style="background-color: transparent;"><option>Выберете сотрудника</option></select>`;
+        row.appendChild(nameCell);
+
+        const nameData = await fetch('TimesheetsFactory/GetNameList').then(response => response.json());
+        const nameSelect = nameCell.querySelector('.user-select');
+        nameData.forEach(x => {
+            let option = document.createElement('option');
+            option.value = x.guid;
+            option.textContent = `${x.surname} ${x.name} ${x.patronymic}`;
+            nameSelect.appendChild(option);
+        });
+
+        // Создаем ячейку с select для должностей
+        let jobCell = document.createElement('td');
+        jobCell.classList.add('job1');
+        jobCell.style.whiteSpace = "nowrap";
+        jobCell.innerHTML = `<select class="form-control selectors job-select" data-width="100%" onchange="setJobId(this)" style="background-color: transparent;"><option>Выберете должность</option></select>`;
+        row.appendChild(jobCell);
+
+        const jobData = await fetch('TimesheetsFactory/GetJobList').then(response => response.json());
+        const jobSelect = jobCell.querySelector('.job-select');
+        jobData.forEach(x => {
+            let option = document.createElement('option');
+            option.value = x.guid;  // Используем value вместо id
+            option.textContent = x.name;
+            jobSelect.appendChild(option);
+        });
+
+        // Создаем ячейки для каждого дня
+        for (let i = 1; i <= @currentMonthDays * 2; i++) {
+            let dayCell = document.createElement('td');
+            dayCell.classList.add('dayTable', `day_${i}`);
+            if (i > 20) {
+                dayCell.classList.add('hidden');
+            }
+            let input = document.createElement('input');
+            input.maxLength = 2;
+            input.value = '';
+            dayCell.appendChild(input);
+            row.appendChild(dayCell);
+        }
+
+        // Добавляем ячейку для часов и кнопку добавления блока
+        let hoursCell = document.createElement('td');
+        hoursCell.style.whiteSpace = "nowrap";
+        hoursCell.textContent = "0ч.";
+        row.appendChild(hoursCell);
+
+        let addBlockCell = document.createElement('th');
+        addBlockCell.classList.add('addBlock');
+        let img = document.createElement('img');
+        img.src = "/themes/clearmin/img/md/dark/copy.svg"
+        img.height = 38;
+        img.width = 24;
+        addBlockCell.appendChild(img)
+        addBlockCell.onclick = () => copyTimeSheets(addBlockCell);
+        row.appendChild(addBlockCell);
+
+        // Добавляем новую строку в таблицу
+        document.querySelector('tbody').appendChild(row);
+
+        // Добавляем кнопку для добавления новой строки
+        let addButtonRow = document.createElement('tr');
+        addButtonRow.id = "addPersonButton";
+        addButtonRow.onclick = addRowForNewPerson;
+
+        let addButtonCell = document.createElement('td');
+        addButtonCell.colSpan = 30;
+
+        let addButton = document.createElement('p');
+        addButton.classList.add('addPerson');
+        addButton.textContent = "+";
+
+        addButtonCell.appendChild(addButton);
+
+        addButtonRow.appendChild(addButtonCell);
+        document.querySelector('tbody').appendChild(addButtonRow);
+
+        // Инициализируем select2 для всех новых select элементов
+        document.querySelectorAll('.user-select').forEach(x => {
+            if (!$(x).data('select2')) {
+                $(x).select2({
+                    theme: "bootstrap4",
+                    language: "ru",
+                    closeOnSelect: true,
+                    placeholder: "выберите сотрудника..."
+                });
+            }
+        });
+
+        document.querySelectorAll('.job-select').forEach(x => {
+            if (!$(x).data('select2')) {
+                $(x).select2({
+                    theme: "bootstrap4",
+                    language: "ru",
+                    closeOnSelect: true,
+                    placeholder: "выберите сотрудника..."
+                });
+            }
+        });
+        
+    }
+
+    function setNameId(elem) {
+        elem.parentElement.parentElement.id = elem.value;
+    }
+
+    function setJobId(elem) {
+        elem.parentElement.id = elem.value;
+    }
+
+    // Возможность перемещать курсор между инпутами, с помощью стрелкок
+    window.addEventListener("keydown", navigateWithKetboard, true);
+
+    function navigateWithKetboard(event) {
+        if (event.defaultPrevented) {
+            return;
+        }
+
+        let currentInput = null;
+        let activePage;
+        document.querySelectorAll('.mySwitchButton').forEach(x => {
+            if (x.classList.contains('active')) {
+                activePage = x.value;
+            }
+        })
+
+        const dayTable = document.querySelectorAll('.dayTable > input')
+        dayTable.forEach(x => {
+            if (document.activeElement == x) {
+                currentInput = x;
+            }
+        })
+
+        if (currentInput != null) {
+            const classID = currentInput.parentElement.classList[1];
+            const num = classID.split('_')[1]
+            const allTr = document.querySelectorAll('.personality')
+            const arrFromAllTr = Array.from(allTr);
+            const indexElement = arrFromAllTr.indexOf(currentInput.parentElement.parentElement)
+
+            switch (event.key) {
+                case "Down":
+                case "ArrowDown":
+                    if (arrFromAllTr.length - 1 > indexElement) {
+                        arrFromAllTr[indexElement + 1].querySelector(`td.dayTable.${classID}`).children[0].focus()
+                    }
+                    break;
+                case "Up":
+                case "ArrowUp":
+                    if (arrFromAllTr.length > indexElement && indexElement != 0) {
+                        arrFromAllTr[indexElement - 1].querySelector(`td.dayTable.${classID}`).children[0].focus()
+                    }
+                    break;
+                case "Left":
+                case "ArrowLeft":
+                    if (+num > activePage - 9) {
+                        currentInput.parentElement.parentElement.querySelector(`td.dayTable.day_${+num - 1}`).children[0].focus()
+                    }
+                    break;
+                case "Right":
+                case "ArrowRight":
+                    if (+num < activePage * 2) {
+                        currentInput.parentElement.parentElement.querySelector(`td.dayTable.day_${+num + 1}`).children[0].focus()
+                    }
+                    break;
+                default:
+                    return;
+            }
+            event.preventDefault();
+        }
+    }
+    
+
+</script>
+
+<script>
+    $('#PageHeader').text('Табель (Завод)')
+
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        window.removeEventListener('keydown', navigateWithKetboard(event))
+        location.hash = "#staff"
+    });
+</script>
 
 <style>
     table {
@@ -129,6 +606,7 @@
         border: 1px solid black;
         text-align: center;
         padding: 5px;
+        height: 35px;
     }
 
     thead {
@@ -137,8 +615,7 @@
     }
 
     input, select, .dateSelector {
-        padding
-        width: 250px;
+        padding width: 250px;
         height: 34px;
         padding: 2px;
     }
@@ -152,18 +629,16 @@
         width: 100px;
         height: 30px;
         padding: 0px;
-        /* margin: 0px; */
         border: 0;
         background: #acacac63;
-        
     }
 
     .wrapperForButtons > .active {
-            background: #F47920;
-            color: white;
-            border: 1px solid #80808073;
+        background: #F47920;
+        color: white;
+        border: 1px solid #80808073;
         box-shadow: inset 0px 0px 10px -2px #6f6f6f82;
-        }
+    }
 
     .mySwitchButton_1 {
         border-radius: 10px 0px 0px 10px;
@@ -198,55 +673,71 @@
         align-items: center;
         padding-right: 20px;
     }
-</style>
 
-
-<script defer>
-    document.getElementById('PageHeader').textContent = "Учет табеля (Завод)"
-
-    Date.prototype.daysInMonth = function() {
-        return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate();
-    };
-    console.log(new Date().daysInMonth())
-
-
-    const mySwitchButton = document.querySelectorAll('.mySwitchButton')
-    mySwitchButton.forEach(x => {
-        x.addEventListener('click', (e) => {
-            document.querySelectorAll('.mySwitchButton').forEach(y => y.classList.remove('active'))
-            x.classList.add('active')
-            const count = e.target.value == 11 ? 1 : +e.target.value - 10
-            document.querySelectorAll('.thday').forEach(x => x.classList.add('hidden'))
-            document.querySelectorAll('.upperthday').forEach(x => x.classList.add('hidden'))
-            let max = +event.target.value;
-            for (let i = count; i < max; i++) {
-                
-                document.getElementById(`upperthday_${i}`).classList.remove('hidden')
-            }
-
-            for (let i = count * 2; i < max * 2; i++) {
-                document.getElementById(`thday_${i}`).classList.remove('hidden')
-            }
-        })
-    })
-
-
-
-    function nameHandler() {
-        const elem = document.querySelector('.searchFactory').value
-        document.querySelectorAll('.name1').forEach(x => {
-            x.classList.remove('hidden')
-        })
-        document.querySelectorAll('.name1').forEach(x => {
-            x.textContent?.toLowerCase().includes(elem.toLowerCase()) ? x.parentElement?.classList.remove('hidden') : x.parentElement?.classList.add('hidden')
-        })
+    td > input {
+        font-size: 16px;
+        font-weight: bold;
     }
-</script>
 
+    .dayTable:hover {
+        background-color: lightblue;
+    }
 
-<script>
-    $('#back').unbind('click');
-    $('#back').click(function () {
-        location.hash = "#staff"
-    });
-</script>
+    .dayTable > input {
+        width: 26px;
+        text-align: center;
+        padding: 0px;
+        border: none;
+        background-color: transparent;
+    }
+
+    .addBlock {
+        cursor: pointer;
+    }
+
+    .selectForPersons {
+        border: none;
+        padding: 0;
+        margin: 0;
+        background-color: transparent;
+    }
+
+    .addPerson {
+        margin: 0;
+        padding: 0;
+        font-weight: 800;
+        color: green;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    #addPersonButton {
+        cursor: pointer;
+        transition: all 0.5s;
+    }
+
+    #addPersonButton:hover {
+        background-color: lightblue;
+    }
+
+    .inputForPerson {
+        text-align: center;
+        padding: 0px;
+        border: none;
+        background-color: transparent;
+        font-size: 14px;
+        font-weight: 400;
+        width: 100%;
+    }
+
+    .name1 > span > .selection > span {
+        border: none;
+        background-color: transparent;
+    }
+
+    .job1 > span > .selection > span {
+        border: none;
+        background-color: transparent;
+    }
+
+</style>

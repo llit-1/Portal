@@ -13,6 +13,7 @@ namespace Portal.Models.JsonModels
         public List<Entity> entity { get; set; }
         public List<LocationVersions> location { get; set; }
         public List<LocationType> locationTypes { get; set; }
+        public List<RKNet_Model.Account.User> users { get; set; }
     }
 }
 

@@ -40,5 +40,7 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.VideoInfo> VideoInfo { get; set; } // Информация о видео
         public DbSet<Models.MSSQL.VideoOrientation> VideoOrientation { get; set; } // Информация о видео
         public DbSet<Models.MSSQL.UserSessions> UserSessions { get; set; } // Информация о видео
+        public DbSet<Models.MSSQL.BindingLocationToUsers> BindingLocationToUsers { get; set; } // Привязка завода к пользователям
+        public DbSet<Models.MSSQL.TimeSheetsFactory> TimeSheetsFactory { get; set; }
     }
 }

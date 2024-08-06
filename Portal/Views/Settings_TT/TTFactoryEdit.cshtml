@@ -69,9 +69,10 @@
             <label class="label-light" style="width:100%">принадлежит</label>
             <div style="width:100%; float:left">
                 <select id="parent" class="form-control selectors" data-width="100%">
+                    <option></option>
                     @foreach (var loca in Model?.loca.OrderBy(t => t.Name))
                     {
-                        if (loca.Guid == Model.location.Location.Guid)
+                        if (loca.Guid == Model.location.Location?.Parent?.Guid)
                         {
                             <option value="@loca.Guid" selected>@loca.Name</option>
                         } else
@@ -100,6 +101,40 @@
         </div>
     </div>
 
+    <!--пользователи-->
+    <div class="col-md-4 col-lg-4" style="margin:0px">
+        <!--заголовок-->
+        <h5 class="pull-left">Пользователи</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор пользователей-->
+        <div class="form-group" style="padding-top: 10px;">
+            <label class="label-light" style="width:100%">селектор пользователей</label>
+            <div style="width:100%; float:left">
+                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
+                    @if (Model?.users != null && Model?.pickedusers != null)
+                    {
+                        var pickedUserIds = new HashSet<int>(Model.pickedusers.Select(x => x.UserID));
+
+                        foreach (var user in Model.users)
+                        {
+                            if (pickedUserIds.Contains(user.Id))
+                            {
+                                <option value="@user.Id" selected>@user.Name</option>
+                            } else
+                            {
+                                <option value="@user.Id">@user.Name</option>
+                            }
+                        }
+                    }
+                </select>
+
+            </div>
+        </div>
+    </div>
+
     <div class="col-md-4 col-lg-4" style="padding:30px;padding-top:10px;padding-bottom:20px;">
         <h5 class="pull-left">Координаты</h5>
         <hr style="width:100%" />
@@ -117,7 +152,7 @@
         <!--кнопки сохранить/отмена-->
         <div class="col-12" style="display: flex;justify-content: space-between;padding-top: 10px;">
             <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="SaveTT()">Сохранить</button>
-            <button type="button" class="btn btn-sm btn-light default" onclick="">Очистить</button>
+            <button type="button" class="btn btn-sm btn-light default" id="clear">Очистить</button>
         </div>
 
     </div>
@@ -125,6 +160,17 @@
 
 
 <script>
+    function DataFromSelector(selector) {
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+            items.push(this.id);
+        });
+
+        return items;
+    }
+
     $('#users').select2({
         theme: "bootstrap4",
         language: "ru",
@@ -140,11 +186,12 @@
         loc.entity = document.getElementById("entity").value;
         loc.type = document.getElementById("type").value;
         loc.open = document.getElementById("open").value;
+        loc.parent = document.getElementById("parent").value;
         loc.close = document.getElementById("close").value;
         loc.latitude = document.getElementById("latitude").value;
         loc.longitude = document.getElementById("longitude").value;
+        loc.usersid = DataFromSelector(document.getElementById('users'));
         loc.actual = 1;
-
         const json = JSON.stringify(loc)
         $.ajax({
             type: "POST",
@@ -158,7 +205,7 @@
                     $('#tableMenu').show();
                     $('#page').load('/Settings_TT/TTsFactoryTable', function () { SpinnerHide(); });
                     $('#back').unbind('click');
-                    $('#back').click(function () { location.hash = "#settings" });s
+                    $('#back').click(function () { location.hash = "#settings" });
                 }
                 else {
                     openModal('Ошибка', result)
@@ -179,4 +226,18 @@
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#settings" });
     });
+</script>
+
+
+<script>
+    document.getElementById("clear").addEventListener('click', () => {
+        document.getElementById("name").value = ""
+        document.getElementById("address").value = ""
+        document.getElementById("entity").value = ""
+        document.getElementById("type").value = ""
+        document.getElementById("open").value = ""
+        document.getElementById("close").value = ""
+        document.getElementById("latitude").value = ""
+        document.getElementById("longitude").value = ""
+    })
 </script>
