@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using Portal.Models.JsonModels;
 using static Portal.Controllers.TimesheetsFactoryController;
 using Portal.Models.MSSQL.Personality;
+using System.Globalization;
 
 namespace Portal.Controllers
 {
@@ -46,7 +47,7 @@ namespace Portal.Controllers
         public class TimeTrackingFactoryForPerson
         {
             public List<TimeSheetsFactory> TimesheetsFactory { get; set; }
-            public int[] ArrayHours { get; set; }
+            public double[] ArrayHours { get; set; }
             public PersonalityVersion PersonalityVersion { get; set; }
             public Portal.Models.MSSQL.Personality.JobTitle JobTitle { get; set; }
         }
@@ -156,7 +157,7 @@ namespace Portal.Controllers
                     if (groupedTimeSheetsFactories.Count == 0)
                     {
                         TimeTrackingFactoryForPerson timeTrackingFactoryForPerson = new TimeTrackingFactoryForPerson();
-                        int[] array = new int[currentMonthDays * 2];
+                        double[] array = new double[currentMonthDays * 2];
                         timeTrackingFactoryForPerson.JobTitle = item.JobTitle;
                         timeTrackingFactoryForPerson.TimesheetsFactory = null;
                         timeTrackingFactoryForPerson.ArrayHours = array;
@@ -169,7 +170,7 @@ namespace Portal.Controllers
                     {
                         List<TimeSheetsFactory> timeSheetsFactories = jobGroup.ToList();
                         TimeTrackingFactoryForPerson timeTrackingFactoryForPerson = new TimeTrackingFactoryForPerson();
-                        int[] array = new int[currentMonthDays * 2];
+                        double[] array = new double[currentMonthDays * 2];
 
                         timeSheetsFactories.ForEach(x =>
                         {
@@ -275,7 +276,7 @@ namespace Portal.Controllers
                         {
                             timeSheetsFactoryForAdd.PartDay = 0;
                         }
-                        timeSheetsFactoryForAdd.Hours = int.Parse(item.Value.Entries[i]);
+                        timeSheetsFactoryForAdd.Hours = double.Parse(item.Value.Entries[i], CultureInfo.InvariantCulture);
 
                         // Добавление записи на каждое число
                         dbSql.TimeSheetsFactory.Add(timeSheetsFactoryForAdd);

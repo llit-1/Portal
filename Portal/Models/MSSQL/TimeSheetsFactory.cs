@@ -15,7 +15,7 @@ namespace Portal.Models.MSSQL
         public Location.LocationVersions Location { get; set; }
         public Entity Entity { get; set; }
         public Personality.JobTitle JobTitle { get; set; }
-        public int Hours { get; set; }
+        public double Hours { get; set; }
         public DateTime Date { get; set; }
         public int PartDay { get; set; }
     }

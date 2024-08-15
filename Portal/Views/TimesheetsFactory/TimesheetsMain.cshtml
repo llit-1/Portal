@@ -54,7 +54,7 @@
 
         <input type="month" id="selectDate" value="@date" class="dateSelector" onchange="selectDate(this)">
 
-        <button class="btn btn-success" style="margin-left: 10px" onclick="getData()">Сохранить</button>
+        <button class="btn btn-success" id="buttonSave" style="margin-left: 10px" onclick="getData()">Сохранить</button>
 
         <button class="btn btn-success" style="margin-left: 10px" onclick="printPage()">Печать</button>
     </div>
@@ -126,11 +126,18 @@
 
                     if (item == 0)
                     {
-                        <td class='dayTable day_@count'><input maxlength="2" value="" /></td>
+                        <td class='dayTable day_@count'><input step="0.5" max="12" value="" /></td>
                     }
                     else
                     {
-                        <td class='dayTable day_@count'><input maxlength="2" value="@item" /> </td>
+                        @if(item.ToString().Contains(","))
+                        {
+                            <td class='dayTable day_@count'><input step="0.5" max="12" value="@item.ToString().Replace(",", ".")" /> </td>
+                        } else
+                        {
+                            <td class='dayTable day_@count'><input step="0.5" max="12" value="@item" /> </td>
+                        }
+                        
                     }
                     count++;
                 }
@@ -195,7 +202,6 @@
                     secondArr.push(elem.children[i].children[0].value);
                 }
             }
-            console.log(elem)
             const record = {
                 Entries: secondArr,
                 Job: elem.children[1].id,
@@ -207,8 +213,6 @@
         obj.location = document.getElementById('selectLocation').value;
         obj.year = +document.getElementById('selectDate').value.split("-")[0];
         obj.month = +document.getElementById('selectDate').value.split("-")[1];
-
-        console.log(obj)
 
         const data = JSON.stringify(obj);
         $.ajax({
@@ -251,7 +255,8 @@
         document.querySelectorAll('.thday').forEach(x => x.classList.remove('hidden'))
         document.querySelectorAll('.upperthday').forEach(x => x.classList.remove('hidden'))
         document.querySelectorAll('.dayTable').forEach(x => x.classList.remove('hidden'))
-        
+        document.querySelectorAll('.addBlock').forEach(x => x.classList.add('hidden'))
+        document.querySelector('#addPersonButton').classList.add('hidden')
         document.getElementById('cm-menu').classList.add('hidden')
         document.getElementById('cm-header').classList.add('hidden')
         document.getElementById('cm-footer').classList.add('hidden')
@@ -259,13 +264,15 @@
         document.querySelector('.searchFactory').classList.add('hidden')
         document.querySelectorAll('.btn-success').forEach(x => x.classList.add('hidden'))
         document.querySelector('.wrapperForButtons').classList.add('hidden')
-        document.querySelector('.container-fluid').style = "margin: 2px; padding: 2px;"
         document.getElementsByTagName('body').style = 'overflow-y: auto'
-        document.querySelectorAll('.addBlock').forEach(x => x.classList.add('hidden'))
-        document.querySelector('#addPersonButton').classList.add('hidden')
-        
-        print()
+        document.body.style.zoom = 0.38;
 
+        const container = document.getElementById('container-fluid');
+        print(container)
+
+        document.body.style.zoom = 1;
+        document.querySelectorAll('.addBlock').forEach(x => x.classList.remove('hidden'))
+        document.querySelector('#addPersonButton').classList.remove('hidden')
         document.getElementById('cm-menu').classList.remove('hidden')
         document.getElementById('cm-header').classList.remove('hidden')
         document.getElementById('cm-footer').classList.remove('hidden')
@@ -273,23 +280,107 @@
         document.querySelector('.searchFactory').classList.remove('hidden')
         document.querySelectorAll('.btn-success').forEach(x => x.classList.remove('hidden'))
         document.querySelector('.wrapperForButtons').classList.remove('hidden')
-        document.querySelector('.container-fluid').style = "margin-left: 50px; padding: 0px 20px;"
         document.getElementsByTagName('body').style = 'overflow-y: scroll'
-        document.querySelectorAll('.addBlock').forEach(x => x.classList.remove('hidden'))
-        document.querySelector('#addPersonButton').classList.remove('hidden')
-
+       
         document.querySelector('.mySwitchButton_1').click()
     }
 
+    function debounce(func, wait) {
+        let timers = new WeakMap();
+        const buttonSave = document.getElementById('buttonSave')
+        return function (...args) {
+            buttonSave.disabled = true;
+            const context = this;
+            if (timers.has(context)) {
+                clearTimeout(timers.get(context));
+            }
+            const timeout = setTimeout(() => {
+                func.apply(context, args);
+                timers.delete(context);
+                buttonSave.disabled = false;
+            }, wait);
+            timers.set(context, timeout);
+        };
+    }
+
+    function validateAndRoundInput(event) {
+        let value = event.target.value;
+
+        // Удаляем все, кроме цифр и точки
+        value = value.replace(/[^\d.,]/g, '');
+
+        if (value.includes(",") && value.includes(".")) {
+            event.target.value = '';
+            return;
+        } else if (value.includes(",")) {
+            let parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            } else {
+                value = value.replace(",", ".");
+            }
+        } else if (value.includes(".")) {
+            let parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+        }
+
+        // Преобразуем значение в число и проверяем его
+        let num = parseFloat(value);
+
+        if (isNaN(num)) {
+            event.target.value = '';
+            return;
+        }
+
+        // Ограничиваем значение числом не больше 12
+        if (num > 12) {
+            num = 12;
+        }
+
+        // Проверяем дробную часть и округляем при необходимости
+        let fractionalPart = num - Math.floor(num);
+        // Проверяем диапазон дробной части и округляем соответственно
+        if (fractionalPart >= 0.25 && fractionalPart < 0.75) {
+            // Округляем до ближайшего числа, заканчивающегося на 0.5
+            num = Math.floor(num) + 0.5;
+        } else if (fractionalPart > 0.7) {
+            // Округляем до ближайшего целого числа вверх
+            num = Math.round(num);
+        } else if (fractionalPart < 0.3) {
+            // Округляем до ближайшего целого числа вниз
+            num = Math.floor(num);
+        }
+
+        if (num < 0.5) {
+            num = 0.5;
+        }
+
+        event.target.value = num;
+    }
+
+    const debouncedValidateAndRoundInput = debounce(validateAndRoundInput, 1000);
+
+    document.querySelectorAll('.dayTable > input').forEach(input => {
+        input.addEventListener('input', debouncedValidateAndRoundInput);
+    });
+
+
     async function copyTimeSheets(elem) {
+        document.querySelectorAll('.dayTable > input').forEach(input => {
+            input.removeEventListener('input', debouncedValidateAndRoundInput);
+        });
         document.getElementById('addPersonButton').remove();
         // Определяем цвет фона для новой строки
         let color = "white";
         const lastElem = document.querySelectorAll('.personality')[document.querySelectorAll('.personality').length - 1];
-        if (lastElem !== 'undefined' && lastElem?.style.background === "rgb(236, 231, 230)") {
-            color = "white";
-        } else {
-            color = "#ECE7E6";
+        if (lastElem != 'undefined') {
+            if (lastElem?.style.background == "rgb(236, 231, 230)" || lastElem?.style.background == "#ECE7E6" || lastElem?.style.background == "") {
+                color = "white";
+            } else {
+                color = "#ECE7E6";
+            }
         }
         document.querySelector('.mySwitchButton_1').click();
 
@@ -310,18 +401,19 @@
         }
         row.appendChild(nameCell);
 
-        // Создаем select для должностей
+        // Создаем ячейку с select для должностей
         let jobCell = document.createElement('td');
         jobCell.classList.add('job1');
-        jobCell.innerHTML = `<select class="form-control selectors onChange='setJobId(this)' job-select" data-width="100%" style="background-color: transparent;"><option>Выберете должность</option></select>`;
+        jobCell.style.whiteSpace = "nowrap";
+        jobCell.innerHTML = `<select class="form-control selectors job-select" data-width="100%" onchange="setJobId(this)" style="background-color: transparent;"><option>Выберите должность</option></select>`;
         row.appendChild(jobCell);
 
         const jobData = await fetch('TimesheetsFactory/GetJobList').then(response => response.json());
         const jobSelect = jobCell.querySelector('.job-select');
-        jobData.forEach(job => {
+        jobData.forEach(x => {
             let option = document.createElement('option');
-            option.id = job.guid;
-            option.textContent = job.name;
+            option.value = x.guid;  // Используем value вместо id
+            option.textContent = x.name;
             jobSelect.appendChild(option);
         });
 
@@ -334,7 +426,7 @@
                 dayCell.classList.add('hidden');
             }
             let input = document.createElement('input');
-            input.maxLength = 2;
+            input.maxLength = 3;
             input.value = '';
             dayCell.appendChild(input);
             row.appendChild(dayCell);
@@ -388,17 +480,28 @@
 
         addButtonRow.appendChild(addButtonCell);
         document.querySelector('tbody').appendChild(addButtonRow);
+
+        document.querySelectorAll('.dayTable > input').forEach(input => {
+            input.addEventListener('input', debouncedValidateAndRoundInput);
+        });
     }
 
     async function addRowForNewPerson() {
+        document.querySelectorAll('.dayTable > input').forEach(input => {
+            input.removeEventListener('input', debouncedValidateAndRoundInput);
+        });
         document.getElementById('addPersonButton').remove();
         let color = "white";
         const lastElem = document.querySelectorAll('.personality')[document.querySelectorAll('.personality').length - 1];
-        if (lastElem != 'undefined' && lastElem?.style.background == "rgb(236, 231, 230)") {
-            color = "white";
-        } else {
-            color = "#ECE7E6";
-        }
+        if (lastElem != 'undefined') {
+            if (lastElem?.style.background == "rgb(236, 231, 230)" || lastElem?.style.background == "#ECE7E6" || lastElem?.style.background == "") {
+                color = "white";
+            } else {
+                color = "#ECE7E6";
+            }
+        } 
+            
+        
         document.querySelector('.mySwitchButton_1').click();
 
         // Создаем новую строку
@@ -410,7 +513,7 @@
         let nameCell = document.createElement('td');
         nameCell.classList.add('name1');
         nameCell.style.whiteSpace = "nowrap";
-        nameCell.innerHTML = `<select class="form-control selectors user-select" onchange="setNameId(this)" data-width="100%" style="background-color: transparent;"><option>Выберете сотрудника</option></select>`;
+        nameCell.innerHTML = `<select class="form-control selectors user-select" onchange="setNameId(this)" data-width="100%" style="background-color: transparent;"><option>Выберите сотрудника</option></select>`;
         row.appendChild(nameCell);
 
         const nameData = await fetch('TimesheetsFactory/GetNameList').then(response => response.json());
@@ -426,7 +529,7 @@
         let jobCell = document.createElement('td');
         jobCell.classList.add('job1');
         jobCell.style.whiteSpace = "nowrap";
-        jobCell.innerHTML = `<select class="form-control selectors job-select" data-width="100%" onchange="setJobId(this)" style="background-color: transparent;"><option>Выберете должность</option></select>`;
+        jobCell.innerHTML = `<select class="form-control selectors job-select" data-width="100%" onchange="setJobId(this)" style="background-color: transparent;"><option>Выберите должность</option></select>`;
         row.appendChild(jobCell);
 
         const jobData = await fetch('TimesheetsFactory/GetJobList').then(response => response.json());
@@ -446,7 +549,7 @@
                 dayCell.classList.add('hidden');
             }
             let input = document.createElement('input');
-            input.maxLength = 2;
+            input.maxLength = 3;
             input.value = '';
             dayCell.appendChild(input);
             row.appendChild(dayCell);
@@ -511,6 +614,9 @@
             }
         });
         
+        document.querySelectorAll('.dayTable > input').forEach(input => {
+            input.addEventListener('input', debouncedValidateAndRoundInput);
+        });
     }
 
     function setNameId(elem) {
@@ -582,6 +688,7 @@
             event.preventDefault();
         }
     }
+    
     
 
 </script>
@@ -684,11 +791,15 @@
     }
 
     .dayTable > input {
-        width: 26px;
+        width: 35px;
         text-align: center;
         padding: 0px;
         border: none;
         background-color: transparent;
+    }
+
+    .dayTable {
+        padding: 0;
     }
 
     .addBlock {
@@ -739,5 +850,6 @@
         border: none;
         background-color: transparent;
     }
-
 </style>
+
+<style src="~/themes/clearmin/css/TimeSheetsFactory.css"></style>

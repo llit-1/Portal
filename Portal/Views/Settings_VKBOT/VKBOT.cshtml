@@ -1,0 +1,126 @@
+@model List<Portal.Models.MSSQL.PromocodesVK>
+
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+
+        <!--блок заголовка-->
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--заголовок-->
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--меню таблицы-->
+        <div class="tableMenu" id="tableMenu">
+            
+            <div id="tableMenu1" class="col-md-12" style="padding:0px">
+                <input class="form-control-sm" placeholder="Поиск" type="file" id="searchDatatable" multiple='multiple'>
+                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
+            </div>
+
+
+            <div class="userActive">
+                <span class="textForCheckbox">Показать неактивных пользователей</span>
+                <label class="switch">
+                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()">
+                    <span class="switch__slider"></span>
+                </label>
+            </div>
+
+        </div>
+
+        <!--меню добавления пользователя-->
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px"></div>
+    </div>
+</div>
+
+
+<!--таблица пользователей-->
+<div class="panel panel-default" id="personTable" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        @try
+                        {
+                            <table class="data-table nowrap" id="tableDataPerson">
+                                <thead>
+                                    <tr>
+                                        <th>Название купона</th>
+                                        <th>Ссылка</th>
+                                        <th>Статус</th>
+                                        <th>Удалить</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody id="tablePerson">
+                                    @foreach(var item in Model)
+                                    {
+                                        <tr id="@item.ID" class="activeRow">
+                                            <td class="tdPersonTable">
+                                                <p class="list-item-heading">@item.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="userName text-muted">@item.Link</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted">@item.Active</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="text-muted">Х</p>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        catch
+                        {
+                            <div> Данных нет :( </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--инициализация таблицы-->
+<script>
+    var height = $('#global').height() - $('#cm-header').height() - $('#headMenu').height();
+
+    var table = $(".data-table").DataTable({
+        "ordering": false,
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: true,
+        deferRender: true,
+        scrollY: height,
+        scrollCollapse: true
+    });
+
+    table.order([0, 'asc']).draw();
+
+    $("#searchDatatable").on("keyup", function () {
+        table.search($(this).val()).draw();
+    });
+
+    $('.view-filter').hide();
+</script>

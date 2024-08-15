@@ -42,5 +42,7 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.UserSessions> UserSessions { get; set; } // Информация о видео
         public DbSet<Models.MSSQL.BindingLocationToUsers> BindingLocationToUsers { get; set; } // Привязка завода к пользователям
         public DbSet<Models.MSSQL.TimeSheetsFactory> TimeSheetsFactory { get; set; }
+        public DbSet<Models.MSSQL.PromocodesVK> PromocodesVK { get; set; }
+        public DbSet<Models.MSSQL.ReceivedPromocodesVK> ReceivedPromocodesVK { get; set; }
     }
 }

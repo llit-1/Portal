@@ -88,7 +88,7 @@ $(function () {
         if (hash == '#SettingsVideo') loadTabMenu(hash.replace('#', ''), '/Settings/Video');                            // настройки -> видеонаблюдение
         if (hash == '#SettingsRk') loadTabMenu(hash.replace('#', ''), '/Settings/Rk');                                  // настройки -> р-кипер
         if (hash == '#SettingsModules') loadContent(hash.replace('#', ''), '/Settings/Modules');                        // настройки -> модули
-
+        if (hash == '#SettingsVKBOT') loadTabMenu(hash.replace('#', ''), '/Settings_VKBOT/TabMenu');
         // Помощь
         if (hash == '#help') loadContent(hash.replace('#', ''), '/Help/Index');                                         // помощь
 
