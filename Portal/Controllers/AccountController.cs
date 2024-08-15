@@ -67,33 +67,17 @@ namespace Portal.Controllers
                         .Include(t => t.TTs)
                         .FirstOrDefaultAsync(u => u.Login.ToLower() == login);
 
-                    Models.MSSQL.UserSessions session = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
-                    if (session != null)
-                    {
-                        session.SessionID = HttpContext.Session.Id;
-                        session.Date = DateTime.Now;
-                        dbSql.SaveChanges();
-                    } 
-                    else
-                    {
-                        Portal.Models.MSSQL.UserSessions newSession = new Portal.Models.MSSQL.UserSessions();
-                        newSession.Id = user.Id;
-                        newSession.UserName = user.Name.ToLower();
-                        newSession.SessionID = HttpContext.Session.Id;
-                        newSession.Date = DateTime.Now;
-                        dbSql.UserSessions.Add(newSession);
-                        dbSql.SaveChanges();
-                    }
+
 
                     // если пользователь есть в БД
                     if (user != null)
-                    {
+                    {                        
                         if (!user.Enabled)
                         {
                             ModelState.AddModelError("", "пользователь отключен");
                             return View(model);
                         }
-
+                        
                         // пользователь AD
                         if (user.AdUser)
                         {
@@ -121,7 +105,7 @@ namespace Portal.Controllers
 
                                 // аутентификация
                                 await Authenticate(user);
-
+                                SaveSession(user);
                                 return RedirectToAction("Index", "Home");
                             }
                             else
@@ -148,6 +132,7 @@ namespace Portal.Controllers
                                 }
 
                                 await Authenticate(user);
+                                SaveSession(user);
                                 return RedirectToAction("Index", "Home");
                             }
                             else
@@ -177,6 +162,7 @@ namespace Portal.Controllers
                             db.SaveChanges();
 
                             await Authenticate(adUser); // аутентификация
+                            SaveSession(adUser);
                             return RedirectToAction("Index", "Home");
                         }
                         else
@@ -302,6 +288,28 @@ namespace Portal.Controllers
             }
 
             return true;
+        }
+
+
+        public void SaveSession(RKNet_Model.Account.User user)
+        {
+            Models.MSSQL.UserSessions session = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
+            if (session != null)
+            {
+                session.SessionID = HttpContext.Session.Id;
+                session.Date = DateTime.Now;
+                dbSql.SaveChanges();
+            }
+            else
+            {
+                Portal.Models.MSSQL.UserSessions newSession = new Portal.Models.MSSQL.UserSessions();
+                newSession.Id = user.Id;
+                newSession.UserName = user.Name.ToLower();
+                newSession.SessionID = HttpContext.Session.Id;
+                newSession.Date = DateTime.Now;
+                dbSql.UserSessions.Add(newSession);
+                dbSql.SaveChanges();
+            }
         }
 
         // Класс генерации и проверки пароля по хэшам
