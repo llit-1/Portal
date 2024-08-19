@@ -264,7 +264,7 @@
                         }
 
                         <!--Настройки-->
-                        @if (User.IsInRole("settings"))
+                        @if (User.IsInRole("settings") || User.IsInRole("vkbot"))
                         {
                             <li class="cm-submenu">
                                 <a id="settings" onclick="selectSection('settings')" class="md-settings">Настройки <span class="caret"></span></a>

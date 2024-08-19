@@ -10,7 +10,10 @@ namespace Portal.Models.MSSQL
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
         public string Name { get; set; }
+        public string CodeWord { get; set; }
         public string Link { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public int Active { get; set; }
     }
 }

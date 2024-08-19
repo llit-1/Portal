@@ -23,17 +23,15 @@
 
         <!--меню таблицы-->
         <div class="tableMenu" id="tableMenu">
-            
-            <div id="tableMenu1" class="col-md-12" style="padding:0px">
-                <input class="form-control-sm" placeholder="Поиск" type="file" id="searchDatatable" multiple='multiple'>
-                <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
-            </div>
 
+            <button id="addCoupon" class="btn btn-success btn">Добавить</button>
+
+            <div class="couponsLeft"> Осталось купонов: @Model.Count </div>
 
             <div class="userActive">
-                <span class="textForCheckbox">Показать неактивных пользователей</span>
+                <span class="textForCheckbox">Отображать только активные купоны</span>
                 <label class="switch">
-                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()">
+                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="hideOrShowCoupons(this)">
                     <span class="switch__slider"></span>
                 </label>
             </div>
@@ -59,28 +57,47 @@
                                 <thead>
                                     <tr>
                                         <th>Название купона</th>
+                                        <th>Кодовое слово</th>
                                         <th>Ссылка</th>
-                                        <th>Статус</th>
-                                        <th>Удалить</th>
+                                        <th style="text-align: center">Дата начала</th>
+                                        <th style="text-align: center">Дата конца</th>
+                                        <th style="text-align: center">Статус</th>
 
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
-                                    @foreach(var item in Model)
+                                    @foreach (var item in Model)
                                     {
                                         <tr id="@item.ID" class="activeRow">
                                             <td class="tdPersonTable">
                                                 <p class="list-item-heading">@item.Name</p>
                                             </td>
                                             <td class="tdPersonTable">
+                                                <p class="list-item-heading">@item.CodeWord</p>
+                                            </td>
+                                            <td class="tdPersonTable">
                                                 <p class="userName text-muted">@item.Link</p>
                                             </td>
-                                            <td class="tdPersonTable">
-                                                <p class="text-muted">@item.Active</p>
+                                            <td class="tdPersonTable" style="text-align: center">
+                                                <p class="text-muted">@item.StartDate.ToString("dd-MM-yyyy")</p>
                                             </td>
-                                            <td class="tdPersonTable">
-                                                <p class="text-muted">Х</p>
+                                            <td class="tdPersonTable" style="text-align: center">
+                                                <p class="text-muted">@item.EndDate.ToString("dd-MM-yyyy")</p>
                                             </td>
+
+
+                                            @if (@item.Active == 1)
+                                            {
+                                                <td class="tdPersonTable" style="text-align: center">
+                                                    <p class='green_p couponStatus'></p>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="tdPersonTable " style="text-align: center">
+                                                    <p class='red_p couponStatus'></p>
+                                                </td>
+                                            }
                                         </tr>
                                     }
                                 </tbody>
@@ -93,6 +110,25 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal-overlay">
+    <div class="modal-content">
+        <div class="flex">
+            <form onsubmit="uploadPhoto(event)">
+                <label class="label-light">Кодовое слово</label>
+                <input id="codeWord" required class="border" />
+                <label class="label-light">Дата начала</label>
+                <input id="startDate" type="date" required class="border" />
+                <label class="label-light">Дата конца</label>
+                <input id="endDate" type="date" class="border" required />
+                <label class="label-light">Купоны</label>
+                <input type="file" id="coupon" required multiple/>
+                <input type="submit" multiple class="btn btn-success btn-sm">
+            </form>
         </div>
     </div>
 </div>
@@ -124,3 +160,142 @@
 
     $('.view-filter').hide();
 </script>
+
+<script>
+    function uploadPhoto(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        const coupons = document.getElementById('coupon').files;
+        const codeWord = document.getElementById('codeWord').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        for (let i = 0; i < coupons.length; i++) {
+            formData.append('files', coupons[i]);
+        }
+
+        formData.append('codeWord', codeWord);
+        formData.append('startDate', startDate);
+        formData.append('endDate', endDate);
+
+        SpinnerShow();
+        $.ajax({
+            type: 'POST',
+            url: `/Settings_VKBOT/UploadFiles`,
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (result) {
+                $('#container-fluid').load('/Settings_VKBOT/VKBOT?actual=1');
+                SpinnerHide();
+            },
+            error: function (xhr, status, error) {
+                console.log("Error: " + error);
+                SpinnerHide();
+            }
+        });
+    }
+</script>
+
+<script>
+    const openModalBtn = document.getElementById('addCoupon');
+    const modalOverlay = document.querySelector('.modal-overlay');
+
+    // Открытие модального окна
+    openModalBtn.addEventListener('click', () => {
+        modalOverlay.classList.add('show1');
+    });
+
+    // Закрытие модального окна при клике вне его содержимого
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.classList.remove('show1');
+        }
+    });
+
+
+    function hideOrShowCoupons(elem) {
+        if(elem.checked) {
+            document.querySelectorAll('.couponStatus').forEach(x => {
+                if(!x.classList.contains('green_p')) {
+                    x.parentElement.parentElement.classList.add('hidden')
+                }
+            })
+        } else {
+            document.querySelectorAll('.couponStatus').forEach(x => {
+                x.parentElement.parentElement.classList.remove('hidden')
+            })
+        }
+    }
+
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#settings" });
+</script>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    /* Модальное окно */
+    .modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Кнопка для открытия модального окна */
+    .open-modal-btn {
+        padding: 10px 20px;
+        cursor: pointer;
+    }
+
+    /* Видимое состояние модального окна */
+    .modal-overlay.show1 {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Стили для формы */
+    .flex form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .flex label {
+        margin-bottom: 5px;
+    }
+
+    .flex input {
+        height: 40px;
+        padding: 0;
+        margin: 0;
+        padding-left: 5px;
+        margin-bottom: 10px;
+        border-radius: 0px;
+    }
+
+    .border {
+        border: 1px solid #aaa;
+    }
+
+    .couponsLeft {
+        font-family: 'Akrobat-Light';
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+    }
+</style>

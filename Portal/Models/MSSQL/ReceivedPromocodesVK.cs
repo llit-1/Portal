@@ -10,7 +10,7 @@ namespace Portal.Models.MSSQL
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
         public string UserID { get; set; }
-        public int PromocodesVKID { get; set; }
+        public PromocodesVK PromocodesVK { get; set; }
         public DateTime Date { get; set; }
     }
 }

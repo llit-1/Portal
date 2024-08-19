@@ -39,9 +39,9 @@
                             <table class="data-table nowrap" id="tableDataPerson">
                                 <thead>
                                     <tr>
-                                        <th>Название купона</th>
-                                        <th>Получатель</th>
-                                        <th>Дата</th>
+                                        <th >Название купона</th>
+                                        <th style="text-align: center">Получатель</th>
+                                        <th style="text-align: center">Дата</th>
 
                                     </tr>
                                 </thead>
@@ -50,12 +50,12 @@
                                     {
                                         <tr id="@item.ID" class="activeRow">
                                             <td class="tdPersonTable">
-                                                <p class="list-item-heading">@item.PromocodesVKID</p>
+                                                <p class="list-item-heading">@item.PromocodesVK.Name</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable" style="text-align: center">
                                                 <p class="userName text-muted">@item.UserID</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable" style="text-align: center">
                                                 <p class="text-muted">@item.Date</p>
                                             </td>
                                         </tr>
@@ -100,4 +100,7 @@
     });
 
     $('.view-filter').hide();
+
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#settings" });
 </script>

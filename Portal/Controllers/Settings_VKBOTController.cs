@@ -56,9 +56,56 @@ namespace Portal.Controllers
             return PartialView(promocodes);
         }
 
+        public class CouponData
+        {
+            public IFormFileCollection Files { get; set; }
+            public string CodeWord { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+        }
+
+        public async Task<IActionResult> UploadFiles(CouponData data)
+        {
+            string path = "\\\\fs1\\SHZWork\\Обмен2\\ПромокодыВК";
+
+            try
+            {
+                if (data.Files == null || data.Files.Count == 0)
+                    return BadRequest("Нет загружаемых файлов.");
+
+                foreach (var file in data.Files)
+                {
+                    PromocodesVK receivedPromocodesVK = new PromocodesVK();
+                    var filePath = Path.Combine(path, file.FileName);
+
+                    // Сохранение файла
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    receivedPromocodesVK.Name = file.FileName.Split(".")[0];
+                    receivedPromocodesVK.Link = "\\\\fs1\\SHZWork\\Обмен2\\ПромокодыВК\\" + file.FileName;
+                    receivedPromocodesVK.CodeWord = data.CodeWord;
+                    receivedPromocodesVK.StartDate = data.StartDate;
+                    receivedPromocodesVK.EndDate = data.EndDate;
+                    receivedPromocodesVK.Active = 1;
+
+                    dbSql.PromocodesVK.Add(receivedPromocodesVK);
+                    dbSql.SaveChanges();
+                }
+
+                return Ok("Файлы успешно загружены.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренняя ошибка сервера: {ex.Message}");
+            }
+        }
+
         public IActionResult HistoryCoupon()
         {
-            List<ReceivedPromocodesVK> receivedPromocodes = dbSql.ReceivedPromocodesVK.ToList();
+            List<ReceivedPromocodesVK> receivedPromocodes = dbSql.ReceivedPromocodesVK.Include(x => x.PromocodesVK).ToList();
              
             return PartialView(receivedPromocodes);
         }
