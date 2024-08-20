@@ -264,7 +264,7 @@
                         }
 
                         <!--Настройки-->
-                        @if (User.IsInRole("settings") || User.IsInRole("vkbot"))
+                        @if (User.IsInRole("settings"))
                         {
                             <li class="cm-submenu">
                                 <a id="settings" onclick="selectSection('settings')" class="md-settings">Настройки <span class="caret"></span></a>
@@ -276,7 +276,6 @@
                                     <li><a id="SettingsRk" href="#SettingsRk">R-Keeper 7</a></li>
                                     <li><a id="SettingsModules" href="#SettingsModules">Модули</a></li>
                                     <li><a id="SettingsVideoDevices" href="#SettingsVideoDevices">Видео на ТТ</a></li>
-                                    <li><a id="SettingsVKBOT" href="#SettingsVKBOT">Купоны для ВК</a></li>
                                 </ul>
                             </li>
                         }
