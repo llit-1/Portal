@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OfficeOpenXml;
+using Portal.DB;
 using Portal.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static RKNet_Model.Rk7XML.Response.GetSystemInfo2Response;
 
 
 namespace Portal.Controllers
@@ -18,11 +20,13 @@ namespace Portal.Controllers
     {
         DB.MSSQLDBContext mssql;
         DB.SQLiteDBContext db;
+        private DB.Reports1CDBContext reports1CSql;
 
-        public ttOrdersController(DB.MSSQLDBContext contextMssql, DB.SQLiteDBContext contextSqlite)
+        public ttOrdersController(DB.MSSQLDBContext contextMssql, DB.SQLiteDBContext contextSqlite, DB.Reports1CDBContext reports1CDBContext)
         {
             mssql = contextMssql;
             db = contextSqlite;
+            reports1CSql = reports1CDBContext;
         }
 
         // Список заказов
@@ -525,11 +529,14 @@ namespace Portal.Controllers
 
 
                 var orderType = db.OrderTypes.FirstOrDefault(t => t.Id == order.type);
-
                 foreach (var item in order.items)
                 {
-                    var franchOrder = new Models.MSSQL.FranchOrder();
 
+                    int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == tt.Restaurant_Sifr).Obd;
+                    var shipmentByGP = reports1CSql.ShipmentsByGP
+                                                    .OrderByDescending(c => c.DateOfShipmentChange)
+                                                    .FirstOrDefault(c => c.DateOfShipmentChange >= DateTime.Now.AddDays(-30) && c.ConsigneeCodeN == obd && c.Article == item.article);
+                    var franchOrder = new Models.MSSQL.FranchOrder();
                     franchOrder.OrderNumber = order.number;
                     franchOrder.OrderName = order.name;
                     franchOrder.TTName = tt.Name;
@@ -548,7 +555,10 @@ namespace Portal.Controllers
                     franchOrder.UserName = user.Name;
                     franchOrder.OrderTypeId = orderType.Id;
                     franchOrder.OrderTypeName = orderType.Name;
-
+                    if (shipmentByGP != null)
+                    {
+                     franchOrder.LastPrice = shipmentByGP.OrderPrice / shipmentByGP.Quantity;
+                    }
                     mssql.FranchOrders.Add(franchOrder);
                 }
 

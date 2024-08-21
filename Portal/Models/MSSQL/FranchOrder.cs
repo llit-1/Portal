@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using System.Data.SqlTypes;
 
 namespace Portal.Models.MSSQL
 {
@@ -26,6 +27,7 @@ namespace Portal.Models.MSSQL
         public int UserID { get; set; }
         public string UserName { get; set; }
         public int? OrderTypeId { get; set; }
-        public string OrderTypeName { get; set; }        
+        public string OrderTypeName { get; set; }
+        public decimal? LastPrice { get; set; }
     }
 }
