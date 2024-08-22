@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Portal.Models.MSSQL;
+using System;
 using System.Linq;
 
 namespace Portal.Global
@@ -7,14 +9,20 @@ namespace Portal.Global
     {
         public static bool CheckSessionID(DB.MSSQLDBContext dbSqlContext, string sessionID)
         {
-            if (dbSqlContext.UserSessions.FirstOrDefault(x => x.SessionID == sessionID) == null)
+            var session = dbSqlContext.UserSessions.FirstOrDefault(x => x.SessionID == sessionID);
+
+            if (session == null)
             {
                 return false;
             }
-            else
+
+            if (DateTime.Now > session.Date.AddHours(1))
             {
-                return true;
+                return false;
             }
+
+            return true;
+            
         }
     }
 }

@@ -338,13 +338,6 @@ namespace Portal.Controllers
                     throw new Exception("401");
                 }
 
-                // Проверка сессии по времени
-                UserSessions userSessions = dbSql.UserSessions.FirstOrDefault(x => x.UserName == User.Identity.Name.ToLower());
-                if(DateTime.Now > userSessions.Date.AddHours(1) && HttpContext.Session.Id == userSessions.SessionID)
-                {
-                    throw new Exception("401");
-                }
-
                logjsn = logjsn.Replace("%bkspc%", " ");
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
                 calculatorLog.Date = DateTime.Now;
