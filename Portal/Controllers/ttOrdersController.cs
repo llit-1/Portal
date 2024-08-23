@@ -42,19 +42,24 @@ namespace Portal.Controllers
 
                 ordersView.selectedDate = dateString;
                 DateTime date;
+                DateTime monthBegin;
                 switch (dateString)
                 {
                     case "current":
                         var today = DateTime.Now;
                         date = new DateTime(today.Year, today.Month, today.Day);
+                        monthBegin = new DateTime(today.Year, today.Month, 1);
                         ordersView.forders = mssql.FranchOrders.Where(o => o.DeliveryDate >= date & o.OrderTypeId == orderTypeId).ToList();
+                        ordersView.ThisMonthForders = mssql.FranchOrders.Where(o => o.DeliveryDate >= monthBegin & o.DeliveryDate < date & o.OrderTypeId == orderTypeId).ToList();
                         break;
                     case "all":
                         ordersView.forders = mssql.FranchOrders.Where(o => o.OrderTypeId == orderTypeId).ToList();
                         break;
                     default:
                         date = DateTime.ParseExact(dateString, "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                        monthBegin = new DateTime(date.Year, date.Month, 1);
                         ordersView.forders = mssql.FranchOrders.Where(o => o.DeliveryDate == date & o.OrderTypeId == orderTypeId).ToList();
+                        ordersView.ThisMonthForders = mssql.FranchOrders.Where(o => o.DeliveryDate >= monthBegin & o.DeliveryDate < date & o.OrderTypeId == orderTypeId).ToList();
                         break;
                 }
 

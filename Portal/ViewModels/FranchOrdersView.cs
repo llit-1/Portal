@@ -12,6 +12,7 @@ namespace Portal.ViewModels
         public List<RKNet_Model.TT.TT> TTs;
         public int orderEditNumber;
         public List<Models.MSSQL.FranchOrder> forders;
+        public List<Models.MSSQL.FranchOrder> ThisMonthForders;
         public List<DateTime> deliveryDates;
         public string selectedDate = "current";
         public string selectedTT = "all";
