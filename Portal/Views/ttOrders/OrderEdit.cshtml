@@ -236,7 +236,7 @@
 
                         <!--кнопки сохранить/отмена-->
                         <div class="col-4" style="height:40px">
-                            <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder()" style="float:right">оформить заказ</button>
+                            <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="SendOrder(event)" style="float:right">оформить заказ</button>
                         </div>
                     </div>
                 </div>
@@ -424,7 +424,7 @@
 
 <!--оформить заказ-->
 <script>
-    function SendOrder() {
+    function SendOrder(event) {       
         var isEmty = true;
         var order = {};
 
@@ -464,18 +464,21 @@
 
         if (isEmty) {
             alert('не выбрано ни одной позиции для заказа');
-        }
+        }        
         else {
+            const button = event.target;
+            button.disabled = true;
             $.ajax({
                 type: "POST",
                 url: 'ttOrders/SaveOrder',
                 data: { json: jsn },
                 datatype: "text",
                 success: function (result) {
-                    alert(result.data);
-                    if (result.ok) $(contentContainer).load('/ttOrders/OrdersList?orderTypeId=' + orderTypeId);                    
+                    alert(result.data);                   
+                    if (result.ok) $(contentContainer).load('/ttOrders/OrdersList?orderTypeId=' + orderTypeId);
+                    button.disabled = false;
                 },
-                error: function (error) { alert(error.responseText); }
+                error: function (error) {button.disabled = false; alert(error.responseText); }
             });
         }
     }
