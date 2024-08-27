@@ -139,8 +139,7 @@
                         <tr class="row-group-01">
                             <td width="175px"><label><input class="hidden" type="checkbox" id="@tt.FirstOrDefault().TTCode">@tt.Key</label></td>
                             <td width="150px">@text</td>
-                            <td colspan="4"></td>
-
+                            <td colspan="5"></td>
                         </tr>
 
                         <!--сгруппированные заказы-->
@@ -230,6 +229,30 @@
                                 <td>@order.DeliveryDate.ToString("dd.MM.yyyy")</td>
                                 <td class="mobile-hide">@order.UserName</td>
 
+                                @{
+                                    float? totalOrderPrice = 0;
+                                    
+
+                                    @foreach (var item in ModelOrders.Where(i => i.OrderNumber == order.OrderNumber).OrderBy(n => n.SKU))
+                                    {
+                                        var totalPriceItems = Model.forders.Where(x => x.TTCode == item.TTCode).Where(x => x.SKU == item.SKU).Where(x => x.LastPrice != null).Count();
+                                        if (totalPriceItems == 0)
+                                        {
+                                            totalOrderPrice += 0;
+                                        } else
+                                        {
+                                            totalOrderPrice += (float)Model.forders
+                                            .Where(x => x.TTCode == item.TTCode)
+                                            .Where(x => x.SKU == item.SKU)
+                                            .Where(x => x.LastPrice != null)
+                                            .FirstOrDefault()?.LastPrice * item.Count;
+                                        }
+                                    }
+
+                                    <td class="mobile-hide">Сумма заказа: @Math.Round((float)totalOrderPrice, 2) руб.</td>
+                                   
+                                }
+
                                 @if (canEdit & User.IsInRole("forders_edit"))
                                 {
                                     <td width="50px"><label class="md-edit ico" onclick="orderEdit(@order.OrderNumber)"><br /></label></td>
@@ -261,7 +284,6 @@
                                             {
                                                 <td><label class="ico"></label></td>
                                                 <td><label class="ico"></label></td>
-
                                             }
                                         }
                                     }
@@ -271,12 +293,28 @@
                             <!--позиции заказа-->
                             @foreach (var item in ModelOrders.Where(i => i.OrderNumber == order.OrderNumber).OrderBy(n => n.SKU))
                             {
+                                var tmForders = Model.ThisMonthForders.Where(x => x.TTCode == item.TTCode).Where(x => x.SKU == item.SKU).ToList();
+                                var totalItems = tmForders.Count() * item.Count;
+                                var totalPriceItems = Model.forders.Where(x => x.TTCode == item.TTCode).Where(x => x.SKU == item.SKU).Where(x => x.LastPrice != null).Count();
+
+
                                 <tr class="hidden items_@order.OrderNumber">
                                     <td class="mobile-hide">@item.Article</td>
                                     <td style="text-align:center">@item.Count ед.</td>
-                                    <td colspan="3">@item.SKU</td>
-                                </tr>
+                                    <td colspan="2">@item.SKU</td>
+                                    <td>@totalItems ед. в этом месяце</td>
 
+                                    @if (totalPriceItems != 0)
+                                    {
+                                        var totalPrice = item.Count * (float)Model.forders.Where(x => x.TTCode == item.TTCode).Where(x => x.SKU == item.SKU).Where(x => x.LastPrice != null).FirstOrDefault().LastPrice;
+                                        <td class="mobile-hide" colspan="2">@Math.Round(totalPrice, 2) руб.</td>
+                                    } else
+                                    {
+                                        <td colspan="2" class="mobile-hide">Стоимость не указана</td>
+                                    }
+
+                                    
+                                </tr>
                             }
                         }
                     }

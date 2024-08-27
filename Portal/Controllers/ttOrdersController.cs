@@ -6,10 +6,12 @@ using Newtonsoft.Json;
 using OfficeOpenXml;
 using Portal.DB;
 using Portal.Models;
+using Portal.Models.MSSQL.Reports1C;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using static RKNet_Model.Rk7XML.Response.GetSystemInfo2Response;
 
 
@@ -534,13 +536,16 @@ namespace Portal.Controllers
 
 
                 var orderType = db.OrderTypes.FirstOrDefault(t => t.Id == order.type);
+
+                int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == tt.Restaurant_Sifr).Obd;
+
+                List<string> articles = order.items.Select(item => item.article).ToList();
+
+
+                List<ShipmentByGP> shipmentByGPs = reports1CSql.ShipmentsByGP.Where(x => x.DateOfShipmentChange >= DateTime.Now.AddDays(-30) && x.ConsigneeCodeN == obd && articles.Contains(x.Article)).ToList();
+
                 foreach (var item in order.items)
                 {
-
-                    int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == tt.Restaurant_Sifr).Obd;
-                    var shipmentByGP = reports1CSql.ShipmentsByGP
-                                                    .OrderByDescending(c => c.DateOfShipmentChange)
-                                                    .FirstOrDefault(c => c.DateOfShipmentChange >= DateTime.Now.AddDays(-30) && c.ConsigneeCodeN == obd && c.Article == item.article);
                     var franchOrder = new Models.MSSQL.FranchOrder();
                     franchOrder.OrderNumber = order.number;
                     franchOrder.OrderName = order.name;
@@ -560,6 +565,9 @@ namespace Portal.Controllers
                     franchOrder.UserName = user.Name;
                     franchOrder.OrderTypeId = orderType.Id;
                     franchOrder.OrderTypeName = orderType.Name;
+
+                    var shipmentByGP = shipmentByGPs.OrderByDescending(c => c.DateOfShipmentChange).FirstOrDefault(c => c.Article == item.article);
+
                     if (shipmentByGP != null)
                     {
                      franchOrder.LastPrice = shipmentByGP.OrderPrice / shipmentByGP.Quantity;

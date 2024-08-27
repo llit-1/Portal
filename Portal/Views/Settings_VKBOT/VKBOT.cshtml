@@ -26,7 +26,7 @@
 
             <button id="addCoupon" class="btn btn-success btn">Добавить</button>
 
-            <div class="couponsLeft"> Осталось купонов: @Model.Count </div>
+            <div class="couponsLeft"> Осталось купонов: @Model.Where(x => x.Active == 1).Count() </div>
 
             <div class="userActive">
                 <span class="textForCheckbox">Отображать только активные купоны</span>

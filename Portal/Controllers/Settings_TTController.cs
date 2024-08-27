@@ -1155,7 +1155,7 @@ namespace Portal.Controllers
         public IActionResult OrganizationSave(string orgjsn)
         {
             
-        var result = new RKNet_Model.Result<string>();
+            var result = new RKNet_Model.Result<string>();
             try
             {
                 orgjsn = orgjsn.Replace("%bkspc%", " ");
@@ -1164,10 +1164,7 @@ namespace Portal.Controllers
                 {
                     throw new Exception("Введите корректное имя");
                 }
-                if (dbSql.Entity.FirstOrDefault(x => x.Name == org.Name) != null)
-                {
-                    throw new Exception("Запись с таким названием уже создана");
-                }
+
                 Entity entity;
                 if (org.Guid.ToString() == "0")
                 {
