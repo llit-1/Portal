@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 using RKNet_Model.Account;
 using System.ComponentModel.DataAnnotations;
+using RKNet_Model.Reports;
 
 namespace Portal.Controllers
 {
@@ -89,298 +90,253 @@ namespace Portal.Controllers
 
         // РЎРѕС…СЂР°РЅРµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
         public IActionResult UserSave(string userjsn)
+{
+    var result = new RKNet_Model.Result<string>();
+    userjsn = userjsn.Replace("%bkspc%", " ");
+    var userJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.user>(userjsn);
+
+    try
+    {
+        if (userJsn.id != 0)
         {
-            var result = new RKNet_Model.Result<string>();
+            var user = db.Users
+                .Include(u => u.Groups)
+                .Include(u => u.Roles)
+                .Include(u => u.TTs)
+                .Include(u => u.Reports)
+                .FirstOrDefault(u => u.Id == userJsn.id);
 
-            userjsn = userjsn.Replace("%bkspc%", " ");
-            var userJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.user>(userjsn);
-
-            // СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёР№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
-            if (userJsn.id != 0)
+            if (user == null)
             {
-                var user = db.Users
-                    .Include(u => u.Groups)
-                    .Include(u => u.Roles)
-                    .Include(u => u.TTs)
-                    .Include(u => u.Reports)
-                    .FirstOrDefault(u => u.Id == userJsn.id);
+                result.Ok = false;
+                result.Data = "Пользователь не найден.";
+                return new ObjectResult(result);
+            }
 
-                switch (userJsn.attribute)
-                {
-                    case "userEnabled":
-                        user.Enabled = userJsn.enabled;
-                        break;
+            switch (userJsn.attribute)
+            {
+                case "userEnabled":
+                    user.Enabled = userJsn.enabled;
+                    break;
 
-                    case "userAd":
-                        user.AdUser = userJsn.ad;
-                        break;
+                case "userAd":
+                    user.AdUser = userJsn.ad;
+                    break;
 
-                    case "allTT":
-                        user.AllTT = userJsn.alltt;
-                        // РѕР±РЅРѕРІР»СЏРµРј СЃРїРёСЃРѕРє С‚РѕС‡РµРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
-                        if (user.AllTT)
-                        {
-                            var newTTs = db.TTs.Where(t => !user.TTs.Contains(t)).Where(t => !t.Closed).ToList();
-                            user.TTs.AddRange(newTTs);
-                        }
-                        else
-                        {
-                            user.TTs = new List<RKNet_Model.TT.TT>();
-                        }
-                        break;
+                case "allTT":
+                    user.AllTT = userJsn.alltt;
+                    if (user.AllTT)
+                    {
+                        var newTTs = db.TTs.Where(t => !user.TTs.Contains(t) && !t.Closed).ToList();
+                        user.TTs.AddRange(newTTs);
+                    }
+                    else
+                    {
+                        user.TTs.Clear();
+                    }
+                    break;
 
-                    case "userName":
-                        if (!string.IsNullOrEmpty(userJsn.name))
-                        {
-                            user.Name = userJsn.name;
-                        }
-                        else
-                        {
-                            result.Ok = false;
-                            result.Data = "РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅРЅРѕ РЅРµ РєРѕСЂСЂРµРєС‚РЅРѕ.";
-                            return new ObjectResult(result);
-                        }
-                        break;
+                case "userName":
+                    if (!string.IsNullOrEmpty(userJsn.name))
+                    {
+                        user.Name = userJsn.name;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "Имя пользователя должно быть указано.";
+                        return new ObjectResult(result);
+                    }
+                    break;
 
-                    case "userLogin":
-                        if (!string.IsNullOrEmpty(userJsn.login))
+                case "userLogin":
+                    if (!string.IsNullOrEmpty(userJsn.login))
+                    {
+                        if(user.Login != "Admin")
                         {
-                            if(user.Login != "Admin")
-                            {
-                                user.Login = userJsn.login;
-                            }                            
+                            user.Login = userJsn.login;
                         }
                         else
                         {
                             result.Ok = false;
-                            result.Data = "Р›РѕРіРёРЅ СѓРєР°Р·Р°РЅ РЅРµ РІРµСЂРЅРѕ.";
+                            result.Data = "Невозможно изменить логин администратора.";
                             return new ObjectResult(result);
                         }
+                        
                         var userExist = db.Users.FirstOrDefault(u => u.Login == userJsn.login);
                         if (userExist != null)
                         {
                             result.Ok = false;
-                            result.Data = "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ Р»РѕРіРёРЅРѕРј " + userJsn.login + " СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.";
+                            result.Data = "Пользователь с логином " + userJsn.login + " уже существует.";
                             return new ObjectResult(result);
                         }
-                        break;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "Логин не может быть пустым.";
+                        return new ObjectResult(result);
+                    }
+                    break;
 
-                    case "userPass":
-                        if (!string.IsNullOrEmpty(userJsn.password))
-                        {
-                            var hash = AccountController.SecurePasswordHasher.Hash(userJsn.password.ToLower());
-                            user.Password = hash;
-                        }
-                        else
-                        {
-                            result.Ok = false;
-                            result.Data = "РџР°СЂРѕР»СЊ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј.";
-                            return new ObjectResult(result);
-                        }
-                        break;
-                    case "userJob":
-                        if (!string.IsNullOrEmpty(userJsn.job))
-                        {
-                            user.JobTitle = userJsn.job;
-                        }
-                        else
-                        {
-                            result.Ok = false;
-                            result.Data = "Р”РѕР»Р¶РЅРѕСЃС‚СЊ СѓРєР°Р·Р°РЅР° РЅРµ РІРµСЂРЅРѕ.";
-                            return new ObjectResult(result);
-                        }
-                        break;
+                case "userPass":
+                    if (!string.IsNullOrEmpty(userJsn.password))
+                    {
+                        var hash = AccountController.SecurePasswordHasher.Hash(userJsn.password.ToLower());
+                        user.Password = hash;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "Пароль не может быть пустым.";
+                        return new ObjectResult(result);
+                    }
+                    break;
 
-                    case "userMail":
-                        if (string.IsNullOrEmpty(userJsn.mail) || new EmailAddressAttribute().IsValid(userJsn.mail))
+                case "userJob":
+                    if (!string.IsNullOrEmpty(userJsn.job))
+                    {
+                        user.JobTitle = userJsn.job;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "Должность не может быть пустой.";
+                        return new ObjectResult(result);
+                    }
+                    break;
+
+                case "userMail":
+                    if (string.IsNullOrEmpty(userJsn.mail) || new EmailAddressAttribute().IsValid(userJsn.mail))
+                    {
+                        user.Mail = userJsn.mail;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "Некорректный адрес электронной почты.";
+                        return new ObjectResult(result);
+                    }
+                    break;
+
+                case "profitFree":
+                    user.Reports.ProfitFree = userJsn.profitFree;
+                    break;
+
+                case "profitPro":
+                    user.Reports.ProfitPro = userJsn.profitPro;
+                    break;
+
+                case "groups":
+                    user.Groups.Clear();
+                    foreach (var item in userJsn.items)
+                    {
+                        var group = db.Groups.FirstOrDefault(g => g.Id == item.id);
+                        if (group != null)
                         {
-                            user.Mail = userJsn.mail;
-                        }
-                        else
-                        {
-                            result.Ok = false;
-                            result.Data = "РџРѕС‡С‚Р° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СѓРєР°Р·Р°РЅР° РЅРµ РІРµСЂРЅРѕ. Р’ РєР°С‡РµСЃС‚РІРµ РїРѕС‡С‚С‹ РґРѕРїСѓСЃС‚РёРјС‹ С‚РѕР»СЊРєРѕ РґРµР№СЃС‚РІСѓСЋС‰РёРµ e-mail Р°РґСЂРµСЃР°.";
-                            return new ObjectResult(result);
-                        }
-                        break;
-
-                    case "profitFree":
-                        user.Reports.ProfitFree = userJsn.profitFree;
-                        break;
-
-                    case "profitPro":
-                        user.Reports.ProfitPro = userJsn.profitPro;
-                        break;
-
-                    case "groups":
-                        user.Groups = new List<Group>();
-
-                        foreach (var item in userJsn.items)
-                        {
-                            var group = db.Groups.FirstOrDefault(g => g.Id == item.id);
                             user.Groups.Add(group);
                         }
-                        break;
+                    }
+                    break;
 
-                    case "roles":
-                        user.Roles = new List<Role>();
-
-                        foreach (var item in userJsn.items)
+                case "roles":
+                    user.Roles.Clear();
+                    foreach (var item in userJsn.items)
+                    {
+                        var role = db.Roles.FirstOrDefault(r => r.Id == item.id);
+                        if (role != null)
                         {
-                            var role = db.Roles.FirstOrDefault(r => r.Id == item.id);
                             user.Roles.Add(role);
                         }
-                        break;
+                    }
+                    break;
 
-                    case "objects":
-                        user.TTs = new List<RKNet_Model.TT.TT>();
-
-                        foreach (var item in userJsn.items)
+                case "objects":
+                    user.TTs.Clear();
+                    foreach (var item in userJsn.items)
+                    {
+                        var tt = db.TTs.FirstOrDefault(t => t.Id == item.id);
+                        if (tt != null)
                         {
-                            var tt = db.TTs.FirstOrDefault(t => t.Id == item.id);
                             user.TTs.Add(tt);
                         }
-                        break;
-                }               
-                db.Users.Update(user);
-            }
-            // РЅРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
-            else
-            {
-                var user = new User();
-                var userGroups = new List<Group>();
-                var userRoles = new List<Role>();
-                var userTTs = new List<RKNet_Model.TT.TT>();
-
-                foreach (var item in userJsn.groups)
-                {
-                    userGroups.Add(db.Groups.First(g => g.Id == item.id));
-                }
-
-                foreach (var item in userJsn.roles)
-                {
-                    userRoles.Add(db.Roles.First(r => r.Id == item.id));
-                }
-
-                foreach (var item in userJsn.objects)
-                {
-                    userTTs.Add(db.TTs.First(t => t.Id == item.id));
-                }
-
-                if (!string.IsNullOrEmpty(userJsn.name))
-                {
-                    user.Name = userJsn.name;
-                }
-                else
-                {
-                    result.Ok = false;
-                    result.Data = "РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅРЅРѕ РЅРµ РєРѕСЂСЂРµРєС‚РЅРѕ.";
-                    return new ObjectResult(result);
-                }
-
-                if (!string.IsNullOrEmpty(userJsn.login))
-                {
-                    user.Login = userJsn.login;
-                }
-                else
-                {
-                    result.Ok = false;
-                    result.Data = "Р›РѕРіРёРЅ СѓРєР°Р·Р°РЅ РЅРµ РІРµСЂРЅРѕ.";
-                    return new ObjectResult(result);
-                }
-
-                var userExist = db.Users.FirstOrDefault(u => u.Login == userJsn.login);
-                if(userExist != null)
-                {
-                    result.Ok = false;
-                    result.Data = "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ Р»РѕРіРёРЅРѕРј " + userJsn.login + " СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.";
-                    return new ObjectResult(result);
-                }
-
-                if (!string.IsNullOrEmpty(userJsn.password))
-                {
-                    var hash = AccountController.SecurePasswordHasher.Hash(userJsn.password.ToLower());
-                    user.Password = hash;
-                }
-                else
-                {
-                    result.Ok = false;
-                    result.Data = "РџР°СЂРѕР»СЊ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј.";
-                    return new ObjectResult(result);
-                }
-
-                if (!string.IsNullOrEmpty(userJsn.job))
-                {
-                    user.JobTitle = userJsn.job;
-                }
-                else
-                {
-                    result.Ok = false;
-                    result.Data = "Р”РѕР»Р¶РЅРѕСЃС‚СЊ СѓРєР°Р·Р°РЅР° РЅРµ РІРµСЂРЅРѕ.";
-                    return new ObjectResult(result);
-                }
-
-                if (string.IsNullOrEmpty(userJsn.mail) || new EmailAddressAttribute().IsValid(userJsn.mail))
-                {
-                    user.Mail = userJsn.mail;
-                }
-                else
-                {
-                    result.Ok = false;
-                    result.Data = "РџРѕС‡С‚Р° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СѓРєР°Р·Р°РЅР° РЅРµ РІРµСЂРЅРѕ. Р’ РєР°С‡РµСЃС‚РІРµ РїРѕС‡С‚С‹ РґРѕРїСѓСЃС‚РёРјС‹ С‚РѕР»СЊРєРѕ РґРµР№СЃС‚РІСѓСЋС‰РёРµ e-mail Р°РґСЂРµСЃР°.";
-                    return new ObjectResult(result);
-                }
-
-                // РѕР±РЅРѕРІР»СЏРµРј СЃРїРёСЃРѕРє С‚РѕС‡РµРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
-                if (user.AllTT)
-                {
-                    var newTTs = db.TTs.Where(t => !user.TTs.Contains(t)).Where(t => !t.Closed).ToList();
-                    user.TTs.AddRange(newTTs);
-                }
-                else
-                {
-                    user.TTs = new List<RKNet_Model.TT.TT>();
-                }
-
-                user.Groups = userGroups;
-                user.Roles = userRoles;
-                user.TTs = userTTs;
-                user.Enabled = userJsn.enabled;
-                user.AdUser = userJsn.ad;
-                user.Reports.ProfitFree = userJsn.profitFree;
-                user.Reports.ProfitPro = userJsn.profitPro;
-                user.AllTT = userJsn.alltt;
-
-                db.Users.Add(user);
+                    }
+                    break;
             }
 
-            db.SaveChanges();
-
-            return new ObjectResult(result);
+            db.Users.Update(user);
         }
+        else
+        {
+            var user = new User
+            {
+                Name = !string.IsNullOrEmpty(userJsn.name) ? userJsn.name : throw new Exception("Имя пользователя должно быть указано."),
+                Login = !string.IsNullOrEmpty(userJsn.login) ? userJsn.login : throw new Exception("Логин не может быть пустым."),
+                Password = !string.IsNullOrEmpty(userJsn.password) ? AccountController.SecurePasswordHasher.Hash(userJsn.password.ToLower()) : throw new Exception("Пароль не может быть пустым."),
+                JobTitle = !string.IsNullOrEmpty(userJsn.job) ? userJsn.job : throw new Exception("Должность не может быть пустой."),
+                Mail = (string.IsNullOrEmpty(userJsn.mail) || new EmailAddressAttribute().IsValid(userJsn.mail)) ? userJsn.mail : throw new Exception("Некорректный адрес электронной почты."),
+                Enabled = userJsn.enabled,
+                AdUser = userJsn.ad,
+                Reports = new UserReport
+                {
+                    ProfitFree = userJsn.profitFree,
+                    ProfitPro = userJsn.profitPro
+                },
+                AllTT = userJsn.alltt,
+                Groups = userJsn.groups.Select(item => db.Groups.FirstOrDefault(g => g.Id == item.id)).ToList(),
+                Roles = userJsn.roles.Select(item => db.Roles.FirstOrDefault(r => r.Id == item.id)).ToList(),
+                TTs = userJsn.objects.Select(item => db.TTs.FirstOrDefault(t => t.Id == item.id)).ToList()
+            };
+
+            db.Users.Add(user);
+        }
+
+        db.SaveChanges();
+    }
+    catch (DbUpdateConcurrencyException ex)
+    {
+        result.Ok = false;
+        result.Data = "Произошла ошибка при обновлении данных. Пожалуйста, попробуйте снова.";
+        // Логирование исключения
+        return new ObjectResult(result);
+    }
+
+    return new ObjectResult(result);
+}
+
 
         // РЈРґР°Р»РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
         public IActionResult UserDelete(int userId)
         {
             try
             {
+                // Повторная загрузка данных перед удалением
                 var user = db.Users
                     .Include(u => u.Roles)
                     .Include(u => u.Groups)
                     .Include(u => u.TTs)
                     .Include(u => u.Reports)
-                    .FirstOrDefault(u => u.Id == userId);
+                    .SingleOrDefault(u => u.Id == userId);
 
                 if (user != null)
                 {
                     db.Users.Remove(user);
                     db.SaveChanges();
                 }
-                return new ObjectResult("ok");
+                else
+                {
+                    return NotFound("User not found.");
+                }
+                return Ok("User deleted successfully.");
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                // Логирование и обработка исключения
+                return Conflict("Concurrency error occurred: " + ex.Message);
             }
             catch (Exception e)
             {
-                return new ObjectResult(e.ToString());
+                return BadRequest("Error: " + e.Message);
             }
         }
 

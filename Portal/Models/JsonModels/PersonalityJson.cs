@@ -24,6 +24,7 @@
             public DateTime? VersionEndDate { get; set; }
             public string NewPerson { get; set; }
             public string personGUID { get; set; }
+            public string Tel { get; set; }
         }
     }
 

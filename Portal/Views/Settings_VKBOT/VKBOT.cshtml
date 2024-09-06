@@ -229,6 +229,9 @@
         }
     }
 
+    document.getElementById('closedPersonality').checked = true
+    hideOrShowCoupons(document.getElementById('closedPersonality'))
+
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "" });
     $("#PageHeader").text("Купоны для ВК");

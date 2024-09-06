@@ -723,9 +723,17 @@ namespace Portal.Controllers
                             ttFromOldBD.Type = db.TTtypes.FirstOrDefault(t => t.Name == location.LocationType.Name);
                         }
 
+                        if(location.Latitude != null)
+                        {
+                            location.Latitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                        }
+
+                        if (location.Longitude != null)
+                        {
+                            location.Longitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                        }
+
                         
-                        location.Latitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
-                        location.Longitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
                     }
 
                     // организация новой тт

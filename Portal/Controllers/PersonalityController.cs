@@ -1,8 +1,10 @@
 using DocumentFormat.OpenXml.Office2019.Excel.RichData2;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Portal.Models;
@@ -12,6 +14,9 @@ using Portal.Models.MSSQL.PersonalityVersions;
 using RKNet_Model;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 
 namespace Portal.Controllers
@@ -235,6 +240,7 @@ namespace Portal.Controllers
                     Personality personality = new Personality();
                     personality.Name = personalityJson.Surname + " " + personalityJson.Name + " " + personalityJson.Patronymic;
                     personality.BirthDate = personalityJson.BirthDate;
+                    personality.Phone = personalityJson.Tel;
                     dbSql.Add(personality);
                     dbSql.SaveChanges();
                     Guid newPersonalityGuid = personality.Guid;
@@ -253,6 +259,7 @@ namespace Portal.Controllers
                     personalityVersion.VersionStartDate = personalityJson.HireDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == newPersonalityGuid);
                     personalityVersion.Actual = personalityJson.Actual;
+                    //personalityVersion.Tel = personalityJson.Tel;
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
@@ -284,6 +291,7 @@ namespace Portal.Controllers
                     personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                     personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
+                    personalityVersion.Personalities.Phone = personalityJson.Tel;
                     personalityVersion.Actual = personalityJson.Actual;
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
@@ -317,6 +325,7 @@ namespace Portal.Controllers
                 personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                 personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                 personalityVersion.Actual = personalityJson.Actual;
+                personalityVersion.Personalities.Phone = personalityJson.Tel;
 
                 List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                              .ToList();

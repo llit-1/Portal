@@ -202,6 +202,13 @@
                             </div>
                         </div>
                     }
+
+                    @{
+                        <label class="label-light" style="padding-top: 12px">Номер телефона</label>
+                        <input type="text" class="inputPersonData" placeholder="Введите номер телефона" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
+                    }
+                    
+
                     @if (Model.NewPerson == "1")
                     {
                         <div class="buttonAddPerson">
@@ -347,6 +354,9 @@
                     </div>   
                     }
 
+                    <label class="label-light">Номер телефона</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите номер телефона" id="tel" value="">
+
                     <div class="buttonAddPerson ">
                         <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
                         <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
@@ -449,6 +459,7 @@
         Personality.personGUID = personGUID;
         Personality.VersionStartDate = $('#VersionStartDate').val();
         Personality.VersionEndDate = $('#VersionEndDate').val();
+        Personality.Tel = $('#tel').val();
 
 
         const json = JSON.stringify(Personality)
@@ -554,6 +565,8 @@
         Personality.EntityCost = EntityCostGUID;
         Personality.NewPerson = $('#NewPerson').val();
         Personality.personGUID = personGUID;
+        Personality.Tel = $('#tel').val();
+
 
         const json = JSON.stringify(Personality)
         $.ajax({
