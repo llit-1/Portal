@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Portal.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using System.IO;
-using Portal.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace Portal.Controllers
 {
@@ -15,7 +15,7 @@ namespace Portal.Controllers
     {
         private Portal.Services.IStreamVideoService streamService;
         DB.SQLiteDBContext db;
-        string[] LibraryExtensions = {".doc", ".docx", ".xls", ".xlsx", ".xlsb", ".ppt", ".pptx", ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov", ".avi" };
+        string[] LibraryExtensions = { ".doc", ".docx", ".xls", ".xlsx", ".xlsb", ".ppt", ".pptx", ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov", ".avi" };
 
         public LibraryController(DB.SQLiteDBContext sqliteContext, Portal.Services.IStreamVideoService streamServiceContext)
         {
@@ -27,13 +27,13 @@ namespace Portal.Controllers
         public IActionResult Index(string chapter)
         {
             var result = new RKNet_Model.Result<string>();
-            
-            if(chapter != null)
+
+            if (chapter != null)
                 result.Data = chapter;
 
             return PartialView(result);
         }
-        
+
         // Внутренние документы
         [Authorize(Roles = "library_internal")]
         public IActionResult InternalDocs()
@@ -60,7 +60,7 @@ namespace Portal.Controllers
             log.Save();
 
             return RedirectToAction("RootFolder", new { id = 1 });
-        }        
+        }
 
         // Справочник Франчайзи
         [Authorize(Roles = "library_franch")]
@@ -209,7 +209,7 @@ namespace Portal.Controllers
             var rootItem = db.RootFolders.FirstOrDefault(r => folderView.curDirectory.FullName.Contains(r.Path));
 
             // условный каталог Внутренние документы
-            if (rootItem.Id != 1 && rootItem.Id !=2 && rootItem.Id != 14 && rootItem.Id != 15 && rootItem.Id != 17)
+            if (rootItem.Id != 1 && rootItem.Id != 2 && rootItem.Id != 14 && rootItem.Id != 15 && rootItem.Id != 17)
             {
                 var internalDocsItem = new RKNet_Model.Library.RootFolder();
                 internalDocsItem.Name = "Внутренние документы";
@@ -217,7 +217,7 @@ namespace Portal.Controllers
                 folderView.navItems.Add(internalDocsItem);
             }
 
-            folderView.navItems.Add(rootItem);            
+            folderView.navItems.Add(rootItem);
 
             var rootDir = new DirectoryInfo(rootItem.Path);
 
@@ -227,7 +227,7 @@ namespace Portal.Controllers
 
             var tempPath = rootDir.FullName;
             foreach (var dir in dirs)
-            {               
+            {
                 if (dir.Length > 0)
                 {
                     tempPath += "\\" + dir;
@@ -242,13 +242,13 @@ namespace Portal.Controllers
             var itemsCount = folderView.navItems.Count;
             if (itemsCount > 1)
             {
-                folderView.prevPath = folderView.navItems[itemsCount-2].Path;
+                folderView.prevPath = folderView.navItems[itemsCount - 2].Path;
             }
             else
             {
                 if (rootItem.Id <= 2 || rootItem.Id == 15 || rootItem.Id == 17)
                     folderView.prevPath = "Index";
-                
+
                 if (rootItem.Id > 2 && rootItem.Id < 15)
                     folderView.prevPath = "InternalDocs";
 
@@ -261,7 +261,7 @@ namespace Portal.Controllers
         }
 
         // Файл        
-        [AllowAnonymous]        
+        [AllowAnonymous]
         public IActionResult File(string filePath)
         {
             var fileView = new ViewModels.Library.FileView();
@@ -278,7 +278,7 @@ namespace Portal.Controllers
             // получаем id каталога и индекс файла
             var rootDir = db.RootFolders.FirstOrDefault(r => filePath.Contains(r.Path));
             var allFiles = Directory.GetFiles(rootDir.Path, "*.*", SearchOption.AllDirectories);
-            
+
             fileView.rootFolderId = rootDir.Id;
             fileView.fileIndex = Array.IndexOf(allFiles, fileInfo.FullName);
             fileView.filePath = fileInfo.FullName;
@@ -289,7 +289,7 @@ namespace Portal.Controllers
         // Загрузка файла по пути
         [AllowAnonymous]
         public IActionResult GetFile(string path)
-        {            
+        {
             try
             {
                 // разэкранирование "плюс" и "пробел"
@@ -323,7 +323,7 @@ namespace Portal.Controllers
                         return new FileContentResult(file, "video/avi");
                     case ".mov":
                         return new FileContentResult(file, "video/quicktime");
-                    case ".mp4":                        
+                    case ".mp4":
                         return new FileContentResult(file, "video/mp4");
                     case ".mpeg":
                         return new FileContentResult(file, "video/mpeg");
@@ -342,12 +342,29 @@ namespace Portal.Controllers
 
         }
 
+        [AllowAnonymous]
+        public IActionResult GetEmailChecksFile(int a)
+        {
+            try
+            {
+                string path = "\\\\fs1.shzhleb.ru\\LLWork\\Отчеты\\Чеки РОзницы\\EmailChecks.xlsx";
+                var fileInfo = new System.IO.FileInfo(path);
+                var file = System.IO.File.ReadAllBytes(path);
+                return PhysicalFile(fileInfo.FullName, "application/octet-stream", fileInfo.Name);
+            }
+            catch (Exception e)
+            {
+                return new ObjectResult(e.Message);
+            }
+        }
+
+
         // Выдача видеопотока
         public async Task<IActionResult> GetVideo(string url)
         {
             url = "http://test.ludilove.ru" + url;
             //return new ObjectResult(url);
-            var stream = await streamService.GetVideoStream(url);            
+            var stream = await streamService.GetVideoStream(url);
             return new FileStreamResult(stream, "video/mp4");
         }
 
@@ -362,7 +379,7 @@ namespace Portal.Controllers
             var rootDir = db.RootFolders.FirstOrDefault(r => r.Id == rootFolderId);
             var allFiles = Directory.GetFiles(rootDir.Path, "*.*", SearchOption.AllDirectories);
             var filePath = allFiles.FirstOrDefault(f => f.Contains(fileName));
-                       
+
             return RedirectToAction("GetFile", new { path = filePath });
         }
 
@@ -376,9 +393,9 @@ namespace Portal.Controllers
             int fileIndex = fileView.fileIndex;
 
             var rootDir = db.RootFolders.FirstOrDefault(r => r.Id == rootFolderId);
-            var allFiles = Directory.GetFiles(rootDir.Path, "*.*", SearchOption.AllDirectories);            
-            var filePath = allFiles[fileIndex];            
-            var fileInfo = new FileInfo(filePath);            
+            var allFiles = Directory.GetFiles(rootDir.Path, "*.*", SearchOption.AllDirectories);
+            var filePath = allFiles[fileIndex];
+            var fileInfo = new FileInfo(filePath);
 
             return PhysicalFile(fileInfo.FullName, "application/octet-stream", fileInfo.Name);
         }
@@ -389,11 +406,11 @@ namespace Portal.Controllers
             var newsFiles = new List<FileInfo>();
 
             newsFiles = rootDirectory.GetFiles("*.*", SearchOption.AllDirectories)
-                .Where(file => !file.Name.Contains("~") & LibraryExtensions.Contains(file.Extension.ToLower()))                        
+                .Where(file => !file.Name.Contains("~") & LibraryExtensions.Contains(file.Extension.ToLower()))
                 .OrderByDescending(f => f.LastWriteTime)
                 .Take(7).ToList();
 
-            return newsFiles;            
+            return newsFiles;
         }
 
         // Поиск
@@ -405,10 +422,10 @@ namespace Portal.Controllers
                 .Where(f => !f.Name.Contains("~") & LibraryExtensions.Contains(f.Extension.ToLower()))
                 .OrderBy(f => f.Name)
                 .Select(f => new { f.Name, f.FullName, f.Extension })
-                .ToList();           
+                .ToList();
 
             return new ObjectResult(files);
-        }   
+        }
     }
 }
 
