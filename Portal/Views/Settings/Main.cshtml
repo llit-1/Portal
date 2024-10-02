@@ -39,7 +39,31 @@
             </div>
         </div>
     </div>
+
+
+    @if (User.IsInRole("analyst"))
+    {
+        <div class="col-sm-3" style="min-width: 300px">
+            <div class="panel panel-default">
+                <div class="panel-heading">обновление данных</div>
+                <div class="panel-body" style="padding: 10px 10px">
+
+                    <div class="text-danger" asp-validation-summary="All"></div>
+
+                    <form class="" style="display: flex; justify-content: center; align-items: center">
+
+                        <button id = 'buttonRefreshData' class="btn btn-success btn-sm" style="margin-right:10px" onclick="RefreshData(event)">Обновить</button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    
+
 </div>
+
 
 <!--кнопки сохранить/отмена-->
 <div class="col-sm-12 text-left">
@@ -83,4 +107,31 @@
     $(document).ready(function () {
         $('#loading').hide();
     });
+</script>
+
+<script>
+
+    function RefreshData(event) {
+        event.preventDefault()
+        document.getElementById('spinner').style.display = "block"
+        document.getElementById('buttonRefreshData').disabled = true
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings/UpdateSaleObjects',
+            datatype: "text",
+            success: function (result) {
+                alert("Данные успешно обновлены");
+                document.getElementById('spinner').style.display = "none"
+                document.getElementById('buttonRefreshData').disabled = false
+            },
+            error: function (error) { 
+                document.getElementById('spinner').style.display = "none"
+                document.getElementById('buttonRefreshData').disabled = false
+                console.log(error.responseText)
+                alert(error.responseText); 
+            }
+        });
+    }
+
 </script>

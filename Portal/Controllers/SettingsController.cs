@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using System.Text;
 
 namespace Portal.Controllers
 {
@@ -23,14 +25,16 @@ namespace Portal.Controllers
     public class SettingsController : Controller
     {
         private DB.SQLiteDBContext db;
+        private DB.MSSQLDBContext dbSql;
 
         IHostedService aishowcaseService = null;
        // IHostedService photocamService = null;
         IHostedService cashMessages = null;
         IHostedService skuStopService = null;
 
-        public SettingsController(DB.SQLiteDBContext context, IEnumerable<IHostedService> hostedServices)
+        public SettingsController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext, IEnumerable<IHostedService> hostedServices)
         {
+            dbSql = dbSqlContext;
             db = context;
             aishowcaseService = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.AIShocaseService)).FirstOrDefault();
         //    photocamService = hostedServices.Where(c => c.GetType().Name == nameof(HostedServices.PhotoCamService)).FirstOrDefault();
@@ -65,7 +69,33 @@ namespace Portal.Controllers
             {
                 return new ObjectResult(e.ToString());
             }            
-        }        
+        }
+
+        [Authorize(Roles = "analyst")]
+        public async Task<IActionResult> UpdateSaleObjects()
+        {
+            try
+            {
+                DateTime today = DateTime.Now;
+                string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
+                string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    await connection.OpenAsync();
+                    using (var command = new SqlCommand($"EXEC UpdateSaleobjects @now = '{morning}'", (SqlConnection)connection))
+                    {
+                        command.CommandTimeout = 900;
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        return Ok(rowsAffected);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
         // Р-КИПЕР------------------------------------------------------------------------------------------
         // горизонтальное меню
