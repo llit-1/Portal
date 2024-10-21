@@ -123,6 +123,7 @@
         $.ajax({
             type: "POST",
             url: '/Settings/UpdateSaleObjects?daysAgo=' + days,
+            timeout: 900000,
             datatype: "text",
             success: function (result) {
                 alert("Данные успешно обновлены");

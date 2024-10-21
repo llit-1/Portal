@@ -82,7 +82,7 @@ namespace Portal.Controllers
 
                 if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
                 {
-                    return Ok("Запрос уже выполняется другим пользователем, попробуйте позже");
+                    return BadRequest("Запрос уже выполняется другим пользователем, попробуйте позже");
                 }
 
                 using (var connection = new SqlConnection(connectionString))
