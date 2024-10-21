@@ -50,9 +50,12 @@
 
                     <div class="text-danger" asp-validation-summary="All"></div>
 
-                    <form class="" style="display: flex; justify-content: center; align-items: center">
+                    <form class="" style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 5px">
 
-                        <button id = 'buttonRefreshData' class="btn btn-success btn-sm" style="margin-right:10px" onclick="RefreshData(event)">Обновить</button>
+                        <label style="padding-left: 0px; margin-bottom: 0px" class="col-sm-12 control-label" for="refreshData_days"> Введите кол-во дней </label>
+                        <input id="refreshData_days" class="form-control" style="text-align: center" value="7"/>
+
+                        <button id = 'buttonRefreshData' class="btn btn-success btn-sm" onclick="RefreshData(event)">Обновить</button>
 
                     </form>
                 </div>
@@ -110,15 +113,16 @@
 </script>
 
 <script>
-
     function RefreshData(event) {
         event.preventDefault()
         document.getElementById('spinner').style.display = "block"
         document.getElementById('buttonRefreshData').disabled = true
+        const days = document.getElementById('refreshData_days').value;
+
 
         $.ajax({
             type: "POST",
-            url: '/Settings/UpdateSaleObjects',
+            url: '/Settings/UpdateSaleObjects?daysAgo=' + days,
             datatype: "text",
             success: function (result) {
                 alert("Данные успешно обновлены");
@@ -133,5 +137,4 @@
             }
         });
     }
-
 </script>

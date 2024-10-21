@@ -72,17 +72,23 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "analyst")]
-        public async Task<IActionResult> UpdateSaleObjects()
+        public async Task<IActionResult> UpdateSaleObjects(string daysAgo)
         {
             try
             {
                 DateTime today = DateTime.Now;
                 string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
                 string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
+
+                if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
+                {
+                    return Ok("Запрос уже выполняется другим пользователем, попробуйте позже");
+                }
+
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-                    using (var command = new SqlCommand($"EXEC UpdateSaleobjects @now = '{morning}'", (SqlConnection)connection))
+                    using (var command = new SqlCommand($"EXEC UpdateSaleobjects @now = '{morning}', @daysAgo = '-{daysAgo}' ", (SqlConnection)connection))
                     {
                         command.CommandTimeout = 900;
                         int rowsAffected = await command.ExecuteNonQueryAsync();
