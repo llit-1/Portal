@@ -350,6 +350,9 @@ namespace Portal.Controllers
                 string path = "\\\\fs1.shzhleb.ru\\LLWork\\Отчеты\\Чеки РОзницы\\EmailChecks.xlsx";
                 var fileInfo = new System.IO.FileInfo(path);
                 var file = System.IO.File.ReadAllBytes(path);
+                Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                Response.Headers.Add("Access-Control-Allow-Methods", "GET");
+                Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
                 return PhysicalFile(fileInfo.FullName, "application/octet-stream", fileInfo.Name);
             }
             catch (Exception e)
