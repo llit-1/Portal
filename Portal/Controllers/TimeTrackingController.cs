@@ -179,24 +179,69 @@ namespace Portal.Controllers
                 dbSql.TimeSheets.RemoveRange(removedTimeSheets);
                 dbSql.AddRange(addedTimeSheets);
 
-                List<WorkingSlots> addedworkingSlots = new List<WorkingSlots>();
+                List<WorkingSlots> addedWorkingSlots = new List<WorkingSlots>();
+                List<WorkingSlots> removedWorkingSlots = new List<WorkingSlots>();
+                List<int> ExistingSlots = new List<int>();
                 foreach (var WorkSlot in timeSheetJsonModel.WorkSlotsJson)
                 {
-                    Models.MSSQL.WorkingSlots WorkSlots = new WorkingSlots();
-                    //WorkSlots.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == WorkSlot.Personalities);
-                    //WorkSlots.Locations = dbSql.Locations.FirstOrDefault(c => c.Guid == WorkSlot.Location);
-                    WorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
-                    WorkSlots.Begin = WorkSlot.Begin;
-                    WorkSlots.End = WorkSlot.End;
-                    WorkSlots.Status = WorkSlot.Status;
-                    addedworkingSlots.Add(WorkSlots);
-                }
-                List<WorkingSlots> removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Locations)
-                                                                    .Where(c => c.Locations.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
-                                                                    .ToList();
-                dbSql.WorkingSlots.RemoveRange(removedWorkingSlots);
-                dbSql.AddRange(addedworkingSlots);
+                    // Если слот новый
+                    if (WorkSlot.Id == 0)
+                    {
+                        Models.MSSQL.WorkingSlots newWorkSlots = new WorkingSlots();
+                        newWorkSlots.Locations = dbSql.Locations.FirstOrDefault(c => c.Guid == timeSheetJsonModel.Location);
+                        newWorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                        newWorkSlots.Begin = WorkSlot.Begin;
+                        newWorkSlots.End = WorkSlot.End;
+                        newWorkSlots.Status = 0;
+                        addedWorkingSlots.Add(newWorkSlots);
+                        continue;
+                    }
+                    Models.MSSQL.WorkingSlots WorkSlots = dbSql.WorkingSlots.FirstOrDefault(c => c.Id == WorkSlot.Id);
+                    if (WorkSlots is null)
+                    {
+                        return BadRequest("Пользователь отсутствует в БД"); 
+                    }
+                    //Если пользователь имеет право изменять слот в любое время
+                    if (User.IsInRole("time_tracking_administrator"))
+                    {
+                        WorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                        WorkSlots.Begin = WorkSlot.Begin;
+                        WorkSlots.End = WorkSlot.End;
+                        WorkSlots.Status = WorkSlot.Status; 
+                        dbSql.WorkingSlots.Update(WorkSlots);
+                        ExistingSlots.Add(WorkSlots.Id);
+                        continue;
+                    }
+                    //Если слот не занят
+                    if (WorkSlots.Status == 0)
+                    {
+                        WorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                        WorkSlots.Begin = WorkSlot.Begin;
+                        WorkSlots.End = WorkSlot.End;
+                        dbSql.WorkingSlots.Update(WorkSlots);
+                        ExistingSlots.Add(WorkSlots.Id);
+                        continue;
+                    }
+                    //Если занят
+                    if (WorkSlot.Status == 1 || WorkSlot.Status == 3 || WorkSlot.Status == 4)
+                    {
+                        WorkSlots.Begin = WorkSlot.Begin;
+                        WorkSlots.End = WorkSlot.End;
+                        WorkSlots.Status = WorkSlot.Status;
+                        dbSql.WorkingSlots.Update(WorkSlots);
+                        ExistingSlots.Add(WorkSlots.Id);
+                        continue;
+                    }
 
+                }
+                removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Locations)
+                                                                    .Where(c => c.Locations.Guid == timeSheetJsonModel.Location && 
+                                                                           c.Begin.Date == timeSheetJsonModel.Date && 
+                                                                           !ExistingSlots.Contains(c.Id))
+                                                                    .ToList();
+
+                dbSql.WorkingSlots.RemoveRange(removedWorkingSlots);
+                dbSql.AddRange(addedWorkingSlots);
                 dbSql.SaveChanges();
                 return new OkObjectResult(result);
             }
