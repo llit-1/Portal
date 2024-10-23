@@ -87,9 +87,9 @@ namespace Portal.Controllers
                                                           .ToList();
 
                     dateData.WorkingSlots = dbSql.WorkingSlots.Include(c => c.Personalities)
-                                                          .Include(c => c.Location)
-                                                          .Include(c => c.JobTitle)
-                                                          .Where(c => c.Location == location && c.Begin > date && c.Begin < date.AddDays(1))
+                                                          .Include(c => c.Locations)
+                                                          .Include(c => c.JobTitles)
+                                                          .Where(c => c.Locations == location && c.Begin > date && c.Begin < date.AddDays(1))
                                                           .ToList();
                     tTData.DateDatas.Add(dateData);
                 }
@@ -123,8 +123,8 @@ namespace Portal.Controllers
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
                                                   .ToList();
             dateData.WorkingSlots = dbSql.WorkingSlots.Include(c => c.Personalities)
-                                                  .Include(c => c.JobTitle)
-                                                  .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
+                                                  .Include(c => c.JobTitles)
+                                                  .Where(c => c.Begin.Date == date && c.Locations.Guid == location.Guid)
                                                   .ToList();
 
             tTData.Location = location;
@@ -179,27 +179,23 @@ namespace Portal.Controllers
                 dbSql.TimeSheets.RemoveRange(removedTimeSheets);
                 dbSql.AddRange(addedTimeSheets);
 
-
-                //
-
                 List<WorkingSlots> addedworkingSlots = new List<WorkingSlots>();
                 foreach (var WorkSlot in timeSheetJsonModel.WorkSlotsJson)
                 {
                     Models.MSSQL.WorkingSlots WorkSlots = new WorkingSlots();
-                    WorkSlots.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == WorkSlot.Personalities);
-                    WorkSlots.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == WorkSlot.Location);
-                    WorkSlots.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                    //WorkSlots.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == WorkSlot.Personalities);
+                    //WorkSlots.Locations = dbSql.Locations.FirstOrDefault(c => c.Guid == WorkSlot.Location);
+                    WorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
                     WorkSlots.Begin = WorkSlot.Begin;
                     WorkSlots.End = WorkSlot.End;
                     WorkSlots.Status = WorkSlot.Status;
                     addedworkingSlots.Add(WorkSlots);
                 }
-                List<WorkingSlots> removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Location)
-                                                                    .Where(c => c.Location.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
+                List<WorkingSlots> removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Locations)
+                                                                    .Where(c => c.Locations.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
                                                                     .ToList();
                 dbSql.WorkingSlots.RemoveRange(removedWorkingSlots);
                 dbSql.AddRange(addedworkingSlots);
-                //
 
                 dbSql.SaveChanges();
                 return new OkObjectResult(result);
