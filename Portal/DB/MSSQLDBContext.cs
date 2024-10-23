@@ -45,5 +45,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.PromocodesVK> PromocodesVK { get; set; }
         public DbSet<Models.MSSQL.ReceivedPromocodesVK> ReceivedPromocodesVK { get; set; }
         public DbSet<Models.MSSQL.SettingsVariables> SettingsVariables { get; set; }
+        public DbSet<Models.MSSQL.WorkingSlots> WorkingSlots { get; set; }
     }
 }

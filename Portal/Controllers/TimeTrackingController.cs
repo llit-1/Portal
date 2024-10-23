@@ -1,20 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Portal.Models;
+using Portal.Models.JsonModels;
+using Portal.Models.MSSQL;
+using Portal.Models.MSSQL.PersonalityVersions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Portal.Models.MSSQL;
 using System.Security.Claims;
-using Portal.Models.Calculator;
-using Portal.Models;
-using Microsoft.CodeAnalysis;
-using System.Drawing;
-using Portal.Models.JsonModels;
-using Newtonsoft.Json;
-using Portal.Models.MSSQL.Personality;
-using Portal.Models.MSSQL.PersonalityVersions;
 
 namespace Portal.Controllers
 {
@@ -89,6 +85,12 @@ namespace Portal.Controllers
                                                           .Include(c => c.JobTitle)
                                                           .Where(c => c.Location == location && c.Begin > date && c.Begin < date.AddDays(1))
                                                           .ToList();
+
+                    dateData.WorkingSlots = dbSql.WorkingSlots.Include(c => c.Personalities)
+                                                          .Include(c => c.Location)
+                                                          .Include(c => c.JobTitle)
+                                                          .Where(c => c.Location == location && c.Begin > date && c.Begin < date.AddDays(1))
+                                                          .ToList();
                     tTData.DateDatas.Add(dateData);
                 }
                 trackingDataModel.TTDatas.Add(tTData);
@@ -120,7 +122,10 @@ namespace Portal.Controllers
                                                   .Include(c => c.JobTitle)
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
                                                   .ToList();
-
+            dateData.WorkingSlots = dbSql.WorkingSlots.Include(c => c.Personalities)
+                                                  .Include(c => c.JobTitle)
+                                                  .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
+                                                  .ToList();
 
             tTData.Location = location;
             tTData.DateDatas = new List<DateData> { dateData };
@@ -173,6 +178,29 @@ namespace Portal.Controllers
 
                 dbSql.TimeSheets.RemoveRange(removedTimeSheets);
                 dbSql.AddRange(addedTimeSheets);
+
+
+                //
+
+                List<WorkingSlots> addedworkingSlots = new List<WorkingSlots>();
+                foreach (var WorkSlot in timeSheetJsonModel.WorkSlotsJson)
+                {
+                    Models.MSSQL.WorkingSlots WorkSlots = new WorkingSlots();
+                    WorkSlots.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == WorkSlot.Personalities);
+                    WorkSlots.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == WorkSlot.Location);
+                    WorkSlots.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                    WorkSlots.Begin = WorkSlot.Begin;
+                    WorkSlots.End = WorkSlot.End;
+                    WorkSlots.Status = WorkSlot.Status;
+                    addedworkingSlots.Add(WorkSlots);
+                }
+                List<WorkingSlots> removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Location)
+                                                                    .Where(c => c.Location.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
+                                                                    .ToList();
+                dbSql.WorkingSlots.RemoveRange(removedWorkingSlots);
+                dbSql.AddRange(addedworkingSlots);
+                //
+
                 dbSql.SaveChanges();
                 return new OkObjectResult(result);
             }
@@ -181,7 +209,7 @@ namespace Portal.Controllers
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result.ErrorMessage);
-            }    
+            }
         }
 
         private string CheckTimesheetsForСoincidenceTime(List<TimeSheet> checkingTimeSeets, List<Guid> selectedPersonalityGuid)

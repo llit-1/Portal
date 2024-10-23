@@ -23,5 +23,6 @@ namespace Portal.Models
     {
         public DateTime Date { get; set; }
         public List<TimeSheet> TimeSheets { get; set; }
+        public List<WorkingSlots> WorkingSlots { get; set; }
     }
 }
