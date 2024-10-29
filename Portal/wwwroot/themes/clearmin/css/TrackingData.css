@@ -1,4 +1,4 @@
-.headerTracking{
+﻿.headerTracking {
     display: flex;
     flex-direction: row;
     justify-content: left;
@@ -6,15 +6,14 @@
     width: 100%;
     margin: 0;
     padding: 0;
-
 }
 
-.headerTracking__date{
+.headerTracking__date {
     display: flex;
     flex-direction: row;
 }
 
-.headerTrackingItem{
+.headerTrackingItem {
     margin-right: 15px;
     display: flex;
     flex-direction: row;
@@ -22,7 +21,7 @@
     justify-content: center;
 }
 
-.calendarTracking{
+.calendarTracking {
     border: 1px solid #BFBFBF;
     border-radius: 2px;
     height: 35px;
@@ -32,7 +31,7 @@
     box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
 }
 
-.selectTracking{
+.selectTracking {
     border: 1px solid #BFBFBF;
     border-radius: 2px;
     height: 34px;
@@ -42,61 +41,61 @@
     text-align: center;
 }
 
-.pTracking{
+.pTracking {
     width: 20px;
     margin: 0;
 }
 
-#tdcell{
+#tdcell {
     width: 60vw !important;
 }
 
-.getJobTitleData{
+.getJobTitleData {
     transition: background-color linear 0.2s;
     cursor: pointer;
 }
 
-.active1{
+.active1 {
     background-color: #f5e5dc;
 }
 
 
 
-.getAllPersons{
+.getAllPersons {
     font-size: 13px;
     font-weight: bold;
 }
 
-.newRowAlign{
+.newRowAlign {
     vertical-align: middle !important;
     font-weight: 400;
     font-size: 13px;
 }
 
-.newRowAlign > input{
+    .newRowAlign > input {
+        border: 1px solid #00000042;
+        margin-bottom: 2px;
+        border-radius: 2px;
+        padding: 0px 4px;
+        text-align: center;
+        margin-right: 2px;
+    }
+
+#selectJobTitle {
     border: 1px solid #00000042;
-    margin-bottom: 2px;
     border-radius: 2px;
-    padding: 0px 4px;
-    text-align: center;
-    margin-right: 2px;
 }
 
-#selectJobTitle{
-    border: 1px solid #00000042;
-    border-radius: 2px;
-}
-
-.table3{
+.table3 {
     max-height: 70vh;
 }
 
-.scrollTable{
+.scrollTable {
     height: 70vh;
     overflow-y: scroll;
 }
 
-.allPerson{
+.allPerson {
     margin-top: 5vh;
     border: 1px solid #dddddd;
     text-align: center;
@@ -115,23 +114,23 @@
     font-style: italic;
 }
 
-.active2{
+.active2 {
     background-color: #F4812E !important;
     margin-bottom: 10px;
     color: white;
     box-shadow: none;
 }
 
-.table-for-an{
+.table-for-an {
     transition: display 0.2s linear;
 }
 
-#selectJobTitle{
+#selectJobTitle {
     height: 40px;
     width: 150px;
 }
 
-.allPersonsDiv, .allPersonsTable, .getAllPersons{
+.allPersonsDiv, .allPersonsTable, .getAllPersons {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -141,13 +140,13 @@
     margin-bottom: 10px !important;
 }
 
-.allPersonsTable{
+.allPersonsTable {
     width: 100%;
 }
 
-.allPersonsTable > tbody {
-    width: 100%;
-}
+    .allPersonsTable > tbody {
+        width: 100%;
+    }
 
 .sortInput {
     display: flex;
@@ -156,7 +155,7 @@
     align-items: stretch;
 }
 
-.sortPersonInput{
+.sortPersonInput {
     width: 100%;
     border: 1px solid #cccccc;
     border-radius: 2px;
@@ -168,43 +167,43 @@
 }
 
 
-/* Мобильная версия */
+/* РњРѕР±РёР»СЊРЅР°СЏ РІРµСЂСЃРёСЏ */
 
 
-/* Страница с выбором точки */
-@media screen and (max-width: 488px) and (orientation: portrait){
-    .headerTracking{
+/* РЎС‚СЂР°РЅРёС†Р° СЃ РІС‹Р±РѕСЂРѕРј С‚РѕС‡РєРё */
+@media screen and (max-width: 488px) and (orientation: portrait) {
+    .headerTracking {
         display: flex;
         flex-direction: column;
         align-items: stretch;
     }
 
-    .headerTrackingItem{
+    .headerTrackingItem {
         margin: 0;
         position: relative;
     }
 
-    .headerTracking__date{
+    .headerTracking__date {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         margin: 10px 0px;
     }
 
-    .calendarTracking{
+    .calendarTracking {
         width: 35vw;
         text-align: center;
     }
 
-    .row-group-03{
+    .row-group-03 {
         font-size: 10px;
     }
 }
 
-/* Страница с выбором */
+/* РЎС‚СЂР°РЅРёС†Р° СЃ РІС‹Р±РѕСЂРѕРј */
 
-@media screen and (max-width: 488px) and (orientation: portrait){
-    .allPersonsDiv{
+@media screen and (max-width: 488px) and (orientation: portrait) {
+    .allPersonsDiv {
         margin-bottom: 10px;
         width: 92vw;
         align-items: center;
@@ -212,15 +211,15 @@
         justify-content: center;
     }
 
-    .getAllPersons{
+    .getAllPersons {
         margin: 0;
     }
 
-    .allPersonsTable{
+    .allPersonsTable {
         width: 92vw;
     }
 
-    .sortPersonInput{
+    .sortPersonInput {
         width: 91vw;
     }
 
@@ -230,12 +229,95 @@
         border-radius: 2px;
     }
 
-    div.col-4.panel.panel-default.height > table > tbody > tr{
+    div.col-4.panel.panel-default.height > table > tbody > tr {
         width: 12px;
     }
 
-    #selectJobTitle{
+    #selectJobTitle {
         width: 100px;
     }
+}
 
+
+.trackingData_buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+    .trackingData_buttons > button {
+        height: 32px;
+    }
+
+.btn-gray {
+    background-color: #cacaca;
+    border-color: #BFBFBF;
+}
+
+.newRowAlign {
+    text-align: center;
+}
+
+.custom-select {
+    width: 35px;
+    height: 35px;
+    position: relative;
+    cursor: pointer;
+}
+
+.selected-option {
+    padding: 5px;
+    /* border: 1px solid #ccc; */
+    border-radius: 50%;
+    background-color: #fff;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.options-list {
+    display: none;
+    position: absolute;
+    width: 200px; /* Расширяем для отображения текста при открытии */
+    border: 1px solid #ccc;
+    background-color: #fff;
+    z-index: 10;
+    top: 100%; /* Чтобы выпадающий список был ниже селекта */
+    right: 0; /* Появляется слева от селекта */
+}
+
+.options-list li {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.options-list li img {
+    margin-right: 10px;
+}
+
+.options-list li:hover {
+    background-color: #f0f0f0;
+}
+
+.custom-select ul {
+    padding: 0px;
+}
+
+.custom-select.active .options-list {
+    display: block;
+}
+
+.selected-option:hover {
+    background-color: #dcdcdc70;
+}
+
+/* Убираем текст для свернутого состояния */
+.selected-option img {
+    width: 20px;
+    height: 20px;
 }

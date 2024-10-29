@@ -71,8 +71,11 @@
                         <!--Даты-->
                         @foreach (var day in tt.DateDatas)
                         {   
-                            var countPerson = day.TimeSheets.Count().ToString();
-                            switch (day.TimeSheets.Count().ToString().Last())
+                            var countPerson = (day.WorkingSlots.Count() + day.TimeSheets.Count()).ToString();
+
+                            var totalPersons = day.TimeSheets.Count() + day.WorkingSlots.Count();
+
+                            switch (totalPersons.ToString().Last())
                             {
                                 case '1':
                                     {
@@ -109,8 +112,26 @@
                                     <td style="text-align:center; vertical-align: middle;" align="center"></td>
                                     <td align="right">@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
                                 </tr>
-                            } 
-                        } 
+                            }
+
+                            @foreach (var person in day.WorkingSlots)
+                            {
+                            <tr class='row-group-03 hidden person_@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid' style="background-color: rgb(255 247 181 / 66%);">
+                                    <td class="hidden" id="@person.Status">@person.Id</td>
+                                    @if(person.Personalities == null)
+                                    {
+                                        <td style="vertical-align: middle;" align="left">Сотрудник с биржи</td>
+                                    } else
+                                    {
+                                        <td style="vertical-align: middle;" align="left">@person.Personalities?.Name</td>
+                                    }
+
+                                    <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitles.Name</td>
+                                    <td style="text-align:center; vertical-align: middle;" align="center"></td>
+                                    <td align="right">@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
+                                </tr>
+                            }
+                    } 
                     }
             </tbody>
         </table>
@@ -318,6 +339,7 @@
         const personArr = [];
         listPerson.forEach(person => {
             const obj = {};
+            obj.status = person.children[0].id.trim();
             obj.name = person.children[1].textContent.trim();
             obj.jobTitle = person.children[2].textContent.trim();
             obj.time = person.children[4].textContent.trim();
@@ -423,10 +445,21 @@
                 let endTimeMinutes = +(fullTime.split(' ')[2].split(':')[1]);
 
                 let time = document.querySelector(`.time_${i}`);
-                time.innerHTML = `
-                <div class='lineTime antiPropagation' style="z-index: ${i+3}">
-                    <b class='antiPropagation'>${personArr[i].jobTitle}</b>
-                </div>
+
+                if(personArr[i].status === "")
+                {
+                    time.innerHTML = `
+                    <div class='lineTime antiPropagation ' style="z-index: ${i+3}">
+                        <b class='antiPropagation'>${personArr[i].jobTitle}</b>
+                    </div>`
+                } else {
+                     time.innerHTML = `
+                    <div class='lineTime antiPropagation lineTimeExchange' style="z-index: ${i+3}">
+                        <b class='antiPropagation'>${personArr[i].jobTitle}</b>
+                    </div>`
+                }
+
+                
 
                     @* <div class='lineTime' style="z-index: ${i+3}" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
                         <div class="tooltipModal hidden" id="myTooltip">
@@ -434,7 +467,7 @@
                             ${personArr[i].time}
                         </div>
                     </div> *@
-                `
+                
 
                 let timeLine = document.querySelectorAll('.lineTime');
 

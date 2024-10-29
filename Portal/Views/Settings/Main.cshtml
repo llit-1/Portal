@@ -11,14 +11,14 @@
 
 <!--время сессии до выброса-->
 <div class="row">
-    <div class="col-sm-3">
-        <div class="panel panel-default">
+    <div class="col-sm-3" style="min-width: 300px;">
+        <div class="panel panel-default"    style=" min-height: 190px;">
             <div class="panel-heading">настройки портала</div>
-            <div class="panel-body">
+            <div class="panel-body" style="display: flex; flex-direction: column;">
 
                 <div class="text-danger" asp-validation-summary="All"></div>
 
-                <form class="">
+                <form class="" style="">
 
                     <!--время сессии в минутах-->
                     <div class="form-group">
@@ -36,6 +36,10 @@
                     </div>
 
                 </form>
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <button type="button" class="btn btn-success btn-sm" style="width: 85px; margin-top: 15px" onclick="Save()">Сохранить</button>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -44,7 +48,7 @@
     @if (User.IsInRole("analyst"))
     {
         <div class="col-sm-3" style="min-width: 300px">
-            <div class="panel panel-default">
+            <div class="panel panel-default" style=" min-height: 190px;">
                 <div class="panel-heading">обновление данных</div>
                 <div class="panel-body" style="padding: 10px 10px">
 
@@ -55,7 +59,7 @@
                         <label style="padding-left: 0px; margin-bottom: 0px" class="col-sm-12 control-label" for="refreshData_days"> Введите кол-во дней </label>
                         <input id="refreshData_days" class="form-control" style="text-align: center" value="7"/>
 
-                        <button id = 'buttonRefreshData' class="btn btn-success btn-sm" onclick="RefreshData(event)">Обновить</button>
+                        <button id = 'buttonRefreshData' class="btn btn-success btn-sm" style="margin-top: 10px" onclick="RefreshData(event)">Обновить</button>
 
                     </form>
                 </div>
@@ -65,12 +69,6 @@
 
     
 
-</div>
-
-
-<!--кнопки сохранить/отмена-->
-<div class="col-sm-12 text-left">
-    <button type="button" class="btn btn-success btn-sm" style="margin-right:10px" onclick="Save()">Сохранить</button>
 </div>
 
 <!----------------------------------------------------------------------------------------------------------------------------->

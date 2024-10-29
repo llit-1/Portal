@@ -117,6 +117,10 @@
     box-shadow: 0px 0px 2px 0.5px inset;
 }
 
+.lineTimeExchange {
+    background-color: rgb(255 247 181 / 66%);
+}
+
 .verticalLine {
     position: absolute;
     z-index: 1;
