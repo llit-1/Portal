@@ -196,44 +196,44 @@ namespace Portal.Controllers
                         addedWorkingSlots.Add(newWorkSlots);
                         continue;
                     }
-                    Models.MSSQL.WorkingSlots WorkSlots = dbSql.WorkingSlots.FirstOrDefault(c => c.Id == WorkSlot.Id);
-                    if (WorkSlots is null)
+                    Models.MSSQL.WorkingSlots WorkSlotDB = dbSql.WorkingSlots.FirstOrDefault(c => c.Id == WorkSlot.Id);
+                    if (WorkSlotDB is null)
                     {
-                        return BadRequest("Пользователь отсутствует в БД"); 
+                        return BadRequest("Пользователь отсутствует в БД");
                     }
-                    ExistingSlots.Add(WorkSlots.Id);
+                    ExistingSlots.Add(WorkSlotDB.Id);
                     //Если пользователь имеет право изменять слот в любое время
                     if (User.IsInRole("time_tracking_administrator"))
                     {
-                        WorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
-                        WorkSlots.Begin = WorkSlot.Begin;
-                        WorkSlots.End = WorkSlot.End;
-                        WorkSlots.Status = WorkSlot.Status; 
-                        dbSql.WorkingSlots.Update(WorkSlots);
+                        WorkSlotDB.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                        WorkSlotDB.Begin = WorkSlot.Begin;
+                        WorkSlotDB.End = WorkSlot.End;
+                        WorkSlotDB.Status = WorkSlot.Status;
+                        dbSql.WorkingSlots.Update(WorkSlotDB);
                         continue;
                     }
                     //Если слот не занят
-                    if (WorkSlots.Status == 0)
+                    if (WorkSlotDB.Status == 0)
                     {
-                        WorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
-                        WorkSlots.Begin = WorkSlot.Begin;
-                        WorkSlots.End = WorkSlot.End;
-                        dbSql.WorkingSlots.Update(WorkSlots);
+                        WorkSlotDB.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
+                        WorkSlotDB.Begin = WorkSlot.Begin;
+                        WorkSlotDB.End = WorkSlot.End;
+                        dbSql.WorkingSlots.Update(WorkSlotDB);
                         continue;
                     }
                     //Если занят
-                    if (WorkSlot.Status == 1 && DateTime.Now > WorkSlot.End)
+                    if (WorkSlotDB.Status == 1 && DateTime.Now > WorkSlot.End)
                     {
-                        WorkSlots.Begin = WorkSlot.Begin;
-                        WorkSlots.End = WorkSlot.End;
-                        WorkSlots.Status = WorkSlot.Status;
-                        dbSql.WorkingSlots.Update(WorkSlots);
+                        WorkSlotDB.Begin = WorkSlot.Begin;
+                        WorkSlotDB.End = WorkSlot.End;
+                        WorkSlotDB.Status = WorkSlot.Status;
+                        dbSql.WorkingSlots.Update(WorkSlotDB);
                         continue;
                     }
                 }
                 removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Locations)
-                                                                    .Where(c => c.Locations.Guid == timeSheetJsonModel.Location && 
-                                                                           c.Begin.Date == timeSheetJsonModel.Date && 
+                                                                    .Where(c => c.Locations.Guid == timeSheetJsonModel.Location &&
+                                                                           c.Begin.Date == timeSheetJsonModel.Date &&
                                                                            !ExistingSlots.Contains(c.Id))
                                                                     .ToList();
 

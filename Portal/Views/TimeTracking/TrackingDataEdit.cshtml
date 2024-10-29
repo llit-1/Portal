@@ -104,7 +104,7 @@
                                         <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
                                     </th>
 
-                                    <th class="newRowAlign"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
+                                    <th class="newRowAlign" style="align-content: center;padding-right: 16px;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
 
                                 </tr>
                             }
@@ -139,7 +139,23 @@
                                                     }
                                                 }
                                             </select>
-                                        } else
+                                        } else if(item.Status == 0)
+                                        {
+                                            <select name="" id="selectJobTitle" class="selectJobTitle">
+                                                @foreach (var job in Model.JobTitles)
+                                                {
+                                                    if (job.Name == item.JobTitles.Name)
+                                                    {
+                                                        <option value="@job.Guid" selected>@job.Name</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@job.Guid">@job.Name</option>
+                                                    }
+                                                }
+                                            </select>
+                                        }
+                                        else
                                         {
                                             <select name="" id="selectJobTitle" class="selectJobTitle" disabled>
                                                 @foreach (var job in Model.JobTitles)
@@ -162,16 +178,25 @@
                                         {
                                             <input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON">
                                             <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
+                                        } else if(item.Status == 0)
+                                        {
+                                            <input type="time" value='@item.Begin.ToString("HH:mm")' min="@DateTime.Now.AddHours(1).ToString("HH:mm")" class="timeBeginForJSON">
+                                            <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
                                         } else
                                         {
-                                            <input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON" disabled>
+                                             <input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON" disabled>
                                             <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON" disabled>
                                         }
 
 
                                     </th>
 
-                                    <th class="newRowAlign">
+                                    @if(item.Status == 0)
+                                    {
+                                        <th class="newRowAlign" style="align-content: center;padding-right: 16px;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
+                                    } else
+                                    {
+                                        <th class="newRowAlign">
                                         <div class="custom-select" id="selectMini">
                                             <div class="selected-option">
 
@@ -222,12 +247,34 @@
                                                 <li data-value="5">
                                                     <img src="/pic/ruble.png" id="5" alt="icon" /> Оплачена
                                                 </li>
-                                            </ul>
-                                            }
+                                                </ul>
+                                            } else if(item.Status == 1 && item.End <= DateTime.Now)
+                                            {
+                                                <ul class="options-list">
 
-                                            
+                                                     <li data-value="1">
+                                                        <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
+                                                    </li>
+                                                
+                                                    <li data-value="2">
+                                                        <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
+                                                    </li>
+
+                                                     <li data-value="3">
+                                                        <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
+                                                    </li>
+
+                                                    <li data-value="4">
+                                                        <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
+                                                    </li>
+
+                                                </ul>
+                                            }
                                         </div>
                                     </th>
+                                    }
+
+                                    
 
                                 </tr>
                             }
@@ -266,6 +313,8 @@
 
             const height = window.innerHeight; // Высота окна
             const y = event.clientY; // Координата Y
+
+            console.log(select)
 
             if (height / 2 < y)
             {
@@ -666,16 +715,31 @@
                 });
                 continue; // Переходим к следующей итерации, если нет личности
             }
-
+             
             if(Personalities[i].classList.contains('idWorkingSlots')){
-                WorkSlotsJson.push({
-                    Id: Personalities[i].textContent,
-                    JobTitle: selectJobTitle[i].value,
-                    Begin: beginTime,
-                    End: endTime,
-                    Status: Personalities[i].parentElement.children[5].children[0].children[0].children[0].id,
-                });
+
+                try {
+                    WorkSlotsJson.push({
+                        Id: Personalities[i].textContent,
+                        JobTitle: selectJobTitle[i].value,
+                        Begin: beginTime,
+                        End: endTime,
+                        Status: Personalities[i].parentElement.children[5].children[0].children[0].children[0].id,
+                    });
+                    continue; 
+                } catch {
+                    WorkSlotsJson.push({
+                        Id: Personalities[i].textContent,
+                        JobTitle: selectJobTitle[i].value,
+                        Begin: beginTime,
+                        End: endTime,
+                        Status: 0,
+                    });
                 continue; 
+
+                }
+
+
             }
 
             TimeSheetJson.push({
