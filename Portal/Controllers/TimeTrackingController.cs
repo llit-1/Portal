@@ -201,6 +201,7 @@ namespace Portal.Controllers
                     {
                         return BadRequest("Пользователь отсутствует в БД"); 
                     }
+                    ExistingSlots.Add(WorkSlots.Id);
                     //Если пользователь имеет право изменять слот в любое время
                     if (User.IsInRole("time_tracking_administrator"))
                     {
@@ -209,7 +210,6 @@ namespace Portal.Controllers
                         WorkSlots.End = WorkSlot.End;
                         WorkSlots.Status = WorkSlot.Status; 
                         dbSql.WorkingSlots.Update(WorkSlots);
-                        ExistingSlots.Add(WorkSlots.Id);
                         continue;
                     }
                     //Если слот не занят
@@ -219,20 +219,17 @@ namespace Portal.Controllers
                         WorkSlots.Begin = WorkSlot.Begin;
                         WorkSlots.End = WorkSlot.End;
                         dbSql.WorkingSlots.Update(WorkSlots);
-                        ExistingSlots.Add(WorkSlots.Id);
                         continue;
                     }
                     //Если занят
-                    if (WorkSlot.Status == 1 || WorkSlot.Status == 3 || WorkSlot.Status == 4)
+                    if (WorkSlot.Status == 1 && DateTime.Now > WorkSlot.End)
                     {
                         WorkSlots.Begin = WorkSlot.Begin;
                         WorkSlots.End = WorkSlot.End;
                         WorkSlots.Status = WorkSlot.Status;
                         dbSql.WorkingSlots.Update(WorkSlots);
-                        ExistingSlots.Add(WorkSlots.Id);
                         continue;
                     }
-
                 }
                 removedWorkingSlots = dbSql.WorkingSlots.Include(c => c.Locations)
                                                                     .Where(c => c.Locations.Guid == timeSheetJsonModel.Location && 
