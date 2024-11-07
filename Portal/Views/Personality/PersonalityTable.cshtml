@@ -38,7 +38,7 @@
                                                 <p class="userName text-muted">@Model[x].PersonalitiesVersions.Name</p>
                                             </td>
                                             <td class="tdPersonTable">
-                                                <p class="text-muted">@Model[x].PersonalitiesVersions.Patronymic</p>
+                                                <p class="text-muted">@Model[x].PersonalitiesVersions?.Patronymic</p>
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>

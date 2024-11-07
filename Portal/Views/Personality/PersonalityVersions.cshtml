@@ -36,7 +36,17 @@
                                     {
                                         var BirthDate = @user.Personalities.BirthDate.ToString().Split(' ')[0];
                                         var HireDate = @user.HireDate.ToString().Split(' ')[0];
-                                        var NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user.Patronymic.ToString();
+                                        var NSP = "";
+
+
+                                        if(user?.Patronymic == null)
+                                        {
+                                            NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString();
+                                        } else
+                                        {
+                                            NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user?.Patronymic.ToString();
+                                        }
+                                        
                                         var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
 
                                         <tr id="@user.Guid" class="activeRow" style="margin-right: 5px;" onclick="">

@@ -76,7 +76,7 @@
             <div id="SkuInOrder" class="table1">
                 <table class="table">
                     <tbody id="personItemsTable">
-                        @if (Model.TTData.DateDatas[0].TimeSheets.Count() > 0)
+                        @if (Model.TTData.DateDatas[0].TimeSheets.Count() + Model.TTData.DateDatas[0].WorkingSlots.Count() > 0)
                         {
                             @foreach (var item in Model.TTData.DateDatas[0].TimeSheets)
                             {

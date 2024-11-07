@@ -438,11 +438,25 @@
                 let startTimeMinutes = +(fullTime.split(' ')[0].split(':')[1]);
                 //Получаем конечный час
                 let endTimeHours = +(fullTime.split(' ')[2].split(':')[0]);
-                if (endTimeHours == 0) {
-                    endTimeHours = 24
-                }
+
                 //Получаем конечную минуту
                 let endTimeMinutes = +(fullTime.split(' ')[2].split(':')[1]);
+
+
+                if (endTimeHours == 0) {
+                    endTimeHours = 24
+
+                    if(endTimeMinutes != 0)
+                    {
+                        endTimeHours = 25
+                        endTimeMinutes = 0
+                    }
+                }
+                if (endTimeHours < startTimeHours && endTimeHours > 0) {
+                    endTimeHours = 25
+                    endTimeMinutes = 0;
+                }
+                
 
                 let time = document.querySelector(`.time_${i}`);
 
@@ -459,25 +473,14 @@
                     </div>`
                 }
 
-                
-
-                    @* <div class='lineTime' style="z-index: ${i+3}" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
-                        <div class="tooltipModal hidden" id="myTooltip">
-                            <b>${personArr[i].name}</b>
-                            ${personArr[i].time}
-                        </div>
-                    </div> *@
-                
-
                 let timeLine = document.querySelectorAll('.lineTime');
-
+                
                 // Отступ полоски времени
                 let timeWidth = startTimeHours * widthForEachHour;
                 // Определяем отступ с учетом минут
                 timeWidth = timeWidth + (startTimeMinutes * widthForEachMinute);
                 // Ширина полоски времени
                 let widthWithHours = ((endTimeHours * widthForEachHour) - (startTimeHours * widthForEachHour)) - (startTimeMinutes * widthForEachMinute) + (endTimeMinutes * widthForEachMinute);
-
                 timeLine[i].style.marginLeft = `${timeWidth}px`;
                 timeLine[i].style.width = `${widthWithHours}px`;
                 sharp(time, widthForEachHour)

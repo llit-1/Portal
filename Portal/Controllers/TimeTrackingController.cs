@@ -83,13 +83,13 @@ namespace Portal.Controllers
                     dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                           .Include(c => c.Location)
                                                           .Include(c => c.JobTitle)
-                                                          .Where(c => c.Location == location && c.Begin > date && c.Begin < date.AddDays(1))
+                                                          .Where(c => c.Location == location && c.Begin >= date && c.Begin < date.AddDays(1))
                                                           .ToList();
 
                     dateData.WorkingSlots = dbSql.WorkingSlots.Include(c => c.Personalities)
                                                           .Include(c => c.Locations)
                                                           .Include(c => c.JobTitles)
-                                                          .Where(c => c.Locations == location && c.Begin > date && c.Begin < date.AddDays(1))
+                                                          .Where(c => c.Locations == location && c.Begin >= date && c.Begin < date.AddDays(1))
                                                           .ToList();
                     tTData.DateDatas.Add(dateData);
                 }
