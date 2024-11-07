@@ -8,5 +8,6 @@ namespace Portal.Models.MSSQL.RK7
     {
         public int Code { get; set; }
         public string Name { get; set; }
+        public Int16 Status { get; set; }
     }
 }

@@ -13,7 +13,6 @@ using Portal.Models.MSSQL.Reports1C;
 using Portal.Models.PowerBi;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -64,7 +63,7 @@ namespace Portal.Controllers
                 else
                 {
                     dbSql.LastUser.FirstOrDefault().User = User.Identity.Name;
-                }               
+                }
                 dbSql.SaveChanges();
             }
             catch (Exception ex)
@@ -72,7 +71,7 @@ namespace Portal.Controllers
 
                 throw ex;
             }
-           
+
             return PartialView(reportsView);
         }
 
@@ -220,7 +219,8 @@ namespace Portal.Controllers
                             worksheet.Cell(1, 5).Value = "Дата и время продажи";
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
-                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
+                                worksheet.Cell(i + 2, 1).Value = menuitem.Name;
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
@@ -249,7 +249,7 @@ namespace Portal.Controllers
                             worksheet.Cell(1, 4).Value = "Дата и время возврата";
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
-                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = saleObjects[i].Date;
@@ -279,7 +279,7 @@ namespace Portal.Controllers
                             worksheet.Cell(1, 5).Value = "Дата и время списания";
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
-                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
@@ -310,14 +310,14 @@ namespace Portal.Controllers
                             worksheet.Cell(1, 6).Value = "Дата и время продажи";
                             for (int i = 0; i < saleObjectsAgregators.Count; i++)
                             {
-                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjectsAgregators[i].Code).Name;
+                                Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjectsAgregators[i].Code && c.Status != 0);
                                 worksheet.Cell(i + 2, 2).Value = saleObjectsAgregators[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjectsAgregators[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjectsAgregators[i].Currency).Name;
                                 worksheet.Cell(i + 2, 5).Value = saleObjectsAgregators[i].OrderNumber;
                                 worksheet.Cell(i + 2, 6).Value = saleObjectsAgregators[i].Date;
                             }
-                             using (var stream = new MemoryStream())
+                            using (var stream = new MemoryStream())
                             {
                                 workbook.SaveAs(stream);
                                 return new FileContentResult(stream.ToArray(), "application/zip")
@@ -341,7 +341,7 @@ namespace Portal.Controllers
                             worksheet.Cell(1, 5).Value = "Дата и время списания";
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
-                                worksheet.Cell(i + 2, 1).Value = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code).Name;
+                                Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
@@ -407,7 +407,7 @@ namespace Portal.Controllers
                     {
                         int obd = db.TTs.FirstOrDefault(c => c.Restaurant_Sifr == restaraunt).Obd;
                         var shipmentsByGP = reports1CSql.ShipmentsByGP.Where(c => c.DateOfShipmentChange >= DateTime.Now.AddDays(-30) && c.ConsigneeCodeN == obd).ToList();
-                        shipmentsByGP = shipmentsByGP.GroupBy(c => new {c.Article, c.Nomenclature}).Select(i => i.OrderByDescending(c => c.DateOfShipmentChange).First()).ToList();
+                        shipmentsByGP = shipmentsByGP.GroupBy(c => new { c.Article, c.Nomenclature }).Select(i => i.OrderByDescending(c => c.DateOfShipmentChange).First()).ToList();
 
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
