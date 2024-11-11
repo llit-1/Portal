@@ -370,32 +370,32 @@
 
 <script>
     // Смена состояния сотрудника в зависимости от заполненности даты увольнения
-    const actualPicker = document.querySelector('.actual');
-    const valueDismissalsDate = document.querySelector('.dissDate');
+    // const actualPicker = document.querySelector('.actual');
+    // const valueDismissalsDate = document.querySelector('.dissDate');
 
-    if (valueDismissalsDate.value) {
-        document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
-        document.getElementById('VersionStartDate').disabled = true;
-    } else {
-        document.getElementById('VersionStartDate').disabled = false;
-    }
+    // if (valueDismissalsDate.value) {
+    //     document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
+    //     document.getElementById('VersionStartDate').disabled = true;
+    // } else {
+    //     document.getElementById('VersionStartDate').disabled = false;
+    // }
 
-    valueDismissalsDate.addEventListener('input', () => {
-        @* Изменение статуса сотрудника при изменении даты увольнения *@
-        if(valueDismissalsDate.value != '') {
-            actualPicker.innerHTML = "<option value='1'>Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";       
-        } else {
-            actualPicker.innerHTML = "<option value='1' selected>Активен</option><option value='2' >Отстранен</option><option value='0' >Уволен</option>";
-        }
-        @* Изменение даты начала версии при изменении даты увольнения *@
-        if (valueDismissalsDate.value) {
-            document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
-            document.getElementById('VersionStartDate').disabled = true;
-        } else {
-            document.getElementById('VersionStartDate').disabled = false;
-        }
+    // valueDismissalsDate.addEventListener('input', () => {
+    //     @* Изменение статуса сотрудника при изменении даты увольнения *@
+    //     if(valueDismissalsDate.value != '') {
+    //         actualPicker.innerHTML = "<option value='1'>Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";       
+    //     } else {
+    //         actualPicker.innerHTML = "<option value='1' selected>Активен</option><option value='2' >Отстранен</option><option value='0' >Уволен</option>";
+    //     }
+    //     @* Изменение даты начала версии при изменении даты увольнения *@
+    //     if (valueDismissalsDate.value) {
+    //         document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
+    //         document.getElementById('VersionStartDate').disabled = true;
+    //     } else {
+    //         document.getElementById('VersionStartDate').disabled = false;
+    //     }
         
-    })
+    // })
 
     // Возврат к таблице
     const NewPerson = document.getElementById('NewPerson').value; // 1 - новый сотрудник, 0 и 2 - не новый
