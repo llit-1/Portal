@@ -1,0 +1,272 @@
+@model Portal.Controllers.StockController.CategoriesHierarchyWithCategoryID
+
+ 
+    <div id="stock_back">
+
+        <div class="stock_back_wrapper">
+            <div id="back" onclick="backButton()">
+                <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                <label style="margin-left:10px; cursor:pointer; margin-bottom:0px;">назад</label>
+            </div>
+
+            <div class="back_wrapper_button">
+            <button onclick="addSubCategoryItemModal(@Model.CategoryID)">ДОБАВИТЬ</button>
+            </div>
+        </div>
+
+        
+
+        <div class="stock_back_input">
+            <img src="/themes/clearmin/img/search.png">
+            <input class="" />
+        </div>
+    </div>
+
+    <div id="stock_wrapper" class="stock_wrapper">
+
+    @foreach (var category in Model.Categories)
+    {
+        <div class="stock_category_table">
+
+            <div class="category_wrapper_list">
+                <div class="category_table_item" onclick="showDetails(this)">
+                    <div class="table_item_subcategory" data-count="@category.Categories.Count()">@category.Name</div>
+                </div>
+
+                <div class="table_item_subcategoryNew" onclick="addSubCategoryItemModal(@category.Id)"> + </div>
+            </div>
+
+            
+
+            @foreach (var item in category.Categories)
+            {
+                <div class="item_subcategory_details hidden item_subcategory_details_@category.Name">
+                    <div style=""> @item.Name </div>
+                    <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" /> </div>
+                </div>
+            }
+        </div>
+    }
+
+    </div>
+
+<div id="modalContainer" class="modal" style="display: none;"></div>
+
+<script>
+    function backButton() {
+            $('#PageHeader').text('Склад');
+            $(".stock").load("/Stock/Stock")
+    } 
+</script>
+
+<script>
+        async function addSubCategoryItemModal(id) {
+            try {
+            const response = await fetch("/Stock/LoadModalStockTable?id=" + id, {
+                method: "GET",
+                headers: { "Content-Type": "text/html" }
+            });
+
+            if (response.ok) {
+                const modalHtml = await response.text();
+                const modalContainer = document.getElementById("modalContainer");
+                modalContainer.innerHTML = modalHtml;
+                modalContainer.style.display = "block";
+
+                const closeModalButton = document.getElementById("closeModalButton");
+                if (closeModalButton) {
+                    closeModalButton.addEventListener("click", function () {
+                        modalContainer.style.display = "none";
+                        modalContainer.innerHTML = "";
+                    });
+                }
+
+                modalContainer.addEventListener("click", function (e) {
+                    if (e.target === modalContainer) {
+                        modalContainer.style.display = "none";
+                        modalContainer.innerHTML = "";
+                    }
+                });
+            } else {
+                alert("������ �������� ���������� ����");
+            }
+        } catch (error) {
+            console.error("������:", error);
+        }
+        }
+</script>
+
+<script>
+    function showDetails(elem) {
+        elem.classList.toggle('active');
+        document.querySelector(".item_subcategory_details_" + elem.childNodes[1].textContent).classList.toggle("hidden")
+    }
+</script>
+
+<style>
+    .stock_back_wrapper {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .back_wrapper_button > button {
+        background-color: #00a700;
+        color: white;
+        padding: 5px 10px;
+        border: 1px solid green;
+        font-family: "Akrobat-regular";
+        font-weight: 400;
+        font-size: 14px;
+        transition: all 0.25s linear;
+    }
+
+    .back_wrapper_button > button:hover {
+        background-color: green;
+    }
+
+    .detasdas {
+        display: flex;
+        justify-content: start;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .stock_category_table {
+        display: flex;
+        justify-content: center;
+        align-items: start;
+        flex-direction: column;
+        width: 100%;
+        gap: 5px;
+        height: fit-content;
+        padding-right: 10px;
+    }
+
+    .category_wrapper_list {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 10px;
+        
+    }
+
+    .category_table_item {
+        border: 1px solid #80808066;
+        background-color: white;
+        padding: 10px;
+        width: 100%;
+        font-family: "Akrobat-regular";
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s linear;
+        position: relative;
+        margin-left: 15px;
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .table_item_subcategoryNew {
+        color: green;
+        font-size: 20px;
+        padding-right: 10px;
+        font-weight: 600;
+        width: 41px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s linear;
+        
+    }
+
+    .table_item_subcategoryNew:hover {
+            color: #F47920;
+    }
+
+        .category_table_item:hover {
+            background-color: #dfdfdf;
+        }
+
+        .category_table_item::before {
+            position: absolute;
+            content: "+";
+            left: -25px;
+            top: 51%; /* Ставим по вертикальному центру */
+            transform: translateY(-50%); /* Смещаем на 50% высоты вверх для центрирования */
+            background-color: gray;
+            height: 16px;
+            width: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: 4px;
+        }
+
+        .category_table_item.active::before {
+            content: "-";
+            background-color: #F47920;
+        }
+
+        .category_table_item:hover::before {
+            background-color: #F47920;
+        }
+
+    .table_item_subcategory {
+        position: relative;
+        width: fit-content;
+    }
+
+        .table_item_subcategory::after {
+            position: absolute;
+            content: attr(data-count);
+            right: -55px;
+            background: #F47920;
+            padding: 0px 10px;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 400;
+            bottom: 0px;
+            top: 50%;
+            height: 20px;
+            transform: translateY(-50%);
+        }
+
+    .item_subcategory_details {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        margin-left: 50px;
+        background-color: white;
+        border: 1px solid #80808066;
+        padding: 10px 15px;
+        font-family: "Akrobat-regular";
+        font-size: 16px;
+        width: calc(100% - 35px);
+        justify-content: space-between;
+        font-weight: 800;
+    }
+
+    .subcategory_details_edit > img {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .subcategory_details_edit:first-child {
+        display: flex;
+        justify-content: start;
+    }
+
+    .subcategory_details_edit:last-child {
+        display: flex;
+        justify-content: end;
+    }
+
+</style>

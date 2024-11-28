@@ -72,7 +72,9 @@ $(function () {
         if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');
         if (hash == '#TrackingData') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingData');
         if (hash == '#TimesheetsFactory') loadContent(hash.replace('#', ''), '/TimesheetsFactory/TimesheetsMain');
-
+        
+        if (hash == '#stock') loadContent(hash.replace('#', ''), '/Stock/Stock');
+        
         // Запросы пользователей
         if (hash == '#userrequests') loadContent(hash.replace('#', ''), '/UserRequests/ReqList?state=new');
 

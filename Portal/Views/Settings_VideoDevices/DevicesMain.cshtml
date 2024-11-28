@@ -20,7 +20,8 @@
         <div id="tableMenu" class="col-md-12" style="padding:0">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
             <button class="btn btn-sm btn-success addTTButton" onclick="addDevice()" style="margin-left:20px">Добавить устройство</button>
-            <button class="btn btn-sm btn-success addTTButton" onclick="restartAllDevice()" style="margin-left:20px">Перезагрузить все</button>
+            
+            <button class="btn btn-sm btn-success addTTButton" onclick="rebootAllDevice()" style="margin-left:20px">Перезагрузить все</button>
         </div>
 
         <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0"></div>
@@ -380,6 +381,17 @@
                     $('#back').unbind('click');
                     $('#back').click(function () { location.hash = "#settings" });
                 }
+            }
+        });
+    }
+
+    async function rebootAllDevice() {
+        SpinnerShow();
+        $.ajax({
+            type: 'GET',
+            url: `/Settings_VideoDevices/RebootDevices`,
+            success: function (result) {
+                SpinnerHide();
             }
         });
     }

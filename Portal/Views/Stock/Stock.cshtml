@@ -1,0 +1,322 @@
+@model List<Portal.Controllers.StockController.WarehouseCategories>
+
+<div class="stock">
+
+    <div id="stock_back">
+        <div id="back">
+            <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+            <label style="margin-left:10px; cursor:pointer; margin-bottom:0px;">назад</label>
+        </div>
+
+        <div class="stock_back_input">
+            <img src="/themes/clearmin/img/search.png">
+            <input class=""/>
+        </div>
+    </div>
+
+    <div id="stock_wrapper"  class="stock_wrapper">
+        <div class="wrapper_card wrapper_addNewCategories" onclick="event.stopPropagation();openModal(0)"> + </div>
+        @foreach(var item in Model)
+        {
+            <div class="wrapper_card" onclick="openTable(@item.Id)">
+                <div class="wrapper_card_header">
+                    <div class="material-switch pull-right">
+                        <input
+                        class="slider addCategory"
+                        id="addCategory_@item.Id"
+                        type="checkbox"
+                        @(item.Actual == 1 ? "checked" : "")
+                        onclick="event.stopPropagation(); switchActive(@item.Id, event);"
+                    />
+
+                        <label for="addCategory_@item.Id" class="label-warning"></label>
+                    </div>
+                    <img onclick="event.stopPropagation();openModal(@item.Id)" src="/themes/clearmin/img/settings.png" class="card_header_img" />
+                </div>
+
+                <div class="wrapper_card_body">
+                    @if (item.Img == null)
+                    {
+                        <img src="/themes/clearmin/img/relocation.png" class="cardImg" alt="" />
+                    }
+
+                    <p class="wrapper_card_p">@item.Name</p>
+                </div>
+
+                
+            </div>
+        }
+    </div>
+
+
+    <div id="modalContainer" class="modal" style="display: none;"></div>
+    
+
+</div>
+
+<script>
+    $('#PageHeader').text('Склад');
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#" });
+</script> 
+
+<script>
+    async function openModal(id = 0) {
+        try {
+            const response = await fetch("/Stock/LoadModal?id=" + id, {
+                method: "GET",
+                headers: { "Content-Type": "text/html" }
+            });
+
+            if (response.ok) {
+                const modalHtml = await response.text();
+                const modalContainer = document.getElementById("modalContainer");
+                modalContainer.innerHTML = modalHtml;
+                modalContainer.style.display = "block";
+
+                const closeModalButton = document.getElementById("closeModalButton");
+                if (closeModalButton) {
+                    closeModalButton.addEventListener("click", function () {
+                        modalContainer.style.display = "none";
+                        modalContainer.innerHTML = "";
+                    });
+                }
+
+                modalContainer.addEventListener("click", function (e) {
+                    if (e.target === modalContainer) {
+                        modalContainer.style.display = "none";
+                        modalContainer.innerHTML = "";
+                    }
+                });
+            } else {
+                alert("������ �������� ���������� ����");
+            }
+        } catch (error) {
+            console.error("������:", error);
+        }
+    }
+
+</script>
+
+<script>
+   async function switchActive(id, event) {
+    event.stopPropagation();
+
+    try {
+        const response = await fetch("/Stock/SwitchActual?id=" + id, {
+            method: "UPDATE",
+            headers: { "Content-Type": "text/html" }
+        });
+
+        if (response.ok) {
+            console.log("Category status updated successfully");
+        } else {
+            console.error("Failed to update category status");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+</script>
+
+<script>
+    function selectImage() {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const stock_category_img = document.getElementById('stock_category_img');
+                    if (stock_category_img) {
+                        stock_category_img.src = e.target.result;
+                    } else {
+                        console.error("Element with id 'stock_category_img' not found");
+                    }
+                };
+
+                reader.onerror = function (e) {
+                    console.error("FileReader error: ", e);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        };
+
+        fileInput.click();
+    }
+</script>
+
+<script>
+    async function SaveCategory(id) {
+        const name = document.getElementById("stock-category-name").value;
+        const parent = document.getElementById("stock-category-parent").textContent;
+        const actual = document.getElementById("stock-category-actual").textContent;
+        let img = document.getElementById("stock-category-img").src; // ���������� src ������� ��� �����������
+
+        if (img == "undefined") img = null;
+
+        const data = {
+            Id: id,
+            Name: name.trim(),
+            Parent: parent.trim(),
+            Actual: actual.trim(),
+            Img: null
+        };
+
+        console.log(data); // �������� ������ ����� ���������
+
+        const response = await fetch("/Stock/SaveCategory", {
+            method: "PATCH", // ���������� PATCH ��� PUT � ����������� �� ����, ��� ������� ������
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data) // ���������� ������ � ���� �������
+        });
+
+        if (response.ok) {
+            console.log("Category saved successfully");
+        } else {
+            console.error("Failed to save category:", response.statusText);
+        }
+    }
+</script>
+
+<script>
+    function openTable(id) {
+        console.log("1")
+        $(".stock").load("/Stock/StockTable?id=" + id)
+    }
+</script>
+
+<style>
+    .stock {
+        display: flex;
+        flex-direction: column;
+        padding: 5px 0px;
+    }
+
+    #stock_back {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .stock_back_input {
+        border: 1px solid #80808066;
+        padding: 5px;
+        background-color: white;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        width: 23%;
+    }
+
+    .stock_back_input > img {
+        width: 14px;
+        margin: 0px 5px;
+    }
+
+    .stock_back_input > input {
+        border: none;
+        font-family: "Akrobat-Regular";
+        height: 100%;
+        width: 100%;
+        font-size: 16px;
+    }
+
+    .stock_wrapper {
+        padding-top: 10px;
+        width: 100%;
+        /*height: calc(100dvh - 76px - 58px);*/
+        background-color: #EEEEEE;
+
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        height: fit-content;
+    }
+
+    .wrapper_card {
+        background-color: white;
+        border: 1px solid #D3D2D2;
+        height: 200px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.25s linear;
+        font-size: 16px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .wrapper_addNewCategories {
+        color: #bdbdbd;
+        font-size: 44px;
+        justify-content: center;
+    }
+
+    .wrapper_card:hover {
+        background-color: #f6f6f6;
+    }
+
+    .wrapper_card_header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+    }
+
+    .card_header_img {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        transition: all 0.25s linear;
+    }
+
+    .card_header_img:hover {
+        transform: scale(1.1);
+    }
+
+    .wrapper_card_body {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: space-around;
+    }
+
+    .cardImg {
+        width: 55px;
+        height: 55px;
+    }
+
+    .wrapper_card_p {
+        font-size: 18px;
+        font-weight: 600;
+        font-family: "Akrobat-Regular";
+    }
+
+    .modal {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+</style>

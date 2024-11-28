@@ -54,6 +54,11 @@ namespace Portal.Controllers
             return PartialView();
         }
 
+        public IActionResult TTsOffice()
+        {
+            return PartialView();
+        }
+
         // Таблица ТТ
         public IActionResult TTsTable(bool closedTT, bool ecTT)
         {
@@ -68,8 +73,10 @@ namespace Portal.Controllers
                                                                .Include(x => x.Entity)
                                                                .Include(x => x.Location.LocationType)
                                                                .Where(x => x.Actual == 1)
-                                                               .Where(x => x.Location.LocationType.Name != "Завод" || x.Location.LocationType.Name != "Цех")
-                                                               .ToList();
+                                                               .Where(x => x.Location.LocationType.Guid == Guid.Parse("94AD659C-AF5B-4CA0-50AD-08DBDF6ABE84") 
+                                                               || x.Location.LocationType.Guid == Guid.Parse("B0E427F9-8996-4C03-33C1-08DBDF713401")
+                                                               || x.Location.LocationType.Guid == Guid.Parse("5E66963A-7767-4E51-84F9-8C320C6CE214")
+                                                               || x.Location.LocationType.Guid == Guid.Parse("3DC24D14-FAE6-4993-A403-C4142755409A")).ToList();
 
             var tts = db.TTs.Include(t => t.Users)
                             .Include(t => t.CashStations)
@@ -101,6 +108,24 @@ namespace Portal.Controllers
                 .Include(x => x.Entity)
                 .Where(x => x.Actual == 1)
                 .Where(x => x.Location.LocationType.Guid == Guid.Parse("80423E42-DC1E-4311-AD0B-08DCA4A09C33") || x.Location.LocationType.Guid == Guid.Parse("D3A0363D-2EC4-48E4-AD0C-08DCA4A09C33"))
+                .ToList();
+
+            return PartialView(locationFactory);
+        }
+
+        public IActionResult TTsOfficeTable()
+        {
+            if (db.TTs is null)
+            {
+                return Ok();
+            }
+
+            List<LocationVersions> locationFactory = dbSql.LocationVersions
+                .Include(x => x.Location)
+                .Include(x => x.Location.LocationType)
+                .Include(x => x.Entity)
+                .Where(x => x.Actual == 1)
+                .Where(x => x.Location.LocationType.Guid == Guid.Parse("3810B715-2164-4524-F182-08DBF1A777FF") || x.Location.LocationType.Guid == Guid.Parse("8FE12BFC-1860-4B79-8763-81C984E2A643"))
                 .ToList();
 
             return PartialView(locationFactory);
@@ -228,6 +253,49 @@ namespace Portal.Controllers
             tsFactoryEdit.locationTypes = locationTypes;
             tsFactoryEdit.location = locationVersion;
             tsFactoryEdit.users = users;
+
+            return PartialView(tsFactoryEdit);
+        }
+
+        public IActionResult TTOfficeAdd()
+        {
+            TTsFactoryEdit tsFactoryEdit = new TTsFactoryEdit();
+            List<Entity> entity = dbSql.Entity.ToList();
+            List<LocationVersions> locationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                           .Include(x => x.Location.LocationType)
+                                                                           .Where(x => x.Actual == 1)
+                                                                           .Where(x => x.Location.LocationType.Name == "Офис" || x.Location.LocationType.Name == "Кабинет")
+                                                                           .ToList();
+            List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
+            List<User> users = db.Users.ToList();
+            tsFactoryEdit.entity = entity;
+            tsFactoryEdit.locationTypes = locationTypes;
+            tsFactoryEdit.location = locationVersion;
+            tsFactoryEdit.users = users;
+
+            return PartialView(tsFactoryEdit);
+        }
+
+        public IActionResult TTOfficeEdit(string guid)
+        {
+            TTsFactoryEditData tsFactoryEdit = new TTsFactoryEditData();
+            LocationVersions locationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                     .Include(x => x.Location.LocationType)
+                                                                     .Include(x => x.Entity)
+                                                                     .FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+
+            List<Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
+            List<Entity> entity = dbSql.Entity.ToList();
+            List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
+            List<BindingLocationToUsers> bindingLocationToUsers = dbSql.BindingLocationToUsers.Where(x => x.LocationID == locationVersion.Guid).ToList();
+            tsFactoryEdit.entity = entity;
+            tsFactoryEdit.locationTypes = locationTypes;
+            tsFactoryEdit.location = locationVersion;
+            tsFactoryEdit.loca = locations;
+            tsFactoryEdit.users = db.Users.ToList();
+            tsFactoryEdit.pickedusers = bindingLocationToUsers;
+
+
 
             return PartialView(tsFactoryEdit);
         }
@@ -394,6 +462,146 @@ namespace Portal.Controllers
             }
             return new ObjectResult(result);
         }
+
+        public IActionResult TTOfficeSave(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                json = json.Replace("%bkspc%", " ");
+                var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
+
+                LocationVersions locationVersions = dbSql.LocationVersions.Include(x => x.Location)
+                                                                          .Include(x => x.Location.LocationType)
+                                                                          .Include(x => x.Entity)
+                                                                          .FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.guid));
+
+
+                locationVersions.Location.Name = ttJsn.Name;
+                locationVersions.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
+                locationVersions.Location.RKCode = 0;
+                locationVersions.Location.AggregatorsCode = null;
+                if (ttJsn.parent != "" && ttJsn.parent != null)
+                {
+                    locationVersions.Location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
+                }
+                else
+                {
+                    locationVersions.Location.Parent = null;
+                }
+                locationVersions.Location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Actual = 1;
+
+
+                locationVersions.Name = ttJsn.Name;
+                locationVersions.OBD = null;
+                locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
+                locationVersions.Actual = 1;
+                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                if (ttJsn.close != "")
+                {
+                    locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);
+                }
+                else
+                {
+                    locationVersions.VersionEndDate = null;
+                }
+                locationVersions.Address = ttJsn.address;
+
+                List<Models.MSSQL.BindingLocationToUsers> toDelete = dbSql.BindingLocationToUsers.Where(x => x.LocationID == Guid.Parse(ttJsn.guid)).ToList();
+                toDelete.ForEach(x =>
+                {
+                    dbSql.BindingLocationToUsers.Remove(x);
+                });
+
+                ttJsn.usersid.ForEach(x =>
+                {
+                    BindingLocationToUsers bindingLocationToUsers = new BindingLocationToUsers();
+                    bindingLocationToUsers.LocationID = locationVersions.Guid;
+                    bindingLocationToUsers.UserID = int.Parse(x);
+                    dbSql.BindingLocationToUsers.Add(bindingLocationToUsers);
+                });
+
+                dbSql.SaveChanges();
+
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                result.Ok = false;
+                result.Data = e.ToString();
+            }
+            return new ObjectResult(result);
+        }
+        public IActionResult TTOfficeSaveNew(string json)
+        {
+            var result = new RKNet_Model.Result<string>();
+            try
+            {
+                json = json.Replace("%bkspc%", " ");
+                var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
+
+                LocationVersions locationVersions = new LocationVersions();
+                Location location = new Location();
+
+                location.Name = ttJsn.Name;
+                location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
+                location.RKCode = 0;
+                location.AggregatorsCode = null;
+                if (ttJsn?.parent != "" || ttJsn?.parent != null)
+                {
+                    location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
+                }
+                else
+                {
+                    location.Parent = null;
+                }
+
+                location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                location.Actual = 1;
+
+                locationVersions.Location = location;
+                locationVersions.Name = ttJsn.Name;
+                locationVersions.OBD = null;
+                locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
+                locationVersions.Actual = 1;
+                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                if (ttJsn.close != "")
+                {
+                    locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);
+                }
+                else
+                {
+                    locationVersions.VersionEndDate = null;
+                }
+                locationVersions.Address = ttJsn.address;
+
+                dbSql.Locations.Add(location);
+                dbSql.LocationVersions.Add(locationVersions);
+
+                ttJsn.usersid.ForEach(x =>
+                {
+                    BindingLocationToUsers bindingLocationToUsers = new BindingLocationToUsers();
+                    bindingLocationToUsers.LocationID = locationVersions.Guid;
+                    bindingLocationToUsers.UserID = int.Parse(x);
+                    dbSql.BindingLocationToUsers.Add(bindingLocationToUsers);
+                });
+
+
+                dbSql.SaveChanges();
+
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                result.Ok = false;
+                result.Data = e.ToString();
+            }
+            return new ObjectResult(result);
+        }
+
         // Сохранение ТТ
         public IActionResult TTSave(string ttjsn)
         {

@@ -1,0 +1,58 @@
+@model int
+
+<div class="modal-content-stock">
+
+    <div class="content-stock-table">
+        <span class="stock-table-span">Введите название:</span>
+        <input class="stock-table-input"/>
+        <button class="stock-table-button"> ДОБАВИТЬ </button>
+    </div>
+
+
+</div>
+
+
+
+<style>
+    .modal-content-stock {
+        margin: 15% auto;
+        padding: 20px;
+        background: white;
+        border: 1px solid #D3D2D2;
+        width: fit-content;
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+    }
+
+    .content-stock-table {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .stock-table-span {
+        font-size: 16px;
+        font-family: "Akrobat-regular";
+    }
+
+    .stock-table-input {
+        padding: 8px;
+        border: 1px solid #CCCCCC;
+    }
+
+    .stock-table-button {
+        padding: 5px 10px;
+        color: white;
+        border: none;
+        background-color: #F47920;
+        font-family: "Akrobat-regular";
+        transition: all 0.25s linear;
+    }
+
+    .stock-table-button:hover {
+        background-color: #e6660b;
+    }
+    
+</style>

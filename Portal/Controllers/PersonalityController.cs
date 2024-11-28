@@ -326,6 +326,7 @@ namespace Portal.Controllers
                 personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                 personalityVersion.Actual = personalityJson.Actual;
                 personalityVersion.Personalities.Phone = personalityJson.Tel;
+                personalityVersion.Personalities.BirthDate = personalityJson.BirthDate;
 
                 List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                              .ToList();

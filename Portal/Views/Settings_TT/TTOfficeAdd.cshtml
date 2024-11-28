@@ -1,0 +1,208 @@
+﻿@model Portal.Models.JsonModels.TTsFactoryEdit
+
+<div class="row flex bg-white" style="margin:0px">
+    <!--данные тт-->
+    <div class="col-md-4 col-lg-4" style="padding:30px;padding-top:10px;padding-bottom:20px;">
+        <!--заголовок-->
+        <h5 class="pull-left">Данные</h5>
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--имя тт-->
+        <label class="label-light">название</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="name" type="text" class="form-control" value="" style="font-weight:bold" required>
+        </div>
+
+        <!--адрес тт-->
+        <label class="label-light">адрес</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="address" type="text" class="form-control" value="" style="font-weight:bold" required>
+            <span class="input-group-btn">
+            </span>
+        </div>
+
+        <!--организация-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">юл</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="entity" class="form-control selectors" data-width="100%" required>
+                    @foreach (var organization in Model?.entity.OrderBy(o => o.Name))
+                    {
+                        <option value="@organization.Guid">@organization.Name</option>
+                    }
+                </select>
+            </div>
+        </div>    
+
+        <!--тип тт-->
+        <div class="form-group" style="margin-bottom:15px">
+            <label class="label-light" style="width:100%">тип</label>
+            <div style="width:100%; float:left">
+                <select id="type" class="form-control selectors" data-width="100%" required>
+                    @foreach (var type in Model?.locationTypes.OrderBy(t => t.Name))
+                    {
+                        <option value="@type.Guid">@type.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!--тип тт-->
+        <div class="form-group" style="padding-top: 30px;">
+            <label class="label-light" style="width:100%">принадлежит</label>
+            <div style="width:100%; float:left">
+                <select id="parent" class="form-control selectors" data-width="100%">
+                    <option></option>
+                    @foreach (var type in Model?.location.OrderBy(t => t.Name))
+                    {
+                        <option value="@type.Location.Guid">@type.Location.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+
+        <!--дата открытия-->
+        <label class="label-light" style="margin-top: 15px;">дата открытия</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="open" type="date" class="form-control" value="" style="font-weight:bold" required>
+            <span class="input-group-btn">
+            </span>
+        </div>
+
+        <label class="label-light">дата закрытия</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="close" type="date" class="form-control" value="" style="font-weight:bold" disabled>
+            <span class="input-group-btn">
+        </div>
+    </div>
+
+    <!--пользователи-->
+    <div class="col-md-4 col-lg-4" style="margin:0px">
+        <!--заголовок-->
+        <h5 class="pull-left">Пользователи</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--селектор пользователей-->
+        <div class="form-group" style="padding-top: 10px;">
+            <label class="label-light" style="width:100%">селектор пользователей</label>
+            <div style="width:100%; float:left">
+                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
+                    @foreach (var user in Model.users)
+                    {
+                        <option value="@user.Id">@user.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-4" style="padding:30px;padding-top:10px;padding-bottom:20px;">
+        <!--кассы-->
+        <h5 class="pull-left">Координаты</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <label class="label-light">Широта</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="latitude" type="text" class="form-control" value="" style="font-weight:bold">
+        </div>
+
+        <label class="label-light">Долгота</label>
+        <div class="" style="margin-bottom:15px">
+            <input id="longitude" type="text" class="form-control" value="" style="font-weight:bold">
+        </div>
+
+        <!--кнопки сохранить/отмена-->
+        <div class="col-12" style="display: flex;justify-content: space-between;padding-top: 10px;">
+            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="AddTT()">Добавить</button>
+            <button type="button" class="btn btn-sm btn-light default" id="clear">Очистить</button>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    function DataFromSelector(selector) {
+        var items = [];
+        var data = $(selector).select2('data');
+
+        $(data).each(function () {
+            items.push(this.id);
+        });
+
+        return items;
+    }
+
+    $('#users').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите пользователей..."
+    });
+
+    function AddTT() {
+        const loc = {}
+        loc.name = document.getElementById("name").value;
+        loc.address = document.getElementById("address").value;
+        loc.entity = document.getElementById("entity").value;
+        loc.type = document.getElementById("type").value;
+        loc.open = document.getElementById("open").value;
+        loc.close = document.getElementById("close").value;
+        loc.latitude = document.getElementById("latitude").value;
+        loc.longitude = document.getElementById("longitude").value;
+        loc.usersid = DataFromSelector(document.getElementById('users'));
+        loc.parent = document.getElementById("parent").value;
+        loc.actual = 1;
+
+        const json = JSON.stringify(loc)
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TTOfficeSaveNew',
+            data: { json: json },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    $('#header').text('Офис');
+                    $('#page').empty();
+                    $('#tableMenu').show();
+                    $('#page').load('/Settings_TT/TTsOfficeTable', function () { SpinnerHide(); });
+                    $('#back').unbind('click');
+                    $('#back').click(function () { location.hash = "#settings" });
+                }
+                else {
+                    openModal('Ошибка', result)
+                }
+            },
+            error: function (error) { openModal('Ошибка', error) }
+        });
+    }
+
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        $('#header').text('Офис');
+        $('#page').empty();
+        $('#tableMenu').show();
+        $('#page').load('/Settings_TT/TTsOfficeTable', function () { SpinnerHide(); });
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#settings" });
+    });
+</script>
+
+<script>        
+    document.getElementById("clear").addEventListener('click', () => {
+        document.getElementById("name").value = ""
+        document.getElementById("address").value = ""
+        document.getElementById("entity").value = ""
+        document.getElementById("type").value = ""
+        document.getElementById("open").value = ""
+        document.getElementById("close").value = ""
+        document.getElementById("latitude").value = ""
+        document.getElementById("longitude").value = ""
+    })
+</script>

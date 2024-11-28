@@ -15,6 +15,8 @@ using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
+using static module_NX.NX.FullInfo;
 
 namespace Portal.Controllers
 {
@@ -690,6 +692,70 @@ namespace Portal.Controllers
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result);
             }
+        }
+
+        [AllowAnonymous]
+        public async Task RebootDevices()
+        {
+            // ������ IP-������� ���������
+            List<VideoDevices> videoDevices = dbSql.VideoDevices.ToList();
+
+            // ������ ��������� ���� ��������� �����������
+            List<Task> tasks = new List<Task>();
+
+            foreach (var ip in videoDevices)
+            {
+                tasks.Add(ProcessDeviceAsync(ip.Ip.Trim()));
+            }
+
+            await Task.WhenAll(tasks);
+
+            Console.WriteLine("��� ���������� ����������.");
+        }
+
+        static async Task ProcessDeviceAsync(string ip)
+        {
+            try
+            {
+                Console.WriteLine($"[START] ����������: {ip}");
+                await ExecuteAdbCommandAsync($"kill-server");
+                await ExecuteAdbCommandAsync($"start-server");
+                await ExecuteAdbCommandAsync($"connect {ip}");
+                await ExecuteAdbCommandAsync("reboot");
+                Console.WriteLine($"[SUCCESS] ����������: {ip}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] ����������: {ip} - {ex.Message}");
+            }
+        }
+
+        static async Task ExecuteAdbCommandAsync(string command)
+        {
+            Process process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "adb",
+                    Arguments = command,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                throw new Exception(error);
+            }
+
+            Console.WriteLine(output);
         }
 
     }
