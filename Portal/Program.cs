@@ -20,6 +20,11 @@ namespace Portal
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.Limits.MaxRequestBodySize = long.MaxValue;
+                    });
+
                     webBuilder.UseStartup<Startup>();                    
                 });
     }

@@ -286,6 +286,24 @@ namespace Portal.Controllers
             return PartialView(fileView);
         }
 
+        public IActionResult DownloadFile(string path)
+        {
+            // разэкранирование "плюс" и "пробел"
+            path = path.Replace("plustoreplace", "+");
+            path = path.Replace("backspacetoreplace", " ");
+
+            // данные файла
+            var fileInfo = new FileInfo(path);
+
+            if (!fileInfo.Exists)
+            {
+                return NotFound(); // Если файл не найден, возвращаем 404
+            }
+
+            // Возвращаем файл для скачивания
+            return PhysicalFile(fileInfo.FullName, "application/octet-stream", fileInfo.Name);
+        }
+
         // Загрузка файла по пути
         [AllowAnonymous]
         public IActionResult GetFile(string path)

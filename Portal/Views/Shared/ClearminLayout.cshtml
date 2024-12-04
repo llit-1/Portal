@@ -257,6 +257,11 @@
                              </li>
                         }
 
+                        @if (User.IsInRole("settings"))
+                        {
+                            <li><a id="userrequests" href="#stock" class="house_siding">Склад</a></li>
+                        }
+
                         <!--Логи-->
                         @if (User.IsInRole("logs"))
                         {

@@ -55,8 +55,14 @@ namespace Portal
 
             services.Configure<FormOptions>(options =>
             {
-                options.MultipartBodyLengthLimit = 304857600;
+                options.MultipartBodyLengthLimit = long.MaxValue;
             });
+
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = long.MaxValue;
+            });
+
 
             services.AddAuthorization(options =>
             {

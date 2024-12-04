@@ -241,6 +241,19 @@ namespace Portal.Controllers
                     personality.Name = personalityJson.Surname + " " + personalityJson.Name + " " + personalityJson.Patronymic;
                     personality.BirthDate = personalityJson.BirthDate;
                     personality.Phone = personalityJson.Tel;
+
+                    if(personality.Phone.Length != 10)
+                    {
+                        return BadRequest("Номер телефона должен содержать 10 символов и иметь вид 9ХХХХХХХХХ");
+                    }
+
+                    // 911 174 40 10
+
+                    if(dbSql.Personalities.FirstOrDefault(x => x.Name == personality.Name) != null && dbSql.Personalities.FirstOrDefault(x => x.BirthDate == personality.BirthDate) != null)
+                    {
+                        return BadRequest("Пользователь уже существует");
+                    }
+
                     dbSql.Add(personality);
                     dbSql.SaveChanges();
                     Guid newPersonalityGuid = personality.Guid;

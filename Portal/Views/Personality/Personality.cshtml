@@ -148,3 +148,58 @@
         });
     }
 </script>
+
+<script>
+
+    function debounce(func, delay) {
+        let timer;
+        return function () {
+            const context = this;
+            const args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                func.apply(context, args);
+            }, delay);
+        };
+    }
+
+    function setupSearchInputHandler() {
+            let controller = new AbortController();
+            let signal = controller.signal;
+
+            $("#searchDatatable").on("input", debounce(function (event) {
+                const searchItem = $(this).val();
+                SpinnerShow();
+
+                // Отменяем предыдущий запрос
+                controller.abort();
+                controller = new AbortController();
+                signal = controller.signal;
+
+                // Запрос к серверу
+                fetch(`/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${searchItem}`, {
+                    method: "GET",
+                    signal: signal
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        // Обновление таблицы
+                        $('#page').html(data);
+                        SpinnerHide();
+                    })
+                    .catch(error => {
+                        if (error.name === 'AbortError') {
+                            console.log('Запрос был отменен');
+                        } else {
+                            document.getElementById("tablePerson").innerHTML = `<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">Совпадений не найдено</td></tr>`;
+                        }
+                    });
+            }, 900));
+    }
+
+
+    // Вызываем функцию при загрузке страницы
+    $(document).ready(function () {
+        setupSearchInputHandler();
+    });
+</script>

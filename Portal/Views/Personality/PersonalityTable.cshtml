@@ -156,7 +156,7 @@
                 $('#logPages').children('li').removeClass('active');
                 $(this).parent('li').addClass('active');
                 let a = $(this).parent('li')
-                GetData(selectedPage);
+                //GetData(selectedPage);
             }
         }
     });
@@ -238,17 +238,7 @@
 <!--инициализация таблицы-->
 <script>
     // Функция откладки поиска сотрудника в таблице
-    function debounce(func, delay) {
-        let timer;
-        return function () {
-            const context = this;
-            const args = arguments;
-            clearTimeout(timer);
-            timer = setTimeout(() => {
-                func.apply(context, args);
-            }, delay);
-        };
-    }
+    
 
     var table = $(".data-table").DataTable({
         "ordering": true,
@@ -267,25 +257,6 @@
 
     // сортируем по-умолчанию по первому столбцу
     table.order([0, 'asc']).draw();
-
-    // поиск по таблице
-    $("#searchDatatable").on("input", debounce(function (event) {
-        const searchItem = $(this).val();
-        SpinnerShow();
-        // Запрос к серверу
-        $.ajax({
-            url: `/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${searchItem}`,
-            method: "GET",
-            success: function (data) {
-                // Обновление таблицы
-                $('#page').html(data);
-                SpinnerHide();
-            },
-            error: function (error) {
-                document.getElementById("tablePerson").innerHTML = `<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">Совпадений не найдено</td></tr>`;
-            }
-        });
-    }, 900));
 
     // скрываем сверху таблицы фильтры data-table
     $('.view-filter').hide();
@@ -324,6 +295,3 @@
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#staff" });
 </script>
-
-
-
