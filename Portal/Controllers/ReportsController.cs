@@ -250,6 +250,7 @@ namespace Portal.Controllers
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
                                 Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
+                                worksheet.Cell(i + 2, 1).Value = menuitem.Name;
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = saleObjects[i].Date;
@@ -280,6 +281,7 @@ namespace Portal.Controllers
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
                                 Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
+                                worksheet.Cell(i + 2, 1).Value = menuitem.Name;
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
@@ -311,6 +313,7 @@ namespace Portal.Controllers
                             for (int i = 0; i < saleObjectsAgregators.Count; i++)
                             {
                                 Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjectsAgregators[i].Code && c.Status != 0);
+                                worksheet.Cell(i + 2, 1).Value = menuitem.Name;
                                 worksheet.Cell(i + 2, 2).Value = saleObjectsAgregators[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjectsAgregators[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjectsAgregators[i].Currency).Name;
@@ -342,6 +345,7 @@ namespace Portal.Controllers
                             for (int i = 0; i < saleObjects.Count; i++)
                             {
                                 Models.MSSQL.RK7.MenuItem menuitem = menuItems.FirstOrDefault(c => c.Code == saleObjects[i].Code && c.Status != 0);
+                                worksheet.Cell(i + 2, 1).Value = menuitem.Name;
                                 worksheet.Cell(i + 2, 2).Value = saleObjects[i].Quantity;
                                 worksheet.Cell(i + 2, 3).Value = saleObjects[i].SumWithDiscount;
                                 worksheet.Cell(i + 2, 4).Value = currencies.FirstOrDefault(c => c.Sifr == saleObjects[i].Currency).Name;
