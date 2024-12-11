@@ -68,9 +68,9 @@ namespace Portal.Controllers
                 }
                 timeTrackingFactoryInterface.CurrentDate = new DateTime(year, month, 1);
 
-                // Высчитываем границы дат (начало и конец месяца) + считаем дни в месяце
+
                 DateTime startDate = new DateTime(year, month, 1);
-                DateTime endDate = new DateTime(year, month + 1, 1);
+                DateTime endDate = startDate.AddMonths(1);
                 int currentMonthDays = DateTime.DaysInMonth(year, month);
 
                 // Получаем текущего пользователя из сессии и проверяем его в базе
