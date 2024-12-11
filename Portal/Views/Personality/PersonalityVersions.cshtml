@@ -14,17 +14,18 @@
                                 <thead>
                                     <tr>
                                         <th>ФИО</th>
-                                        <th>Дата рождения</th>
+                                        <th class="hidden">Дата рождения</th>
                                         <th>Должность</th>
                                         <th>Место работы</th>
                                         <th>Дата приема на работу</th>
                                         <th>Дата увольнения</th>
-                                        <th>Смена</th>
+                                        <th class="hidden">Смена</th>
                                         <th class="hidden">ЮЛ</th>
                                         <th class="hidden">ЮЛ разнесения затрат</th>
                                         <th>Дата начала версии</th>
                                         <th>Дата окончания версии</th>
-                                        <th class="hidden"></th>
+                                        <th> Изменен </th>
+                                        <th> Дата изменения </th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
@@ -53,7 +54,7 @@
                                             <td class="tdPersonTable">
                                             <p class="list-item-heading userName">@NSP</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@BirthDate</p>
                                             </td>
                                             <td class="tdPersonTable">
@@ -68,7 +69,7 @@
                                             <td class="tdPersonTable">
                                                 <p class="text-muted ">@DismissalsDate</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@user.Schedule.Name</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
@@ -92,9 +93,31 @@
                                                     <p class="text-muted ">@user.VersionEndDate.Value.ToString("dd.MM.yyyy")</p>
                                                 </td>
                                             }
-                                            <td class="tdPersonTable hidden">
-                                                <p class="text-muted ">@user.VersionStartDate.Value.ToString("yyyy.MM.dd")</p>
-                                            </td>
+
+                                            @if (user?.ModifiedBy == null)
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">Данных нет</p>
+                                                </td>
+                                            } else
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">@user?.ModifiedBy</p>
+                                                </td>
+                                            }
+
+                                            @if (user?.ModifiedDate == null)
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">Данных нет</p>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">@user?.ModifiedDate.Value.ToString("yyyy.MM.dd")</p>
+                                                </td>
+                                            }
                                         </tr>
                                     }
 

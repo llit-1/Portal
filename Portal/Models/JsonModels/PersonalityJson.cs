@@ -25,6 +25,8 @@
             public string NewPerson { get; set; }
             public string personGUID { get; set; }
             public string Tel { get; set; }
+            public string SNILS { get; set; }
+            public string INN { get; set; }
         }
     }
 

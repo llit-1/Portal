@@ -23,5 +23,7 @@ namespace Portal.Models.MSSQL.PersonalityVersions
         public DateTime? VersionEndDate { get; set; }
         public Personality.Personality Personalities { get; set; }
         public int Actual { get; set; }
+        public string? ModifiedBy { get; set; }
+        public DateTime? ModifiedDate { get; set; }
     }
 }

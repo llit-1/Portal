@@ -2,12 +2,11 @@
 
 <div class="modal-content-stock">
 
-    <div class="content-stock-table">
+    <form class="content-stock-table" onsubmit="addSubCategoryItem(event, @Model, document.querySelector('.stock-table-input').value)">
         <span class="stock-table-span">Введите название:</span>
-        <input class="stock-table-input"/>
-        <button class="stock-table-button"> ДОБАВИТЬ </button>
-    </div>
-
+        <input class="stock-table-input" required />
+        <input type="submit" class="stock-table-button" value="ДОБАВИТЬ">
+    </form>
 
 </div>
 

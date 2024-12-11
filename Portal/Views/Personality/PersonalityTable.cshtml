@@ -20,10 +20,10 @@
                                         <th>Место работы</th>
                                         <th class="hidden">Дата приема на работу</th>
                                         <th class="hidden">Дата увольнения</th>
-                                        <th>Смена</th>
-                                        <th>ЮЛ</th>
-                                        <th>ЮЛ разнесения затрат</th>
-                                        <th class='hidden'>Активность</th>
+                                        <th class="hidden">Смена</th>
+                                        <th class="hidden">ЮЛ</th>
+                                        <th class="hidden">ЮЛ разнесения затрат</th>
+                                        <th>Активность</th>
                                         <th align='center'>Статус</th>
                                     </tr>
                                 </thead>
@@ -55,17 +55,25 @@
                                             <td class="tdPersonTable hidden">
                                                 <p class="text-muted">@Model[x].PersonalitiesVersions.DismissalsDate</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted">@Model[x].PersonalitiesVersions.Schedule.Name</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted">@Model[x].PersonalitiesVersions.Entity?.Name</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted">@Model[x].Entity.FirstOrDefault(y => y.Guid == Model[x].PersonalitiesVersions.EntityCostGuid).Name</p>
                                             </td>
-                                            <td class="tdPersonTable hidden">
-                                                <p class="text-muted">@Model[x].PersonalitiesVersions.Actual</p>
+                                            <td class="tdPersonTable">
+                                                @if(Model[x].PersonalitiesVersions.Actual == 0)
+                                                {
+                                                    <p class="text-muted">Уволен</p>
+                                                } else if (Model[x].PersonalitiesVersions.Actual == 1)
+                                                {
+                                                    <p class="text-muted">Активен</p>
+                                                } else {
+                                                    <p class="text-muted">Отстранен</p>
+                                                }
                                             </td>
 
                                             @if (Model[x].StatusError[0] == 0)
@@ -156,7 +164,7 @@
                 $('#logPages').children('li').removeClass('active');
                 $(this).parent('li').addClass('active');
                 let a = $(this).parent('li')
-                //GetData(selectedPage);
+                GetData(selectedPage);
             }
         }
     });
@@ -285,7 +293,7 @@
         // Проходимся по каждой ячейки в поисках "0" или "2"
         for (let j = 0; j < cell.length; j++) {
             let td = cell[j].querySelector("p").textContent
-            if (td === '0' || td === '2') {
+            if (td === 'Отстранен' || td === 'Уволен') {
                 //Закрашиваем ряд
                 rows[i].style.backgroundColor = "#f3c7a030";
             }

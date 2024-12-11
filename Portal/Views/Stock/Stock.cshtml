@@ -18,7 +18,7 @@
         <div class="wrapper_card wrapper_addNewCategories" onclick="event.stopPropagation();openModal(0)"> + </div>
         @foreach(var item in Model)
         {
-            <div class="wrapper_card" onclick="openTable(@item.Id)">
+            <div class="wrapper_card">
                 <div class="wrapper_card_header">
                     <div class="material-switch pull-right">
                         <input
@@ -34,10 +34,12 @@
                     <img onclick="event.stopPropagation();openModal(@item.Id)" src="/themes/clearmin/img/settings.png" class="card_header_img" />
                 </div>
 
-                <div class="wrapper_card_body">
+                <div class="wrapper_card_body" onclick="openTable(@item.Id)">
                     @if (item.Img == null)
                     {
                         <img src="/themes/clearmin/img/question.png" class="cardImg" alt="" />
+                    } else {
+                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.Img)" class="cardImg" alt="" />
                     }
 
                     <p class="wrapper_card_p">@item.Name</p>
@@ -99,27 +101,6 @@
 </script>
 
 <script>
-   async function switchActive(id, event) {
-    event.stopPropagation();
-
-    try {
-        const response = await fetch("/Stock/SwitchActual?id=" + id, {
-            method: "UPDATE",
-            headers: { "Content-Type": "text/html" }
-        });
-
-        if (response.ok) {
-            console.log("Category status updated successfully");
-        } else {
-            console.error("Failed to update category status");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
-</script>
-
-<script>
     function selectImage() {
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
@@ -155,26 +136,25 @@
         const name = document.getElementById("stock-category-name").value;
         const parent = document.getElementById("stock-category-parent").textContent;
         const actual = document.getElementById("stock-category-actual").textContent;
-        let img = document.getElementById("stock-category-img").src; // ���������� src ������� ��� �����������
+        const image = document.getElementById('stock_category_img');
 
-        if (img == "undefined") img = null;
+        if(image.src == '/themes/clearmin/img/question.png')
+        {
+            formData.append('Img', null);
+        }
 
-        const data = {
-            Id: id,
-            Name: name.trim(),
-            Parent: parent.trim(),
-            Actual: actual.trim(),
-            Img: null
-        };
+        const formData = new FormData();
+        formData.append('Id', id);
+        formData.append('Name', name.trim());
+        formData.append('Parent', parent.trim());
+        formData.append('Actual', actual.trim());
 
-        console.log(data); // �������� ������ ����� ���������
+
+        $("#spinner").show();
 
         const response = await fetch("/Stock/SaveCategory", {
-            method: "PATCH", // ���������� PATCH ��� PUT � ����������� �� ����, ��� ������� ������
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data) // ���������� ������ � ���� �������
+            method: "PATCH",
+            body: formData
         });
 
         if (response.ok) {
@@ -182,12 +162,67 @@
         } else {
             console.error("Failed to save category:", response.statusText);
         }
+
+        $("#spinner").hide();
+
+        $("#modalContainer").remove();
+
+        return await $(".stock").load("/Stock/Stock");
+    }
+</script>
+
+<script>
+    async function SaveNewCategory() {
+        const name = document.getElementById("stock-category-name").value;
+
+        const data = {
+            Id: null,
+            Name: name.trim(),
+            Parent: null,
+            Actual: 1,
+            Img: null
+        };
+
+        $("#spinner").show()
+
+        const response = await fetch("/Stock/SaveNewCategory", {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+         $("#spinner").hide()
+
+         $("#modalContainer").remove()
+
+         return await $(".stock").load("/Stock/Stock")
+    }
+</script>
+
+<script>
+    async function DeleteCategory(id) {
+        
+        $("#spinner").show()
+    
+        const response = await fetch("/Stock/DeleteCategory?categoryId=" + id, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+
+         $("#spinner").hide()
+
+         $("#modalContainer").remove()
+
+         return await $(".stock").load("/Stock/Stock")
     }
 </script>
 
 <script>
     function openTable(id) {
-        console.log("1")
         $(".stock").load("/Stock/StockTable?id=" + id)
     }
 </script>
@@ -295,6 +330,7 @@
         align-items: center;
         flex-direction: column;
         justify-content: space-around;
+        width: 100%;
     }
 
     .cardImg {

@@ -23,7 +23,7 @@
         <div class="tableMenu" id="tableMenu">
             
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
-                <input class="form-control-sm" placeholder="РџРѕРёСЃРє" id="searchDatatable">
+                <input class="form-control-sm" id="personality_search" oninput="debounce(setupSearchInputHandler(), 750)" placeholder="РџРѕРёСЃРє" id="searchDatatable">
                 <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">РґРѕР±Р°РІРёС‚СЊ</a>
             </div>
 
@@ -164,42 +164,16 @@
     }
 
     function setupSearchInputHandler() {
-            let controller = new AbortController();
-            let signal = controller.signal;
+        SpinnerShow();
+        const text = document.getElementById("personality_search").value
 
-            $("#searchDatatable").on("input", debounce(function (event) {
-                const searchItem = $(this).val();
-                SpinnerShow();
-
-                // Отменяем предыдущий запрос
-                controller.abort();
-                controller = new AbortController();
-                signal = controller.signal;
-
-                // Запрос к серверу
-                fetch(`/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${searchItem}`, {
-                    method: "GET",
-                    signal: signal
-                })
-                    .then(response => response.text())
-                    .then(data => {
-                        // Обновление таблицы
-                        $('#page').html(data);
-                        SpinnerHide();
-                    })
-                    .catch(error => {
-                        if (error.name === 'AbortError') {
-                            console.log('Запрос был отменен');
-                        } else {
-                            document.getElementById("tablePerson").innerHTML = `<tr class="odd"><td valign="top" colspan="9" class="dataTables_empty">Совпадений не найдено</td></tr>`;
-                        }
-                    });
-            }, 900));
+        fetch(`/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${text}`, {
+            method: "GET",
+        })
+        .then(response => response.text())
+        .then(data => {
+            $('#page').html(data);
+                SpinnerHide();
+        })
     }
-
-
-    // Вызываем функцию при загрузке страницы
-    $(document).ready(function () {
-        setupSearchInputHandler();
-    });
 </script>

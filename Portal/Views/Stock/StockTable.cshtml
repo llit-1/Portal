@@ -24,29 +24,37 @@
 
     <div id="stock_wrapper" class="stock_wrapper">
 
-    @foreach (var category in Model.Categories)
-    {
-        <div class="stock_category_table">
+    <div class="stock_wrapper_column">
+        @foreach (var category in Model.Categories)
+        {
+            <div class="stock_category_table">
 
-            <div class="category_wrapper_list">
-                <div class="category_table_item" onclick="showDetails(this)">
-                    <div class="table_item_subcategory" data-count="@category.Categories.Count()">@category.Name</div>
+
+                <div class="category_wrapper_list">
+                    <div class="category_table_item" onclick="showDetails(this)">
+                        <div class="table_item_subcategory" data-count="@category.Categories.Count()">@category.Name</div>
+                    </div>
+
+                    <div class="table_item_subcategoryNew" onclick="addSubCategoryItemModal(@category.Id)"> + </div>
                 </div>
 
-                <div class="table_item_subcategoryNew" onclick="addSubCategoryItemModal(@category.Id)"> + </div>
+
+
+
+
+
+                @foreach (var item in category.Categories)
+                {
+                    <div class="item_subcategory_details hidden item_subcategory_details_@category.Name">
+                        <div style=""> @item.Name </div>
+                        <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" /> </div>
+                    </div>
+                }
             </div>
+        }
+    </div>
 
-            
-
-            @foreach (var item in category.Categories)
-            {
-                <div class="item_subcategory_details hidden item_subcategory_details_@category.Name">
-                    <div style=""> @item.Name </div>
-                    <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" /> </div>
-                </div>
-            }
-        </div>
-    }
+    
 
     </div>
 
@@ -97,9 +105,40 @@
 </script>
 
 <script>
+    async function addSubCategoryItem(event, id, name) {
+
+        event.preventDefault()
+        
+        const data = {
+            Id: null,
+            Name: name.trim(),
+            Parent: id,
+            Actual: 1,
+            Img: null
+        };
+
+        $("#spinner").show()
+
+        const response = await fetch("/Stock/AddSubCategoryItem", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        $("#spinner").hide()
+
+        return await $(".stock").load("/Stock/StockTable?id=" + @Model.CategoryID)
+    }
+
+    
+</script>
+
+<script>
     function showDetails(elem) {
         elem.classList.toggle('active');
-        document.querySelector(".item_subcategory_details_" + elem.childNodes[1].textContent).classList.toggle("hidden")
+        document.querySelectorAll(".item_subcategory_details_" + elem.childNodes[1].textContent).forEach(x => x.classList.toggle("hidden"))
     }
 </script>
 
@@ -131,6 +170,12 @@
         display: flex;
         justify-content: start;
         flex-direction: row;
+        gap: 10px;
+    }
+
+    .stock_wrapper_column {
+        display: flex;
+        flex-direction: column;
         gap: 10px;
     }
 

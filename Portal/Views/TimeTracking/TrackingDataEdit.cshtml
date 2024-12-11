@@ -44,7 +44,7 @@
         </table>
         <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
             <table class="table table-for-an">
-                @foreach (var item in Model.PersonalityVersions.OrderBy(g => g.Surname))
+                @foreach (var item in Model.PersonalityVersions.Where(x => x.Actual == 1 && x.Location.Guid != Guid.Parse("CBE656C5-7B5F-41A1-A0D8-84B75028C272")).OrderBy(g => g.Surname))
                 {
                     <tr class="personList hidden">
                         <td class="hidden">@item.Personalities.Guid</td>

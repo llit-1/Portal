@@ -249,7 +249,7 @@ namespace Portal.Controllers
 
                     // 911 174 40 10
 
-                    if(dbSql.Personalities.FirstOrDefault(x => x.Name == personality.Name) != null && dbSql.Personalities.FirstOrDefault(x => x.BirthDate == personality.BirthDate) != null)
+                    if(dbSql.Personalities.FirstOrDefault(x => x.Name.ToLower().Trim() == personality.Name.ToLower().Trim()) != null && dbSql.Personalities.FirstOrDefault(x => x.BirthDate == personality.BirthDate) != null)
                     {
                         return BadRequest("Пользователь уже существует");
                     }
@@ -272,7 +272,11 @@ namespace Portal.Controllers
                     personalityVersion.VersionStartDate = personalityJson.HireDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == newPersonalityGuid);
                     personalityVersion.Actual = personalityJson.Actual;
-                    //personalityVersion.Tel = personalityJson.Tel;
+                    personalityVersion.ModifiedBy = User.Identity.Name;
+                    personalityVersion.ModifiedDate = DateTime.Now;
+                    personalityVersion.Personalities.INN = personalityJson.INN;
+                    personalityVersion.Personalities.SNILS = personalityJson.SNILS;
+
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
@@ -306,6 +310,12 @@ namespace Portal.Controllers
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                     personalityVersion.Personalities.Phone = personalityJson.Tel;
                     personalityVersion.Actual = personalityJson.Actual;
+                    personalityVersion.ModifiedBy = User.Identity.Name;
+                    personalityVersion.ModifiedDate = DateTime.Now;
+
+                    personalityVersion.Personalities.INN = personalityJson.INN;
+                    personalityVersion.Personalities.SNILS = personalityJson.SNILS;
+
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
@@ -340,6 +350,11 @@ namespace Portal.Controllers
                 personalityVersion.Actual = personalityJson.Actual;
                 personalityVersion.Personalities.Phone = personalityJson.Tel;
                 personalityVersion.Personalities.BirthDate = personalityJson.BirthDate;
+                personalityVersion.ModifiedBy = User.Identity.Name;
+                personalityVersion.ModifiedDate = DateTime.Now;
+
+                personalityVersion.Personalities.INN = personalityJson.INN;
+                personalityVersion.Personalities.SNILS = personalityJson.SNILS;
 
                 List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                              .ToList();

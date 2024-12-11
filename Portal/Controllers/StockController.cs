@@ -12,6 +12,8 @@ using System.Text;
 using Newtonsoft.Json;
 using static Portal.Controllers.TimesheetsFactoryController;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace Portal.Controllers
 {
@@ -49,16 +51,32 @@ namespace Portal.Controllers
             return PartialView("LoadModalStock", warehouseCategories);
         }
 
-        public async Task<IActionResult> SaveCategory([FromBody] WarehouseCategories data)
+        [HttpPatch]
+        public async Task<IActionResult> SaveCategory([FromForm] int Id, [FromForm] string Name, [FromForm] int? Parent, [FromForm] string Actual, [FromForm] IFormFile? Img)
         {
-            if (data == null)
+            if (string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(Actual))
             {
-                return BadRequest("Data is null");
+                return BadRequest("Required fields are missing.");
+            }
+
+            var category = new WarehouseCategories
+            {
+                Id = Id,
+                Name = Name,
+                Parent = Parent,
+                Actual = int.Parse(Actual)
+            };
+
+            if (Img != null)
+            {
+                using var memoryStream = new MemoryStream();
+                await Img.CopyToAsync(memoryStream);
+                category.Img = memoryStream.ToArray();
             }
 
             using var httpClient = new HttpClient();
-            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-            using HttpResponseMessage response = await httpClient.PatchAsync($"https://warehouseapi.ludilove.ru/api/category/UpdateCategory", content);
+            var content = new StringContent(JsonConvert.SerializeObject(category), Encoding.UTF8, "application/json");
+            using HttpResponseMessage response = await httpClient.PatchAsync("https://warehouseapi.ludilove.ru/api/category/UpdateCategory", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -69,6 +87,44 @@ namespace Portal.Controllers
                 return StatusCode((int)response.StatusCode);
             }
         }
+
+        public async Task<IActionResult> SaveNewCategory([FromBody] WarehouseCategories data)
+        {
+            if (data == null)
+            {
+                return BadRequest("Data is null");
+            }
+
+            using var httpClient = new HttpClient();
+            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            using HttpResponseMessage response = await httpClient.PostAsync($"https://warehouseapi.ludilove.ru/api/category/SetCategory", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+        }
+
+        public async Task<IActionResult> DeleteCategory (int categoryId)
+        {
+            using var httpClient = new HttpClient();
+
+            using HttpResponseMessage response = await httpClient.DeleteAsync($"https://warehouseapi.ludilove.ru/api/category/DeleteCategory?id=" + categoryId.ToString());
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+        }
+
 
         public async Task<IActionResult> SwitchActual(int id)
         {
@@ -134,6 +190,30 @@ namespace Portal.Controllers
         {
             return PartialView(id);
         }
+
+
+        public async Task<IActionResult> AddSubCategoryItem([FromBody] WarehouseCategories data)
+        {
+            if (data == null)
+            {
+                return BadRequest("Data is null");
+            }
+
+            using var httpClient = new HttpClient();
+            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            using HttpResponseMessage response = await httpClient.PostAsync($"https://warehouseapi.ludilove.ru/api/category/SetCategory", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+        }
+
+
 
         public class CategoriesHierarchyWithCategoryID
         {

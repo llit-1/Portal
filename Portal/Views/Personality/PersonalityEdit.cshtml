@@ -82,6 +82,9 @@
                         </select>
                     </div>
 
+                    <label class="label-light">ИНН</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите ИНН" id="INNPerson" value="@Model.PersonalitiesVersions.Personalities?.INN">
+
                 </div>
                 
                 <div class="rightBlockPersonData">
@@ -139,6 +142,10 @@
                             }
                         </select>
                     </div>
+
+                    <label class="label-light">СНИЛС</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите СНИЛС" id="SNILSPerson" value="@Model.PersonalitiesVersions.Personalities?.SNILS">
+
 
                 </div>
 
@@ -260,6 +267,9 @@
                             }
                         </select>
                     </div>
+
+                    <label class="label-light">ИНН</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите ИНН" id="INNPerson" value="">
                 </div>
                 
                 <div class="rightBlockPersonData">
@@ -312,6 +322,9 @@
                             }
                         </select>
                     </div>
+
+                    <label class="label-light">СНИЛС</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите СНИЛС" id="SNILSPerson" value="">
                 </div>
 
                 <div class='rightBlockPersonData'>
@@ -566,6 +579,10 @@
         Personality.VersionEndDate = $('#VersionEndDate').val();
         Personality.Tel = $('#tel').val();
 
+        Personality.SNILS = $('#SNILSPerson').val()
+        Personality.INN = $('#INNPerson').val()
+        
+
 
         const json = JSON.stringify(Personality)
          $.ajax({
@@ -678,6 +695,8 @@
         Personality.personGUID = personGUID;
         Personality.Tel = $('#tel').val();
 
+        Personality.SNILS = $('#SNILSPerson').val()
+        Personality.INN = $('#INNPerson').val()
 
         const json = JSON.stringify(Personality)
         $.ajax({

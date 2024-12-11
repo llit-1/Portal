@@ -17,5 +17,7 @@ namespace Portal.Models.MSSQL.Personality
         public string? PhoneCode { get; set; }
         public DateTime? LastPhoneCall {  get; set; }
         public int? PhoneCallAttempts { get; set; }
+        public string? INN { get; set; }
+        public string? SNILS { get; set; }
     }
 }

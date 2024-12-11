@@ -14,7 +14,7 @@
 
 <!--панель навигации-->
 <div class="row" style="margin-top: 0px; margin-bottom:10px">
-
+    <input id="cardPath" class="hidden" value=""/> 
     @{
         // экранирование двойного слэша
         var prevPath = Model.prevPath.Replace("\\", "slashtoreplace");
@@ -233,6 +233,7 @@
             <!--заголовок-->
             <div class="modal-header">
                 <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-file-download" style="margin-top: -2px; margin-right:20px" onclick="DownloadFile()"></label> 
                     <!--<label class="ico md-print" style="margin-top: -2px; margin-right:20px" onclick="PrintDoc()"></label>-->
                     <label class="ico md-open-in-new" style="margin-top: -2px; margin-right:20px" onclick="OpenInNew()" data-dismiss="modal"></label>
                     <label class="ico md-fullscreen" style="margin-top: -2px; margin-right:20px" onclick="Fullscreen()"></label>
@@ -281,6 +282,8 @@
         // экранирование "плюс" и "пробел"
         filePath = filePath.replace(/\+/g, "plustoreplace");
         filePath = filePath.replace(/ /g, "backspacetoreplace");
+
+        document.getElementById("cardPath").value = filePath;
 
         $('#modal-body').append('<div id="loading-inside" class="lds-ring center-block"><div></div><div></div><div></div><div></div></div>');
         $(".modal").modal("show");
@@ -422,11 +425,31 @@
     }
 </script>
 
-<!--печать документа-->
 <script>
-    function PrintDoc() {
+    async function DownloadFile() {
+        const path = document.getElementById("cardPath").value;
+        const url = "/Library/DownloadFile?path=" + encodeURIComponent(path);
 
-    }       
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            console.error('Ошибка при загрузке файла:', response.statusText);
+            return;
+        }
+
+        const blob = await response.blob();
+        const urlObject = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = urlObject;
+        a.download = new Date().getTime().toString() + "." + path.split(".")[path.split(".").length - 1];
+        document.body.appendChild(a);
+        a.click();
+
+        // Очистка
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(urlObject);
+    }
 </script>
 
 <!--по загрузке страницы-->

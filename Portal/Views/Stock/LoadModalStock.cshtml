@@ -3,12 +3,27 @@
 <div class="modal-content-stock">
 
     <div class="stock-category-photo">
-        <img id="stock_category_img" src="" alt=""/>
+        @if(Model.Img == null)
+        {
+            <img id="stock_category_img" src="/themes/clearmin/img/question.png" alt="" />
+        } else
+        {
+            <img id="stock_category_img" src="@Model.Img" alt="" />
+        }
+
         <div id="stock_category_download" onclick="selectImage()"> Выбрать </div>
     </div>
 
     <div class="stock-category-data">
-        <label style="margin: 0px">Название категории</label>
+
+        <div class="category-data-label">
+            <label style="margin: 0px">Название категории</label>
+            @if(Model.Name != null)
+            {
+                <label class="ico md-delete data-label-ico" style="" onclick="DeleteCategory(@Model.Id)"></label> 
+            }
+        </div>
+
         @if(Model.Name != null)
         {
             <p class="hidden" id="stock-category-parent"> @Model.Parent </p>
@@ -18,7 +33,7 @@
             <button onclick="SaveCategory(@Model.Id)"> Сохранить </button>
         } else
         {
-            <input />
+            <input id="stock-category-name"/>
             <button onclick="SaveNewCategory()"> Добавить </button>
         }
         
@@ -100,6 +115,29 @@
     .stock-category-data > label {
         font-size: 16px;
         font-family: "Akrobat-regular";
+    }
+
+    .category-data-label {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .category-data-label > label {
+        font-size: 16px;
+        font-family: "Akrobat-regular";
+    }
+
+    .category-data-label > .data-label-ico {
+        width: 19px;
+        margin-left: 0;
+        margin-right: 0;
+        position: relative;
+        left: 0;
+        top: 0;
+        height: 19px;
+        cursor: pointer;
     }
 
     .stock-category-data > button {
