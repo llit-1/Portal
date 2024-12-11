@@ -52,7 +52,7 @@
 
                                         <tr id="@user.Guid" class="activeRow" style="margin-right: 5px;" onclick="">
                                             <td class="tdPersonTable">
-                                            <p class="list-item-heading userName">@NSP</p>
+                                                <p class="list-item-heading userName">@NSP</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@BirthDate</p>
@@ -115,7 +115,7 @@
                                             else
                                             {
                                                 <td class="tdPersonTable">
-                                                    <p class="text-muted ">@user?.ModifiedDate.Value.ToString("yyyy.MM.dd")</p>
+                                                    <p class="text-muted ">@user?.ModifiedDate.Value.ToString("dd.MM.yyyy")</p>
                                                 </td>
                                             }
                                         </tr>
@@ -136,7 +136,7 @@
                                             <td class="tdPersonTable">
                                             <p class="list-item-heading userName">@NSP</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@BirthDate</p>
                                             </td>
                                             <td class="tdPersonTable">
@@ -151,7 +151,7 @@
                                             <td class="tdPersonTable">
                                                 <p class="text-muted ">@DismissalsDate</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@user.Schedule.Name</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
@@ -178,6 +178,37 @@
                                             <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@user.VersionStartDate.Value.ToString("yyyy.MM.dd")</p>
                                             </td>
+
+                                            @if (user?.ModifiedBy == null)
+
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">Данных нет</p>
+                                                </td>
+                                            }
+                                            else
+
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">@user?.ModifiedBy</p>
+                                                </td>
+                                            }
+
+                                            @if (user?.ModifiedDate == null)
+
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">Данных нет</p>
+                                                </td>
+                                            }
+
+                                            else
+
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted ">@user?.ModifiedDate.Value.ToString("dd.MM.yyyy")</p>
+                                                </td>
+                                            }
                                         </tr>
                                     }
                                 </tbody>
@@ -221,7 +252,7 @@
     });
 
     // сортируем по-умолчанию по последнему столбцу
-    table.order([11, 'desc']).draw();
+    table.order([10, 'asc']).draw();
 
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {

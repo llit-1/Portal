@@ -151,15 +151,26 @@
 
 <script>
 
+    const debounceTimers = []; // Массив для хранения всех активных таймеров
+
     function debounce(func, delay) {
-        let timer;
+
+        console.log(debounceTimers)
+
         return function () {
+            // Сбрасываем все предыдущие таймеры
+            while (debounceTimers.length > 0) {
+                clearTimeout(debounceTimers.pop());
+            }
+            
             const context = this;
             const args = arguments;
-            clearTimeout(timer);
-            timer = setTimeout(() => {
+
+            const timer = setTimeout(() => {
                 func.apply(context, args);
             }, delay);
+
+            debounceTimers.push(timer); // Сохраняем текущий таймер
         };
     }
 

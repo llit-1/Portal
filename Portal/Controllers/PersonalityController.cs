@@ -254,6 +254,16 @@ namespace Portal.Controllers
                         return BadRequest("Пользователь уже существует");
                     }
 
+                    if(personalityJson.SNILS != "" && dbSql.Personalities.FirstOrDefault(x => x.SNILS == personalityJson.SNILS) != null)
+                    {
+                        return BadRequest("Пользователь уже существует");
+                    }
+
+                    if (personalityJson.INN != "" && dbSql.Personalities.FirstOrDefault(x => x.INN == personalityJson.INN) != null)
+                    {
+                        return BadRequest("Пользователь уже существует");
+                    }
+
                     dbSql.Add(personality);
                     dbSql.SaveChanges();
                     Guid newPersonalityGuid = personality.Guid;
