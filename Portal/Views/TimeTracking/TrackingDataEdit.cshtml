@@ -5,18 +5,22 @@
     <div class="col-sm-2">
         <table class="table">
             <tr class="bg-primary">
-                <th class="text-left">Должность</th>
+                <th class="text-left">Категория</th>
             </tr>
         </table>
         <div class="col-4 panel panel-default height table1" id='check' style="margin-bottom: 10px">
             <table class="table">
-                @foreach (var item in Model.JobTitles)
+                @{
+                    string[] arr = new string[] { "Основной", "Вечерний", "Работник пекарни", "Парт-таймер", "Дневной", "Ночной пекарь", "Администратор" };
+                }
+
+                @foreach (var item in arr)
                 {
                     <tr class="getJobTitleData">
-                        <td style="cursor: pointer;"><input type="checkbox" class="hidden"><label style="cursor: pointer;">@item.Name</label></td>
+                        <td style="cursor: pointer;"><input type="checkbox" class="hidden"><label style="cursor: pointer;">@Model.JobTitles.FirstOrDefault(x => x.Name.Trim() == item).Name</label></td>
                         <td class="hidden TTForHeader">@Model.TTData.Location.Name</td>
                         <td class="hidden TTIdForHeader">@Model.TTData.Location.Guid</td>
-                        <td class="hidden jobTitleId">@item.Guid</td>
+                        <td class="hidden jobTitleId">@Model.JobTitles.FirstOrDefault(x => x.Name.Trim() == item).Guid</td>
                         <td class="hidden dateForHeader">@Model.TTData.DateDatas[0].Date.ToString("dd.MM.yyyy")</td>
                     </tr>
                 }
@@ -100,8 +104,8 @@
                                         </select>
                                     </th>
                                     <th class="newRowAlign" style="width: fit-content;">
-                                        <input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON">
-                                        <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
+                                        <input type="time" value='@item.Begin.ToString("HH:mm")' onChange="calculateHours()" class="timeBeginForJSON">
+                                        <input type="time" value='@item.End.ToString("HH:mm")' onChange="calculateHours()" class="timeEndForJSON">
                                     </th>
 
                                     <th class="newRowAlign" style="align-content: center;padding-right: 16px;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
@@ -176,16 +180,16 @@
 
                                         @if (User.IsInRole("time_tracking_administrator") || DateTime.Now > item.End)
                                         {
-                                            <input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON">
-                                            <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
+                                            <input type="time" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON">
+                                            <input type="time" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
                                         } else if(item.Status == 0)
                                         {
-                                            <input type="time" value='@item.Begin.ToString("HH:mm")' min="@DateTime.Now.AddHours(1).ToString("HH:mm")" class="timeBeginForJSON">
-                                            <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
+                                            <input type="time" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' min="@DateTime.Now.AddHours(1).ToString("HH:mm")" class="timeBeginForJSON">
+                                            <input type="time" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
                                         } else
                                         {
-                                             <input type="time" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON" disabled>
-                                            <input type="time" value='@item.End.ToString("HH:mm")' class="timeEndForJSON" disabled>
+                                             <input type="time" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON" disabled>
+                                            <input type="time" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON" disabled>
                                         }
 
 
@@ -288,6 +292,35 @@
         <!--Кнопки сохранить/отмена-->
         <div class="col-4 trackingData_buttons" style="height:40px">
             <button class="btn btn-gray" href="javascript:void(0)" type="button" onclick="addRowPeronFromExchange()" style="float:right">Запросить на бирже</button>
+            <span id="hours"> 
+                @{
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ day.Hours пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+                    int hours = (int)Model.Hours;
+
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+                    string lastDigit = hours.ToString().Substring(hours.ToString().Length - 1);
+
+                    string stringHourse = "";
+                }
+
+
+                @switch (lastDigit)
+                {
+                    case "1":
+                        stringHourse = " час";
+                        break;
+                    case "2":
+                    case "3":
+                    case "4":
+                        stringHourse = " часа";
+                        break;
+                    default:
+                        stringHourse = " часов";
+                        break;
+                }
+
+                Всего: @Model.Hours @stringHourse
+            </span>
             <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="sendData()" style="float:right">Сохранить</button>
         </div>
     </div>
@@ -298,7 +331,29 @@
     // Обновляем заголовок с датой и названием
     let tt = document.querySelector('.TTForHeader').textContent;
     let date = document.querySelector('.dateForHeader').textContent;
-    $('#header').text(date + '  ' + tt);
+
+    let dateParts = date.split('.');
+    let day = parseInt(dateParts[0]);
+    let month = parseInt(dateParts[1]) - 1;
+    let year = parseInt(dateParts[2]);
+
+    let date11 = new Date(year, month, day);
+
+    let dayOfWeek = date11.getDay();
+
+    let daysOfWeekRus = [
+      'Воскресенье',
+      'Понедельник',
+      'Вторник',
+      'Среда',
+      'Четверг',
+      'Пятница',
+      'Суббота'
+    ];
+
+    let dayOfWeekRus = daysOfWeekRus[dayOfWeek];
+
+    $('#header').text(date + '  (' + dayOfWeekRus + ') ' + tt);
 
     // Убираем событие клика с кнопки "Назад" и определяем новое
     $('#back').unbind('click');
@@ -444,6 +499,52 @@
 
 <!-- Скрипт для добавления и управления строками в таблице -->
 <script>
+
+    function calculateHours() {
+        const beginArr = document.querySelectorAll(".timeBeginForJSON") // '06:30'
+        const endArr = document.querySelectorAll(".timeEndForJSON") // 
+
+        let totalHours = 0;
+
+        for(let i = 0; i < beginArr.length; i++)
+        {
+            let end = endArr[i].value;
+            let endHours = end.split(":")[0]
+            let endMinutes = end.split(":")[1]
+
+            let begin = beginArr[i].value
+            let beginHours = begin.split(":")[0]
+            let beginMinutes = begin.split(":")[1]
+
+            if(endHours == "00")
+            {
+                totalHours += ((24 - +beginHours) * 60 + +endMinutes - +beginMinutes) / 60;
+            } else {
+                totalHours += ((+endHours - +beginHours) * 60 + +endMinutes - +beginMinutes) / 60;
+            }
+        }
+       
+        let endSwitch = String(totalHours).split("")[String(totalHours).length - 1]
+
+        totalHours.toFixed(2);
+
+        switch (endSwitch) {
+            case "1":
+                endSwitch = " час";
+                break;
+            case "2":
+            case "3":
+            case "4":
+                endSwitch = " часа";
+                break;
+            default:
+                endSwitch = " часов";
+                break;
+        }
+
+        document.getElementById("hours").textContent = "Всего: " + totalHours + endSwitch;
+    }
+
     // Функция для добавления новой строки с данными о сотруднике
     function addRowPeron(data) {
         // Создаем новую строку
@@ -480,8 +581,8 @@
         guidNameCell.textContent = guidName;
         nameCell.textContent = name;
         jobTitleIdCell.textContent = guidJobTitle;
-        timeCell.innerHTML = `<input type="time" value='${timeBegin}' class='timeBeginForJSON'>
-                                  <input type="time" value='${timeEnd}' class='timeEndForJSON'>`;
+        timeCell.innerHTML = `<input type="time" value='${timeBegin}' onChange="calculateHours()" class='timeBeginForJSON'>
+                                  <input type="time" value='${timeEnd}' onChange="calculateHours()" class='timeEndForJSON'>`;
         deletePersonCell.innerHTML = `<label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label>`;
 
         // Добавляем ячейки в строку
@@ -524,6 +625,8 @@
         jobTitleCell.appendChild(select); // Добавляем селект в ячейку должности
 
         checkHeight(); // Проверяем высоту таблицы
+
+        calculateHours()
     }
 
     // Функция для добавления строки сотрудника из обмена
@@ -559,8 +662,8 @@
 
         guidNameCell.textContent = 0;
         nameCell.textContent = name;
-        timeCell.innerHTML = `<input type="time" value='' class='timeBeginForJSON'>
-                                  <input type="time" value='' class='timeEndForJSON'>`;
+        timeCell.innerHTML = `<input type="time" value='06:30' class='timeBeginForJSON' onChange="calculateHours()">
+                                  <input type="time" value='19:00' class='timeEndForJSON' onChange="calculateHours()">`;
         deletePersonCell.innerHTML = `<label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label>`;
 
         // Добавляем ячейки в строку
@@ -603,12 +706,15 @@
         jobTitleCell.appendChild(select); // Добавляем селект в ячейку должности
 
         checkHeight(); // Проверяем высоту таблицы
+
+        calculateHours()
     }
 
     // Функция для удаления строки с данными о сотруднике
     function deletePersonRow(str) {
         str.closest('tr').remove(); // Удаляем строку
         checkHeight(); // Проверяем высоту таблицы
+        calculateHours()
     }
 
     // Функция для проверки высоты таблицы и добавления прокрутки, если необходимо

@@ -22,6 +22,7 @@ namespace Portal.Models
     public class DateData
     {
         public DateTime Date { get; set; }
+        public double Hours { get; set; }
         public List<TimeSheet> TimeSheets { get; set; }
         public List<WorkingSlots> WorkingSlots { get; set; }
     }

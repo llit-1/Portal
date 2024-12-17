@@ -10,5 +10,6 @@ namespace Portal.Models
         public List<Personality> Personalities { get; set; }
         public List<JobTitle> JobTitles { get; set; }
         public List<PersonalityVersion> PersonalityVersions { get; set; }
+        public double Hours { get; set; }
     }
 }

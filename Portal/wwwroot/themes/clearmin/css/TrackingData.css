@@ -243,6 +243,7 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
+    align-items: center;
 }
 
     .trackingData_buttons > button {
@@ -321,3 +322,16 @@
     width: 20px;
     height: 20px;
 }
+
+#hours {
+    font-weight: 600;
+    font-family: 'Akrobat-Regular';
+    font-size: 16px;
+}
+
+/*@media screen and (max-width: 1030px)
+{
+    #getTableView {
+        display: none;
+    }
+}*/

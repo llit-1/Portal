@@ -79,6 +79,7 @@ namespace Portal.Controllers
                 foreach (var date in dateList)
                 {
                     DateData dateData = new DateData();
+
                     dateData.Date = date;
                     dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                           .Include(c => c.Location)
@@ -91,12 +92,43 @@ namespace Portal.Controllers
                                                           .Include(c => c.JobTitles)
                                                           .Where(c => c.Locations == location && c.Begin >= date && c.Begin < date.AddDays(1))
                                                           .ToList();
+
+                    dateData.Hours = CalculateHours(dateData.TimeSheets, dateData.WorkingSlots);
+
                     tTData.DateDatas.Add(dateData);
                 }
                 trackingDataModel.TTDatas.Add(tTData);
             }
 
             return PartialView(trackingDataModel);
+        }
+
+        public double CalculateHours(List<TimeSheet> timeSheets, List<WorkingSlots> workingSlots)
+        {
+            double totalHours = 0;
+
+
+            void AddHours(DateTime begin, DateTime end)
+            {
+                TimeSpan duration = end - begin;
+                if (duration < TimeSpan.Zero)
+                {
+                    duration = TimeSpan.FromHours(24) - begin.TimeOfDay + end.TimeOfDay;
+                }
+                totalHours += duration.TotalHours;
+            }
+
+            foreach (var item in timeSheets)
+            {
+                AddHours(item.Begin, item.End);
+            }
+
+            foreach (var item in workingSlots)
+            {
+                AddHours(item.Begin, item.End);
+            }
+
+            return totalHours;
         }
 
         public IActionResult TrackingData()
@@ -118,6 +150,7 @@ namespace Portal.Controllers
             Portal.Models.MSSQL.Location.Location location = dbSql.Locations.FirstOrDefault(c => c.Guid == Guid.Parse(locationGuid));
             DateData dateData = new DateData();
             dateData.Date = date;
+            
             dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                   .Include(c => c.JobTitle)
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
@@ -131,6 +164,7 @@ namespace Portal.Controllers
             tTData.DateDatas = new List<DateData> { dateData };
             TrackingDataEditModel trackingDataEditModel = new TrackingDataEditModel();
             trackingDataEditModel.TTData = tTData;
+            trackingDataEditModel.Hours = CalculateHours(dateData.TimeSheets, dateData.WorkingSlots);
             trackingDataEditModel.Personalities = dbSql.Personalities.ToList();
             trackingDataEditModel.PersonalityVersions = pervers;
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
