@@ -107,7 +107,7 @@ namespace Portal.Controllers
                     calculatorInformation.PicturePath = "~/svg/color_panels/breads.svg";
                     break;
                 case "06BE0412-8D99-4111-99A9-98172E0D3930":
-                    calculatorInformation.Name = "Прочий ассортимента";
+                    calculatorInformation.Name = "Прочий ассортимент";
                     calculatorInformation.PicturePath = "~/svg/color_panels/other-food.png";
                     break;
                 default:
@@ -327,6 +327,17 @@ namespace Portal.Controllers
             }
             return PartialView(calculatorInformation);
         }
+
+        public IActionResult TabMenu()
+        { 
+        return PartialView();
+        }
+
+        public IActionResult CalculateСoefficient()
+        {
+            return PartialView();
+        }
+
 
         public async Task<IActionResult> LogSave(string logjsn)
         {
