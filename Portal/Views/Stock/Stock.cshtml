@@ -1,17 +1,37 @@
-@model List<Portal.Controllers.StockController.WarehouseCategories>
+@model List<Portal.Models.MSSQL.WarehouseCategories>
 
 <div class="stock">
 
     <div id="stock_back">
+
         <div id="back">
             <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
             <label style="margin-left:10px; cursor:pointer; margin-bottom:0px;">назад</label>
         </div>
 
+        <div class="back_active">
+            <span style="font-family: 'Akrobat-regular'; font-weight: bold;">Активность</span>
+
+            <div class="material-switch pull-right">
+                <input class="slider addCategory"
+                       id="switchActive"
+                       type="checkbox"
+                       onClick="Stock()"
+                @(ViewBag.Actual == 1 ? "checked" : "") />
+                <label for="switchActive" class="label-warning"></label>
+            </div>
+       </div>
+       
+
         <div class="stock_back_input">
             <img src="/themes/clearmin/img/search.png">
-            <input class=""/>
+            <input id="stock_search" />
         </div>
+
+        <div id="searchResults" class="search-results" style="display: none;">
+            <span>Ничего нет</span>
+        </div>
+
     </div>
 
     <div id="stock_wrapper"  class="stock_wrapper">
@@ -20,17 +40,8 @@
         {
             <div class="wrapper_card">
                 <div class="wrapper_card_header">
-                    <div class="material-switch pull-right">
-                        <input
-                        class="slider addCategory"
-                        id="addCategory_@item.Id"
-                        type="checkbox"
-                        @(item.Actual == 1 ? "checked" : "")
-                        onclick="event.stopPropagation(); switchActive(@item.Id, event);"
-                    />
-
-                        <label for="addCategory_@item.Id" class="label-warning"></label>
-                    </div>
+                    
+                    
                     <img onclick="event.stopPropagation();openModal(@item.Id)" src="/themes/clearmin/img/settings.png" class="card_header_img" />
                 </div>
 
@@ -56,11 +67,113 @@
 
 </div>
 
+<div class="fullShadow"></div>
+
 <script>
     $('#PageHeader').text('Склад');
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#" });
 </script> 
+
+<script>
+    const inputElement = document.getElementById('stock_search');
+    const inputWrapper = document.querySelector(".stock_back_input")
+    const fullShadow = document.querySelector(".fullShadow")
+
+    inputElement.addEventListener('focus', () => {
+        inputWrapper.style = "width: 70%"
+        fullShadow.style = "opacity: 1; visibility: visible;"
+    });
+
+    inputElement.addEventListener('blur', () => {
+        inputWrapper.style = "width: 23%"
+        fullShadow.style = "opacity: 0; visibility: hidden;"
+    });
+</script>
+
+<script>
+    const inputElement = document.getElementById('stock_search');
+    const searchResultsContainer = document.getElementById('searchResults');
+
+        inputElement.addEventListener('input', async (e) => {
+        const query = inputElement.value.trim();
+
+        if (query.length === 0) {
+            searchResultsContainer.style.display = 'none';
+            return;
+        }
+
+        $("#spinner").show();
+
+        try {
+            const response = await fetch("/Stock/SearchItem?item=" + inputElement.value);
+
+            $("#spinner").hide();
+            searchResultsContainer.style.display = 'flex';
+
+            if (response.ok) {
+                const results = await response.json();
+
+                // Очищаем контейнер перед добавлением новых результатов
+                searchResultsContainer.innerHTML = '';
+
+                // Проверяем, есть ли результаты
+                if (results?.message != undefined) {
+                    searchResultsContainer.innerHTML = '<p>Ничего не найдено</p>';
+                } else {
+                    // Создаём список результатов
+                    const ul = document.createElement('ul');
+                    ul.style.width = "100%"
+
+                    // Перебираем массив массивов
+                    results.forEach(item => {
+                        const [id, text] = item; // Разбиваем массив на id и text
+                        const li = document.createElement('li');
+                        li.style.width = "100%"
+                        li.textContent = text; // Значение (например, 'Мониторы / Samsung')
+                        li.addEventListener('click', () => {
+                           openTable(id)
+                        });
+                        ul.appendChild(li);
+                    });
+
+                    // Добавляем список в контейнер
+                    searchResultsContainer.appendChild(ul);
+                }
+            } else {
+                console.error("Ошибка при получении данных:", response.statusText);
+            }
+
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    });
+
+    
+
+    // Скрываем результаты, если кликнули вне инпута
+    document.addEventListener('click', (event) => {
+        if (!inputElement.contains(event.target)) {
+            searchResultsContainer.style.display = 'none';
+        }
+    });
+</script>
+
+<script>
+    async function switchActive(id, event) {
+        event.stopPropagation();
+
+        try {
+            const response = await fetch("/Stock/SwitchActual?id=" + id, {
+                method: "UPDATE",
+                headers: { "Content-Type": "text/html" }
+            });
+
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+</script>
 
 <script>
     async function openModal(id = 0) {
@@ -91,10 +204,10 @@
                     }
                 });
             } else {
-                alert("������ �������� ���������� ����");
+                alert("Ошибка");
             }
         } catch (error) {
-            console.error("������:", error);
+            console.error("Ошибка:", error);
         }
     }
 
@@ -138,30 +251,27 @@
         const actual = document.getElementById("stock-category-actual").textContent;
         const image = document.getElementById('stock_category_img');
 
-        if(image.src == '/themes/clearmin/img/question.png')
-        {
-            formData.append('Img', null);
-        }
-
         const formData = new FormData();
         formData.append('Id', id);
         formData.append('Name', name.trim());
         formData.append('Parent', parent.trim());
         formData.append('Actual', actual.trim());
 
-
+        if(image.src == '/themes/clearmin/img/question.png')
+        {
+            formData.append('Img', null);
+        } else {
+            const imgFile = await fetch(image.src);
+            const blob = await imgFile.blob();
+            formData.append('Img', blob, 'image.png');
+        }
+        
         $("#spinner").show();
 
         const response = await fetch("/Stock/SaveCategory", {
             method: "PATCH",
             body: formData
         });
-
-        if (response.ok) {
-            console.log("Category saved successfully");
-        } else {
-            console.error("Failed to save category:", response.statusText);
-        }
 
         $("#spinner").hide();
 
@@ -174,24 +284,31 @@
 <script>
     async function SaveNewCategory() {
         const name = document.getElementById("stock-category-name").value;
+        const image = document.getElementById('stock_category_img');
+        
+        const formData = new FormData();
+        formData.append('Id', null);
+        formData.append('Name', name.trim());
+        formData.append('Parent', null);
+        formData.append('Actual', 1);
 
-        const data = {
-            Id: null,
-            Name: name.trim(),
-            Parent: null,
-            Actual: 1,
-            Img: null
-        };
+        if(image.src == '/themes/clearmin/img/question.png')
+        {
+            formData.append('Img', null);
+        } else {
+            const imgFile = await fetch(image.src);
+            const blob = await imgFile.blob();
+            formData.append('Img', blob, 'image.png');
+        }
 
         $("#spinner").show()
 
         const response = await fetch("/Stock/SaveNewCategory", {
             method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
+            body: formData
         });
+
+
 
          $("#spinner").hide()
 
@@ -227,6 +344,20 @@
     }
 </script>
 
+<script>
+
+async function Stock() {
+
+    if(document.getElementById("switchActive").checked)
+    {
+        return await $(".stock").load("/Stock/Stock?actual=1")
+    }
+
+    return await $(".stock").load("/Stock/Stock")
+}
+    
+</script>
+
 <style>
     .stock {
         display: flex;
@@ -243,6 +374,7 @@
     }
 
     .stock_back_input {
+        position: relative;
         border: 1px solid #80808066;
         padding: 5px;
         background-color: white;
@@ -250,6 +382,8 @@
         justify-content: start;
         align-items: center;
         width: 23%;
+        transition: all 0.25s linear;
+        z-index: 2;
     }
 
     .stock_back_input > img {
@@ -308,7 +442,7 @@
     .wrapper_card_header {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: end;
         width: 100%;
         align-items: center;
     }
@@ -355,4 +489,68 @@
         overflow: auto;
         background-color: rgba(0, 0, 0, 0.5);
     }
+
+    .fullShadow {
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        background: #8080807d;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.25s linear;
+    }
+
+    .search-results {
+        position: absolute;
+        top: 100px;
+        /* left: 0; */
+        right: 20px;
+        width: fit-content;
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1231131;
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 10px;
+        align-items: start;
+        flex-direction: column;
+    }
+    
+
+    .search-results ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .search-results li {
+        padding: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .search-results li:hover {
+        background-color: #f0f0f0;
+    }
+
+    .back_wrapper_buttons {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .back_active {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
 </style>

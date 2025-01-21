@@ -14,6 +14,14 @@ using static Portal.Controllers.TimesheetsFactoryController;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.InkML;
+using Microsoft.EntityFrameworkCore;
+using ClosedXML.Excel;
+using OfficeOpenXml;
+using Portal.Models.MSSQL.Personality;
+using Portal.Models.MSSQL.PersonalityVersions;
+using System.Globalization;
 
 namespace Portal.Controllers
 {
@@ -29,15 +37,24 @@ namespace Portal.Controllers
             dbSql = dbSqlContext;
         }
 
-        public async Task<IActionResult> Stock()
+        public async Task<IActionResult> Stock(int actual = 0)
         {
             var categories = await GetAsync();
+
+            if (actual == 1)
+            {
+                categories = categories.Where(x => x.Actual == 1).ToList();
+            }
+
+            // Используем ViewBag для передачи дополнительных данных
+            ViewBag.Actual = actual;
+
             return PartialView(categories);
         }
 
         public IActionResult LoadModal(int id)
         {
-            WarehouseCategories warehouseCategories;
+            Models.MSSQL.WarehouseCategories warehouseCategories;
 
             if (id != 0)
             {
@@ -45,7 +62,7 @@ namespace Portal.Controllers
             }
             else
             {
-                warehouseCategories = new WarehouseCategories();
+                warehouseCategories = new Models.MSSQL.WarehouseCategories();
             }
 
             return PartialView("LoadModalStock", warehouseCategories);
@@ -59,7 +76,7 @@ namespace Portal.Controllers
                 return BadRequest("Required fields are missing.");
             }
 
-            var category = new WarehouseCategories
+            var category = new Models.MSSQL.WarehouseCategories
             {
                 Id = Id,
                 Name = Name,
@@ -69,9 +86,12 @@ namespace Portal.Controllers
 
             if (Img != null)
             {
-                using var memoryStream = new MemoryStream();
-                await Img.CopyToAsync(memoryStream);
-                category.Img = memoryStream.ToArray();
+                using (var memoryStream = new MemoryStream())
+                {
+                    await Img.CopyToAsync(memoryStream);
+                    byte[] imageBytes = memoryStream.ToArray();
+                    category.Img = imageBytes;
+                }
             }
 
             using var httpClient = new HttpClient();
@@ -88,15 +108,41 @@ namespace Portal.Controllers
             }
         }
 
-        public async Task<IActionResult> SaveNewCategory([FromBody] WarehouseCategories data)
+        public async Task<IActionResult> SaveNewCategory([FromForm] int? Id, [FromForm] string Name, [FromForm] int? Parent, [FromForm] string Actual, [FromForm] IFormFile? Img)
         {
-            if (data == null)
+            if (Name == null)
             {
-                return BadRequest("Data is null");
+                return BadRequest("Нет данных");
             }
 
+            // Создаём объект категории
+            var category = new Models.MSSQL.WarehouseCategories
+            {
+                Id = Id,
+                Name = Name,
+                Parent = Parent,
+                Actual = int.Parse(Actual)
+            };
+
+            // Если изображение передано, преобразуем его в массив байтов
+            if (Img != null)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await Img.CopyToAsync(memoryStream);
+                    byte[] imageBytes = memoryStream.ToArray();
+                    category.Img = imageBytes;
+                }
+            }
+
+            // Сериализуем объект в JSON
+            var jsonContent = JsonConvert.SerializeObject(category);
+
+            // Отправляем данные на второй сервер в формате JSON
             using var httpClient = new HttpClient();
-            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Отправляем запрос на второй сервер
             using HttpResponseMessage response = await httpClient.PostAsync($"https://warehouseapi.ludilove.ru/api/category/SetCategory", content);
 
             if (response.IsSuccessStatusCode)
@@ -105,7 +151,9 @@ namespace Portal.Controllers
             }
             else
             {
-                return StatusCode((int)response.StatusCode);
+                // Логируем ошибку для отладки
+                var errorResponse = await response.Content.ReadAsStringAsync();
+                return StatusCode((int)response.StatusCode, errorResponse);
             }
         }
 
@@ -142,27 +190,27 @@ namespace Portal.Controllers
             }
         }
 
-        static async Task<List<WarehouseCategories>> GetAsync()
+        static async Task<List<Models.MSSQL.WarehouseCategories>> GetAsync()
         {
             using var httpClient = new HttpClient();
             using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/maincategories");
             response.EnsureSuccessStatusCode();
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            return System.Text.Json.JsonSerializer.Deserialize<List<WarehouseCategories>>(jsonResponse, new JsonSerializerOptions
+            return System.Text.Json.JsonSerializer.Deserialize<List<Models.MSSQL.WarehouseCategories>>(jsonResponse, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
         }
 
-        static async Task<WarehouseCategories> GetOneCategoryAsync(int id)
+        static async Task<Models.MSSQL.WarehouseCategories> GetOneCategoryAsync(int id)
         {
             using var httpClient = new HttpClient();
             using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/maincategories");
             response.EnsureSuccessStatusCode();
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var categories = System.Text.Json.JsonSerializer.Deserialize<List<WarehouseCategories>>(jsonResponse, new JsonSerializerOptions
+            var categories = System.Text.Json.JsonSerializer.Deserialize<List<Models.MSSQL.WarehouseCategories>>(jsonResponse, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -192,7 +240,7 @@ namespace Portal.Controllers
         }
 
 
-        public async Task<IActionResult> AddSubCategoryItem([FromBody] WarehouseCategories data)
+        public async Task<IActionResult> AddSubCategoryItem([FromBody] Models.MSSQL.WarehouseCategories data)
         {
             if (data == null)
             {
@@ -213,6 +261,66 @@ namespace Portal.Controllers
             }
         }
 
+        public IActionResult SearchItem(string item = "Sams")
+        {
+            // Поиск
+            var result = dbSql.WarehouseCategories
+                              .Where(x => x.Name.ToLower().Contains(item.ToLower()))
+                              .ToList();
+
+            // Если ничего не найдено, возвращаем JSON с сообщением
+            if (result.Count == 0)
+            {
+                return Json(new { message = "Ничего не найдено" });
+            }
+
+            // Создаём список для хранения результатов
+            List<object[]> items = new List<object[]>();
+
+            // Загружаем все категории заранее для уменьшения количества запросов к базе данных
+            var allCategories = dbSql.WarehouseCategories.ToDictionary(x => x.Id);
+
+            foreach (var elem in result)
+            {
+                string text = "";
+                int? id = null;
+
+                // Если есть родительская категория
+                if (elem.Parent != null)
+                {
+                    // Ищем родительскую категорию
+                    if (allCategories.TryGetValue(elem.Parent.Value, out var parentCategory))
+                    {
+                        // Если у родительской категории есть ещё одна родительская категория
+                        if (parentCategory.Parent != null)
+                        {
+                            if (allCategories.TryGetValue(parentCategory.Parent.Value, out var grandParentCategory))
+                            {
+                                text += grandParentCategory.Name + " / " + parentCategory.Name + " / " + elem.Name;
+                                id = grandParentCategory.Id;
+                            }
+                        }
+                        else
+                        {
+                            text += parentCategory.Name + " / " + elem.Name;
+                            id = parentCategory.Id;
+                        }
+                    }
+                }
+                else
+                {
+                    text += elem.Name;
+                    id = elem.Id;
+                }
+
+                // Добавляем массив [id, text] в список
+                items.Add(new object[] { id, text });
+            }
+
+            // Возвращаем JSON с результатами
+            return Json(items);
+        }
+
 
 
         public class CategoriesHierarchyWithCategoryID
@@ -227,16 +335,6 @@ namespace Portal.Controllers
             public int Id { get; set; }
             public string Name { get; set; } = "";
             public List<CategoriesHierarchy> Categories { get; set; } = new();
-            public int Actual { get; set; }
-        }
-
-        public class WarehouseCategories
-        {
-            [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-            public int? Id { get; set; }
-            public string Name { get; set; }
-            public int? Parent { get; set; }
-            public byte[]? Img { get; set; }
             public int Actual { get; set; }
         }
     }

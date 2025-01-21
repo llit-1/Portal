@@ -168,6 +168,7 @@ namespace Portal.Controllers
             trackingDataEditModel.Personalities = dbSql.Personalities.ToList();
             trackingDataEditModel.PersonalityVersions = pervers;
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
+           
             return PartialView(trackingDataEditModel);
         }
 
@@ -294,6 +295,8 @@ namespace Portal.Controllers
                 {
                     if (selectedDatetime > timeSheets[i].Begin)
                     {
+                        if (timeSheets[i].JobTitle.Guid == Guid.Parse("880A47B4-9A4F-41DF-ACA5-DB17FFE0635B")) { return ""; }
+
                         return ($"Конфликт рабочего времени!\nСотрудник: {timeSheets[i].Personalities.Name}\n" +
                                 $"Уже активен на точке: {checkingTimeSeets[0].Location.Name}\n" +
                                 $"Временной слот {timeSheets[0].Begin} - {timeSheets[0].End}");

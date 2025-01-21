@@ -45,7 +45,7 @@
 
                 @foreach (var item in category.Categories)
                 {
-                    <div class="item_subcategory_details hidden item_subcategory_details_@category.Name">
+                    <div class='item_subcategory_details hidden item_subcategory_details_@category.Name.Replace(" ", "")'>
                         <div style=""> @item.Name </div>
                         <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" /> </div>
                     </div>
@@ -138,7 +138,7 @@
 <script>
     function showDetails(elem) {
         elem.classList.toggle('active');
-        document.querySelectorAll(".item_subcategory_details_" + elem.childNodes[1].textContent).forEach(x => x.classList.toggle("hidden"))
+        document.querySelectorAll(".item_subcategory_details_" + elem.childNodes[1].textContent.replaceAll(" ", "")).forEach(x => x.classList.toggle("hidden"))
     }
 </script>
 

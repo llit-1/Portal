@@ -15,6 +15,8 @@ using RKNet_Model.VMS.NX;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using IdentityModel;
+using DocumentFormat.OpenXml.Math;
 
 
 namespace Portal.Controllers
@@ -25,9 +27,11 @@ namespace Portal.Controllers
     public class ApiController : Controller
     {
         private DB.SQLiteDBContext db;
-        public ApiController(DB.SQLiteDBContext context)
+        private DB.MSSQLDBContext dbSql;
+        public ApiController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
             db = context;
+            dbSql = dbSqlContext;
         }
 
         // Версия Api
@@ -320,13 +324,29 @@ namespace Portal.Controllers
             return null;
         }
 
+        //// получение времени сессии из БД
+        //[HttpGet("GetSessionTime")]
+        //public IActionResult GetSessionTime()
+        //{
+        //    var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
+        //    return new ObjectResult(sessionTime);
+        //}
+        
         // получение времени сессии из БД
         [HttpGet("GetSessionTime")]
         public IActionResult GetSessionTime()
         {
+            var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.UserName.ToLower() == User.Identity.Name.ToLower()).Date;
             var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
-            return new ObjectResult(sessionTime);
-        }        
+
+            var sessionEndTime = sessionStartFromDBSQL.AddMinutes(sessionTime); 
+
+            var timeLeft = sessionEndTime - DateTime.Now;
+
+            double minutesLeft = timeLeft.TotalMinutes;
+
+            return new ObjectResult(minutesLeft);
+        }
 
     }
 }

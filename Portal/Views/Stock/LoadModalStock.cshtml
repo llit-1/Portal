@@ -1,4 +1,4 @@
-@model Portal.Controllers.StockController.WarehouseCategories
+@model Portal.Models.MSSQL.WarehouseCategories
 
 <div class="modal-content-stock">
 
@@ -8,7 +8,7 @@
             <img id="stock_category_img" src="/themes/clearmin/img/question.png" alt="" />
         } else
         {
-            <img id="stock_category_img" src="@Model.Img" alt="" />
+            <img id="stock_category_img" src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Img)" alt="" />
         }
 
         <div id="stock_category_download" onclick="selectImage()"> Выбрать </div>
@@ -30,6 +30,22 @@
             <p class="hidden" id="stock-category-actual">  @Model.Actual </p>
             <p class="hidden" id="stock-category-img"> @Model.Img </p>
             <input id="stock-category-name" value="@Model.Name" />
+
+            <div style="padding-right: 5px;">
+                <div class="material-switch pull-right">
+                    <input class="slider addCategory"
+                           id="addCategory_@Model.Id"
+                           type="checkbox"
+                    @(Model.Actual == 1 ? "checked" : "")
+                           onclick="event.stopPropagation(); switchActive(@Model.Id, event);" />
+
+                    <label for="addCategory_@Model.Id" class="label-warning"></label>
+                </div>
+
+                <span style="font-family: 'Akrobat-regular'; font-weight: bold;">Активность</span>
+            </div>
+            
+
             <button onclick="SaveCategory(@Model.Id)"> Сохранить </button>
         } else
         {
@@ -64,8 +80,8 @@
     }
 
     .stock-category-photo {
-        width: 120px;
-        height: 120px;
+        width: 160px;
+        height: 160px;
         background: #80808036;
         margin-right: 15px;
         display: flex;
@@ -75,9 +91,8 @@
     }
 
     .stock-category-photo > img {
-            width: 60%;
-            background: #bdbdbd;
-            height: 60%;
+            width: 72%;
+            height: 72%;
             display: flex;
             justify-content: center;
             align-items: center;

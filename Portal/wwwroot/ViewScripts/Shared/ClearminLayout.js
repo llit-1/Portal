@@ -66,7 +66,7 @@ function AutoLogout() {
         var remain = time * 60; // остаток времени в секундах
         
         setInterval(function () {
-            $("#time").html(remain);
+            $("#time").html(Math.trunc(remain));
             remain = remain - 1;
             if (remain <= 0) {
                 window.location.replace('Account/Logout');

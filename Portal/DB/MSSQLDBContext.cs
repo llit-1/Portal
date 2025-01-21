@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL;
+using static Portal.Controllers.StockController;
 
 namespace Portal.DB
 {
@@ -46,5 +47,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.ReceivedPromocodesVK> ReceivedPromocodesVK { get; set; }
         public DbSet<Models.MSSQL.SettingsVariables> SettingsVariables { get; set; }
         public DbSet<Models.MSSQL.WorkingSlots> WorkingSlots { get; set; }
+        public DbSet<WarehouseCategories> WarehouseCategories { get; set; } // Иерархия склада
     }
 }
