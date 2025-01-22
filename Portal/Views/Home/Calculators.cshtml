@@ -9,7 +9,7 @@
 </div>
 
 <div class="row">
-    
+
     @if (User.IsInRole("old_calculate"))
     {
         <!--выпечка-->
@@ -54,28 +54,28 @@
 
     <!--хлеб-->
 
-        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-            <a href="#calc_bread" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center" style="min-height: 147px;">
-                     <span class="svg-48">
-                        <img src="~/svg/color_panels/breads.svg" width="20px">
-                    </span>
-                    <h4>Хлеб</h4>
-                </div>
-            </a>
-        </div>
+    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+        <a href="#calc_bread" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+            <div class="panel-body text-center" style="min-height: 147px;">
+                <span class="svg-48">
+                    <img src="~/svg/color_panels/breads.svg" width="20px">
+                </span>
+                <h4>Хлеб</h4>
+            </div>
+        </a>
+    </div>
 
 
     <!--выпечка-->
 
     <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
         <a href="#calc_bakery" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-         <div class="panel-body text-center" style="min-height: 147px;">
+            <div class="panel-body text-center" style="min-height: 147px;">
                 <span class="svg-48">
                     <img src="~/svg/color_panels/bread.svg" width="20px">
                 </span>
-            <h4>Выпечка</h4>
-         </div>
+                <h4>Выпечка</h4>
+            </div>
         </a>
     </div>
 
@@ -118,8 +118,10 @@
         </a>
     </div>
 
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#CalculateSettings" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+    @if (User.IsInRole("calculator_admin"))
+    {
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#CalculateSettings" class="panel panel-default thumbnail cm-thumbnail tails-panel">
             <div class="panel-body text-center" style="min-height: 147px;">
                 <span class="svg-48">
                     <img src="~/svg/color_panels/calculator_settings.svg" width="20px">
@@ -128,7 +130,7 @@
             </div>
         </a>
     </div>
-
+    }
     
 </div>
 

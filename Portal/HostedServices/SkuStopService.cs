@@ -118,7 +118,7 @@ namespace Portal.HostedServices
                                 foreach (var cashState in cashStates)//.Where(c => !c.blocked))
                                 {
                                     var cash = sqlite.CashStations.FirstOrDefault(c => c.Id == cashState.cashId);
-                                    _log.LogInformation(".......................................................отправка стопа на кассу " + cash.Name + " (" + cash.Ip + ")...");
+                                    _log.LogInformation(".......................................................отправка стопа на кассу " + cash?.Name + " (" + cash.Ip + ")...");
 
                                     var result = SetStop(cash.Ip, curStop.SkuRkCode, true);
                                     if (result.Ok)
@@ -271,7 +271,7 @@ namespace Portal.HostedServices
                     }
                     catch (Exception e)
                     {
-                        _log.LogError(e.ToString());
+                        _log?.LogError(e.ToString());
                     }
                 }
             }

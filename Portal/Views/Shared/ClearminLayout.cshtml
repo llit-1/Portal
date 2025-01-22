@@ -71,11 +71,11 @@
                                     {
                                         <li><a id="profitpro" href="#profitpro">Выручка Pro</a></li>
                                     }
-                                   @*  @if (User.IsInRole("reports_special"))
+                                    @*  @if (User.IsInRole("reports_special"))
                                     {
                                         <li><a id="profitall" href="#profitall">Выручка All</a></li>
                                     } *@
-                                   @*  @if (User.IsInRole("reports_profitplan"))
+                                    @*  @if (User.IsInRole("reports_profitplan"))
                                     {
                                         <li><a id="profitplan" href="#profitplan">План продаж по ТТ</a></li>
                                     } *@
@@ -99,7 +99,7 @@
                                     {
                                         <li><a id="Other" href="#Other">Другие отчёты</a></li>
                                     }
-                                   @*  @if (User.IsInRole("test_role"))
+                                    @*  @if (User.IsInRole("test_role"))
                                     {
                                         <li><a id="gpt" href="#TemperatureSensors">Датчики СХЗ</a></li>
                                     } *@
@@ -226,14 +226,17 @@
                                         <li><a id="calc_vipechka" href="#calc_vipechka">Выпечка(OLD)</a></li>
                                         <li><a id="calc_defrost" href="#calc_defrost">Кондитерка(OLD)</a></li>
                                         <li><a id="Sandwitches" href="#Sandwitches">Сэндвичи(OLD)</a></li>
-                                        
+
                                     }
                                     <li> <a id = "calc_vipechka" href = "#calc_bread" > Хлеб </a></li>
                                     <li><a id="calc_vipechka" href="#calc_bakery">Выпечка</a></li>
                                     <li><a id="calc_defrost" href="#calc_confectionery">Кондитерка</a></li>
                                     <li><a id="Sandwitches" href="#Sandwitch">Сэндвичи</a></li>
                                     <li><a id="Other" href="#OtherCalculate">Прочий ассортимент</a></li>
-                                    <li><a id="CalculateSettings" href="#CalculateSettings">Настройки калькулятора</a></li>
+                                    @if (User.IsInRole("calculator_admin"))
+                                    {
+                                        <li><a id="CalculateSettings" href="#CalculateSettings">Настройки калькулятора</a></li>
+                                    }
                                 </ul>
                             </li>
                         }

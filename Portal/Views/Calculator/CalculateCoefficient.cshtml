@@ -1,0 +1,312 @@
+﻿@model Portal.Controllers.CalculateCoefficientModel
+<div class="row" style="margin-top: 0px; margin-bottom:10px">
+   <!--Назад-->
+    <a href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+        <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+    </a>
+
+</div>
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows");
+    var display = "";
+    var disabled = "disabled";
+    var formClass = "input-group";
+    var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
+    var openDate = "";
+    var closeDate = "";
+    var ttCode = "";
+    var locVerName = "";
+    var locVerRKCode = 0;
+    var oldAddress = "";
+    var locVerOBD = "";
+    var guidNewBase = "0";
+    var newAddress = "";
+    var oldId = "";
+    Double? latitude = 0.0;
+    Double? longitude = 0.0;
+        display = "d-none";
+        disabled = "";
+        formClass = "form-group";
+    
+}
+
+<div class="row flex bg-white" style="margin:0px">
+
+     <!--данные тт-->
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">K1(Точка-СКЮ)</h5>
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--организация-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">СКЮ</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="K1Item" class="form-control selectors" data-width="100%">
+                    <option value="0" selected ="true">-</option>
+                        @foreach (var items in Model?.Items.OrderBy(o => o.Name))
+                        {
+                        <option value="@items.RkCode">@items.Name</option>
+                        }
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="label-light" style="width:100%">ТТ</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="K1TT" class="form-control selectors" data-width="100%">
+                    <option value="0" selected="true">-</option>
+                    @foreach (var tts in Model?.TT.OrderBy(o => o.TTName))
+                    {
+                        <option value="@tts.TTCode">@tts.TTName</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <label class="label-light">ΔК</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ΔК1" type="number" class="form-control no-plus-input" value="@locVerName" style="font-weight:bold" @disabled>
+        </div>
+
+        <div class="col-12" style="overflow: hidden;">
+            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(1)" style="float: left">Изменить на ΔК</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="loadK1Table()" style="float: right">Просмотр</button>
+        </div>
+
+    </div>
+
+    
+
+
+    
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">K2(СКЮ)</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--организация-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">СКЮ</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="K2Item" class="form-control selectors" data-width="100%">
+                    <option value="0" selected="true">-</option>
+                    @foreach (var items in Model?.Items.OrderBy(o => o.Name))
+                    {
+                        <option value="@items.RkCode">@items.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <label class="label-light">ΔК</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ΔК2" type="number" class="form-control no-plus-input" value="@locVerName" style="font-weight:bold" @disabled>
+        </div>
+        <div class="col-12" style="overflow: hidden;">
+            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(2)" style="float: left">Изменить на ΔК</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="loadK2Table()" style="float: right">Просмотр</button>
+        </div>
+        
+    </div>
+
+
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--заголовок-->
+        <h5 class="pull-left">K3(ТТ - Временная группа - Группа товаров)</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--организация-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">ТТ</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="K3TT" class="form-control selectors" data-width="100%">
+                    <option value="0" selected="true">-</option>
+                    @foreach (var tts in Model?.TT.OrderBy(o => o.TTName))
+                    {
+                        <option value="@tts.TTCode">@tts.TTName</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+
+        <!--организация-->
+        <div class="form-group">
+            <label class="label-light" style="width:100%">Временная группа</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="K3timeGroup" class="form-control selectors" data-width="100%">
+                    <option value="0" selected="true">-</option>
+                    @foreach (var timegr in Model?.TimeGroups.OrderBy(o => o.Name))
+                    {
+                        <option value="@timegr.Guid">@timegr.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+
+        <label class="label-light">ΔК</label>
+        <div class="@formClass" style="margin-bottom:15px">
+            <input id="ΔК3" type="number" class="form-control no-plus-input" value="@locVerName" style="font-weight:bold" @disabled>
+        </div>
+        <div class="col-12" style="overflow: hidden;">
+            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(3)" style="float: left">Изменить на ΔК</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="loadK3Table()" style="float: right">Просмотр</button>
+        </div>
+    </div>
+</div>
+<div id="page" style="margin-top:15px"></div>
+
+<!--модальное окно: добавление кассы-->
+<div id="WarningModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                
+                <h4 id="message" class="modal-title">                    
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+                <h1 id="cof" class="hidden"></h1>
+            </div>           
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="changeK" type="button" class="btn btn-sm btn-danger" onclick="changeK()" style="float:left">изменить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> отмена </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--модальное окно: добавление кассы-->
+<div id="InformModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+
+                <h4 id="mess" class="modal-title">
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> закрыть </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function loadK1Table() {
+        let k = 1;
+        let TT = document.getElementById("K1TT").value;
+        let Item = document.getElementById("K1Item").value;
+        SpinnerShow();
+        $('#page').load('/Calculator/CalculateCoefficientTable?k=' + k + '&TT=' + TT + '&item=' + Item + '&timeGroup=0', function () { SpinnerHide(); });
+    }
+</script>
+<script>
+    function loadK2Table() {
+        let k = 2;
+        let Item = document.getElementById("K2Item").value;
+        SpinnerShow();
+        $('#page').load('/Calculator/CalculateCoefficientTable?k=' + k + '&TT=0' + '&item=' + Item + '&timeGroup=0', function () { SpinnerHide(); });
+    }
+</script>
+<script>
+    function loadK3Table() {
+        let k = 3;
+        let TT = document.getElementById("K3TT").value;
+        let timeGroup = document.getElementById("K3timeGroup").value;
+        SpinnerShow();
+        $('#page').load('/Calculator/CalculateCoefficientTable?k=' + k + '&TT=' + TT + '&item=0' + '&timeGroup=' + timeGroup, function () { SpinnerHide(); });
+    }
+ </script>
+ <script>
+     function showWarningModal(k) {
+       document.getElementById('message').textContent = 'Вы уверерены что хотите изменить k' + k + ' для заданных параметров';
+       document.getElementById('cof').textContent = k;
+       $("#WarningModal").modal("show");
+    }
+</script>
+<script>
+    function changeK() {
+       SpinnerShow();
+       let k = document.getElementById('cof').textContent;
+       let tt = '0';
+       let item = '0';
+       let timeGroup = '0';
+       let delta = '0';
+       switch(k){
+           case'1':
+            tt = document.getElementById("K1TT").value;
+            item = document.getElementById("K1Item").value;
+            delta = document.getElementById("ΔК1").value;
+           break;          
+           case'2':
+            item = document.getElementById("K2Item").value;
+            delta = document.getElementById("ΔК2").value;
+           break;
+           case'3':
+            tt = document.getElementById("K3TT").value;
+            timeGroup = document.getElementById("K3timeGroup").value;
+            delta = document.getElementById("ΔК3").value;
+            console.log(delta);
+           break;
+       }
+     const url = `/Calculator/ChangeCalculateCoefficient?k=${k}&delta=${delta}&TT=${tt}&item=${item}&timeGroup=${timeGroup}`;
+           const options = {
+             method: 'POST', // Метод запроса
+           };
+       fetch(url, options).then(response => {
+          if (response.ok) {
+              SpinnerHide();
+              $("#WarningModal").modal("hide");
+              document.getElementById('mess').textContent = 'Данные успешно изменены';
+              $("#InformModal").modal("show");
+          } 
+          else {
+            throw new Error('Network response was not ok');
+          }
+        })
+        .catch(error => {
+          SpinnerHide();
+          $("#WarningModal").modal("hide");
+          document.getElementById('mess').textContent = 'Ошибка при попытке изменить данные';
+          $("#InformModal").modal("show");
+        });
+       }
+</script>
+
+<script>
+    // Функция для запрета ввода символа '+'
+    function preventPlusInput(inputElement) {
+        // Блокировка ввода символа '+' на этапе нажатия клавиши
+        inputElement.addEventListener('keydown', function (event) {
+            if (event.key === '+') {
+                event.preventDefault();
+            }
+        });
+    }
+    // Находим все элементы с классом 'no-plus-input'
+    const inputs = document.querySelectorAll('.no-plus-input');
+
+    // Применяем функцию ко всем найденным элементам
+    inputs.forEach(input => {
+        preventPlusInput(input);
+    });
+</script>

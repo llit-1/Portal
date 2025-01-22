@@ -14,12 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
-using Microsoft.Extensions.Http;
 using System.Text;
-using Portal.ViewModels.Settings_TT;
-using DocumentFormat.OpenXml.Spreadsheet;
-using RKNet_Model.TT;
-using Portal.Models.MSSQL.Location;
 using System.Threading.Tasks;
 
 namespace Portal.Controllers
@@ -69,7 +64,7 @@ namespace Portal.Controllers
         public IActionResult Sandwitches()
         {
             // логируем
-            
+
             var log = new LogEvent<string>(User);
             log.Name = "Запуск калькулятора сэндвичей";
             log.Description = "/Calculator/Sandwitches";
@@ -125,7 +120,7 @@ namespace Portal.Controllers
             for (int i = 0; i < user.TTs.Count; i++)
             {
                 var ttWithType = location.FirstOrDefault(x => x.RKCode == user.TTs[i]?.Restaurant_Sifr);
-                if(ttWithType?.LocationType?.Name == "УЦ" || ttWithType?.LocationType?.Name == "Офис")
+                if (ttWithType?.LocationType?.Name == "УЦ" || ttWithType?.LocationType?.Name == "Офис")
                 {
                     user.TTs.RemoveAll(x => x.Id == user.TTs[i].Id);
                 }
@@ -171,7 +166,7 @@ namespace Portal.Controllers
             {
                 if (dayGroups[i].FirstDayUS <= (int)calculatorInformation.Date.DayOfWeek && dayGroups[i].LastDayUS >= (int)calculatorInformation.Date.DayOfWeek)
                 {
-                    thisDayGroup = dayGroups[i];                  
+                    thisDayGroup = dayGroups[i];
                     if (thisDayGroup.LastDayUS != (int)calculatorInformation.Date.DayOfWeek)
                     {
                         nextDayGroup = dayGroups[i];
@@ -329,16 +324,175 @@ namespace Portal.Controllers
         }
 
         public IActionResult TabMenu()
-        { 
-        return PartialView();
-        }
-
-        public IActionResult CalculateСoefficient()
         {
             return PartialView();
         }
 
+        public IActionResult CalculateCoefficient()
+        {
+            CalculateCoefficientModel calculateCoefficientModel = new CalculateCoefficientModel();
+            calculateCoefficientModel.Items = CalculatorDb.Items.ToList();
+            calculateCoefficientModel.TT = CalculatorDb.TT.ToList();
+            calculateCoefficientModel.TimeGroups = CalculatorDb.TimeGroups.ToList();
+            return PartialView(calculateCoefficientModel);
+        }
 
+        public IActionResult CalculateCoefficientTable(string k, string TT, string item, string timeGroup)
+        {
+            CalculateCoefficientTableModel calculateCoefficientTableModel = new CalculateCoefficientTableModel();
+            int TTRkCode = int.Parse(TT);
+            int SKURkCode = int.Parse(item);
+            Guid timeGroupGuid = Guid.Empty;
+            Guid.TryParse(timeGroup, out timeGroupGuid);
+            switch (k)
+            {
+                case "1":
+                    calculateCoefficientTableModel.k = 1;
+                    List<ItemOnTT> itemOnTTs = new List<ItemOnTT>();
+                    if (SKURkCode == 0 && TTRkCode == 0)
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.ToList();
+                    }
+                    else if (SKURkCode == 0)
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.Where(c => c.TTCode == TTRkCode).ToList();
+                    }
+                    else if (TTRkCode == 0)
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
+                                                                        .Where(c => c.Item.RkCode == SKURkCode).ToList();
+                    }
+                    else
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
+                                                                       .Where(c => c.Item.RkCode == SKURkCode && c.TTCode == TTRkCode).ToList();
+                    }
+                    calculateCoefficientTableModel.ItemOnTTs = itemOnTTs;
+                    break;
+                case "2":
+                    calculateCoefficientTableModel.k = 2;
+                    List<Models.MSSQL.Calculator.Items> items = new List<Models.MSSQL.Calculator.Items>();
+                    if (SKURkCode == 0)
+                    {
+                        items = CalculatorDb.Items.ToList();
+                    }
+                    else
+                    {
+                        items = CalculatorDb.Items.Where(c => c.RkCode == SKURkCode).ToList();
+                    }
+                    calculateCoefficientTableModel.Items = items;
+                    break;
+                case "3":
+                    calculateCoefficientTableModel.k = 3;
+                    List<ItemsGroupTimeTT_Coefficient> itemsGroupTimeTT_Coefficients = new List<ItemsGroupTimeTT_Coefficient>();
+                    if (TTRkCode == 0 && timeGroup == "0")
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.ToList();
+                    }
+                    else if (TTRkCode == 0)
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
+                                                                                                 .Where(c => c.TimeGroup.Guid == timeGroupGuid).ToList();
+                    }
+                    else if (timeGroup == "0")
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Where(c => c.TTCODE == TTRkCode).ToList();
+                    }
+                    else
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
+                                                                                                     .Where(c => c.TTCODE == TTRkCode && c.TimeGroup.Guid == timeGroupGuid).ToList();
+                    }
+                    calculateCoefficientTableModel.ItemsGroupTimeTT_Coefficients = itemsGroupTimeTT_Coefficients;
+                    break;
+            }
+            return PartialView(calculateCoefficientTableModel);
+        }
+
+        [HttpPost]
+        public IActionResult ChangeCalculateCoefficient(string k, string delta, string TT, string item, string timeGroup)
+        {
+            int TTRkCode = int.Parse(TT);
+            int SKURkCode = int.Parse(item);
+            Guid timeGroupGuid = Guid.Empty;
+            Guid.TryParse(timeGroup, out timeGroupGuid);
+            delta = delta.Replace('.', ',');
+            double Delta = 0;
+            if (!double.TryParse(delta, out Delta))
+            {
+                return BadRequest("invalid delta");
+            }
+            switch (k)
+            {
+                case "1":
+                    List<ItemOnTT> itemOnTTs = new List<ItemOnTT>();
+                    if (SKURkCode == 0 && TTRkCode == 0)
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.ToList();
+                    }
+                    else if (SKURkCode == 0)
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.Where(c => c.TTCode == TTRkCode).ToList();
+                    }
+                    else if (TTRkCode == 0)
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
+                                                                        .Where(c => c.Item.RkCode == SKURkCode).ToList();
+                    }
+                    else
+                    {
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
+                                                                       .Where(c => c.Item.RkCode == SKURkCode && c.TTCode == TTRkCode).ToList();
+                    }
+                    foreach (var itemOnTT in itemOnTTs)
+                    {
+                        itemOnTT.Coefficient += Delta;
+                    }                    
+                    break;
+                case "2":
+                    List<Models.MSSQL.Calculator.Items> items = new List<Models.MSSQL.Calculator.Items>();
+                    if (SKURkCode == 0)
+                    {
+                        items = CalculatorDb.Items.ToList();
+                    }
+                    else
+                    {
+                        items = CalculatorDb.Items.Where(c => c.RkCode == SKURkCode).ToList();
+                    }
+                    foreach (var item1 in items)
+                    {
+                        item1.Coefficient += Delta;
+                    }
+                    break;
+                case "3":
+                    List<ItemsGroupTimeTT_Coefficient> itemsGroupTimeTT_Coefficients = new List<ItemsGroupTimeTT_Coefficient>();
+                    if (TTRkCode == 0 && timeGroup == "0")
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.ToList();
+                    }
+                    else if (TTRkCode == 0)
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
+                                                                                                 .Where(c => c.TimeGroup.Guid == timeGroupGuid).ToList();
+                    }
+                    else if (timeGroup == "0")
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Where(c => c.TTCODE == TTRkCode).ToList();
+                    }
+                    else
+                    {
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
+                                                                                                     .Where(c => c.TTCODE == TTRkCode && c.TimeGroup.Guid == timeGroupGuid).ToList();
+                    }
+                    foreach (var itemsGroupTimeTT_Coefficient in itemsGroupTimeTT_Coefficients)
+                    {
+                        itemsGroupTimeTT_Coefficient.Coefficient += Delta;
+                    }
+                    break;
+            }
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
         public async Task<IActionResult> LogSave(string logjsn)
         {
             var result = new RKNet_Model.Result<string>();
@@ -349,7 +503,7 @@ namespace Portal.Controllers
                     throw new Exception("401");
                 }
 
-               logjsn = logjsn.Replace("%bkspc%", " ");
+                logjsn = logjsn.Replace("%bkspc%", " ");
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);
                 calculatorLog.Date = DateTime.Now;
 
@@ -400,4 +554,20 @@ namespace Portal.Controllers
 
     }
 
+    public class CalculateCoefficientModel
+    {
+        public List<Models.MSSQL.Calculator.Items> Items { get; set; }
+        public List<Models.MSSQL.Calculator.TT> TT { get; set; }
+        public List<Models.MSSQL.Calculator.TimeGroups> TimeGroups { get; set; }
+    }
+
+    public class CalculateCoefficientTableModel
+    {
+
+        public int k { get; set; }
+        public List<Models.MSSQL.Calculator.Items> Items { get; set; }
+        public int MyProperty { get; set; }
+        public List<Models.MSSQL.Calculator.ItemOnTT> ItemOnTTs { get; set; }
+        public List<Models.MSSQL.Calculator.ItemsGroupTimeTT_Coefficient> ItemsGroupTimeTT_Coefficients { get; set; }
+    }
 }

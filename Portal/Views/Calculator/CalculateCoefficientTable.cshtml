@@ -1,0 +1,124 @@
+@model Portal.Controllers.CalculateCoefficientTableModel
+
+<div class="panel panel-default" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table nowrap">
+                            @if (Model.k == 1) { 
+                            <thead>
+                                <tr>
+                                    <th>СКЮ на точке</th>
+                                    <th>K1</th>
+                                </tr>
+                            </thead>
+                            <tbody>                                
+                                @foreach (var ItemsOnTT in Model.ItemOnTTs)
+                                {
+                                <tr id="@ItemsOnTT.Guid" class="activeRow" onclick="">
+                                    <td>
+                                            <p class="list-item-heading ttName">@ItemsOnTT.Name</p>
+                                    </td>
+                                    <td>
+                                                <p class="text-muted">@ItemsOnTT.Coefficient</p>
+                                    </td>
+                                 </tr>
+                                }
+                            </tbody>
+                            }
+                            @if (Model.k == 2)
+                            {
+                                <thead>
+                                    <tr>
+                                        <th>СКЮ</th>
+                                        <th>K2</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var Item in Model.Items)
+                                    {
+                                        <tr id="@Item.RkCode" class="activeRow" onclick="">
+                                            <td>
+                                                <p class="list-item-heading ttName">@Item.Name</p>
+                                            </td>
+                                            <td>
+                                                <p class="text-muted">@Item.Coefficient</p>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            }
+                            @if (Model.k == 3)
+                            {
+                                <thead>
+                                    <tr>
+                                        <th>Наименование</th>
+                                        <th>K3</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var Item in Model.ItemsGroupTimeTT_Coefficients)
+                                    {
+                                        <tr id="" class="activeRow" onclick="">
+                                            <td>
+                                                <p class="list-item-heading ttName">@Item.Name</p>
+                                            </td>
+                                            <td>
+                                                <p class="text-muted">@Item.Coefficient</p>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            }
+                        </table>                            
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var height = $('#global').height();
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+ <script>
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
+</script> 
+
+<!--клик по строке-->
+<script>
+    $('.activeRow').click(function () {
+       
+    });
+</script>
