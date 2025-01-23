@@ -46,7 +46,7 @@ namespace Portal.Controllers
                 categories = categories.Where(x => x.Actual == 1).ToList();
             }
 
-            // »спользуем ViewBag дл€ передачи дополнительных данных
+
             ViewBag.Actual = actual;
 
             return PartialView(categories);

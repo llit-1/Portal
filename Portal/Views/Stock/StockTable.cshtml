@@ -33,6 +33,9 @@
                 <div class="category_wrapper_list">
                     <div class="category_table_item" onclick="showDetails(this)">
                         <div class="table_item_subcategory" data-count="@category.Categories.Count()">@category.Name</div>
+                        <div>
+                            <img onclick="event.stopPropagation()" src="/themes/clearmin/img/settings.png" class="card_header_img">
+                        </div>
                     </div>
 
                     <div class="table_item_subcategoryNew" onclick="addSubCategoryItemModal(@category.Id)"> + </div>
@@ -225,8 +228,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.25s linear;
-        
+        transition: all 0.25s linear;   
     }
 
     .table_item_subcategoryNew:hover {

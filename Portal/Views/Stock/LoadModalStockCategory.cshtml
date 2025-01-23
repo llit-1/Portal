@@ -1,0 +1,176 @@
+@model Portal.Models.MSSQL.WarehouseCategories
+
+<div class="modal-content-stock">
+
+    <div class="stock-category-photo">
+        @if(Model.Img == null)
+        {
+            <img id="stock_category_img" src="/themes/clearmin/img/question.png" alt="" />
+        } else
+        {
+            <img id="stock_category_img" src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Img)" alt="" />
+        }
+
+        <div id="stock_category_download" onclick="selectImage()"> Выбрать </div>
+    </div>
+
+    <div class="stock-category-data">
+
+        <div class="category-data-label">
+            <label style="margin: 0px">Название категории</label>
+            @if(Model.Name != null)
+            {
+                <label class="ico md-delete data-label-ico" style="" onclick="DeleteCategory(@Model.Id)"></label> 
+            }
+        </div>
+
+        @if(Model.Name != null)
+        {
+            <p class="hidden" id="stock-category-parent"> @Model.Parent </p>
+            <p class="hidden" id="stock-category-actual">  @Model.Actual </p>
+            <p class="hidden" id="stock-category-img"> @Model.Img </p>
+            <input id="stock-category-name" value="@Model.Name" />
+
+            <div style="padding-right: 5px;">
+                <div class="material-switch pull-right">
+                    <input class="slider addCategory"
+                           id="addCategory_@Model.Id"
+                           type="checkbox"
+                    @(Model.Actual == 1 ? "checked" : "")
+                           onclick="event.stopPropagation(); switchActive(@Model.Id, event);" />
+
+                    <label for="addCategory_@Model.Id" class="label-warning"></label>
+                </div>
+
+                <span style="font-family: 'Akrobat-regular'; font-weight: bold;">Активность</span>
+            </div>
+            
+
+            <button onclick="SaveCategory(@Model.Id)"> Сохранить </button>
+        } else
+        {
+            <input id="stock-category-name"/>
+            <button onclick="SaveNewCategory()"> Добавить </button>
+        }
+        
+    </div>
+
+</div>
+
+
+
+<style>
+    .modal-content-stock {
+        margin: 15% auto;
+        padding: 20px;
+        background: white;
+        border: 1px solid #D3D2D2;
+        width: fit-content;
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+    }
+
+    .close-stock {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .stock-category-photo {
+        width: 160px;
+        height: 160px;
+        background: #80808036;
+        margin-right: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stock-category-photo > img {
+            width: 72%;
+            height: 72%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 5px;
+            margin-left: 5px;
+            margin-right: 5px;
+            border-radius: 5px;
+            padding: 10px;
+    }
+
+    .stock-category-photo > div {
+        padding: 5px;
+        margin: 5px;
+        width: 90%;
+        background: #bdbdbd;
+        text-align: center;
+        border-radius: 5px;
+        font-family: "Akrobat-regular";
+        cursor: pointer;
+        transition: all 0.25s linear;
+    }
+
+    .stock-category-photo > div:hover {
+        background-color: #E67E22;
+        color: white;
+    }
+
+    .stock-category-data {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .stock-category-data > label {
+        font-size: 16px;
+        font-family: "Akrobat-regular";
+    }
+
+    .category-data-label {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .category-data-label > label {
+        font-size: 16px;
+        font-family: "Akrobat-regular";
+    }
+
+    .category-data-label > .data-label-ico {
+        width: 19px;
+        margin-left: 0;
+        margin-right: 0;
+        position: relative;
+        left: 0;
+        top: 0;
+        height: 19px;
+        cursor: pointer;
+    }
+
+    .stock-category-data > button {
+        border: none;
+        padding: 5px;
+        font-size: 16px;
+        font-family: "Akrobat-regular";
+        transition: all 0.25s linear;
+        cursor: pointer;
+    }
+
+    .stock-category-data > button:hover {
+        background-color: #E67E22;
+        color: white;
+    }
+
+    .stock-category-data > input {
+        padding: 10px;
+        border: 1px solid #D3D2D2;
+    }
+</style>

@@ -323,20 +323,13 @@ namespace Portal.Controllers
             //return File(nxcam.SourceImage, "image/jpeg");
             return null;
         }
-
-        //// получение времени сессии из БД
-        //[HttpGet("GetSessionTime")]
-        //public IActionResult GetSessionTime()
-        //{
-        //    var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
-        //    return new ObjectResult(sessionTime);
-        //}
         
         // получение времени сессии из БД
         [HttpGet("GetSessionTime")]
         public IActionResult GetSessionTime()
         {
-            var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.UserName.ToLower() == User.Identity.Name.ToLower()).Date;
+            var idFromSql = db.Users.FirstOrDefault(x => x.Name.ToLower() == User.Identity.Name.ToLower()).Id;
+            var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql).Date;
             var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
 
             var sessionEndTime = sessionStartFromDBSQL.AddMinutes(sessionTime); 

@@ -11,7 +11,16 @@
     month = Model.CurrentDate.Month;
     year = Model.CurrentDate.Year;
     currentMonthDays = DateTime.DaysInMonth(year, month);
-    pastMonthDays = DateTime.DaysInMonth(year, month - 1);
+
+
+    if(month == 1)
+    {
+        pastMonthDays = DateTime.DaysInMonth(year, month);
+    } else {
+        pastMonthDays = DateTime.DaysInMonth(year, month - 1);
+    }
+
+    
 
     if (month < 10)
     {
