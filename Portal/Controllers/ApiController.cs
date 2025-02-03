@@ -328,7 +328,7 @@ namespace Portal.Controllers
         [HttpGet("GetSessionTime")]
         public IActionResult GetSessionTime()
         {
-            var idFromSql = db.Users.FirstOrDefault(x => x.Name.ToLower() == User.Identity.Name.ToLower()).Id;
+            var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
             var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql).Date;
             var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
 

@@ -676,7 +676,7 @@ namespace Portal.Controllers
                     videoDevices.Location = dbSql.Locations.FirstOrDefault();
                     videoDevices.Status = 1;
                     videoDevices.Ip = ip.Trim() + ":8080";
-                    videoDevices.VideoList = "[]";
+                    videoDevices.VideoList = "[" + dbSql.VideoInfo.LastOrDefault().Name + "]";
                     videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
                     dbSql.Add(videoDevices);
                     dbSql.SaveChanges();
