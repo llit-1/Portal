@@ -493,7 +493,7 @@
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
-                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${address}&ip=${ip}&arr=${result}`,
+                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${address}&ip=${ip}&arr=${result}&guid=${guid}`,
                             success: function (result) {
                                 if (result.ok) {
                                     SpinnerHide();

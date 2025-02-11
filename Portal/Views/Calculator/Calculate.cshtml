@@ -246,14 +246,7 @@
                     if (!ok.ok) {
                         switch(ok.errorMessage){
                             case "401":
-                                fetch('/Account/Logout')
-                                openModal('Ошибка', "Ошибка сессии. Попробуйте повторно авторизоваться");
-                                document.querySelector('.closeModal').addEventListener('click', () => {
-                                    location.reload()
-                                })
-                                document.querySelector('.closeModal > div > span').addEventListener('click', () => {
-                                    location.reload()
-                                })
+                                location.reload()
                             break
                             default:
                                 openModal('Ошибка', "Ошибка контроллера. Попробуйте повторить попытку позже");
@@ -263,6 +256,12 @@
                 },
             });
         } catch(e) {
+
+            if(e.status == 401)
+            {
+                location.reload()
+            }
+
             openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
             document.querySelectorAll(".answer").forEach(x => x.textContent = 0)
             document.querySelectorAll(".inputObject").forEach(x => x.value = "")

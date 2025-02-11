@@ -46,14 +46,12 @@ namespace Portal
                 {
                     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
                     options.LogoutPath = new Microsoft.AspNetCore.Http.PathString("/Account/Logout");
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(SessionMinutes); // время истечения срока действия куки
-                    options.SlidingExpiration = true;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(SessionMinutes);
 
-                    options.Cookie.Name = ".PortalLL.Auth"; // Уникальное имя
                     options.Cookie.HttpOnly = true;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Для HTTPS
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                     options.Cookie.SameSite = SameSiteMode.Lax;
-                    options.Cookie.IsEssential = true;
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(SessionMinutes);
                 });
 
             services.AddControllersWithViews()
@@ -95,7 +93,11 @@ namespace Portal
             {
                 options.Cookie.Name = ".PortalLL.Session";
                 options.IdleTimeout = TimeSpan.FromMinutes(SessionMinutes);
-                options.Cookie.HttpOnly = true;
+                options.Cookie.HttpOnly = false;
+                options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.MaxAge = TimeSpan.FromMinutes(SessionMinutes);
             });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

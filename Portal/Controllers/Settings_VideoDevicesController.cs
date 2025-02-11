@@ -641,12 +641,12 @@ namespace Portal.Controllers
             var model = Tuple.Create(videoInfos, locations, videoDevices);
             return Json(model);
         }
-        public IActionResult SaveDevice(string locationGuid, string ip, string arr)
+        public IActionResult SaveDevice(string locationGuid, string ip, string arr, string guid)
         {
             var result = new Result<string>();
             try
             {
-                VideoDevices videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).FirstOrDefault(x => x.Ip == ip.Trim());
+                VideoDevices videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).FirstOrDefault(x => x.Guid == Guid.Parse(guid));
                 videoDevices.Location = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(locationGuid));
                 videoDevices.Status = 1;
                 videoDevices.Ip = ip.Trim();

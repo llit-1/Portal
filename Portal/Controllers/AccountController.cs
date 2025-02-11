@@ -211,20 +211,11 @@ namespace Portal.Controllers
                 claims.Add(new Claim(ClaimsIdentity.DefaultRoleClaimType, role.Code));
             }
 
-            // создаем объект ClaimsIdentity
             ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
 
-            // Создаем AuthenticationProperties
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60),
-                AllowRefresh = true
-            };
+            // установка аутентификационных куки
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
-                                          new ClaimsPrincipal(new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType)),
-                                          authProperties);
 
             // фиксируем дату и время входа пользователя
             var lastLogin = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
