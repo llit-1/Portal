@@ -50,35 +50,60 @@ function CheckAutorization() {
 }
 
 // выброс пользователя по истечении заданного времени
-function AutoLogout() {
-    //$.get('/Settings/GetSessionTime', function (time) {
-    //time = time * 60 * 1000;
-    //setTimeout(function () {
-    //window.location.replace('Account/Logout');
-    //}, time);
-    //});
+//function AutoLogout() {
 
+//    $.get('/Api/GetSessionTime', function (time) {
+//        autoLogout(time);
+//    });
+
+//    function autoLogout(time) {
+//        var remain = time * 60; // остаток времени в секундах
+
+//        setInterval(function () {
+//            $("#time").html(Math.trunc(remain));
+//            remain = remain - 1;
+//            if (remain <= 0) {
+//                window.location.replace('Account/Logout');
+//            }
+//        }, 1000);
+
+//        setTimeout((x => {
+//            remain = 0;
+//        }), remain * 1000)
+//    }
+//}
+//AutoLogout();
+
+
+function AutoLogout() {
     $.get('/Api/GetSessionTime', function (time) {
-        autoLogout(time);
+        startWorker(time * 60);
     });
 
-    function autoLogout(time) {
-        var remain = time * 60; // остаток времени в секундах
-        
-        setInterval(function () {
-            $("#time").html(Math.trunc(remain));
-            remain = remain - 1;
-            if (remain <= 0) {
-                window.location.replace('Account/Logout');
-            }
-        }, 1000);
+    function startWorker(time) {
 
-        setTimeout((x => {
-            remain = 0;
-        }), remain * 1000)
+
+        if (window.Worker) {
+
+            const worker = new Worker('themes/clearmin/js/worker.js');
+            worker.postMessage(time);
+
+            worker.onmessage = function (e) {
+                if (e.data === "logout") {
+                    window.location.replace('Account/Logout');
+                } else {
+                    $("#time").html(Math.trunc(e.data));
+                }
+            };
+        }
     }
 }
+
 AutoLogout();
+
+
+
+
 
 // уведомления
 function Alerts() {
