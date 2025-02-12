@@ -54,7 +54,7 @@
                             <td class="defrostTime" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
                             <td class="bakingMode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
                             <td>
-                                <input class="inputObject" maxlength="4" type="text" size='4' oninput='calculate(this)'>
+                                <input class="inputObject" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)'>
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>                            
                             <td class="hidden">
@@ -79,7 +79,7 @@
                                 <input class="itemMinShowCase" value="@Model.Items[i].ItemOnTT.Item.MinShowCase">
                             </td>
                             <td>
-                                <input class="fact" maxlength="4" type="text" size='4' oninput='factChange(this)'>
+                                <input class="fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
                             </td>
                         </tr>
                     }
@@ -164,7 +164,12 @@
         log.TTName = '@Html.Raw(Model.TTs[0].Name)';
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
-        WriteLog(log)
+
+        $("#spinner").show()
+        document.querySelectorAll(".inputObject").forEach(x => x.disabled = true)
+        document.querySelectorAll(".fact").forEach(x => x.disabled = true)
+
+        WriteLog(log, inputObject)
     }
 </script>
 
@@ -196,45 +201,27 @@
         log.Rest = inputObject.value;
         log.Result = answerObject.textContent;
         log.Fact = factObject.value;
-        WriteLog(log)
+
+        // Закрываем инпуты для ввода и активируем loader
+        $("#spinner").show()
+        document.querySelectorAll(".inputObject").forEach(x => x.disabled = true)
+        document.querySelectorAll(".fact").forEach(x => x.disabled = true)
+
+        WriteLog(log, factObject)
     }
 </script>
 
 <script>
-    async function WriteLog(log) {
-        /*let attempts = 0;
-        const maxAttempts = 10;
-        const timeout = 3000;
 
-        async function sendLog(log) {
-            var logjsn = JSON.stringify(log);
-            logjsn = logjsn.replace(/ /g, "%bkspc%"); // экранирование пробелов
+    let attempts = 0;
 
-            try {
-                await $.ajax({
-                    type: "POST",
-                    url: '/Calculator/LogSave',
-                    data: { logjsn: logjsn },
-                    dataType: "text",
-                });
-            } catch (error) {
-                if (attempts < maxAttempts) {
-                    attempts += 1;
-                    await new Promise(resolve => setTimeout(resolve, timeout));
-                    await sendLog(log);
-                } else {
-                    openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
-                }
-            }
-        }
-
-        await sendLog(log);
-        */
+    async function WriteLog(log, element) {
 
         var logjsn = JSON.stringify(log);
-        logjsn = logjsn.replace(/ /g, "%bkspc%"); // экранирование пробелов
+        logjsn = logjsn.replace(/ /g, "%bkspc%");
 
         try {
+
             await $.ajax({
                 type: "POST",
                 url: '/Calculator/LogSave',
@@ -242,7 +229,7 @@
                 dataType: "text",
                 success: function (result) {
                     const ok = JSON.parse(result)
-                    
+                    console.log(1)
                     if (!ok.ok) {
                         switch(ok.errorMessage){
                             case "401":
@@ -253,6 +240,10 @@
 
                         }
                     }
+
+                    $("#spinner").hide()
+                    document.querySelectorAll(".inputObject").forEach(x => x.disabled = false)
+                    document.querySelectorAll(".fact").forEach(x => x.disabled = false)
                 },
             });
         } catch(e) {
@@ -262,9 +253,31 @@
                 location.reload()
             }
 
-            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
-            document.querySelectorAll(".answer").forEach(x => x.textContent = 0)
-            document.querySelectorAll(".inputObject").forEach(x => x.value = "")
+            if(e.status == 0)
+            {
+                await setTimeout(async () => {
+                    if(attempts >= 4)
+                    {
+                        $("#spinner").hide()
+                        attempts = 0
+                        document.querySelectorAll(".inputObject").forEach(x => x.disabled = false)
+                        document.querySelectorAll(".fact").forEach(x => x.disabled = false)
+
+                        element.value = ""
+                        let planId = +element.parentElement.parentElement.children[0].textContent - 1
+
+                        document.getElementById(planId).textContent = 0
+
+                        openModal('Ошибка', "Нет соединения с интернетом, проверьте подключение");
+
+                    } else {
+                        attempts++
+                        await WriteLog(log, element)
+                    }
+                }, 2500)
+                
+            }
+           
         }
     }
 </script>

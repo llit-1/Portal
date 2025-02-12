@@ -73,7 +73,8 @@ window.addEventListener('click', (event) => {
 // Функция для открытия модального окна с сообщением
 function openModal(header, body) {
     modalHeader.textContent = header;
-    //modalBody.innerHTML = body.replace(/\n/g, '<br>');
+    modalBody.innerHTML = body.replace(/\n/g, '<br>');
+    console.log(1)
     modalDiv.style.display = 'block';
 }
 
