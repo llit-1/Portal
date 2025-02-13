@@ -233,24 +233,37 @@
                     if (!ok.ok) {
                         switch(ok.errorMessage){
                             case "401":
-                                location.reload()
+                                openModal(
+                                    'Аккаунт использован на другом устройстве',
+                                    'Ваша учетная запись была использована на другом устройстве. Пожалуйста, войдите снова.'
+                                );
+                                setTimeout((x) => {
+                                    window.location.replace('Account/Logout');
+                                }, 10000)
                             break
                             default:
                                 openModal('Ошибка', "Ошибка контроллера. Попробуйте повторить попытку позже");
-
                         }
                     }
 
                     $("#spinner").hide()
                     document.querySelectorAll(".inputObject").forEach(x => x.disabled = false)
                     document.querySelectorAll(".fact").forEach(x => x.disabled = false)
+                    element.focus()
                 },
             });
         } catch(e) {
 
             if(e.status == 401)
             {
-                location.reload()
+                openModal(
+                    'Сессия истекла',
+                    'Время действия вашей сессии истекло. Пожалуйста, войдите снова.'
+                );
+                setTimeout((x) => {
+                    location.reload()
+                }, 10000)
+               
             }
 
             if(e.status == 0)
