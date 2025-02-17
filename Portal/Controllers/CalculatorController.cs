@@ -447,7 +447,7 @@ namespace Portal.Controllers
                     foreach (var itemOnTT in itemOnTTs)
                     {
                         itemOnTT.Coefficient += Delta;
-                    }                    
+                    }
                     break;
                 case "2":
                     List<Models.MSSQL.Calculator.Items> items = new List<Models.MSSQL.Calculator.Items>();
@@ -493,6 +493,85 @@ namespace Portal.Controllers
             CalculatorDb.SaveChanges();
             return Ok();
         }
+
+
+        public IActionResult CalculateSKU()
+        {
+            return PartialView();
+        }
+
+
+        public IActionResult CalculateSKUTable()
+        {
+            List<Items> items = CalculatorDb.Items.ToList();
+            List<ItemsGroups> itemGroups = CalculatorDb.ItemsGroups.ToList();
+            List<SKUTableItem> sKUTableItems = new List<SKUTableItem>();
+            foreach (var item in items)
+            {
+                sKUTableItems.Add(new SKUTableItem() { Item = item, GroupName = itemGroups.FirstOrDefault(c => c.Guid == item.ItemsGroup).Name });
+            }
+            return PartialView(sKUTableItems);
+        }
+
+        public IActionResult CalculateSKUEdit(string SKUId)
+        {
+            int id = Int32.Parse(SKUId);
+            SKUEditItem sKUEditItem = new SKUEditItem();
+            sKUEditItem.ItemsGroups = CalculatorDb.ItemsGroups.ToList();
+            if (id == 0)
+            {
+                return PartialView(sKUEditItem);
+            }
+            sKUEditItem.Item = CalculatorDb.Items.FirstOrDefault(c => c.RkCode == id);
+            sKUEditItem.ItemsGroup = CalculatorDb.ItemsGroups.FirstOrDefault(c => c.Guid == sKUEditItem.Item.ItemsGroup);
+            return PartialView(sKUEditItem);
+        }
+
+        [HttpPost]
+
+        public IActionResult SaveSKU([FromBody] Items SKU)
+        {
+            if (SKU == null)
+            {
+                return BadRequest("SKU is null");
+            }
+            Items item = CalculatorDb.Items.FirstOrDefault(c => c.RkCode == SKU.RkCode);
+            if (item is null) // создание СКЮ
+            {
+                CalculatorDb.Items.Add(SKU);
+            }
+            else // изменение СКЮ
+            {
+                item.Name = SKU.Name;
+                item.RkCode = SKU.RkCode;
+                item.ItemsGroup = SKU.ItemsGroup;
+                item.Coefficient = SKU.Coefficient;
+                item.Sequence = SKU.Sequence;
+                item.DefrostTime = SKU.DefrostTime;
+                item.BakingMode = SKU.BakingMode;
+                item.MinShowCase = SKU.MinShowCase;
+            }
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+        [HttpDelete]
+        public IActionResult DeleteSKU(string RkCode)
+        {
+            int skuCode = int.Parse(RkCode); 
+            Items item = CalculatorDb.Items.FirstOrDefault(c => c.RkCode == skuCode);
+            if (item is null) // создание СКЮ
+            {
+                return BadRequest("СКЮ " + skuCode +" отсутствует в БД");
+            }
+            else // изменение СКЮ
+            {
+                CalculatorDb.Items.Remove(item);
+            }
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
         public async Task<IActionResult> LogSave(string logjsn)
         {
             var result = new RKNet_Model.Result<string>();
@@ -566,8 +645,24 @@ namespace Portal.Controllers
 
         public int k { get; set; }
         public List<Models.MSSQL.Calculator.Items> Items { get; set; }
-        public int MyProperty { get; set; }
         public List<Models.MSSQL.Calculator.ItemOnTT> ItemOnTTs { get; set; }
         public List<Models.MSSQL.Calculator.ItemsGroupTimeTT_Coefficient> ItemsGroupTimeTT_Coefficients { get; set; }
     }
+
+    public class SKUTableItem
+    {
+        public Items Item { get; set; }
+        public string GroupName { get; set; }
+
+    }
+
+    public class SKUEditItem
+    {
+        public Items Item { get; set; }
+        public ItemsGroups ItemsGroup { get; set; }
+        public List<ItemsGroups> ItemsGroups { get; set; }
+
+    }
+
+
 }

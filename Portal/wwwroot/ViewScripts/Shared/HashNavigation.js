@@ -67,7 +67,7 @@ $(function () {
         if (hash == '#Sandwitch') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=9C42DDD0-3ABE-4105-AFA1-BFDA989C3836');             // калькуляторы -> сэндвичи 2
         if (hash == '#OtherCalculate') loadContent(hash.replace('#', ''), '/Calculator/Calculate?typeGuid=06BE0412-8D99-4111-99A9-98172E0D3930');// калькуляторы -> Прочее
         if (hash == '#CalculateSettings') loadTabMenu(hash.replace('#', ''), '/Calculator/TabMenu');// калькуляторы -> Настройки
-        
+        if (hash == '#CalculateSKU') $('#page').load('/Calculator/CalculateSKU');
         // Учет рабочего времени
         if (hash == '#staff') loadContent(hash.replace('#', ''), '/Home/Staff');
         if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');

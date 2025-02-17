@@ -1,0 +1,166 @@
+﻿@model Portal.Controllers.SKUEditItem
+
+@{
+    // загрузка модальных окошек в представление
+    await Html.RenderPartialAsync("ModalWindows");
+
+    var display = "";
+    var disabled = "disabled";
+    var formClass = "input-group";
+    var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
+
+}
+  <div class="row flex bg-white" style="margin:0px">
+
+    <div class="col-md-4 col-lg-4" @blockStyle>
+        <!--Название-->
+        <h5 class="pull-left">Название</h5>
+
+        <!--разделитель-->
+        <hr style="width:100%" />
+
+        <!--Наименование СКЮ-->
+        <label class="label-light">Наименование СКЮ</label>
+        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+            <input id="SKUName" type="text" class="form-control" value="@Model?.Item?.Name" style="font-weight:bold">
+        </div>
+
+        <!--код-->
+        <label class="label-light">Код СКЮ</label>
+        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+            <input id="SKUCode" type="text" class="form-control" value="@Model?.Item?.RkCode" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        </div>
+
+        <label class="label-light">Группа</label>
+        <div style="width:100%; float:left; margin-bottom:15px">
+            <select id="SKUGroup" class="form-control selectors" data-width="100%">
+                @foreach (var itemsGroup in Model?.ItemsGroups.OrderBy(o => o.Name))
+                {
+                    if (itemsGroup.Guid == Model?.ItemsGroup?.Guid)
+                    {
+                        <option value="@itemsGroup.Guid" selected="true">@itemsGroup.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@itemsGroup.Guid">@itemsGroup.Name</option>
+                    }
+                }
+            </select>
+
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-4" @blockStyle>
+            <!--заголовок-->
+            <h5 class="pull-left">Переменные</h5>
+            <!--разделитель-->
+            <hr style="width:100%" />
+            <label class="label-light">K2</label>
+        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+            <input id="SKUCoefficient" type="text" class="form-control" value="@Model?.Item?.Coefficient" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1').replace(/^\./, '').replace(/\.(\d{2})\d+/, '.$1');">
+            </div>
+            <label class="label-light">Минимальное значение полки</label>
+        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+            <input id="SKUMinShowCase" type="text" class="form-control" value="@Model?.Item?.MinShowCase" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+        <label class="label-light">Время подготовки</label>
+        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+            <input id="SKUDefrostTime" type="text" class="form-control" value="@Model?.Item?.DefrostTime" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        </div>
+            
+    </div>
+    <div class="col-md-4 col-lg-4" @blockStyle>
+            <!--заголовок-->
+            <h5 class="pull-left">Справочная информация</h5>
+            <!--разделитель-->
+            <hr style="width:100%" />
+        <label class="label-light">Очередность</label>
+        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+            <input id="SKUSequence" type="text" class="form-control" value="@Model?.Item?.Sequence" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        </div>
+            <label class="label-light">Режим выпечки</label>
+        <div style="width:100%" class="@formClass" style="margin-bottom:15px">
+            <input id="SKUBakingMode" type="text" class="form-control" value="@Model?.Item?.BakingMode" style="font-weight:bold">
+            </div>
+        </div>
+  </div>
+<div class="row flex bg-white" style="margin: 0px; display: flex; padding: 40px;">
+    <button type="button" class="btn btn-sm btn-success default" onclick="SaveNewItem()">Сохранить</button>
+    <button type="button" class="btn btn-sm btn-danger default" style="margin-left: auto;" onclick="DeleteItem()">Удалить</button>
+</div>
+<!----------------------------скрипты----------------------------------->
+
+
+
+
+
+<!--сохранить новую роль-->
+<script>
+     $('#back').on('click', function(event) {
+      event.preventDefault(); // Отменяем стандартное поведение ссылки
+      $('#page').load('/Calculator/CalculateSKU'); // Загружаем контент
+    });
+</script>
+
+
+
+<script>
+  function SaveNewItem() {
+      const SKU = {
+            Name:  document.getElementById('SKUName').value,
+            RkCode: document.getElementById('SKUCode').value,
+            ItemsGroup: document.getElementById('SKUGroup').value,
+            Coefficient: document.getElementById('SKUCoefficient').value,
+            Sequence: +document.getElementById('SKUSequence').value,
+            DefrostTime: document.getElementById('SKUDefrostTime').value,
+            BakingMode: document.getElementById('SKUBakingMode').value,
+            MinShowCase: +document.getElementById('SKUMinShowCase').value
+      };
+
+      if(SKU.Name === '') {
+        alert('Не указано имя');
+        return;
+      }
+      if(SKU.RkCode === '') {
+        alert('Не указан код R-keeper');
+        return;
+      }
+      if(SKU.Coefficient === ''){
+        alert('Не указан K2');
+        return;
+      }
+      fetch('/Calculator/SaveSKU', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(SKU)
+      })
+      .then(response => {
+           if (!response.ok) {
+              return response.text().then(errorMessage => {
+              alert(`Ошибка: ${errorMessage}`); // Показываем сообщение об ошибке
+              });
+      }
+        alert('Данные успешно изменены');
+        return;
+      })
+  }
+</script>
+
+<!--удаление-->
+<script>
+    function DeleteItem() {
+        RkCode = +document.getElementById('SKUCode').value;
+         fetch('/Calculator/DeleteSKU?RkCode=' + RkCode, {
+        method: 'DELETE'
+      })
+      .then(response => {
+           if (!response.ok) {
+              return response.text().then(errorMessage => {
+              alert(`Ошибка: ${errorMessage}`); // Показываем сообщение об ошибке
+              });
+      }
+        alert('СКЮ успешно удалена');
+        $('#page').load('/Calculator/CalculateSKU');
+        return;
+      })
+    }
+</script>
