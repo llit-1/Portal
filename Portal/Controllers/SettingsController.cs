@@ -88,7 +88,7 @@ namespace Portal.Controllers
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-                    using (var command = new SqlCommand($"EXEC UpdateSaleobjects @now = '{morning}', @daysAgo = '-{daysAgo}' ", (SqlConnection)connection))
+                    using (var command = new SqlCommand($"EXEC RKNET.dbo.UpdateSaleobjects @now = '{morning}', @daysAgo = '-{daysAgo}' ", (SqlConnection)connection))
                     {
                         command.CommandTimeout = 900;
                         int rowsAffected = await command.ExecuteNonQueryAsync();
