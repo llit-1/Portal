@@ -1,0 +1,225 @@
+﻿@model Portal.Controllers.CalculateSpecialDays
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+
+        <div class="row" style="margin-top: 0px; margin-bottom:10px">
+            <!--Назад-->
+            <a id="back" href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+                <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+            </a>
+        </div>
+
+        <!--меню таблицы-->
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <a href="#AddRole" class="btn btn-sm btn-success" onclick="openModal()">добавить</a>
+        </div>
+    </div>
+</div>
+
+<div id="page" style="margin-top:15px"></div>
+
+<div class="panel panel-default" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Дата</th>
+                                    <th>Группа дней</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.SpecialDays.OrderBy(r => r.Date))
+                                {
+                                    <tr id="@item.Id" class="activeRow" onclick="">
+                                        <td>
+                                            <p class="text-muted tableId">@item.Id</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted tableDate">@item.Date.ToString("yyyy-MM-dd")</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-muted tableDayGroups" id="@item.DayGroups.Guid">@item.DayGroups.Name</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--модальное окно: добавление кассы-->
+<div id="addModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
+                <h4 class="modal-title" id="myModalLabel">
+                    Спецдень
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+            </div>
+
+            <!--содержимое-->
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <!--id-->
+                    <div id="nameForm">
+                        <br />
+                        <label for="cashName" class="col-sm-4 control-label">id</label>
+                        <div class="input-group col-sm-5">
+                            <input type="text" class="form-control" id="modalid" disabled>
+                        </div>
+                    </div>
+
+                    <!--Дата-->
+                    <div id="midserverForm">
+                        <br />
+                        <label for="midserver" class="col-sm-4 control-label">Дата</label>
+                        <div class="input-group col-sm-5">
+                            <input type="date" class="form-control" id="modaldate">
+                        </div>
+                    </div>
+
+                    <!--DayGroup-->
+                    <div id="restForm">
+                        <br />
+                         <label for="restSifr" class="col-sm-4 control-label">Группа дней</label>
+                        <div class="input-group col-sm-5">
+                            <select id="modaldaygroup" class="form-control selectors">                        
+                                @foreach (var daygroup in Model.DayGroups.OrderBy(o => o.FirstDay))
+                                {
+                                    <option value="@daygroup.Guid">@daygroup.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!--кнопки-->
+            <div class="modal-footer">
+                <button id="deleteCash" type="button" class="btn btn-sm btn-danger" onclick="deleteSpesialDay()" style="float:left">удалить</button>
+                <button type="button" class="btn btn-sm btn-success" data-dismiss="modal" onclick="saveSpesialDay()">сохранить</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    var height = $('#global').height();
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+<script>
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
+</script>
+
+<!--клик по строке-->
+<script>
+    $('.activeRow').click(function () {
+       openModal(this.id)        
+    });
+</script>
+
+<script>
+    function openModal(id){
+     $("#modalid").val($(`#${id} .tableId`).text());
+     $("#modaldate").val($(`#${id} .tableDate`).text());
+     console.log($(`#${id} .tableDate`).text());
+     $("#modaldaygroup").val($(`#${id} .tableDayGroups`).prop('id'));
+     $("#addModal").modal("show");
+    }
+</script>
+
+<script>
+   function saveSpesialDay(){
+    const specialDay = {
+    Id:  document.getElementById('modalid').value,
+    Date: document.getElementById('modaldate').value,
+    DayGroupsGuid: document.getElementById('modaldaygroup').value
+    };
+    if (specialDay.Date === '') {
+    alert('Не указано имя');
+    return;
+    }
+     fetch('/Calculator/SaveSpecialDay', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(specialDay)
+    })
+    .then(response => {
+    if (!response.ok) {
+    return response.text().then(errorMessage => {
+    alert(`Ошибка: ${errorMessage}`); // Показываем сообщение об ошибке
+    });
+    }
+    alert('Данные успешно изменены');
+    $("#addModal").modal("hide");
+     loadUrl('/Calculator/CalculateSpesialDays')
+    return;
+    })
+   }
+</script>
+
+
+<script>
+
+    function deleteSpesialDay() {
+        Id =  +document.getElementById('modalid').value;
+         fetch('/Calculator/DeleteSpesialDay?Id=' + Id, {
+        method: 'DELETE'
+      })
+      .then(response => {
+           if (!response.ok) {
+              return response.text().then(errorMessage => {
+              alert(`Ошибка: ${errorMessage}`); // Показываем сообщение об ошибке
+              });
+      }
+        alert('Спецдень успешно удален');
+        $("#addModal").modal("hide");
+        loadUrl('/Calculator/CalculateSpesialDays')
+        return;
+      })
+    }
+</script>

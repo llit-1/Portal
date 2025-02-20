@@ -527,6 +527,16 @@ namespace Portal.Controllers
             return PartialView(sKUEditItem);
         }
 
+        public IActionResult CalculateSpesialDays(string SKUId)
+        {
+            CalculateSpecialDays calculateSpecialDays = new CalculateSpecialDays();
+
+            calculateSpecialDays.SpecialDays = CalculatorDb.SpecialDays.Include(c => c.DayGroups).ToList();
+            calculateSpecialDays.DayGroups = CalculatorDb.DayGroups.ToList();
+            return PartialView(calculateSpecialDays);
+        }
+
+
         [HttpPost]
 
         public IActionResult SaveSKU([FromBody] Items SKU)
@@ -558,19 +568,55 @@ namespace Portal.Controllers
         [HttpDelete]
         public IActionResult DeleteSKU(string RkCode)
         {
-            int skuCode = int.Parse(RkCode); 
+            int skuCode = int.Parse(RkCode);
             Items item = CalculatorDb.Items.FirstOrDefault(c => c.RkCode == skuCode);
             if (item is null) // создание СКЮ
             {
-                return BadRequest("СКЮ " + skuCode +" отсутствует в БД");
+                return BadRequest("СКЮ " + skuCode + " отсутствует в БД");
             }
-            else // изменение СКЮ
-            {
-                CalculatorDb.Items.Remove(item);
-            }
+            CalculatorDb.Items.Remove(item);
             CalculatorDb.SaveChanges();
             return Ok();
         }
+
+        [HttpPost]
+        public IActionResult SaveSpecialDay([FromBody] FrontSpecialDay frontSpecialDay)
+        {
+            if (frontSpecialDay == null)
+            {
+                return BadRequest("data is null");
+            }
+            if (frontSpecialDay.Id == null)
+            {
+                SpecialDay specialDay = new SpecialDay();
+                specialDay.DayGroups = CalculatorDb.DayGroups.FirstOrDefault(c => c.Guid == frontSpecialDay.DayGroupsGuid);
+                specialDay.Date = frontSpecialDay.Date;
+                CalculatorDb.SpecialDays.Add(specialDay);
+            }
+            else
+            {
+                SpecialDay specialDay = CalculatorDb.SpecialDays.FirstOrDefault(c => c.Id == frontSpecialDay.Id);
+                specialDay.Date = frontSpecialDay.Date;
+                specialDay.DayGroups = CalculatorDb.DayGroups.FirstOrDefault(c => c.Guid == frontSpecialDay.DayGroupsGuid);
+            }
+            CalculatorDb.SaveChanges(true);
+            return Ok();
+        }
+
+        [HttpDelete]
+        public IActionResult DeleteSpesialDay(string Id)
+        {
+            int id = int.Parse(Id);
+            SpecialDay specialDay = CalculatorDb.SpecialDays.FirstOrDefault(c => c.Id == id);
+            if (specialDay == null)
+            {
+                return BadRequest("invalid id");
+            }
+            CalculatorDb.SpecialDays.Remove(specialDay);
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
 
         public async Task<IActionResult> LogSave(string logjsn)
         {
@@ -664,5 +710,17 @@ namespace Portal.Controllers
 
     }
 
+    public class CalculateSpecialDays
+    {
+        public List<SpecialDay> SpecialDays { get; set; }
+        public List<DayGroups> DayGroups { get; set; }
+    }
+
+    public class FrontSpecialDay
+    {
+        public int? Id { get; set; }
+        public DateTime Date { get; set; }
+        public Guid DayGroupsGuid { get; set; }
+    }
 
 }
