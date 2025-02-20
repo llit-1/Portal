@@ -90,8 +90,8 @@
                 <div class="rightBlockPersonData">
                     <label class="label-light">ТТ</label>
                     @* Выбор ТТ *@
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="TTPerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Location.Name" placeholder="Выберите ТТ">
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto;display: flex;gap: 10px;">
+                        <select required id="TTPerson" style="width: 90%;" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Location.Name" placeholder="Выберите ТТ">
 
                         <option value="@Model.PersonalitiesVersions.Location.Guid">@Model.PersonalitiesVersions.Location.Name</option>
 
@@ -100,6 +100,8 @@
                                     <option value="@location.Guid">@location.Name</option>
                             }
                         </select>
+
+                        <div class="ttmore" onclick="createModal()">...</div>
                     </div>
 
                     <label class="label-light">Дата приема на работу</label>
@@ -725,7 +727,214 @@
     
 </script>
 
+<style>
+    .ttmore {
+        border: 1px solid black;
+        height: 4vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        width: 20%;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        cursor: pointer;
+    }
+
+    .select2-container--bootstrap4 .select2-selection__rendered {
+        font-size: 11px !important;
+    }
+
+    span.select2-dropdown {
+        margin-top: 30px !important;
+    }
+
+    .selectMoreTTButtons {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+
+    }
+
+    .selectMoreTTButtons button {
+            width: fit-content;
+            height: 25px;
+            font-size: 9px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+    }
+
+</style>
+
+<script>
+
+         // Функция для создания модального окна
+    function createModal() {
+        // Создаем элементы
+        const modal = document.createElement("div");
+        const modalContent = document.createElement("div");
+        const closeBtn = document.createElement("span");
+        const title = document.createElement("h2");
+        const text = document.createElement("p");
+
+        title.style.textAlign = "center";
+        title.style.fontSize = "14px";
+        title.style.paddingBottom = "10px"
+
+        // Добавляем классы и атрибуты
+        modal.classList.add("modal");
+        modalContent.classList.add("modal-content");
+        closeBtn.classList.add("close");
+        closeBtn.innerHTML = "&times;"; // Крестик для закрытия
+        title.textContent = "Выбор дополнительных точек";
+        text.innerHTML = `
+            <div style="width:100%">
+                <select id="tt" class="form-control selectors" data-width="100%" multiple="multiple">
+                </select>
+            </div>
+            
+            <div class="selectMoreTTButtons">
+                <button class="btn btn-gray" onClick='removeModal()' type="button"> Отмена </button>
+                <button class="btn btn-success" onClick="SaveMoreTT()" type="button">Сохранить</button>
+            </div>
+            `;
+
+        // Добавляем стили через JavaScript
+        modal.style.display = "flex";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "1000";
+
+        modalContent.style.backgroundColor = "white";
+        modalContent.style.padding = "20px 20px 10px 20px";
+        modalContent.style.borderRadius = "10px";
+        modalContent.style.width = "300px";
+        modalContent.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+        modalContent.style.position = "relative";
+
+        closeBtn.style.position = "absolute";
+        closeBtn.style.top = "10px";
+        closeBtn.style.right = "10px";
+        closeBtn.style.fontSize = "24px";
+        closeBtn.style.cursor = "pointer";
+
+        closeBtn.addEventListener("mouseenter", () => {
+            closeBtn.style.color = "red";
+        });
+
+        closeBtn.addEventListener("mouseleave", () => {
+            closeBtn.style.color = "black";
+        });
+
+        // Собираем структуру
+        modalContent.appendChild(closeBtn);
+        modalContent.appendChild(title);
+        modalContent.appendChild(text);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+
+        // Инициализация select2 после добавления элемента в DOM
+        $('#tt').select2({
+            theme: "bootstrap4",
+            language: "ru",
+            closeOnSelect: false,
+            placeholder: "выберите ТТ..."
+        });
+
+        // События изменения в селекторах
+        $('.selectors').on('select2:select', function (e) { SelectChange(this) });
+        $('.selectors').on('select2:unselect', function (e) { SelectChange(this) });
+
+        // Закрытие модального окна
+        closeBtn.addEventListener("click", () => {
+            document.body.removeChild(modal);
+        });
+
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
 
 
 
 
+        $.ajax({
+        type: 'GET',
+        url: `/Personality/GetLocationList?guid=${document.getElementById('personGUID').value}`,
+        success: function (data) {
+            // Очищаем текущие опции
+            $('#tt').empty();
+
+            // Добавляем locationBind (с selected)
+            data.item1.forEach(location => {
+                let newOption = new Option(location.name, location.guid, true, true);
+                $('#tt').append(newOption);
+            });
+
+            // Добавляем locationLeft (без selected)
+            data.item2.forEach(location => {
+                let newOption = new Option(location.name, location.guid, false, false);
+                $('#tt').append(newOption);
+            });
+
+            // Обновляем select2
+            $("#tt").trigger("change")
+        }
+     });
+
+
+    }
+
+    function removeModal() {
+        document.body.removeChild(document.querySelector(".modal"));
+    }
+
+    // Изменение набора выделенных элементов в селекторе
+    function SelectChange(selector) {
+            // Определяем элементы
+            var selId = '#' + $(selector).prop('id');
+            var selCont = $(selector).parent();
+            var save = $(selector).parent().parent().find('.save');
+            var cancel = $(selector).parent().parent().find('.cancel');
+
+            // Включаем кнопки
+            $(save).removeClass('d-none');
+            $(cancel).removeClass('d-none');
+    }
+
+    function SaveMoreTT() {
+
+        var selectedLocations = $("#tt").val(); // Получаем GUID-ы выбранных локаций
+        var personGuid = $("#personGUID").val(); // Получаем GUID личности
+
+        const requestData = {
+            Guid: personGuid,
+            Locations: selectedLocations
+        };
+
+        $.ajax({
+            url: "/Personality/SaveMoreTT",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(requestData), // Отправляем JSON в теле запроса
+            success: function (response) {
+                console.log("Сохранено успешно", response);
+            },
+            error: function (xhr, status, error) {
+                console.error("Ошибка сохранения", error);
+            }
+        });
+    }
+
+
+</script>

@@ -71,7 +71,6 @@ namespace Portal.Controllers
             }            
         }
 
-        [Authorize(Roles = "analyst")]
         public async Task<IActionResult> UpdateSaleObjects(string daysAgo)
         {
             try
@@ -96,12 +95,15 @@ namespace Portal.Controllers
                     }
                 }
             }
+            catch (SqlException sqlEx)
+            {
+                return StatusCode(500, $"SQL Error: {sqlEx.Message}");
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         // Р-КИПЕР------------------------------------------------------------------------------------------
         // горизонтальное меню

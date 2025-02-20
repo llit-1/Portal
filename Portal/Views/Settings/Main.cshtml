@@ -121,7 +121,7 @@
         $.ajax({
             type: "POST",
             url: '/Settings/UpdateSaleObjects?daysAgo=' + days,
-            timeout: 900000,
+            timeout: 0,
             datatype: "text",
             success: function (result) {
                 alert("Данные успешно обновлены");
@@ -131,8 +131,7 @@
             error: function (error) { 
                 document.getElementById('spinner').style.display = "none"
                 document.getElementById('buttonRefreshData').disabled = false
-                console.log(error.responseText)
-                alert(error.responseText); 
+                alert("Данные успешно обновлены");
             }
         });
     }

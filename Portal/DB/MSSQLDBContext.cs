@@ -48,5 +48,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.SettingsVariables> SettingsVariables { get; set; }
         public DbSet<Models.MSSQL.WorkingSlots> WorkingSlots { get; set; }
         public DbSet<WarehouseCategories> WarehouseCategories { get; set; } // Иерархия склада
+        public DbSet<BindingPersonalityToLocation> BindingPersonalityToLocation { get; set; }
     }
 }

@@ -9,6 +9,7 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Portal.Models;
 using Portal.Models.JsonModels;
+using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
 using RKNet_Model;
@@ -482,6 +483,88 @@ namespace Portal.Controllers
 
 
             return result;
+        }
+
+        public (List<Models.MSSQL.Location.Location> locationBind, List<Models.MSSQL.Location.Location> locationLeft) GetLocationList(string guid)
+        {
+            // Получаем личность по GUID
+            var personality = dbSql.Personalities.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+            if (personality == null)
+            {
+                throw new ArgumentException("Personality not found");
+            }
+
+            // Получаем все локации
+            var allLocation = dbSql.Locations.ToList();
+
+            // Получаем текущую локацию личности
+            var location = dbSql.PersonalityVersions.Include(x => x.Location)
+                .FirstOrDefault(x => x.Personalities.Guid == personality.Guid && x.Actual == 1)?.Location;
+
+            if (location == null)
+            {
+                throw new ArgumentException("Current location not found");
+            }
+
+            // Получаем GUID всех привязанных локаций
+            var bindLocationGuids = dbSql.BindingPersonalityToLocation
+                .Where(x => x.Personality == personality.Guid)
+                .Select(x => x.Location)
+                .ToList();
+
+            // Извлекаем полные объекты Location по полученным GUID
+            var bindLocations = dbSql.Locations
+                .Where(loc => bindLocationGuids.Contains(loc.Guid))
+                .ToList();
+
+            // Получаем оставшиеся локации
+            var locationLeft = allLocation.Except(bindLocations).ToList();
+
+            // Возвращаем результат
+            return (bindLocations, locationLeft);
+        }
+
+        [HttpPost]
+        public IActionResult SaveMoreTT([FromBody] SaveMoreTTRequest request)
+        {
+            var result = new Result<string>();
+
+            // Получаем все записи, которые нужно удалить
+            var bindingsToDelete = dbSql.BindingPersonalityToLocation
+                .Where(x => x.Personality == Guid.Parse(request.Guid))
+                .ToList();
+
+            // Удаляем старые связи
+            dbSql.BindingPersonalityToLocation.RemoveRange(bindingsToDelete);
+            dbSql.SaveChanges(); // Сохраняем удаление в базе перед добавлением новых записей
+
+
+            if(request.Locations == null)
+            {
+                return Ok(result);
+            }
+
+            // Создаем новые записи
+            List<BindingPersonalityToLocation> listBind = request.Locations
+                .Select(loc => new BindingPersonalityToLocation
+                {
+                    Personality = Guid.Parse(request.Guid),
+                    Location = loc
+                })
+                .ToList();
+
+            // Добавляем новые связи
+            dbSql.BindingPersonalityToLocation.AddRange(listBind);
+            dbSql.SaveChanges(); // Сохраняем изменения
+
+            return Ok(result);
+        }
+
+
+        public class SaveMoreTTRequest
+        {
+            public string Guid { get; set; }
+            public List<Guid> Locations { get; set; }
         }
     }
 }

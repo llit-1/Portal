@@ -672,14 +672,17 @@ namespace Portal.Controllers
                 VideoDevices video = dbSql.VideoDevices.FirstOrDefault(x => x.Ip == (ip.Trim() + ":8080"));
                 if(video == null)
                 {
-                    VideoDevices videoDevices = new();
-                    videoDevices.Location = dbSql.Locations.FirstOrDefault();
-                    videoDevices.Status = 1;
-                    videoDevices.Ip = ip.Trim() + ":8080";
-                    videoDevices.VideoList = "[" + dbSql.VideoInfo.OrderByDescending(x => x.Position).LastOrDefault().Name + "]";
-                    videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
-                    dbSql.Add(videoDevices);
-                    dbSql.SaveChanges();
+                    //VideoDevices videoDevices = new();
+                    //videoDevices.Location = dbSql.Locations.FirstOrDefault();
+                    //videoDevices.Status = 1;
+                    //videoDevices.Ip = ip.Trim() + ":8080";
+                    //videoDevices.VideoList = "[" + dbSql.VideoInfo.OrderByDescending(x => x.Position).LastOrDefault().Name + "]";
+                    //videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
+                    //dbSql.Add(videoDevices);
+                    //dbSql.SaveChanges();
+
+                    // Ничего не делаем, приставки добавляем вручную
+
                     result.Ok = true;
                     return new OkObjectResult(result);
                 }
@@ -697,10 +700,8 @@ namespace Portal.Controllers
         [AllowAnonymous]
         public async Task RebootDevices()
         {
-            // ������ IP-������� ���������
             List<VideoDevices> videoDevices = dbSql.VideoDevices.ToList();
 
-            // ������ ��������� ���� ��������� �����������
             List<Task> tasks = new List<Task>();
 
             foreach (var ip in videoDevices)
@@ -710,23 +711,20 @@ namespace Portal.Controllers
 
             await Task.WhenAll(tasks);
 
-            Console.WriteLine("��� ���������� ����������.");
         }
 
         static async Task ProcessDeviceAsync(string ip)
         {
             try
             {
-                Console.WriteLine($"[START] ����������: {ip}");
                 await ExecuteAdbCommandAsync($"kill-server");
                 await ExecuteAdbCommandAsync($"start-server");
                 await ExecuteAdbCommandAsync($"connect {ip}");
                 await ExecuteAdbCommandAsync("reboot");
-                Console.WriteLine($"[SUCCESS] ����������: {ip}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] ����������: {ip} - {ex.Message}");
+                Console.WriteLine($"[ERROR]: {ip} - {ex.Message}");
             }
         }
 
