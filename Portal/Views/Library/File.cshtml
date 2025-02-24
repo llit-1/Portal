@@ -31,8 +31,10 @@
     fileView.rootFolderId = rootFolderId;
     fileView.fileIndex = fileIndex;
 
+    var date = Date.now();
+
     var jsn = JSON.stringify(fileView);
-    var fileUrl = domainName + '/Library/GetFileByIndex?json=' + jsn;
+    var fileUrl = domainName + '/Library/GetFileByIndex?json=' + jsn + "&date=" + date;
 
     var src = "";
 
