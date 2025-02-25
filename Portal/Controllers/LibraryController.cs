@@ -406,7 +406,7 @@ namespace Portal.Controllers
 
         // Загрузка файла по индексу
         [AllowAnonymous]
-        public IActionResult GetFileByIndex(string json)
+        public IActionResult GetFileByIndex(string json, string date)
         {
             var fileView = Newtonsoft.Json.JsonConvert.DeserializeObject<ViewModels.Library.FileView>(json);
 

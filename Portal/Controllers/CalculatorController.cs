@@ -617,6 +617,12 @@ namespace Portal.Controllers
             return Ok();
         }
 
+        public IActionResult CalculateChart()
+        {
+            return PartialView();
+        }
+
+
 
         public async Task<IActionResult> LogSave(string logjsn)
         {

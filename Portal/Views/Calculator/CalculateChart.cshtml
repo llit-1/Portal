@@ -1,0 +1,70 @@
+﻿<canvas id="chart" style="width: 100%; height: 400px;"></canvas>
+
+<div class="container">
+    <div id="column1" class="column">
+        <div class="item">Элемент 1</div>
+        <div class="item">Элемент 2</div>
+        <div class="item">Элемент 3</div>
+    </div>
+    <div id="column2" class="column">
+        <div class="item">Элемент 4</div>
+        <div class="item">Элемент 5</div>
+    </div>
+</div>
+
+<script>
+    $.getScript("https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js", function() {
+        Sortable.create(document.getElementById('column1'), {
+                group: 'shared',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen'
+            });
+
+            Sortable.create(document.getElementById('column2'), {
+                group: 'shared',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen'
+            });
+    });
+</script>
+
+
+<style>
+    .container {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .column {
+        width: 45%;
+        border: 1px solid #ccc;
+        padding: 10px;
+        min-height: 200px;
+    }
+
+    .item {
+        padding: 10px;
+        margin: 5px 0;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        cursor: grab;
+    }
+
+        .item:active {
+            cursor: grabbing;
+        }
+
+    .sortable-ghost {
+        opacity: 0.5 !important; /* Убираем полупрозрачность */
+        background-color: #e0f7fa !important; /* Цвет фона для перемещаемого элемента */
+        border: 2px solid #00bcd4 !important; /* Рамка для перемещаемого элемента */
+    }
+
+    .sortable-drag {
+        opacity: 1 !important; /* Убираем полупрозрачность */
+        transform: scale(1.05) !important; /* Увеличиваем элемент немного при перетаскивании */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; /* Тень для эффекта "поднятия" */
+    }
+</style>

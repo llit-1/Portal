@@ -10,90 +10,110 @@
 
 <div class="row">
 
-    <!--общие настройки-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsMain" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/themes/clearmin/img/sf/cogs.svg" width="20px">
-                </span>
-                <h4>Общие настройки</h4>
-            </div>
-        </a>
-    </div>
+    @if (User.IsInRole("settings"))
+    {
+        <!--общие настройки-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsMain" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/themes/clearmin/img/sf/cogs.svg" width="20px">
+                    </span>
+                    <h4>Общие настройки</h4>
+                </div>
+            </a>
+        </div>
 
-    <!--права доступа-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsAccess" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/themes/clearmin/img/sf/safe.svg" width="20px">
-                </span>
-                <h4>Права доступа</h4>
-            </div>
-        </a>
-    </div>
+        <!--права доступа-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsAccess" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/themes/clearmin/img/sf/safe.svg" width="20px">
+                    </span>
+                    <h4>Права доступа</h4>
+                </div>
+            </a>
+        </div>
 
-    <!--торговые точки-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsTT" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/svg/color_panels/shop.svg" width="20px">
-                </span>
-                @* <h4>Справочник</h4> *@
-                <h4>Торговые точки</h4>
-            </div>
-        </a>
-    </div>
+        <!--торговые точки-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsTT" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/shop.svg" width="20px">
+                    </span>
+                    @* <h4>Справочник</h4> *@
+                    <h4>Торговые точки</h4>
+                </div>
+            </a>
+        </div>
 
-    <!--видеонаблюдение-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsVideo" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/themes/clearmin/img/sf/webcam.svg" width="20px">
-                </span>
-                <h4>Видео-наблюдение</h4>
-            </div>
-        </a>
-    </div>
+        <!--видеонаблюдение-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsVideo" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/themes/clearmin/img/sf/webcam.svg" width="20px">
+                    </span>
+                    <h4>Видео-наблюдение</h4>
+                </div>
+            </a>
+        </div>
 
-    <!--р-кипер-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsRk" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/svg/color_panels/rk.svg" width="20px">
-                </span>
-                <h4>R-Keeper</h4>
-            </div>
-        </a>
-    </div>
+        <!--р-кипер-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsRk" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/rk.svg" width="20px">
+                    </span>
+                    <h4>R-Keeper</h4>
+                </div>
+            </a>
+        </div>
 
-    <!--модули-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsModules" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/themes/clearmin/img/sf/carton.svg" width="20px">
-                </span>
-                <h4>Модули</h4>
-            </div>
-        </a>
-    </div>
+        <!--модули-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsModules" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/themes/clearmin/img/sf/carton.svg" width="20px">
+                    </span>
+                    <h4>Модули</h4>
+                </div>
+            </a>
+        </div>
 
-    <!--Видео-->
-    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-        <a href="#SettingsVideoDevices" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-            <div class="panel-body text-center" style="min-height: 147px;">
-                <span class="svg-48">
-                    <img src="~/themes/clearmin/img/sf/device-camera.svg" width="20px">
-                </span>
-                <h4> Видео на ТТ</h4>
-            </div>
-        </a>
-    </div>
+        <!--Видео-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsVideoDevices" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/themes/clearmin/img/sf/device-camera.svg" width="20px">
+                    </span>
+                    <h4> Видео на ТТ</h4>
+                </div>
+            </a>
+        </div>
+    }
+
+    @if (User.IsInRole("TTSettings"))
+    {
+        <!--торговые точки-->
+        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+            <a href="#SettingsTT" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/color_panels/shop.svg" width="20px">
+                    </span>
+                    @* <h4>Справочник</h4> *@
+                    <h4>Торговые точки</h4>
+                </div>
+            </a>
+        </div>
+    }
+
 </div>
 
 <!--по загрузке страницы-->

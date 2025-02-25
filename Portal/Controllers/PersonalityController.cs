@@ -215,6 +215,10 @@ namespace Portal.Controllers
             model.Schedules = dbSql.Schedules.ToList();
             model.Locations = dbSql.Locations.ToList();
             model.JobTitles = dbSql.JobTitles.ToList();
+
+            ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
+            
+
             model.Entity = dbSql.Entity.ToList();
             //model.CurrentPage = getUserPage(model.PersonalitiesVersions.Personalities.Guid.ToString());
             return PartialView(model);
