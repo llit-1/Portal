@@ -206,10 +206,10 @@ namespace Portal.Controllers
             return PartialView();
         }
 
-        
+
 
         // Настройки
-        [Authorize(Roles = "settings")]
+        [Authorize(Roles = "settings,TTSettings")]
         public IActionResult Settings()
         {
             return PartialView();

@@ -21,7 +21,7 @@ using System.Text;
 
 namespace Portal.Controllers
 {
-    [Authorize(Roles = "settings")]
+    [Authorize(Roles = "settings,TTSettings")]
     public class SettingsController : Controller
     {
         private DB.SQLiteDBContext db;
