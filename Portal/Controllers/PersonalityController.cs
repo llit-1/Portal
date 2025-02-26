@@ -184,6 +184,8 @@ namespace Portal.Controllers
 
                 model.PersonalitiesVersions = personalityVersion;
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+
+                ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
             }
             else if(typeGuid != "0")
             {
@@ -208,6 +210,8 @@ namespace Portal.Controllers
                 }
                 
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+
+                ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
             }
 
             
@@ -215,9 +219,6 @@ namespace Portal.Controllers
             model.Schedules = dbSql.Schedules.ToList();
             model.Locations = dbSql.Locations.ToList();
             model.JobTitles = dbSql.JobTitles.ToList();
-
-            ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
-            
 
             model.Entity = dbSql.Entity.ToList();
             //model.CurrentPage = getUserPage(model.PersonalitiesVersions.Personalities.Guid.ToString());
