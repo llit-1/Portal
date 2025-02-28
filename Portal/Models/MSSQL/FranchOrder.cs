@@ -18,8 +18,8 @@ namespace Portal.Models.MSSQL
         public int TTOBD { get; set; }
         public string Article { get; set; }
         public string SKU { get; set; }
-        public int minCount { get; set; }
-        public int Count { get; set; }
+        public double minCount { get; set; }
+        public double Count { get; set; }
         public string maxTime { get; set; }
         public DateTime FormingDateTime { get; set; }
         public string minDeliveryDate { get; set; }

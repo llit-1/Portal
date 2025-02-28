@@ -230,7 +230,7 @@
                                 <td class="mobile-hide">@order.UserName</td>
 
                                 @{
-                                    float? totalOrderPrice = 0;
+                                    double? totalOrderPrice = 0;
                                     
 
                                     @foreach (var item in ModelOrders.Where(i => i.OrderNumber == order.OrderNumber).OrderBy(n => n.SKU))
@@ -241,7 +241,7 @@
                                             totalOrderPrice += 0;
                                         } else
                                         {
-                                            totalOrderPrice += (float)Model.forders
+                                            totalOrderPrice += (double)Model.forders
                                             .Where(x => x.TTCode == item.TTCode)
                                             .Where(x => x.SKU == item.SKU)
                                             .Where(x => x.LastPrice != null)

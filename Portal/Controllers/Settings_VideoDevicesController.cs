@@ -178,7 +178,13 @@ namespace Portal.Controllers
                     {
                         continue;
                     }
-                    info.Guid = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Guid;
+
+                    if (fileInfo.Name.EndsWith(".zip"))
+                    {
+                        continue;
+                    }
+
+                info.Guid = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Guid;
                     info.Position = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Position;
                     if(info.Guid == null || info.Position == null)
                     {

@@ -84,7 +84,7 @@
                                             @if (user.VersionEndDate == null)
                                             {
                                                 <td class="tdPersonTable deactiveForPersonVersion">
-                                                    <p class="text-muted ">@user.VersionEndDate</p>
+                                                    <p class="text-muted "></p>
                                                 </td>
                                             }
                                             else
@@ -125,16 +125,28 @@
                                     .Where(x => Model.Errors.Any(c => c == x.Guid))
                                     .ToList();
                                     }
+
                                     @foreach (var user in uniquePersonalityErrorVersions)
                                     {
                                         var BirthDate = @user.Personalities.BirthDate.ToString().Split(' ')[0];
                                         var HireDate = @user.HireDate.ToString().Split(' ')[0];
-                                        var NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user.Patronymic.ToString();
+                                        var NSP = "";
+
+
+                                        if (user?.Patronymic == null)
+                                        {
+                                            NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString();
+                                        }
+                                        else
+                                        {
+                                            NSP = @user.Surname.ToString() + ' ' + @user.Name.ToString() + ' ' + @user?.Patronymic.ToString();
+                                        }
+
                                         var DismissalsDate = @user.DismissalsDate.ToString().Split(' ')[0];
-                                        //Если есть ошибка выделяет красным
-                                        <tr id="@user.Guid" class="activeRow" style="margin-right: 5px; background-color: #ff9d9d;">
+
+                                        <tr id="@user.Guid" class="activeRow" style="margin-right: 5px; background-color: #ff9d9d" onclick="">
                                             <td class="tdPersonTable">
-                                            <p class="list-item-heading userName">@NSP</p>
+                                                <p class="list-item-heading userName">@NSP</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@BirthDate</p>
@@ -163,10 +175,10 @@
                                             <td class="tdPersonTable">
                                                 <p class="text-muted ">@user.VersionStartDate.Value.ToString("dd.MM.yyyy")</p>
                                             </td>
-                                            @if(user.VersionEndDate == null)
+                                            @if (user.VersionEndDate == null)
                                             {
                                                 <td class="tdPersonTable deactiveForPersonVersion">
-                                                    <p class="text-muted ">@user.VersionEndDate</p>
+                                                    <p class="text-muted "></p>
                                                 </td>
                                             }
                                             else
@@ -175,19 +187,14 @@
                                                     <p class="text-muted ">@user.VersionEndDate.Value.ToString("dd.MM.yyyy")</p>
                                                 </td>
                                             }
-                                            <td class="tdPersonTable hidden">
-                                                <p class="text-muted ">@user.VersionStartDate.Value.ToString("yyyy.MM.dd")</p>
-                                            </td>
 
                                             @if (user?.ModifiedBy == null)
-
                                             {
                                                 <td class="tdPersonTable">
                                                     <p class="text-muted ">Данных нет</p>
                                                 </td>
                                             }
                                             else
-
                                             {
                                                 <td class="tdPersonTable">
                                                     <p class="text-muted ">@user?.ModifiedBy</p>
@@ -195,15 +202,12 @@
                                             }
 
                                             @if (user?.ModifiedDate == null)
-
                                             {
                                                 <td class="tdPersonTable">
                                                     <p class="text-muted ">Данных нет</p>
                                                 </td>
                                             }
-
                                             else
-
                                             {
                                                 <td class="tdPersonTable">
                                                     <p class="text-muted ">@user?.ModifiedDate.Value.ToString("dd.MM.yyyy")</p>
@@ -238,7 +242,7 @@
 <script>
     var table = $(".data-table").DataTable({
         "ordering": true,
-        "order": [0, 'asc'],
+        "order": [10, 'asc'],
         searching: true,
         bLengthChange: false,
         destroy: true,
@@ -251,9 +255,6 @@
         scrollCollapse: !0
     });
 
-    // сортируем по-умолчанию по последнему столбцу
-    table.order([10, 'asc']).draw();
-
     // поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
         table.search($(this).val()).draw();
@@ -261,7 +262,6 @@
 
     // скрываем сверху таблицы фильтры data-table
     $('.view-filter').hide();
-
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#Personality" });
 

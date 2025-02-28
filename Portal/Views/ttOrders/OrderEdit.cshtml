@@ -489,7 +489,7 @@
     function itemCounts(article) {
         if (orderType == 4) {
             let minCount = 1
-            let maxCount = parseInt($('#maxCountInput_' + article).val());
+            let maxCount = parseFloat($('#maxCountInput_' + article).val());
             if (maxCount == 1) {
                 $('#sel' + article).attr('disabled', true);
                 $('#sel' + article).append($('<option selected>').text(1))
@@ -504,12 +504,16 @@
         else {
             var minCount;
             var anyCount = @Html.Raw(Json.Serialize(User.IsInRole("forders_anycount")));
+            
 
             if (anyCount & orderType == 1) {
                 minCount = 1;
             }
             else {
-                minCount = parseInt($('#minCountInput_' + article).val());
+                minCount = parseFloat($('#minCountInput_' + article).val().replace(",", "."));
+               
+                console.log(parseFloat(document.getElementById("minCountInput_" + article).value.replace(",", ".")))
+                console.log(minCount)
             }
 
             var maxCount = minCount * 100;

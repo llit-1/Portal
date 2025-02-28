@@ -9,29 +9,39 @@
 
 </div>
 
+@if (Model.TTs.Count == 1 && ViewBag.logs != null)
+{
+    var logs = ViewBag.logs as List<Portal.Models.MSSQL.CalculatorLogsTest>; // Приводим ViewBag.logs к конкретному типу
+    if (logs != null && logs.Count(x => x?.Rest != null) > 1)
+    {
+        <div class="calculator_info">
+            В полях ввода отображаются последние значения, которые были введены за последние 30 минут.
+            Эти значения показаны только для справки.
+        </div>
+    }
+}
 
-    
 
 <div class="calculator-mainbar">
-     @if (Model.TTs.Count == 1)
-        {
+    @if (Model.TTs.Count == 1)
+    {
         <div class="calculator-leftbar">
-        <div class="calculator-bar">
-            @Model.Name
+            <div class="calculator-bar">
+                @Model.Name
+            </div>
+            <div class="calculator-bar">
+                @Model.TTs[0].Name
+            </div>
+            <div class="calculator-bar">
+                @Model.User
+            </div>
+            <div class="calculator-bar">
+                @Model.Date
+            </div>
+            <div class="div-img">
+                <img class="calculator-img" src='@Url.Content(Model.PicturePath)'>
+            </div>
         </div>
-        <div class="calculator-bar">
-            @Model.TTs[0].Name
-        </div>
-        <div class="calculator-bar">
-            @Model.User
-        </div>
-        <div class="calculator-bar">
-            @Model.Date
-        </div>
-        <div class="div-img">
-            <img class="calculator-img" src='@Url.Content(Model.PicturePath)'>
-        </div>
-    </div>
         <div class="calculator-rightbar">
             <table class="calculator-table">
                 <thread>
@@ -54,7 +64,12 @@
                             <td class="defrostTime" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
                             <td class="bakingMode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
                             <td>
-                                <input class="inputObject" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)'>
+                                @if(ViewBag.logs[i] != null)
+                                {
+                                    <input class="inputObject" placeholder="@ViewBag.logs[i]?.Rest" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)'>
+                                } else {
+                                    <input class="inputObject" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)'>
+                                }
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>                            
                             <td class="hidden">
@@ -79,7 +94,14 @@
                                 <input class="itemMinShowCase" value="@Model.Items[i].ItemOnTT.Item.MinShowCase">
                             </td>
                             <td>
-                                <input class="fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
+                                @if (ViewBag.logs[i]?.Fact == null)
+                                {
+                                    <input class="fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
+                                } else 
+                                {
+                                    <input class="fact" placeholder="@ViewBag.logs[i]?.Fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
+                                }
+                                
                             </td>
                         </tr>
                     }
@@ -219,7 +241,7 @@
 
         var logjsn = JSON.stringify(log);
         logjsn = logjsn.replace(/ /g, "%bkspc%");
-
+        console.log(log)
         try {
 
             await $.ajax({
@@ -324,3 +346,23 @@
     })
 </script>
 <!-------------------------------------------------------------------->
+
+
+<style>
+    .calculator_info {
+        width: 100%;
+        background: #CFE2FF;
+        padding: 10px 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0D4BB6;
+        font-weight: 600;
+        font-family: 'Akrobat-Regular';
+        font-size: 16px;
+        margin-bottom: 12px;
+        border: 1px solid #B6D4FE;
+        border-radius: 5px;
+        text-align: center;
+    }
+</style>

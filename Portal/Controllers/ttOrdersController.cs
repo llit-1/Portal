@@ -554,8 +554,8 @@ namespace Portal.Controllers
                     franchOrder.TTOBD = tt.Obd;
                     franchOrder.Article = item.article;
                     franchOrder.SKU = item.name;
-                    franchOrder.minCount = int.Parse(item.mincount);
-                    franchOrder.Count = int.Parse(item.count);
+                    franchOrder.minCount = double.Parse(item.mincount.Replace(".",","));
+                    franchOrder.Count = double.Parse(item.count.Replace(".", ","));
                     if (orderType.Id == 1)
                         franchOrder.maxTime = item.formingTime.Substring(3, item.formingTime.Length - 3);
                     franchOrder.FormingDateTime = DateTime.Now;

@@ -254,7 +254,10 @@ namespace Portal.Controllers
             List<Models.MSSQL.Calculator.Items> items = CalculatorDb.Items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)
                                                   .OrderBy(c => c.Sequence)  // сортировка для таблицы
                                                   .ToList();
+
             calculatorInformation.Items = new List<CalculatorItem>();
+
+            List<Portal.Models.MSSQL.CalculatorLogsTest> calculatorLogTests = new();
 
             foreach (var item in items)
             {
@@ -264,7 +267,14 @@ namespace Portal.Controllers
                 thisItem.SettlementDaysSecondNextPer = 1;
                 thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
 
+                CalculatorLogsTest calulatorLogs = dbSql.CalculatorLogsTest.Where(x => x.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr && 
+                                                                                       x.ItemName == item.Name &&
+                                                                                       x.Date > DateTime.Now.AddMinutes(-30))
+                                                                           .OrderByDescending(x => x.Date)
+                                                                           .FirstOrDefault();
 
+                calculatorLogTests.Add(calulatorLogs);
+                
 
                 List<NumberOfSales> thisPeriodRestSales = CalculatorDb.NumberOfSales.Where(c => c.TimeDayGroupsGUID == calculatorInformation.ThisTimeDayGroup.Guid &&
                                                                                                         c.ItemOnTTGUID == thisItem.ItemOnTT.Guid &&
@@ -320,6 +330,7 @@ namespace Portal.Controllers
 
                 calculatorInformation.Items.Add(thisItem);
             }
+            ViewBag.logs = calculatorLogTests;
             return PartialView(calculatorInformation);
         }
 
@@ -629,7 +640,15 @@ namespace Portal.Controllers
             var result = new RKNet_Model.Result<string>();
             try
             {
-                if (!Global.Functions.CheckSessionID(dbSql, HttpContext.Session.Id))
+                //if (!Global.Functions.CheckSessionID(dbSql, HttpContext.Session.Id))
+                //{
+                //    throw new Exception("401");
+                //}
+
+                var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
+                var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
+
+                if (oldSession.Date.AddHours(1) < DateTime.Now)
                 {
                     throw new Exception("401");
                 }
@@ -640,7 +659,7 @@ namespace Portal.Controllers
 
                 if (HttpContext.Session.IsAvailable)
                 {
-                    calculatorLog.SessionId = Guid.Parse(HttpContext.Session.Id);
+                    calculatorLog.SessionId = Guid.Parse(oldSession.SessionID);
                 }
                 else
                 {
