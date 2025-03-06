@@ -267,14 +267,14 @@ namespace Portal.Controllers
                 thisItem.SettlementDaysSecondNextPer = 1;
                 thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
 
-                CalculatorLogsTest calulatorLogs = dbSql.CalculatorLogsTest.Where(x => x.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr && 
+                CalculatorLogsTest calulatorLogs = dbSql.CalculatorLogsTest.Where(x => x.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr &&
                                                                                        x.ItemName == item.Name &&
                                                                                        x.Date > DateTime.Now.AddMinutes(-30))
                                                                            .OrderByDescending(x => x.Date)
                                                                            .FirstOrDefault();
 
                 calculatorLogTests.Add(calulatorLogs);
-                
+
 
                 List<NumberOfSales> thisPeriodRestSales = CalculatorDb.NumberOfSales.Where(c => c.TimeDayGroupsGUID == calculatorInformation.ThisTimeDayGroup.Guid &&
                                                                                                         c.ItemOnTTGUID == thisItem.ItemOnTT.Guid &&
@@ -345,164 +345,259 @@ namespace Portal.Controllers
             calculateCoefficientModel.Items = CalculatorDb.Items.ToList();
             calculateCoefficientModel.TT = CalculatorDb.TT.ToList();
             calculateCoefficientModel.TimeGroups = CalculatorDb.TimeGroups.ToList();
+            calculateCoefficientModel.ItemsGroups = CalculatorDb.ItemsGroups.ToList();
             return PartialView(calculateCoefficientModel);
         }
 
-        public IActionResult CalculateCoefficientTable(string k, string TT, string item, string timeGroup)
+        [HttpPost]
+        public IActionResult CalculateCoefficientTable([FromBody] ChangeCalculateCoefficientModel calculateCoefficientModel)
         {
+
             CalculateCoefficientTableModel calculateCoefficientTableModel = new CalculateCoefficientTableModel();
-            int TTRkCode = int.Parse(TT);
-            int SKURkCode = int.Parse(item);
-            Guid timeGroupGuid = Guid.Empty;
-            Guid.TryParse(timeGroup, out timeGroupGuid);
-            switch (k)
+            calculateCoefficientTableModel.K = calculateCoefficientModel.K;
+            switch (calculateCoefficientModel.K)
             {
-                case "1":
-                    calculateCoefficientTableModel.k = 1;
+                case 1:
                     List<ItemOnTT> itemOnTTs = new List<ItemOnTT>();
-                    if (SKURkCode == 0 && TTRkCode == 0)
+                    if (calculateCoefficientModel.TTs.Count == 0 && calculateCoefficientModel.Items.Count == 0)
                     {
-                        itemOnTTs = CalculatorDb.ItemOnTT.ToList();
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item).ToList();
                     }
-                    else if (SKURkCode == 0)
+                    else if (calculateCoefficientModel.TTs.Count == 0)
                     {
-                        itemOnTTs = CalculatorDb.ItemOnTT.Where(c => c.TTCode == TTRkCode).ToList();
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item)
+                                                         .Where(x => calculateCoefficientModel.Items.Contains(x.Item.RkCode)).ToList();
                     }
-                    else if (TTRkCode == 0)
+                    else if (calculateCoefficientModel.Items.Count == 0)
                     {
-                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
-                                                                        .Where(c => c.Item.RkCode == SKURkCode).ToList();
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item).ToList()
+                                                         .Where(x => calculateCoefficientModel.TTs.Contains(x.TTCode)).ToList();
                     }
                     else
                     {
-                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
-                                                                       .Where(c => c.Item.RkCode == SKURkCode && c.TTCode == TTRkCode).ToList();
+                        itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item)
+                                                   .Where(x => calculateCoefficientModel.Items.Contains(x.Item.RkCode) && calculateCoefficientModel.TTs.Contains(x.TTCode)).ToList();
                     }
                     calculateCoefficientTableModel.ItemOnTTs = itemOnTTs;
                     break;
-                case "2":
-                    calculateCoefficientTableModel.k = 2;
-                    List<Models.MSSQL.Calculator.Items> items = new List<Models.MSSQL.Calculator.Items>();
-                    if (SKURkCode == 0)
+                case 2:
+                    List<Items> items = new List<Items>();
+                    if (calculateCoefficientModel.Items.Count == 0 && calculateCoefficientModel.ItemsGroups.Count == 0)
                     {
                         items = CalculatorDb.Items.ToList();
                     }
+                    else if (calculateCoefficientModel.ItemsGroups.Count == 0)
+                    {
+                        items = CalculatorDb.Items.Where(x => calculateCoefficientModel.Items.Contains(x.RkCode)).ToList();
+                    }
+                    else if (calculateCoefficientModel.Items.Count == 0)
+                    {
+                        items = CalculatorDb.Items.Where(x => calculateCoefficientModel.ItemsGroups.Contains(x.ItemsGroup)).ToList();
+                    }
                     else
                     {
-                        items = CalculatorDb.Items.Where(c => c.RkCode == SKURkCode).ToList();
+                        items = CalculatorDb.Items.Where(x => calculateCoefficientModel.Items.Contains(x.RkCode) && calculateCoefficientModel.ItemsGroups.Contains(x.ItemsGroup)).ToList();
                     }
                     calculateCoefficientTableModel.Items = items;
                     break;
-                case "3":
-                    calculateCoefficientTableModel.k = 3;
+                case 3:
                     List<ItemsGroupTimeTT_Coefficient> itemsGroupTimeTT_Coefficients = new List<ItemsGroupTimeTT_Coefficient>();
-                    if (TTRkCode == 0 && timeGroup == "0")
+                    if (calculateCoefficientModel.TimeGroups.Count == 0 && calculateCoefficientModel.TTs.Count == 0)
                     {
                         itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.ToList();
                     }
-                    else if (TTRkCode == 0)
+                    else if (calculateCoefficientModel.TimeGroups.Count == 0)
                     {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
-                                                                                                 .Where(c => c.TimeGroup.Guid == timeGroupGuid).ToList();
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Where(x => calculateCoefficientModel.TTs.Contains(x.TTCODE)).ToList();
                     }
-                    else if (timeGroup == "0")
+                    else if (calculateCoefficientModel.TTs.Count == 0)
                     {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Where(c => c.TTCODE == TTRkCode).ToList();
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup)
+                                                                                                  .Where(x => calculateCoefficientModel.TimeGroups.Contains(x.TimeGroup.Guid)).ToList();
                     }
                     else
                     {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
-                                                                                                     .Where(c => c.TTCODE == TTRkCode && c.TimeGroup.Guid == timeGroupGuid).ToList();
+                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup)
+                                                                                                  .Where(x => calculateCoefficientModel.TimeGroups.Contains(x.TimeGroup.Guid) && calculateCoefficientModel.TTs.Contains(x.TTCODE)).ToList();
                     }
                     calculateCoefficientTableModel.ItemsGroupTimeTT_Coefficients = itemsGroupTimeTT_Coefficients;
+                    break;
+                default:
                     break;
             }
             return PartialView(calculateCoefficientTableModel);
         }
 
         [HttpPost]
-        public IActionResult ChangeCalculateCoefficient(string k, string delta, string TT, string item, string timeGroup)
+        public IActionResult ChangeCalculateCoefficient([FromBody] ChangeCalculateCoefficientModel calculateCoefficientModel)
         {
-            int TTRkCode = int.Parse(TT);
-            int SKURkCode = int.Parse(item);
-            Guid timeGroupGuid = Guid.Empty;
-            Guid.TryParse(timeGroup, out timeGroupGuid);
-            delta = delta.Replace('.', ',');
-            double Delta = 0;
-            if (!double.TryParse(delta, out Delta))
+            DateTime taskCreationTime = DateTime.Now;
+            int sign = 0;
+            if (calculateCoefficientModel.KEql != null)
             {
-                return BadRequest("invalid delta");
+                sign = 1;
             }
-            switch (k)
+            if (calculateCoefficientModel.Kdelta != null)
             {
-                case "1":
-                    List<ItemOnTT> itemOnTTs = new List<ItemOnTT>();
-                    if (SKURkCode == 0 && TTRkCode == 0)
-                    {
-                        itemOnTTs = CalculatorDb.ItemOnTT.ToList();
-                    }
-                    else if (SKURkCode == 0)
-                    {
-                        itemOnTTs = CalculatorDb.ItemOnTT.Where(c => c.TTCode == TTRkCode).ToList();
-                    }
-                    else if (TTRkCode == 0)
-                    {
-                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
-                                                                        .Where(c => c.Item.RkCode == SKURkCode).ToList();
-                    }
-                    else
-                    {
-                        itemOnTTs = CalculatorDb.ItemOnTT.Include(c => c.Item)
-                                                                       .Where(c => c.Item.RkCode == SKURkCode && c.TTCode == TTRkCode).ToList();
-                    }
-                    foreach (var itemOnTT in itemOnTTs)
-                    {
-                        itemOnTT.Coefficient += Delta;
-                    }
-                    break;
-                case "2":
-                    List<Models.MSSQL.Calculator.Items> items = new List<Models.MSSQL.Calculator.Items>();
-                    if (SKURkCode == 0)
-                    {
-                        items = CalculatorDb.Items.ToList();
-                    }
-                    else
-                    {
-                        items = CalculatorDb.Items.Where(c => c.RkCode == SKURkCode).ToList();
-                    }
-                    foreach (var item1 in items)
-                    {
-                        item1.Coefficient += Delta;
-                    }
-                    break;
-                case "3":
-                    List<ItemsGroupTimeTT_Coefficient> itemsGroupTimeTT_Coefficients = new List<ItemsGroupTimeTT_Coefficient>();
-                    if (TTRkCode == 0 && timeGroup == "0")
-                    {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.ToList();
-                    }
-                    else if (TTRkCode == 0)
-                    {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
-                                                                                                 .Where(c => c.TimeGroup.Guid == timeGroupGuid).ToList();
-                    }
-                    else if (timeGroup == "0")
-                    {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Where(c => c.TTCODE == TTRkCode).ToList();
-                    }
-                    else
-                    {
-                        itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(c => c.TimeGroup)
-                                                                                                     .Where(c => c.TTCODE == TTRkCode && c.TimeGroup.Guid == timeGroupGuid).ToList();
-                    }
-                    foreach (var itemsGroupTimeTT_Coefficient in itemsGroupTimeTT_Coefficients)
-                    {
-                        itemsGroupTimeTT_Coefficient.Coefficient += Delta;
-                    }
-                    break;
+                sign = 2;
             }
-            CalculatorDb.SaveChanges();
+            if (calculateCoefficientModel.KX != null)
+            {
+                sign = 3;
+            }
+
+            if (calculateCoefficientModel.DeferredExecution == null)
+            {
+                switch (calculateCoefficientModel.K)
+                {
+                    case 1:
+                        List<ItemOnTT> itemOnTTs = new List<ItemOnTT>();
+                        if (calculateCoefficientModel.TTs.Count == 0 && calculateCoefficientModel.Items.Count == 0)
+                        {
+                            itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item).ToList();
+                        }
+                        else if (calculateCoefficientModel.TTs.Count == 0)
+                        {
+                            itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item)
+                                                             .Where(x => calculateCoefficientModel.Items.Contains(x.Item.RkCode)).ToList();
+                        }
+                        else if (calculateCoefficientModel.Items.Count == 0)
+                        {
+                            itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item).ToList()
+                                                             .Where(x => calculateCoefficientModel.TTs.Contains(x.TTCode)).ToList();
+                        }
+                        else
+                        {
+                            itemOnTTs = CalculatorDb.ItemOnTT.Include(x => x.Item)
+                                                             .Where(x => calculateCoefficientModel.Items.Contains(x.Item.RkCode) && calculateCoefficientModel.TTs.Contains(x.TTCode)).ToList();
+                        }
+
+                        foreach (var itemOnTT in itemOnTTs)
+                        {
+                            if (sign == 1)
+                            {
+                                itemOnTT.Coefficient = calculateCoefficientModel.KEql.Value;
+                            }
+                            if (sign == 2)
+                            {
+                                itemOnTT.Coefficient += calculateCoefficientModel.Kdelta.Value;
+                            }
+                            if (sign == 3)
+                            {
+                                itemOnTT.Coefficient *= calculateCoefficientModel.KX.Value;
+                            }
+                            CalculatorCoefficientLog calculatorCoefficientLog = new CalculatorCoefficientLog();
+                            calculatorCoefficientLog.K1 = itemOnTT.Coefficient;
+                            calculatorCoefficientLog.TT = itemOnTT.TTCode;
+                            calculatorCoefficientLog.SKU = itemOnTT.Item.RkCode;
+                            calculatorCoefficientLog.Name = itemOnTT.Name;
+                            calculatorCoefficientLog.TaskCreation = taskCreationTime;
+                            calculatorCoefficientLog.TaskExecution = taskCreationTime;
+                            calculatorCoefficientLog.Orderer = User.Identity.Name;
+                            calculatorCoefficientLog.Status = 2;
+                            dbSql.CalculatorСoefficientLogs.Add(calculatorCoefficientLog);
+                        }
+                        break;
+                    case 2:
+                        List<Items> items = new List<Items>();
+                        if (calculateCoefficientModel.Items.Count == 0 && calculateCoefficientModel.ItemsGroups.Count == 0)
+                        {
+                            items = CalculatorDb.Items.ToList();
+                        }
+                        else if (calculateCoefficientModel.ItemsGroups.Count == 0)
+                        {
+                            items = CalculatorDb.Items.Where(x => calculateCoefficientModel.Items.Contains(x.RkCode)).ToList();
+                        }
+                        else if (calculateCoefficientModel.Items.Count == 0)
+                        {
+                            items = CalculatorDb.Items.Where(x => calculateCoefficientModel.ItemsGroups.Contains(x.ItemsGroup)).ToList();
+                        }
+                        else
+                        {
+                            items = CalculatorDb.Items.Where(x => calculateCoefficientModel.Items.Contains(x.RkCode) && calculateCoefficientModel.ItemsGroups.Contains(x.ItemsGroup)).ToList();
+                        }
+                        foreach (var item in items)
+                        {
+                            if (sign == 1)
+                            {
+                                item.Coefficient = calculateCoefficientModel.KEql.Value;
+                            }
+                            if (sign == 2)
+                            {
+                                item.Coefficient += calculateCoefficientModel.Kdelta.Value;
+                            }
+                            if (sign == 3)
+                            {
+                                item.Coefficient *= calculateCoefficientModel.KX.Value;
+                            }
+                            CalculatorCoefficientLog calculatorCoefficientLog = new CalculatorCoefficientLog();
+                            calculatorCoefficientLog.K2 = item.Coefficient;
+                            calculatorCoefficientLog.SKU = item.RkCode;
+                            calculatorCoefficientLog.Name = item.Name;
+                            calculatorCoefficientLog.TaskCreation = taskCreationTime;
+                            calculatorCoefficientLog.TaskExecution = taskCreationTime;
+                            calculatorCoefficientLog.Orderer = User.Identity.Name;
+                            calculatorCoefficientLog.Status = 2;
+                            dbSql.CalculatorСoefficientLogs.Add(calculatorCoefficientLog);
+                        }
+                        break;
+                    case 3:
+                        List<ItemsGroupTimeTT_Coefficient> itemsGroupTimeTT_Coefficients = new List<ItemsGroupTimeTT_Coefficient>();
+                        if (calculateCoefficientModel.TimeGroups.Count == 0 && calculateCoefficientModel.TTs.Count == 0)
+                        {
+                            itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup).ToList();
+                        }
+                        else if (calculateCoefficientModel.TimeGroups.Count == 0)
+                        {
+                            itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup)
+                                                                                                      .Where(x => calculateCoefficientModel.TTs.Contains(x.TTCODE)).ToList();
+                        }
+                        else if (calculateCoefficientModel.TTs.Count == 0)
+                        {
+                            itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup)
+                                                                                                      .Where(x => calculateCoefficientModel.TimeGroups.Contains(x.TimeGroup.Guid)).ToList();
+                        }
+                        else
+                        {
+                            itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup)
+                                                                                                      .Where(x => calculateCoefficientModel.TimeGroups.Contains(x.TimeGroup.Guid) && calculateCoefficientModel.TTs.Contains(x.TTCODE)).ToList();
+                        }
+                        foreach (var itemsGroupTimeTT_Coefficient in itemsGroupTimeTT_Coefficients)
+                        {
+                            if (sign == 1)
+                            {
+                                itemsGroupTimeTT_Coefficient.Coefficient = calculateCoefficientModel.KEql.Value;
+                            }
+                            if (sign == 2)
+                            {
+                                itemsGroupTimeTT_Coefficient.Coefficient += calculateCoefficientModel.Kdelta.Value;
+                            }
+                            if (sign == 3)
+                            {
+                                itemsGroupTimeTT_Coefficient.Coefficient *= calculateCoefficientModel.KX.Value;
+                            }
+                            CalculatorCoefficientLog calculatorCoefficientLog = new CalculatorCoefficientLog();
+                            calculatorCoefficientLog.K3 = itemsGroupTimeTT_Coefficient.Coefficient;
+                            calculatorCoefficientLog.TT = itemsGroupTimeTT_Coefficient.TTCODE;
+                            calculatorCoefficientLog.TimeGroup = itemsGroupTimeTT_Coefficient.TimeGroup.Guid;
+                            calculatorCoefficientLog.Name = itemsGroupTimeTT_Coefficient.Name;
+                            calculatorCoefficientLog.TaskCreation = taskCreationTime;
+                            calculatorCoefficientLog.TaskExecution = taskCreationTime;
+                            calculatorCoefficientLog.Orderer = User.Identity.Name;
+                            calculatorCoefficientLog.Status = 2;
+                            dbSql.CalculatorСoefficientLogs.Add(calculatorCoefficientLog);
+                        }
+                        break;
+                }
+                CalculatorDb.SaveChanges();
+                dbSql.SaveChanges();
+                return Ok();
+            }
+
             return Ok();
+
+            
+
         }
 
 
@@ -709,12 +804,13 @@ namespace Portal.Controllers
         public List<Models.MSSQL.Calculator.Items> Items { get; set; }
         public List<Models.MSSQL.Calculator.TT> TT { get; set; }
         public List<Models.MSSQL.Calculator.TimeGroups> TimeGroups { get; set; }
+        public List<ItemsGroups> ItemsGroups { get; set; }
     }
 
     public class CalculateCoefficientTableModel
     {
 
-        public int k { get; set; }
+        public int K { get; set; }
         public List<Models.MSSQL.Calculator.Items> Items { get; set; }
         public List<Models.MSSQL.Calculator.ItemOnTT> ItemOnTTs { get; set; }
         public List<Models.MSSQL.Calculator.ItemsGroupTimeTT_Coefficient> ItemsGroupTimeTT_Coefficients { get; set; }
@@ -746,6 +842,19 @@ namespace Portal.Controllers
         public int? Id { get; set; }
         public DateTime Date { get; set; }
         public Guid DayGroupsGuid { get; set; }
+    }
+
+    public class ChangeCalculateCoefficientModel
+    {
+        public int K { get; set; }
+        public double? Kdelta { get; set; }
+        public double? KX { get; set; }
+        public double? KEql { get; set; }
+        public List<int> Items { get; set; }
+        public List<int> TTs { get; set; }
+        public List<Guid> ItemsGroups { get; set; }
+        public List<Guid> TimeGroups { get; set; }
+        public DateTime? DeferredExecution { get; set; }
     }
 
 }

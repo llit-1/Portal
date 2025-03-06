@@ -55,17 +55,14 @@
             <!--разделитель-->
             <hr style="width:100%" />
             <label class="label-light">K2</label>
-        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+        <div style="width:100%; margin-bottom:15px" class="@formClass">
             <input id="SKUCoefficient" type="text" class="form-control" value="@Model?.Item?.Coefficient" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1').replace(/^\./, '').replace(/\.(\d{2})\d+/, '.$1');">
             </div>
             <label class="label-light">Минимальное значение полки</label>
-        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+        <div style="width:100%; margin-bottom:15px" class="@formClass">
             <input id="SKUMinShowCase" type="text" class="form-control" value="@Model?.Item?.MinShowCase" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
-        <label class="label-light">Время подготовки</label>
-        <div style="width:100% class="@formClass" style="margin-bottom:15px">
-            <input id="SKUDefrostTime" type="text" class="form-control" value="@Model?.Item?.DefrostTime" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-        </div>
+        
             
     </div>
     <div class="col-md-4 col-lg-4" @blockStyle>
@@ -74,14 +71,19 @@
             <!--разделитель-->
             <hr style="width:100%" />
         <label class="label-light">Очередность</label>
-        <div style="width:100% class="@formClass" style="margin-bottom:15px">
+        <div style="width:100% ; margin-bottom:15px" class="@formClass">
             <input id="SKUSequence" type="text" class="form-control" value="@Model?.Item?.Sequence" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
         </div>
             <label class="label-light">Режим выпечки</label>
-        <div style="width:100%" class="@formClass" style="margin-bottom:15px">
+        <div style="width:100% ; margin-bottom:15px" class="@formClass">
             <input id="SKUBakingMode" type="text" class="form-control" value="@Model?.Item?.BakingMode" style="font-weight:bold">
             </div>
+        <label class="label-light">Время дефроста</label>
+        <div style="width:100%; margin-bottom:15px" class="@formClass">
+            <input id="SKUDefrostTime" type="text" class="form-control" value="@Model?.Item?.DefrostTime" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
         </div>
+    </div>
+           
   </div>
 <div class="row flex bg-white" style="margin: 0px; display: flex; padding: 40px;">
     <button type="button" class="btn btn-sm btn-success default" onclick="SaveNewItem()">Сохранить</button>

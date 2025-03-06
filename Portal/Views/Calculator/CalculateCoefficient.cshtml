@@ -33,19 +33,17 @@
 
 <div class="row flex bg-white" style="margin:0px">
 
-     <!--данные тт-->
-    <div class="col-md-4 col-lg-4" @blockStyle>
+    <div class="col-md-3 col-lg-3" @blockStyle>
         <!--заголовок-->
-        <h5 class="pull-left">K1(Точка-СКЮ)</h5>
+        <h5 class="pull-left">K1(Точка-СKЮ)</h5>
         <!--разделитель-->
         <hr style="width:100%" />
 
         <!--организация-->
         <div class="form-group">
-            <label class="label-light" style="width:100%">СКЮ</label>
+            <label class="label-light" style="width:100%">СKЮ</label>
             <div style="width:100%; float:left; margin-bottom:15px">
-                <select id="K1Item" class="form-control selectors" data-width="100%">
-                    <option value="0" selected ="true">-</option>
+                <select id="K1Item" class="form-control selectors" data-width="100%" multiple="multiple">
                         @foreach (var items in Model?.Items.OrderBy(o => o.Name))
                         {
                         <option value="@items.RkCode">@items.Name</option>
@@ -57,8 +55,7 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">ТТ</label>
             <div style="width:100%; float:left; margin-bottom:15px">
-                <select id="K1TT" class="form-control selectors" data-width="100%">
-                    <option value="0" selected="true">-</option>
+                <select id="K1TT" class="form-control selectors" data-width="100%" multiple="multiple">
                     @foreach (var tts in Model?.TT.OrderBy(o => o.TTName))
                     {
                         <option value="@tts.TTCode">@tts.TTName</option>
@@ -67,32 +64,52 @@
             </div>
         </div>
 
-        <label class="label-light">ΔК</label>
-        <div class="@formClass" style="margin-bottom:15px">
-            <input id="ΔК1" type="number" class="form-control no-plus-input" value="@locVerName" style="font-weight:bold" @disabled>
+
+        <div class="form-group">
+            <label class="label-light" style="width:100%">Отложенное выполнение</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <input type="datetime-local" class="form-control" id="K1Date" data-width="100%">
+            </div>
+        </div>
+        
+
+        <div class="Ides" style="width:100% ; margin-bottom:120px">
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">K</label>
+                <input id="K1" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>        
+
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">ΔK</label>
+                <input id="ΔK1" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">XK1</label>
+                <input id="XK1" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
         </div>
 
-        <div class="col-12" style="overflow: hidden;">
-            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(1)" style="float: left">Изменить на ΔК</button>
-            <button type="button" class="btn btn-sm btn-light default" onclick="loadK1Table()" style="float: right">Просмотр</button>
+        <div>
+            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(1)" style="float: left">Изменить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="loadKTable(1)" style="float: right">Просмотр</button>
         </div>
 
     </div>
 
     
-    <div class="col-md-4 col-lg-4" @blockStyle>
+    <div class="col-md-3 col-lg-3" @blockStyle>
         <!--заголовок-->
         <h5 class="pull-left">K2(СКЮ)</h5>
 
         <!--разделитель-->
         <hr style="width:100%" />
 
-        <!--организация-->
+
         <div class="form-group">
-            <label class="label-light" style="width:100%">СКЮ</label>
+            <label class="label-light" style="width:100%">СKЮ</label>
             <div style="width:100%; float:left; margin-bottom:15px">
-                <select id="K2Item" class="form-control selectors" data-width="100%">
-                    <option value="0" selected="true">-</option>
+                <select id="K2Item" class="form-control selectors" data-width="100%" multiple="multiple">
                     @foreach (var items in Model?.Items.OrderBy(o => o.Name))
                     {
                         <option value="@items.RkCode">@items.Name</option>
@@ -101,21 +118,56 @@
             </div>
         </div>
 
-        <label class="label-light">ΔК</label>
-        <div class="@formClass" style="margin-bottom:15px">
-            <input id="ΔК2" type="number" class="form-control no-plus-input" value="@locVerName" style="font-weight:bold" @disabled>
+
+        <div class="form-group">
+            <label class="label-light" style="width:100%">Группа товаров</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <select id="K2ItemGroup" class="form-control selectors" data-width="100%" multiple="multiple">
+                    @foreach (var items in Model?.ItemsGroups.OrderBy(o => o.Name))
+                    {
+                        <option value="@items.Guid">@items.Name</option>
+                    }
+                </select>
+            </div>
         </div>
-        <div class="col-12" style="overflow: hidden;">
-            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(2)" style="float: left">Изменить на ΔК</button>
-            <button type="button" class="btn btn-sm btn-light default" onclick="loadK2Table()" style="float: right">Просмотр</button>
+
+        <div class="form-group">
+            <label class="label-light" style="width:100%">Отложенное выполнение</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <input type="datetime-local" class="form-control" id="K2Date" data-width="100%">
+            </div>
+        </div>
+
+
+        <div class="Ides" style="width:100% ; margin-bottom:120px">
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">K</label>
+                <input id="K2" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">ΔK</label>
+                <input id="ΔK2" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">XK</label>
+                <input id="XK2" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+        </div>
+
+
+        <div>
+            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(2)" style="float: left">Изменить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="loadKTable(2)" style="float: right">Просмотр</button>
         </div>
         
     </div>
 
 
-    <div class="col-md-4 col-lg-4" @blockStyle>
+    <div class="col-md-3 col-lg-3" @blockStyle>
         <!--заголовок-->
-        <h5 class="pull-left">K3(ТТ - Временная группа - Группа товаров)</h5>
+        <h5 class="pull-left">K3(ТТ - Временная группа)</h5>
 
         <!--разделитель-->
         <hr style="width:100%" />
@@ -124,14 +176,20 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">ТТ</label>
             <div style="width:100%; float:left; margin-bottom:15px">
-                <select id="K3TT" class="form-control selectors" data-width="100%">
-                    <option value="0" selected="true">-</option>
+                <select id="K3TT" class="form-control selectors" data-width="100%" multiple="multiple">
                     @foreach (var tts in Model?.TT.OrderBy(o => o.TTName))
                     {
                         <option value="@tts.TTCode">@tts.TTName</option>
                     }
                 </select>
             </div>
+            <button type="button" class="save btn btn-default d-none" onclick="SaveSelect(this)" style="float:left"><i class="fa fa-fw fa-save"></i></button>
+
+            <!--сохранение...-->
+            <button type="button" class="saving btn btn-default d-none" style="float:left"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+
+            <!--отменить-->
+            <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
         </div>
 
 
@@ -139,8 +197,7 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">Временная группа</label>
             <div style="width:100%; float:left; margin-bottom:15px">
-                <select id="K3timeGroup" class="form-control selectors" data-width="100%">
-                    <option value="0" selected="true">-</option>
+                <select id="K3timeGroup" class="form-control selectors" data-width="100%" multiple="multiple">
                     @foreach (var timegr in Model?.TimeGroups.OrderBy(o => o.Name))
                     {
                         <option value="@timegr.Guid">@timegr.Name</option>
@@ -149,20 +206,40 @@
             </div>
         </div>
 
-
-        <label class="label-light">ΔК</label>
-        <div class="@formClass" style="margin-bottom:15px">
-            <input id="ΔК3" type="number" class="form-control no-plus-input" value="@locVerName" style="font-weight:bold" @disabled>
+        <div class="form-group">
+            <label class="label-light" style="width:100%">Отложенное выполнение</label>
+            <div style="width:100%; float:left; margin-bottom:15px">
+                <input type="datetime-local" class="form-control" id="K3Date" data-width="100%">
+            </div>
         </div>
-        <div class="col-12" style="overflow: hidden;">
-            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(3)" style="float: left">Изменить на ΔК</button>
-            <button type="button" class="btn btn-sm btn-light default" onclick="loadK3Table()" style="float: right">Просмотр</button>
+
+
+        <div class="Ides"  style="width:100% ; margin-bottom:120px">
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">K</label>
+                <input id="K3" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">ΔK</label>
+                <input id="ΔK3" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+
+            <div class="col-md-4 col-lg-4">
+                <label class="label-light">XK</label>
+                <input id="XK3" type="number" class="form-control no-plus-input" style="font-weight:bold">
+            </div>
+        </div>
+
+        <div>
+            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(3)" style="float: left">Изменить</button>
+            <button type="button" class="btn btn-sm btn-light default" onclick="loadKTable(3)" style="float: right">Просмотр</button>
         </div>
     </div>
 </div>
+
 <div id="page" style="margin-top:15px"></div>
 
-<!--модальное окно: добавление кассы-->
 <div id="WarningModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -185,7 +262,6 @@
     </div>
 </div>
 
-<!--модальное окно: добавление кассы-->
 <div id="InformModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -206,32 +282,46 @@
 </div>
 
 
+
 <script>
-    function loadK1Table() {
-        let k = 1;
-        let TT = document.getElementById("K1TT").value;
-        let Item = document.getElementById("K1Item").value;
-        SpinnerShow();
-        $('#page').load('/Calculator/CalculateCoefficientTable?k=' + k + '&TT=' + TT + '&item=' + Item + '&timeGroup=0', function () { SpinnerHide(); });
-    }
+    $('.selectors').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите группы..."
+    });
 </script>
+
+
+
 <script>
-    function loadK2Table() {
-        let k = 2;
-        let Item = document.getElementById("K2Item").value;
-        SpinnerShow();
-        $('#page').load('/Calculator/CalculateCoefficientTable?k=' + k + '&TT=0' + '&item=' + Item + '&timeGroup=0', function () { SpinnerHide(); });
-    }
+    function loadKTable(k) {
+        fetch('/Calculator/CalculateCoefficientTable', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(getPageInformation(k))
+      }).then(response => response.text()) // Получаем HTML-код как текст
+        .then(htmlResponse => {
+         const pageElement = document.getElementById('page');
+        pageElement.innerHTML = htmlResponse;
+
+        // Извлекаем и выполняем скрипты
+        const scripts = pageElement.querySelectorAll('script');
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+                // Если скрипт внешний (с src)
+                newScript.src = script.src;
+            } else {
+                // Если скрипт встроенный
+                newScript.textContent = script.textContent;
+            }
+            document.body.appendChild(newScript).remove(); // Добавляем и сразу удаляем
+        });
+    })
+      }   
 </script>
-<script>
-    function loadK3Table() {
-        let k = 3;
-        let TT = document.getElementById("K3TT").value;
-        let timeGroup = document.getElementById("K3timeGroup").value;
-        SpinnerShow();
-        $('#page').load('/Calculator/CalculateCoefficientTable?k=' + k + '&TT=' + TT + '&item=0' + '&timeGroup=' + timeGroup, function () { SpinnerHide(); });
-    }
- </script>
+
  <script>
      function showWarningModal(k) {
        document.getElementById('message').textContent = 'Вы уверерены что хотите изменить k' + k + ' для заданных параметров';
@@ -241,34 +331,13 @@
 </script>
 <script>
     function changeK() {
-       SpinnerShow();
-       let k = document.getElementById('cof').textContent;
-       let tt = '0';
-       let item = '0';
-       let timeGroup = '0';
-       let delta = '0';
-       switch(k){
-           case'1':
-            tt = document.getElementById("K1TT").value;
-            item = document.getElementById("K1Item").value;
-            delta = document.getElementById("ΔК1").value;
-           break;          
-           case'2':
-            item = document.getElementById("K2Item").value;
-            delta = document.getElementById("ΔК2").value;
-           break;
-           case'3':
-            tt = document.getElementById("K3TT").value;
-            timeGroup = document.getElementById("K3timeGroup").value;
-            delta = document.getElementById("ΔК3").value;
-            console.log(delta);
-           break;
-       }
-     const url = `/Calculator/ChangeCalculateCoefficient?k=${k}&delta=${delta}&TT=${tt}&item=${item}&timeGroup=${timeGroup}`;
-           const options = {
-             method: 'POST', // Метод запроса
-           };
-       fetch(url, options).then(response => {
+     SpinnerShow();
+     let k = +document.getElementById('cof').textContent;
+     fetch('/Calculator/ChangeCalculateCoefficient', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify(getPageInformation(k))
+      }).then(response => {
           if (response.ok) {
               SpinnerHide();
               $("#WarningModal").modal("hide");
@@ -295,8 +364,19 @@
         inputElement.addEventListener('keydown', function (event) {
             if (event.key === '+') {
                 event.preventDefault();
+            } 
+        });
+        inputElement.addEventListener('input', function () {
+            const parentContainer = this.closest('.Ides'); // Ищем общего родителя
+            if (parentContainer) {
+                const allInputs = parentContainer.querySelectorAll('.no-plus-input'); // Все инпуты внутри родителя
+                const otherInputs = Array.from(allInputs).filter(input => input !== this); // Исключаем текущий инпут
+                otherInputs.forEach(input => {
+                    input.value = ""; // Очищаем другие инпуты
+                });
             }
         });
+
     }
     // Находим все элементы с классом 'no-plus-input'
     const inputs = document.querySelectorAll('.no-plus-input');
@@ -304,5 +384,73 @@
     // Применяем функцию ко всем найденным элементам
     inputs.forEach(input => {
         preventPlusInput(input);
+
     });
+</script>
+
+<script>
+    function getPageInformation(k){
+        let SKUOptions = Array.from(document.getElementById("K1Item").selectedOptions);
+        let Items1 = SKUOptions.map(option => +option.value);
+        let TTOptions = Array.from(document.getElementById("K1TT").selectedOptions);
+        let TTs1 = TTOptions.map(option => option.value);
+        let date1 = document.getElementById('K1Date').value;
+        let K1 = document.getElementById('K1').value;
+        let deltaK1 = document.getElementById('ΔK1').value;
+        let XK1 = document.getElementById('XK1').value;
+        SKUOptions = Array.from(document.getElementById("K2Item").selectedOptions);
+        let Items2 = SKUOptions.map(option => +option.value);
+        let ItemsGroupsOptions = Array.from(document.getElementById("K2ItemGroup").selectedOptions);
+        let ItemsGroups2 = ItemsGroupsOptions.map(option => option.value);
+        let date2 = document.getElementById('K2Date').value;
+        let K2 = document.getElementById('K2').value;
+        let deltaK2 = document.getElementById('ΔK2').value;
+        let XK2 = document.getElementById('XK2').value;
+        TTOptions = Array.from(document.getElementById("K3TT").selectedOptions);
+        let TTs3 = TTOptions.map(option => option.value);
+        let TimeGroupsOptions = Array.from(document.getElementById("K3timeGroup").selectedOptions);
+        let TimeGroups3 = TimeGroupsOptions.map(option => option.value);
+        let date3 = document.getElementById('K3Date').value;
+        let K3 = document.getElementById('K3').value;
+        let deltaK3 = document.getElementById('ΔK3').value;
+        let XK3 = document.getElementById('XK3').value;
+        const data = {
+        K: k,
+        Kdelta: null,
+        KX: null,
+        KEql: null,
+        Items: [],
+        TTs: [],
+        ItemsGroups: [],
+        TimeGroups: [],
+        DeferredExecution: null
+        }
+        switch(k) {
+             case 1:
+             data.Kdelta = deltaK1;
+             data.KX = XK1;
+             data.KEql = K1;
+             data.Items = Items1;
+             data.TTs = TTs1;
+             data.DeferredExecution = date1;
+            break;
+             case 2:
+             data.Kdelta = deltaK2;
+             data.KX = XK2;
+             data.KEql = K2;
+             data.Items = Items2;
+             data.ItemsGroups = ItemsGroups2;
+             data.DeferredExecution = date2;
+            break;
+             case 3:
+             data.Kdelta = deltaK3;
+             data.KX = XK3;
+             data.KEql = K3;
+             data.TTs = TTs3;
+             data.TimeGroups = TimeGroups3;
+             data.DeferredExecution = date3;
+            break;
+        }
+        return data;
+      }
 </script>
