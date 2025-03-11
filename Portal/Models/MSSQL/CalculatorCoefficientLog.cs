@@ -23,7 +23,8 @@ namespace Portal.Models.MSSQL
         public DateTime TaskExecution { get; set; } // Дата и время выполнения задачи
 
         public string Orderer { get; set; } // Предполагаем, что Orderer - строка
-        public int Status { get; set; } // Предполагаем, что Status - строка
+        public int Status { get; set; }
+        public string Task { get; set; }
     }
 
 }
