@@ -359,6 +359,13 @@ namespace Portal.Controllers
             return PartialView(calculateCoefficientModel);
         }
 
+        [HttpGet]
+        public IActionResult CalculateCoefficientTable(string task)
+        {
+            List<CalculatorCoefficientLog> tasks = dbSql.CalculatorСoefficientLogs.Where(x => x.Task == task).ToList();
+            return PartialView(tasks);
+        }
+
         [HttpPost]
         public IActionResult CalculateCoefficientTable([FromBody] ChangeCalculateCoefficientModel calculateCoefficientModel)
         {
@@ -443,7 +450,7 @@ namespace Portal.Controllers
         {
             DateTime taskCreationTime = DateTime.Now;
             string taskName = taskCreationTime.Ticks.ToString();
-            string SqlRaw = "Use msdb  Exec dbo.sp_add_job @job_name = N\'" + taskName + "\', @enabled = 1, @description = N'Change Calculator Cofficient'  Exec dbo.sp_add_jobstep @job_name = N'"+ taskName +"', @step_name = N'step" + taskName + "', @subsystem = N'TSQL', @command =  N'Use Calculator ";
+            string SqlRaw = "Use msdb  Exec dbo.sp_add_job @job_name = N\'" + taskName + "\', @enabled = 1, @description = N'Change Calculator Cofficient'  Exec dbo.sp_add_jobstep @job_name = N'" + taskName + "', @step_name = N'step" + taskName + "', @subsystem = N'TSQL', @command =  N'Use Calculator ";
             string table = "Update ";
             string command = "Set COEFFICIENT = ";
             string condition = "Where";
@@ -531,7 +538,7 @@ namespace Portal.Controllers
                         calculatorCoefficientLog.TaskCreation = taskCreationTime;
                         calculatorCoefficientLog.TaskExecution = taskCreationTime;
                         calculatorCoefficientLog.Orderer = User.Identity.Name;
-                        calculatorCoefficientLog.Status = 2;                        
+                        calculatorCoefficientLog.Status = 2;
                         if (calculateCoefficientModel.DeferredExecution != null)
                         {
                             calculatorCoefficientLog.TaskExecution = calculateCoefficientModel.DeferredExecution.Value;
@@ -599,7 +606,7 @@ namespace Portal.Controllers
                         calculatorCoefficientLog.Name = item.Name;
                         calculatorCoefficientLog.TaskCreation = taskCreationTime;
                         calculatorCoefficientLog.TaskExecution = taskCreationTime;
-                        calculatorCoefficientLog.Orderer = User.Identity.Name;                       
+                        calculatorCoefficientLog.Orderer = User.Identity.Name;
                         calculatorCoefficientLog.Status = 2;
                         if (calculateCoefficientModel.DeferredExecution != null)
                         {
@@ -607,7 +614,7 @@ namespace Portal.Controllers
                             calculatorCoefficientLog.Status = 0;
                             calculatorCoefficientLog.Task = taskName;
                         }
-                        dbSql.CalculatorСoefficientLogs.Add(calculatorCoefficientLog);                        
+                        dbSql.CalculatorСoefficientLogs.Add(calculatorCoefficientLog);
                     }
                     break;
                 case 3:
@@ -665,7 +672,7 @@ namespace Portal.Controllers
                         if (sign == 3)
                         {
                             itemsGroupTimeTT_Coefficient.Coefficient *= calculateCoefficientModel.KX.Value;
-                        }                        
+                        }
                         calculatorCoefficientLog.K3 = itemsGroupTimeTT_Coefficient.Coefficient;
                         calculatorCoefficientLog.TT = itemsGroupTimeTT_Coefficient.TTCODE;
                         calculatorCoefficientLog.TimeGroup = itemsGroupTimeTT_Coefficient.TimeGroup.Guid;
@@ -699,7 +706,7 @@ namespace Portal.Controllers
             else
             {
                 CalculatorDb.SaveChanges();
-            }          
+            }
             dbSql.SaveChanges();
             return Ok();
         }
@@ -827,6 +834,17 @@ namespace Portal.Controllers
             return Ok();
         }
 
+        [HttpDelete]
+
+        public IActionResult DeleteTask(string task)
+        {
+            string SqlRaw = $"Exec msdb.dbo.sp_delete_job @job_name = N\'{task}\'";
+            dbSql.Database.ExecuteSqlRaw(SqlRaw);
+            List<CalculatorCoefficientLog> tasks = dbSql.CalculatorСoefficientLogs.Where(x => x.Task == task).ToList();
+            dbSql.CalculatorСoefficientLogs.RemoveRange(tasks);
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
         public IActionResult CalculateChart()
         {
             return PartialView();
