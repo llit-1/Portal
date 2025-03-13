@@ -1,6 +1,6 @@
 @model Portal.Controllers.CalculateCoefficientModel
 <div class="row" style="margin-top: 0px; margin-bottom:10px">
-   <!--Назад-->
+    <!--Назад-->
     <a href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
         <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
     </a>
@@ -25,16 +25,14 @@
     var oldId = "";
     Double? latitude = 0.0;
     Double? longitude = 0.0;
-        display = "d-none";
-        disabled = "";
-        formClass = "form-group";
-    
+    display = "d-none";
+    disabled = "";
+    formClass = "form-group";
+
 }
 
-<div class="row flex bg-white" style="margin:0px">
+<div class="row flex bg-white" id="calculate_wrapper" style="margin:0px">
 
-    <div class="col-md-3 col-lg-3" @blockStyle>
-     <!--данные тт-->
     <div class="col-md-3 col-lg-3" @blockStyle>
         <!--заголовок-->
         <h5 class="pull-left">K1(Точка-СKЮ)</h5>
@@ -46,10 +44,10 @@
             <label class="label-light" style="width:100%">СKЮ</label>
             <div style="width:100%; float:left; margin-bottom:15px">
                 <select id="K1Item" class="form-control selectors" data-width="100%" multiple="multiple">
-                        @foreach (var items in Model?.Items.OrderBy(o => o.Name))
-                        {
+                    @foreach (var items in Model?.Items.OrderBy(o => o.Name))
+                    {
                         <option value="@items.RkCode">@items.Name</option>
-                        }
+                    }
                 </select>
             </div>
         </div>
@@ -73,13 +71,13 @@
                 <input type="datetime-local" class="form-control" id="K1Date" data-width="100%">
             </div>
         </div>
-        
 
-        <div class="Ides" style="width:100% ; margin-bottom:120px">
+
+        <div class="Ides" style="width:100%;">
             <div class="col-md-4 col-lg-4">
                 <label class="label-light">K</label>
                 <input id="K1" type="number" class="form-control no-plus-input" style="font-weight:bold">
-            </div>        
+            </div>
 
             <div class="col-md-4 col-lg-4">
                 <label class="label-light">ΔK</label>
@@ -93,13 +91,13 @@
         </div>
 
         <div>
-            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(1)" style="float: left">Изменить</button>
+            <button id="K1Submit" type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(1)" style="float: left">Изменить</button>
             <button type="button" class="btn btn-sm btn-light default" onclick="loadKTable(1)" style="float: right">Просмотр</button>
         </div>
 
     </div>
 
-    
+
     <div class="col-md-3 col-lg-3" @blockStyle>
         <!--заголовок-->
         <h5 class="pull-left">K2(СКЮ)</h5>
@@ -141,7 +139,7 @@
         </div>
 
 
-        <div class="Ides" style="width:100% ; margin-bottom:120px">
+        <div class="Ides" style="width:100%;">
             <div class="col-md-4 col-lg-4">
                 <label class="label-light">K</label>
                 <input id="K2" type="number" class="form-control no-plus-input" style="font-weight:bold">
@@ -160,10 +158,10 @@
 
 
         <div>
-            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(2)" style="float: left">Изменить</button>
+            <button id="K2Submit" type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(2)" style="float: left">Изменить</button>
             <button type="button" class="btn btn-sm btn-light default" onclick="loadKTable(2)" style="float: right">Просмотр</button>
         </div>
-        
+
     </div>
 
 
@@ -216,7 +214,7 @@
         </div>
 
 
-        <div class="Ides"  style="width:100% ; margin-bottom:120px">
+        <div class="Ides" style="width:100%;">
             <div class="col-md-4 col-lg-4">
                 <label class="label-light">K</label>
                 <input id="K3" type="number" class="form-control no-plus-input" style="font-weight:bold">
@@ -234,7 +232,7 @@
         </div>
 
         <div>
-            <button type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(3)" style="float: left">Изменить</button>
+            <button id="K3Submit" type="button" class="btn btn-sm btn-success default" onclick="showWarningModal(3)" style="float: left">Изменить</button>
             <button type="button" class="btn btn-sm btn-light default" onclick="loadKTable(3)" style="float: right">Просмотр</button>
         </div>
     </div>
@@ -244,22 +242,60 @@
         <h5 class="pull-left">Просмотр заданий</h5>
 
         <div class="view_task">
-            <task class="task_card">
-                <div class="card_left">
-                    <span>Номер:</span>
-                    <span>ФИО:</span>
-                    <span>Дата создания:</span>
-                    <span>Дата выполнения:</span>
-                </div>
-                <div class="card_right">
-                    <span>123123123</span>
-                    <span>Кургузов В.С.</span>
-                    <span>10.03.2025 14:53:02</span>
-                    <span>10.03.2025 19:00:00</span>
-                </div>
-            </task>
+            @if (Model.CalculatorCofTasks.Count > 0)
+            {
+                @foreach (var item in Model.CalculatorCofTasks.OrderByDescending(x => x.Execution))
+                {
+                    @if (item.Execution < DateTime.Now)
+                    {
+                        <task class="task_card task_card_error" onclick="openTaskModal('@item.Task')">
+                            <div class="card_data">
+                                <b>Номер:</b>
+                                <span>@item.Task</span>
+                            </div>
+                            <div class="card_data">
+                                <b>Создано:</b>
+                                <span>@item.Orderer</span>
+                            </div>
+                            <div class="card_data">
+                                <b>Дата создания:</b>
+                                <span>@item.Creation</span>
+                            </div>
+                            <div class="card_data">
+                                <b>Дата выполнения:</b>
+                                <span>@item.Execution</span>
+                            </div>
+                        </task>
+                    }
+                    else
+                    {
+                        <task class="task_card" onclick="openTaskModal('@item.Task')">
+                            <div class="card_data">
+                                <b>Номер:</b>
+                                <span>@item.Task</span>
+                            </div>
+                            <div class="card_data">
+                                <b>Создано:</b>
+                                <span>@item.Orderer</span>
+                            </div>
+                            <div class="card_data">
+                                <b>Дата создания:</b>
+                                <span>@item.Creation</span>
+                            </div>
+                            <div class="card_data">
+                                <b>Дата выполнения:</b>
+                                <span>@item.Execution</span>
+                            </div>
+                        </task>
+                    }
+                }
+            } else {
+                <div class="task_card_empty"> Отложенные задания отсутствуют! </div>
+            }
+            
+            
         </div>
-        
+
     </div>
 
 </div>
@@ -288,19 +324,40 @@
     </div>
 </div>
 
+<div id="WarningModalNullException" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!--заголовок-->
+            <div class="modal-header" style="border: none; text-align: center">
+
+                <h4 id="messageNullException" class="modal-title">
+                    <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
+                </h4>
+                <h1 id="cof" class="hidden"></h1>
+            </div>
+            <!--кнопки-->
+            <div class="modal-footer" style="border: none; text-align: center">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> закрыть </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <div id="InformModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
     <div class="modal-dialog">
         <div class="modal-content">
 
             <!--заголовок-->
-            <div class="modal-header">
+            <div class="modal-header" >
 
                 <h4 id="mess" class="modal-title">
                     <a class="anchorjs-link" href="#myModalLabel"><span class="anchorjs-icon"></span></a>
                 </h4>
             </div>
             <!--кнопки-->
-            <div class="modal-footer">
+            <div class="modal-footer" >
                 <button type="button" class="btn btn-sm btn-default" data-dismiss="modal"> закрыть </button>
             </div>
         </div>
@@ -308,7 +365,7 @@
 </div>
 
 
-
+<div id="modal-calculate" class="modal-calculate"></div>
 
 
 
@@ -357,21 +414,36 @@
        document.getElementById('cof').textContent = k;
        $("#WarningModal").modal("show");
     }
+
+    function showWarningModalNullException() {
+       document.getElementById('messageNullException').textContent = 'Значение k не задано';
+       $("#WarningModalNullException").modal("show");
+    }
+    
 </script>
 <script>
     function changeK() {
      SpinnerShow();
      let k = +document.getElementById('cof').textContent;
+     let data = getPageInformation(k)
+
+     if(data.Kdelta == '' && data.KX == '' && data.KEql == '')
+     {
+        SpinnerHide()
+        $("#WarningModal").modal("hide")
+        return showWarningModalNullException()
+     }
+
      fetch('/Calculator/ChangeCalculateCoefficient', {
      method: 'POST',
      headers: {'Content-Type': 'application/json'},
-     body: JSON.stringify(getPageInformation(k))
+     body: JSON.stringify(data)
       }).then(response => {
           if (response.ok) {
               SpinnerHide();
               $("#WarningModal").modal("hide");
               document.getElementById('mess').textContent = 'Данные успешно изменены';
-              $("#InformModal").modal("show");
+              $("#container-fluid").load("/Calculator/CalculateCoefficient")
           } 
           else {
             throw new Error('Network response was not ok');
@@ -381,7 +453,7 @@
           SpinnerHide();
           $("#WarningModal").modal("hide");
           document.getElementById('mess').textContent = 'Ошибка при попытке изменить данные';
-          $("#InformModal").modal("show");
+          $("#container-fluid").load("/Calculator/CalculateCoefficient")
         });
        }
 </script>
@@ -485,18 +557,56 @@
 </script>
 
 
+<script>
+        async function openTaskModal(task) {
+        const response = await fetch(`/Calculator/CalculateCoefficientModal?task=${task}`);
+        const data = await response.text();
+        document.getElementById('modal-calculate').innerHTML = data;
+        document.getElementById('modal-calculate').style.display = 'flex';
+    }
+
+    document.querySelector('.close').onclick = function() {
+        document.getElementById('modal-calculate').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('modal-calculate');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function closeCalculateModal() {
+        document.getElementById('modal-calculate').style.display = 'none';
+    }
+
+    async function deleteTask(task) {
+        let answer = confirm("Вы действительно хотите удалить задание?")
+        if(answer) {
+            await fetch("/Calculator/DeleteTask?task=" + task, {
+                method: 'DELETE'
+            })
+            document.getElementById('modal-calculate').style.display = 'none';
+            await $("#container-fluid").load("/Calculator/CalculateCoefficient")
+        }
+    }
+
+</script>
+
+
+@* Стили окна просмотра заданий *@
 <style>
     .view_task {
         width: 100%;
         border: 1px solid;
-        height: 270px;
+        height: 308px;
         margin-bottom: 10px;
         border: 1px solid #DDD;
         display: flex;
         flex-direction: column;
         padding: 10px;
         gap: 10px;
-        max-height: 270px;
+        max-height: 308px;
         overflow: overlay;
     }
 
@@ -507,18 +617,33 @@
 
     .task_card {
         width: 100%;
-        height: 115px;
         display: block;
         border: 1px solid #b8b8b8;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         font-size: 10px;
         padding: 5px 10px;
         font-size: 13px;
         justify-content: space-evenly;
-        gap: 10px;
+        gap: 1px;
         background-color: #f4f4f4;
         transition: all 0.25s linear;
+    }
+
+    .task_card_empty {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Akrobat-Light';
+        font-size: 16px;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .task_card_error {
+        background-color: #ff00004f;
     }
 
     .task_card:hover {
@@ -526,25 +651,59 @@
         background-color: #DDD;
     }
 
-    .card_left {
+    .card_data {
         display: flex;
         flex-direction: column;
-        width: 90%;
-        height: 100%;
-        align-items: end;
-        justify-content: center;
-        font-weight: 700;
-        gap: 5px;
-    }
-    
-    .card_right {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        align-items: start;
-        justify-content: center;
-        gap: 5px;
+        align-items: center;
     }
 
+    .card_data b {
+        font-family: 'Akrobat-Light';
+        font-size: 16px;
+    }
+
+    .card_data span {
+        font-size: 14px;
+    }
+</style>
+
+@* Стили для модального окна *@
+<style>
+    .modal-calculate {
+        display: none;
+        position: fixed;
+        z-index: 200;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+        padding-top: 60px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
 </style>

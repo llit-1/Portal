@@ -1,0 +1,43 @@
+﻿.Ides {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+    gap: 10px
+}
+
+.Ides > div {
+    padding: 0px;
+}
+
+@media screen and (max-width: 1495px) {
+    #calculate_wrapper > div {
+        width: 50%;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .Ides {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 20px;
+        gap: 10px
+    }
+
+    .Ides > div {
+        padding: 0px;
+    }
+}
+
+
+@media screen and (max-width: 768px) {
+    #calculate_wrapper {
+        display: flex;
+        flex-wrap: wrap;
+    }
+}
+
+@media screen and (max-width: 626px) {
+    #calculate_wrapper > div {
+        width: 100%;
+    }
+}

@@ -1,0 +1,190 @@
+@model List<Portal.Models.MSSQL.CalculatorCoefficientLog>
+
+<div class="calculate_modal">
+
+    <div class="calculate_modal_header">
+        <span class="modal_header_text"> Задание № @Model[0].Task </span>
+        <label class="modal_header_close md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeCalculateModal()"></label>
+    </div>
+
+    <div class="calculate_modal_body">
+
+        <div class="modal_body_info">
+            <span>Дата создания: @Model[0].TaskCreation</span>
+            <span>Дата исполнения: @Model[0].TaskExecution</span>
+            <span>Создано: @Model[0].Orderer</span>
+            <span>Изменение: 
+                @if (Model[0].K1 != null)
+                {
+                    <b>К1</b>
+                }
+                @if(Model[0].K2 != null)
+                {
+                    <b>К2</b>
+                }
+                @if(Model[0].K3 != null)
+                {
+                    <b>К3</b>
+                }
+            </span>
+        </div>
+
+        <div class="modal_body_wrapper">
+
+            <div class="body_wrapper_total">Всего: @Model.Count</div>
+
+            <div class="body_wrapper_changes">
+                @foreach (var item in @Model)
+                {
+                    @if (Model[0].K1 != null)
+                    {
+                        <div class="wrapper_change">
+                            @item.Name
+                            <b>@item.K1?.ToString("0.00")</b>
+                        </div>
+                    }
+                    @if (Model[0].K2 != null)
+                    {
+                        <div class="wrapper_change">
+                            @item.Name
+                            <b>@item.K2?.ToString("0.00")</b>
+                        </div>
+                    }
+                    @if (Model[0].K3 != null)
+                    {
+                        <div class="wrapper_change">
+                            @item.Name
+                            <b>@item.K3?.ToString("0.00")</b>
+                        </div>
+                    }
+                    
+                }
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="calculate_modal_footer">
+        <button class="btn btn-sm btn-danger default" onclick="deleteTask('@Model[0].Task')"> Удалить </button>
+        <button class="btn btn-sm btn-light default" onclick="closeCalculateModal()"> Закрыть </button>
+    </div>
+
+</div>
+
+<style>
+    .calculate_modal {
+        margin: 10px;
+        width: 500px;
+        height: 500px;
+        border: 1px solid #DDDDDD;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .calculate_modal_header {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+        border-bottom: 1px solid #DDDDDD;
+        padding: 10px;
+        align-items: center;
+    }
+
+    .modal_header_close {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .modal_header_text {
+        font-size: 18px;
+        font-family: 'Akrobat-Regular';
+    }
+
+    .calculate_modal_body {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .modal_body_info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal_body_info span b {
+        color: #25A25A;
+        font-size: 15px;
+    }
+
+    .modal_body_wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid #DDD;
+    }
+
+    .body_wrapper_total {
+        border-bottom: 1px solid #DDD;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        padding: 10px;
+        font-family: 'Akrobat-Regular';
+        font-size: 16px;
+    }
+
+    .body_wrapper_changes {
+        display: flex;
+        width: 100%;
+        padding: 10px;
+        gap: 5px;
+        overflow-y: auto;
+        height: 100%;
+        flex-direction: column;
+        max-height: 215px;
+    }
+
+    .wrapper_change {
+        height: fit-content;
+        display: flex
+;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    }
+
+    .calculate_modal_footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        border-top: 1px solid #DDDDDD;
+        padding: 10px;
+    }
+
+    .calculate_modal_footer {
+        border-top: 1px solid #DDDDDD;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .calculate_modal_footer button {
+        transition: all 0.25s linear;
+    }
+
+</style>

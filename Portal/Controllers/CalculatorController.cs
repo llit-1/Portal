@@ -360,7 +360,7 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public IActionResult CalculateCoefficientTable(string task)
+        public IActionResult CalculateCoefficientModal(string task)
         {
             List<CalculatorCoefficientLog> tasks = dbSql.CalculatorСoefficientLogs.Where(x => x.Task == task).ToList();
             return PartialView(tasks);
@@ -569,7 +569,7 @@ namespace Portal.Controllers
                     {
                         foreach (var itemsGroup in calculateCoefficientModel.ItemsGroups)
                         {
-                            condition += $" ITEMSGROUP = {itemsGroup} or";
+                            condition += $" ITEMSGROUP = ''{itemsGroup}'' or";
                         }
                         condition = condition.Remove(condition.Length - 3);
                         items = CalculatorDb.Items.Where(x => calculateCoefficientModel.ItemsGroups.Contains(x.ItemsGroup)).ToList();
@@ -580,7 +580,7 @@ namespace Portal.Controllers
                         {
                             foreach (var itemsGroup in calculateCoefficientModel.ItemsGroups)
                             {
-                                condition += $" (RKCODE = {item} and ITEMSGROUP = {itemsGroup}) or";
+                                condition += $" (RKCODE = {item} and ITEMSGROUP = ''{itemsGroup}'') or";
                             }
                         }
                         condition = condition.Remove(condition.Length - 3);
@@ -639,7 +639,7 @@ namespace Portal.Controllers
                     {
                         foreach (var timeGroup in calculateCoefficientModel.TimeGroups)
                         {
-                            condition += $" TIMEGROUPGUID = {timeGroup} or";
+                            condition += $" TIMEGROUPGUID = ''{timeGroup}'' or";
                         }
                         condition = condition.Remove(condition.Length - 3);
                         itemsGroupTimeTT_Coefficients = CalculatorDb.ItemsGroupTimeTT_Coefficient.Include(x => x.TimeGroup)
@@ -651,7 +651,7 @@ namespace Portal.Controllers
                         {
                             foreach (var timeGroup in calculateCoefficientModel.TimeGroups)
                             {
-                                condition += $" (TTCODE = {tt} and TIMEGROUPGUID = {timeGroup}) or";
+                                condition += $" (TTCODE = {tt} and TIMEGROUPGUID = ''{timeGroup}'') or";
                             }
                         }
                         condition = condition.Remove(condition.Length - 3);
@@ -696,7 +696,7 @@ namespace Portal.Controllers
                 string date = calculateCoefficientModel.DeferredExecution.Value.ToString("yyyyMMdd");
                 string time = calculateCoefficientModel.DeferredExecution.Value.ToString("HHmmss");
                 SqlRaw += table + command + condition + "; ";
-                SqlRaw += $"USE RKNET Update CalculatorСoefficientLogs Set Status = 1 where TaskCreation = \'\'{taskCreationTime.ToString("yyyy-dd-MM HH:mm:ss.fff")}\'\'; ";
+                SqlRaw += $"USE RKNET Update CalculatorСoefficientLogs Set Status = 1 where Task = ''{taskName}''; ";
                 SqlRaw += $"Exec msdb.dbo.sp_delete_job @job_name = N\'\'{taskName}\'\';'  Exec dbo.sp_add_schedule @schedule_name = N'schedule{taskName}', @freq_type = 1, @freq_interval = 1, ";
                 SqlRaw += "@active_start_date = " + date + ", ";
                 SqlRaw += "@active_start_time = " + time + "; ";
@@ -842,15 +842,9 @@ namespace Portal.Controllers
             dbSql.Database.ExecuteSqlRaw(SqlRaw);
             List<CalculatorCoefficientLog> tasks = dbSql.CalculatorСoefficientLogs.Where(x => x.Task == task).ToList();
             dbSql.CalculatorСoefficientLogs.RemoveRange(tasks);
-            CalculatorDb.SaveChanges();
+            dbSql.SaveChanges();
             return Ok();
         }
-        public IActionResult CalculateChart()
-        {
-            return PartialView();
-        }
-
-
         public async Task<IActionResult> LogSave(string logjsn)
         {
             var result = new RKNet_Model.Result<string>();
