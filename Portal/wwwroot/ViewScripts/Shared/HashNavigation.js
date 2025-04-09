@@ -74,7 +74,7 @@ $(function () {
         if (hash == '#TrackingData') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingData');
         if (hash == '#TimesheetsFactory') loadContent(hash.replace('#', ''), '/TimesheetsFactory/TimesheetsMain');
         
-        if (hash == '#stock') loadContent(hash.replace('#', ''), '/Stock/Stock');
+        if (hash == '#stock') loadTabMenu(hash.replace('#', ''), '/Stock/TabMenu');
         
         // Запросы пользователей
         if (hash == '#userrequests') loadContent(hash.replace('#', ''), '/UserRequests/ReqList?state=new');

@@ -41,19 +41,52 @@ namespace Portal.Controllers
             return PartialView();
         }
 
-        public IActionResult VKBOT(int actual)
+        public IActionResult VKBOT()
         {
             List<PromocodesVK> promocodes;
 
-            if (actual == 1)
-            {
-                promocodes = dbSql.PromocodesVK.ToList();
-            } else
-            {
-                promocodes = dbSql.PromocodesVK.Where(x => x.Active == 1).ToList();
-            }
+            promocodes = dbSql.PromocodesVK.Where(x => x.Active == 1).ToList();
+            
             
             return PartialView(promocodes);
+        }
+
+        public async Task<IActionResult> DeleteNonActiveCoupons()
+        {
+            try
+            {
+                var oldCoupons = await dbSql.PromocodesVK
+                    .Where(x => x.Active == 1 && x.EndDate < DateTime.Now)
+                    .ToListAsync();
+
+                if (oldCoupons.Any())
+                {
+                    using (var transaction = await dbSql.Database.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            foreach (var item in oldCoupons)
+                            {
+                                item.Active = 0;
+                            }
+
+                            await dbSql.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                        catch
+                        {
+                            await transaction.RollbackAsync();
+                            throw;
+                        }
+                    }
+                }
+
+                return Ok("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "Произошла ошибка при обработке запроса");
+            }
         }
 
         public class CouponData
@@ -62,6 +95,9 @@ namespace Portal.Controllers
             public string CodeWord { get; set; }
             public DateTime StartDate { get; set; }
             public DateTime EndDate { get; set; }
+            public int isReusable { get; set; }
+            public string Text { get; set; }
+
         }
 
         public async Task<IActionResult> UploadFiles(CouponData data)
@@ -89,6 +125,8 @@ namespace Portal.Controllers
                     receivedPromocodesVK.CodeWord = data.CodeWord;
                     receivedPromocodesVK.StartDate = data.StartDate;
                     receivedPromocodesVK.EndDate = data.EndDate;
+                    receivedPromocodesVK.Text = data.Text;
+                    receivedPromocodesVK.isReusable = data.isReusable;
                     receivedPromocodesVK.Active = 1;
 
                     dbSql.PromocodesVK.Add(receivedPromocodesVK);

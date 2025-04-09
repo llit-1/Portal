@@ -40,6 +40,7 @@
                                 <thead>
                                     <tr>
                                         <th >Название купона</th>
+                                        <th> Кодовое слово </th>
                                         <th style="text-align: center">Получатель</th>
                                         <th style="text-align: center">Дата</th>
 
@@ -51,6 +52,9 @@
                                         <tr id="@item.ID" class="activeRow">
                                             <td class="tdPersonTable">
                                                 <p class="list-item-heading">@item.PromocodesVK.Name</p>
+                                            </td>
+                                            <td class="tdPersonTable">
+                                                <p class="list-item-heading">@item.PromocodesVK.CodeWord</p>
                                             </td>
                                             <td class="tdPersonTable" style="text-align: center">
                                                 <p class="userName text-muted">@item.UserID</p>
@@ -77,29 +81,31 @@
 
 <!--инициализация таблицы-->
 <script>
-    var height = $('#global').height() - $('#cm-header').height() - $('#headMenu').height();
-
     var table = $(".data-table").DataTable({
-        "ordering": false,
+        "ordering": true,
+        "order": [0, 'asc'],
         searching: true,
         bLengthChange: false,
         destroy: true,
         info: false,
         paging: false,
         sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
-        responsive: true,
-        deferRender: true,
+        responsive: !0,
+        deferRender: !0,
         scrollY: height,
-        scrollCollapse: true
+        scrollCollapse: !0
     });
 
-    table.order([0, 'asc']).draw();
+    // сортируем по-умолчанию по первому столбцу
+    table.order([1, 'asc']).draw();
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
 
     $("#searchDatatable").on("keyup", function () {
         table.search($(this).val()).draw();
     });
-
-    $('.view-filter').hide();
 
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "" });

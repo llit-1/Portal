@@ -23,18 +23,13 @@
 
         <!--меню таблицы-->
         <div class="tableMenu" id="tableMenu">
-
-            <button id="addCoupon" class="btn btn-success btn">Добавить</button>
-
-            <div class="couponsLeft"> Осталось купонов: @Model.Where(x => x.Active == 1).Count() </div>
-
-            <div class="userActive">
-                <span class="textForCheckbox">Отображать только активные купоны</span>
-                <label class="switch">
-                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="hideOrShowCoupons(this)">
-                    <span class="switch__slider"></span>
-                </label>
+            
+            <div class="tableMenu_buttons">
+                <button id="addCoupon" style="font-family: 'Akrobat-Regular';font-weight: normal;" class="btn btn-success btn">Добавить</button>
+                <button id="deleteNonActiveCoupons" onclick="deleteOldCoupons()">Удалить устаревшие купоны</button>
             </div>
+
+            <div class="couponsLeft"> Осталось купонов: @Model.Count() </div>
 
         </div>
 
@@ -59,9 +54,9 @@
                                         <th>Название купона</th>
                                         <th>Кодовое слово</th>
                                         <th>Ссылка</th>
+                                        <th width="10%">Комментарий</th>
                                         <th style="text-align: center">Дата начала</th>
                                         <th style="text-align: center">Дата конца</th>
-                                        <th style="text-align: center">Статус</th>
 
                                     </tr>
                                 </thead>
@@ -78,26 +73,28 @@
                                             <td class="tdPersonTable">
                                                 <p class="userName text-muted">@item.Link</p>
                                             </td>
+                                            @if(item.Text != null)
+                                            {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted">@item.Text</p>
+                                                </td>
+                                            } else {
+                                                <td class="tdPersonTable">
+                                                    <p class="text-muted" style="
+                                                                            display: inline-block;
+                                                                            max-width: 300px;
+                                                                            white-space: nowrap;
+                                                                            overflow: hidden;
+                                                                            text-overflow: ellipsis;">
+                                                    </p>
+                                                </td>
+                                            }
                                             <td class="tdPersonTable" style="text-align: center">
                                                 <p class="text-muted">@item.StartDate.ToString("dd-MM-yyyy")</p>
                                             </td>
                                             <td class="tdPersonTable" style="text-align: center">
                                                 <p class="text-muted">@item.EndDate.ToString("dd-MM-yyyy")</p>
                                             </td>
-
-
-                                            @if (@item.Active == 1)
-                                            {
-                                                <td class="tdPersonTable" style="text-align: center">
-                                                    <p class='green_p couponStatus'></p>
-                                                </td>
-                                            }
-                                            else
-                                            {
-                                                <td class="tdPersonTable " style="text-align: center">
-                                                    <p class='red_p couponStatus'></p>
-                                                </td>
-                                            }
                                         </tr>
                                     }
                                 </tbody>
@@ -125,6 +122,17 @@
                 <input id="startDate" type="date" required class="border" />
                 <label class="label-light">Дата конца</label>
                 <input id="endDate" type="date" class="border" required />
+
+                @* Блок с многоразовым промо *@
+
+                <div class="multi">
+                    <input id="multi" type="checkbox" class="border" />
+                    <label for="multi">Многоразовый</label>
+                </div>
+
+                <label  class="label-light">Текст сообщения</label>
+                <textarea id="message_text" class="border" required></textarea>
+
                 <label class="label-light">Купоны</label>
                 <input type="file" id="coupon" required multiple/>
                 <input type="submit" multiple class="btn btn-success btn-sm">
@@ -138,27 +146,32 @@
 <script>
     var height = $('#global').height() - $('#cm-header').height() - $('#headMenu').height();
 
-    var table = $(".data-table").DataTable({
-        "ordering": false,
+     var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
         searching: true,
         bLengthChange: false,
         destroy: true,
         info: false,
         paging: false,
         sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
-        responsive: true,
-        deferRender: true,
+        responsive: !0,
+        deferRender: !0,
         scrollY: height,
-        scrollCollapse: true
+        scrollCollapse: !0
     });
 
-    table.order([0, 'asc']).draw();
+    // сортируем по-умолчанию по первому столбцу
+    table.order([1, 'asc']).draw();
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
 
     $("#searchDatatable").on("keyup", function () {
         table.search($(this).val()).draw();
     });
 
-    $('.view-filter').hide();
 </script>
 
 <script>
@@ -171,6 +184,9 @@
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
 
+        const message = document.getElementById("message_text").value;
+        const multi = document.getElementById("multi").checked;
+
         for (let i = 0; i < coupons.length; i++) {
             formData.append('files', coupons[i]);
         }
@@ -178,6 +194,9 @@
         formData.append('codeWord', codeWord);
         formData.append('startDate', startDate);
         formData.append('endDate', endDate);
+        formData.append('isReusable', multi === false ? 0 : 1);
+        formData.append('Text', message)
+
 
         SpinnerShow();
         $.ajax({
@@ -214,27 +233,19 @@
         }
     });
 
-
-    function hideOrShowCoupons(elem) {
-        if(elem.checked) {
-            document.querySelectorAll('.couponStatus').forEach(x => {
-                if(!x.classList.contains('green_p')) {
-                    x.parentElement.parentElement.classList.add('hidden')
-                }
-            })
-        } else {
-            document.querySelectorAll('.couponStatus').forEach(x => {
-                x.parentElement.parentElement.classList.remove('hidden')
-            })
-        }
-    }
-
-    document.getElementById('closedPersonality').checked = true
-    hideOrShowCoupons(document.getElementById('closedPersonality'))
-
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "" });
     $("#PageHeader").text("Купоны для ВК");
+</script>
+
+
+<script>
+    async function deleteOldCoupons() {
+        SpinnerShow();
+        const result = await fetch("/Settings_VKBOT/DeleteNonActiveCoupons")
+        SpinnerHide();
+        $('#container-fluid').load('/Settings_VKBOT/VKBOT')
+    }
 </script>
 
 <style>
@@ -302,4 +313,47 @@
         display: flex;
         align-items: center;
     }
+
+    .multi {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .multi > input {
+        margin: 0;
+    }
+
+    .multi > label {
+        margin: 0;
+    }
+
+    .tableMenu_buttons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+    }
+
+    #deleteNonActiveCoupons {
+        padding: 5px 10px;
+        text-transform: uppercase;
+        font-family: 'Akrobat-Regular';
+        color: white;
+        background: gray;
+        border: 1px solid #6d6d6d;
+        border-radius: 2px;
+        transition: all 0.25s linear;
+    }
+
+    #deleteNonActiveCoupons:hover {
+        background: #606060;
+    }
+
+    #message_text {
+        resize: none;
+        min-height: 100px;
+    }
+
 </style>

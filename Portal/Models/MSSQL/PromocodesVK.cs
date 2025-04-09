@@ -14,6 +14,8 @@ namespace Portal.Models.MSSQL
         public string Link { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public int? isReusable { get; set; }
+        public string? Text { get; set; }
         public int Active { get; set; }
     }
 }

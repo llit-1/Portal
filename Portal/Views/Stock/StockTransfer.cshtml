@@ -1,0 +1,263 @@
+@model List<Portal.Models.MSSQL.Location.Location>
+
+<div class="transfer">
+
+    <div class="transfer_details">
+
+        <div class="details_card">
+            <div class="card_title" style="min-height: 32.67px;"> Трансфер </div>
+            <p class="transfer_position" id="transfer_start">Начальная точка:</p>
+            <p class="transfer_position" id="transfer_end">Конечная точка:</p>
+            <div class="card_search_wrapper">
+                <img src="/themes/clearmin/img/search.png">
+                <input class="card_search" placeholder="Поиск..."/>
+            </div>
+            
+            
+            <div class="location_handler">
+
+                @foreach(var item in Model)
+                {
+                    <div class="location_item">
+                        <p style="margin: 0;">@item.Name</p>
+                        <div class="item_button_handler">
+                            <button id="transferFrom" class="btn btn-default md-call-made" onclick="pickTransferPoint('@item.Name', 'start', this)"></button>
+                            <button id="transferTo" class="btn btn-default md-call-received" onclick="pickTransferPoint('@item.Name', 'end', this)"></button>
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+
+        </div>
+
+        <div class="details_card card_scan" style="width: 50%;">
+
+            <div class="owner_object hand_scan">
+                <div class="card_title newOwner"> Новый держатель </div>
+                <div class="scan_add">
+                    <input id="newowner" style="width: 100%; text-align: center;" class="scan_add_input" placeholder=""/>
+                </div>
+            </div>
+
+
+            <div class="comments_wrapper hand_scan">
+                <div class="card_title"> Комментарий </div>
+                <textarea placeholder="Введите текст комментария" class="comments_area"></textarea>
+            </div>
+            
+        </div>
+
+        <div class="details_card card_scan" style="width: 60%;">
+
+            <div class="hand_scan">
+                <div class="card_title"> Ручное добавление </div>
+                <div class="scan_add">
+                    <input class="scan_add_input" maxlength="24" placeholder="000000000000000000000000"/>
+                    <button class="scan_add_button btn btn-sm btn-success">Добавить</button>
+                </div>
+            </div>
+
+            <div class="auto_scan">
+                <div class="card_title"> Сканирование </div>
+                <div class="auto_scan_wrapper">
+                    <span>1. Нажмите на кнопку</span>
+                    <span>2. Поднесите метку к считывателю</span>
+                    <button class="scan_button md-play-arrow" onclick="toggleRecord(event, this)"></button>
+                </div>
+                
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <div class="transfer_objects">
+        <div class="panel panel-default" style="margin-bottom:0px; border: none; box-shadow: none;">
+            <div class="panel-body">
+                <div class="row mb-4 mt-3" style="margin-left: 0px;">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="data-table nowrap" style="width: 100%; border-spacing: 0 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Наименование</th>
+                                            <th>Начальная точка</th>
+                                            <th>Конечная точка</th>
+                                            <th style="width: 25%">Комментарий</th>
+                                            <th>Дата</th>
+                                            <th>Новый держатель</th>
+                                            <th>Заполнил</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transfer_table">
+                                        @for(var i = 0; i < 2; i++)
+                                        {
+                                            <tr class="activeRow" onclick="">
+                                                <td>
+                                                    <p class="text-mute">000000000000000000000003</p>
+                                                </td>
+                                                <td>
+                                                    <p class="text-muted">Xiaomi Redmi Note 12 Pro</p>
+                                                </td>
+                                                <td>
+                                                    <p class="text-muted">15 Линия В.О.</p>
+                                                </td>
+                                                <td>
+                                                    <p class="text-muted">16-я линия В.О.,д.39</p>
+                                                </td>
+                                                <td >
+                                                    <p class="text-muted">Коробка повреждена, товар не затронут.</p>
+                                                </td>
+                                                <td>
+                                                    <p class="text-muted">07.04.2025 12:39</p>
+                                                </td>
+                                                 <td>
+                                                    <p class="text-muted">Иванов В.А.</p>
+                                                </td>
+                                                <td>
+                                                    <p class="text-muted">Кургузов В.С.</p>
+                                                </td>
+                                            </tr>
+                                        }
+                                        
+                                    </tbody>
+                                </table>                            
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="transfer_buttons">
+        <button class="transfer_button button_clear">Очистить</button>
+        <button class="transfer_button btn btn-sm btn-success">Отправить</button>
+    </div>
+
+</div>
+
+<script>
+
+    const state = {
+        scannedCodes: new Set(),
+        currentCode: '',
+        transfer_start: null,
+        transfer_end: null,
+    };
+
+    function pickTransferPoint(location, action, element) {
+        if(action === "start") {
+            state.transfer_start = location
+            document.getElementById("transfer_start").innerText = `Начальная точка: ${location}`
+            document.querySelectorAll("#transferFrom").forEach(x => x.disabled = false)
+        } else {
+            state.transfer_end = location
+            document.getElementById("transfer_end").innerText = `Конечная точка: ${location}`
+            document.querySelectorAll("#transferTo").forEach(x => x.disabled = false)
+        }
+
+        element.disabled = true;
+    }
+    
+    function toggleRecord(event, element) {
+        event.preventDefault(); // Предотвращаем стандартное поведение
+        event.stopPropagation(); // Останавливаем всплытие
+        
+        if(element.classList.contains('md-play-arrow')) {
+            // Запуск сканирования
+            element.classList.replace("md-play-arrow", "md-stop");
+            element.blur(); // Убираем фокус с кнопки
+            
+            // Добавляем обработчик на window
+            window.addEventListener('keydown', handleKeyDown);
+        } else {
+            // Остановка сканирования
+            element.classList.replace("md-stop", "md-play-arrow");
+            
+            // Удаляем обработчик
+            window.removeEventListener('keydown', handleKeyDown);
+
+            element.blur(); // Убираем фокус с кнопки
+        }
+    }
+
+    /// Модифицированный обработчик
+    function handleKeyDown(e) {
+        // Предотвращаем действие по умолчанию для всех клавиш
+        e.preventDefault();
+        
+        // RFID-метки обычно заканчиваются Enter
+        if (e.key === 'Enter') {
+            if (state.currentCode.length === 24) {
+                if(!state.scannedCodes.has(state.currentCode))
+                {
+                    addNewRaw(state.currentCode)
+                }
+                state.scannedCodes.add(state.currentCode);
+            }
+            state.currentCode = '';
+        } 
+        // Игнорируем служебные клавиши
+        else if (e.key.length === 1 && /[0-9a-zA-Z]/.test(e.key)) {
+            state.currentCode += e.key;
+        }
+    }
+
+    const searchInput = document.querySelector('.card_search');
+    const locationItems = document.querySelectorAll('.location_item');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase(); // Получаем введённый текст в нижнем регистре
+
+        locationItems.forEach(item => {
+            const itemName = item.querySelector('p').textContent.toLowerCase(); // Берём текст из <p>
+            
+            if (itemName.includes(searchTerm)) {
+                item.style.display = 'flex'; // Показываем, если совпадение
+            } else {
+                item.style.display = 'none'; // Скрываем, если нет совпадения
+            }
+        });
+    });
+
+    function addNewRaw(id) {
+        const table = document.getElementById("transfer_table")
+        const comments = document.querySelector(".comments_area")
+        const owner = document.getElementById("newowner")
+
+
+        table.innerHTML += `<tr class="activeRow" onclick="">
+                                <td>
+                                    <p class="text-mute">${id}</p>
+                                </td>
+                                <td>
+                                    <p class="text-muted">Xiaomi Redmi Note 12 Pro</p>
+                                </td>
+                                <td>
+                                    <p class="text-muted">${state.transfer_start}</p>
+                                </td>
+                                <td>
+                                    <p class="text-muted">${state.transfer_end}</p>
+                                </td>
+                                <td >
+                                    <p class="text-muted">${comments.value}</p>
+                                </td>
+                                <td>
+                                    <p class="text-muted">${new Date().toLocaleString('ru-RU')}</p>
+                                </td>
+                                 <td>
+                                    <p class="text-muted">${newowner.value}</p>
+                                </td>
+                                <td>
+                                    <p class="text-muted">@User.Identity.Name.ToString()</p>
+                                </td>
+                            </tr>`
+    }
+
+</script>

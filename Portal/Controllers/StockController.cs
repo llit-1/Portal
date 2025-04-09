@@ -22,6 +22,7 @@ using OfficeOpenXml;
 using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
 using System.Globalization;
+using Portal.Models.MSSQL.Location;
 
 namespace Portal.Controllers
 {
@@ -35,6 +36,18 @@ namespace Portal.Controllers
         {
             db = context;
             dbSql = dbSqlContext;
+        }
+
+        public IActionResult TabMenu()
+        {
+            return PartialView();
+        }
+
+        public IActionResult StockTransfer()
+        {
+            List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
+
+            return PartialView(locations);
         }
 
         public async Task<IActionResult> Stock(int actual = 0)
@@ -112,10 +125,10 @@ namespace Portal.Controllers
         {
             if (Name == null)
             {
-                return BadRequest("Нет данных");
+                return BadRequest("пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ");
             }
 
-            // Создаём объект категории
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             var category = new Models.MSSQL.WarehouseCategories
             {
                 Id = Id,
@@ -124,7 +137,7 @@ namespace Portal.Controllers
                 Actual = int.Parse(Actual)
             };
 
-            // Если изображение передано, преобразуем его в массив байтов
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (Img != null)
             {
                 using (var memoryStream = new MemoryStream())
@@ -135,14 +148,14 @@ namespace Portal.Controllers
                 }
             }
 
-            // Сериализуем объект в JSON
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ JSON
             var jsonContent = JsonConvert.SerializeObject(category);
 
-            // Отправляем данные на второй сервер в формате JSON
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ JSON
             using var httpClient = new HttpClient();
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            // Отправляем запрос на второй сервер
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             using HttpResponseMessage response = await httpClient.PostAsync($"https://warehouseapi.ludilove.ru/api/category/SetCategory", content);
 
             if (response.IsSuccessStatusCode)
@@ -151,7 +164,7 @@ namespace Portal.Controllers
             }
             else
             {
-                // Логируем ошибку для отладки
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 var errorResponse = await response.Content.ReadAsStringAsync();
                 return StatusCode((int)response.StatusCode, errorResponse);
             }
@@ -263,21 +276,21 @@ namespace Portal.Controllers
 
         public IActionResult SearchItem(string item = "Sams")
         {
-            // Поиск
+            // пїЅпїЅпїЅпїЅпїЅ
             var result = dbSql.WarehouseCategories
                               .Where(x => x.Name.ToLower().Contains(item.ToLower()))
                               .ToList();
 
-            // Если ничего не найдено, возвращаем JSON с сообщением
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ JSON пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (result.Count == 0)
             {
-                return Json(new { message = "Ничего не найдено" });
+                return Json(new { message = "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ" });
             }
 
-            // Создаём список для хранения результатов
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             List<object[]> items = new List<object[]>();
 
-            // Загружаем все категории заранее для уменьшения количества запросов к базе данных
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             var allCategories = dbSql.WarehouseCategories.ToDictionary(x => x.Id);
 
             foreach (var elem in result)
@@ -285,13 +298,13 @@ namespace Portal.Controllers
                 string text = "";
                 int? id = null;
 
-                // Если есть родительская категория
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (elem.Parent != null)
                 {
-                    // Ищем родительскую категорию
+                    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     if (allCategories.TryGetValue(elem.Parent.Value, out var parentCategory))
                     {
-                        // Если у родительской категории есть ещё одна родительская категория
+                        // пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         if (parentCategory.Parent != null)
                         {
                             if (allCategories.TryGetValue(parentCategory.Parent.Value, out var grandParentCategory))
@@ -313,11 +326,11 @@ namespace Portal.Controllers
                     id = elem.Id;
                 }
 
-                // Добавляем массив [id, text] в список
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ [id, text] пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 items.Add(new object[] { id, text });
             }
 
-            // Возвращаем JSON с результатами
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ JSON пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             return Json(items);
         }
 
