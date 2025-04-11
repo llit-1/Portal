@@ -21,8 +21,8 @@
                     <div class="location_item">
                         <p style="margin: 0;">@item.Name</p>
                         <div class="item_button_handler">
-                            <button id="transferFrom" class="btn btn-default md-call-made" onclick="pickTransferPoint('@item.Name', 'start', this)"></button>
-                            <button id="transferTo" class="btn btn-default md-call-received" onclick="pickTransferPoint('@item.Name', 'end', this)"></button>
+                            <button id="transferFrom" class="btn btn-default md-call-made" onclick="pickTransferPoint('@item.Name', 'start', this, '@item.Guid')"></button>
+                            <button id="transferTo" class="btn btn-default md-call-received" onclick="pickTransferPoint('@item.Name', 'end', this, '@item.Guid')"></button>
                         </div>
                     </div>
                 }
@@ -54,8 +54,17 @@
             <div class="hand_scan">
                 <div class="card_title"> Ручное добавление </div>
                 <div class="scan_add">
-                    <input class="scan_add_input" maxlength="24" placeholder="000000000000000000000000"/>
-                    <button class="scan_add_button btn btn-sm btn-success">Добавить</button>
+                    <input oninput="document.getElementById('scan_add').disabled = this.value.length !== 24"
+                           class="scan_add_input"
+                           id="scan_add_input"
+                           maxlength="24"
+                           placeholder="000000000000000000000000" />
+                    <button id="scan_add"
+                            class="scan_add_button btn btn-sm btn-success"
+                            disabled
+                            onclick="addNewRaw(document.querySelector('#scan_add_input').value)">
+                        Добавить
+                    </button>
                 </div>
             </div>
 
@@ -89,43 +98,11 @@
                                             <th>Начальная точка</th>
                                             <th>Конечная точка</th>
                                             <th style="width: 25%">Комментарий</th>
-                                            <th>Дата</th>
                                             <th>Новый держатель</th>
                                             <th>Заполнил</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="transfer_table">
-                                        @for(var i = 0; i < 2; i++)
-                                        {
-                                            <tr class="activeRow" onclick="">
-                                                <td>
-                                                    <p class="text-mute">000000000000000000000003</p>
-                                                </td>
-                                                <td>
-                                                    <p class="text-muted">Xiaomi Redmi Note 12 Pro</p>
-                                                </td>
-                                                <td>
-                                                    <p class="text-muted">15 Линия В.О.</p>
-                                                </td>
-                                                <td>
-                                                    <p class="text-muted">16-я линия В.О.,д.39</p>
-                                                </td>
-                                                <td >
-                                                    <p class="text-muted">Коробка повреждена, товар не затронут.</p>
-                                                </td>
-                                                <td>
-                                                    <p class="text-muted">07.04.2025 12:39</p>
-                                                </td>
-                                                 <td>
-                                                    <p class="text-muted">Иванов В.А.</p>
-                                                </td>
-                                                <td>
-                                                    <p class="text-muted">Кургузов В.С.</p>
-                                                </td>
-                                            </tr>
-                                        }
-                                        
-                                    </tbody>
+                                    <tbody id="transfer_table"></tbody>
                                 </table>                            
                             </div>
                         </div>
@@ -136,8 +113,8 @@
     </div>
 
     <div class="transfer_buttons">
-        <button class="transfer_button button_clear">Очистить</button>
-        <button class="transfer_button btn btn-sm btn-success">Отправить</button>
+        <button class="transfer_button button_clear" onclick="clearAllFields()">Очистить</button>
+        <button class="transfer_button btn btn-sm btn-success" onclick="SendStockTransferDataToAPI()">Отправить</button>
     </div>
 
 </div>
@@ -148,16 +125,20 @@
         scannedCodes: new Set(),
         currentCode: '',
         transfer_start: null,
+        transfer_start_guid: null,
         transfer_end: null,
+        transfer_end_guid: null,
     };
 
-    function pickTransferPoint(location, action, element) {
+    function pickTransferPoint(location, action, element, guid) {
         if(action === "start") {
             state.transfer_start = location
+            state.transfer_start_guid = guid
             document.getElementById("transfer_start").innerText = `Начальная точка: ${location}`
             document.querySelectorAll("#transferFrom").forEach(x => x.disabled = false)
         } else {
             state.transfer_end = location
+            state.transfer_end_guid = guid
             document.getElementById("transfer_end").innerText = `Конечная точка: ${location}`
             document.querySelectorAll("#transferTo").forEach(x => x.disabled = false)
         }
@@ -194,6 +175,7 @@
         
         // RFID-метки обычно заканчиваются Enter
         if (e.key === 'Enter') {
+
             if (state.currentCode.length === 24) {
                 if(!state.scannedCodes.has(state.currentCode))
                 {
@@ -226,18 +208,43 @@
         });
     });
 
-    function addNewRaw(id) {
+    async function getObjectFromApi(id) {
+        try {
+            const response = await fetch(`https://warehouseapi.ludilove.ru/api/objects/getObject?id=${id}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result; // Return the parsed data
+        } catch (error) {
+            console.error("Fetch error:", error);
+            throw error; // Re-throw to handle it in the calling function
+        }
+    }
+
+
+    async function addNewRaw(id) {
         const table = document.getElementById("transfer_table")
         const comments = document.querySelector(".comments_area")
         const owner = document.getElementById("newowner")
 
+        if(state.scannedCodes.has(id))
+        {
+            return null;
+        } else {
+            state.scannedCodes.add(id)
+        }
 
-        table.innerHTML += `<tr class="activeRow" onclick="">
+        const result = await getObjectFromApi(id)
+
+        table.innerHTML += `<tr class="activeRow itemTransferObject" onclick="">
                                 <td>
-                                    <p class="text-mute">${id}</p>
+                                    <p class="text-mute itemTransferObjectID">${id}</p>
                                 </td>
                                 <td>
-                                    <p class="text-muted">Xiaomi Redmi Note 12 Pro</p>
+                                    <p class="text-muted">${result.warehouseCategories.name}</p>
                                 </td>
                                 <td>
                                     <p class="text-muted">${state.transfer_start}</p>
@@ -246,18 +253,77 @@
                                     <p class="text-muted">${state.transfer_end}</p>
                                 </td>
                                 <td >
-                                    <p class="text-muted">${comments.value}</p>
-                                </td>
-                                <td>
-                                    <p class="text-muted">${new Date().toLocaleString('ru-RU')}</p>
+                                    <p class="text-muted"><input class='inputForComment' value='${comments.value}' /></p>
                                 </td>
                                  <td>
-                                    <p class="text-muted">${newowner.value}</p>
+                                    <p class="text-muted itemTransferObjectNewOwner">${newowner.value}</p>
                                 </td>
                                 <td>
                                     <p class="text-muted">@User.Identity.Name.ToString()</p>
                                 </td>
                             </tr>`
+    }
+
+
+    async function SendStockTransferDataToAPI() {
+
+        const finalArr = []
+
+        document.querySelectorAll('.itemTransferObject').forEach(x => {
+            const tempObj = {}
+            tempObj.WarehouseObjectsId = x.querySelector(".itemTransferObjectID").textContent;
+            tempObj.User = '@Html.Raw(User.Identity.Name)';
+            tempObj.NewOwner = x.querySelector(".itemTransferObjectNewOwner").textContent;
+            tempObj.LocationStart = state.transfer_start_guid;
+            tempObj.LocationEnd =state.transfer_end_guid;
+            tempObj.DateTime = '@DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss")'
+            tempObj.Comment = x.querySelector(".inputForComment").value;
+            tempObj.WarehouseAction = 2;
+
+            finalArr.push(tempObj)
+        })
+
+        try {
+            const response = await fetch('https://warehouseapi.ludilove.ru/api/transfer/SetObjectHistory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(finalArr)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Success:', data);
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        }
+    }
+
+    function clearAllFields() {
+
+        document.querySelectorAll('.itemTransferObject').forEach(x => x.remove())
+        document.getElementById('scan_add_input').value = ""
+        document.getElementById('newowner').value = ""
+        document.querySelector('.comments_area').value = ""
+
+        document.querySelectorAll('#transferFrom').forEach(x => x.disabled = false)
+        document.querySelectorAll('#transferTo').forEach(x => x.disabled = false)
+        
+        document.getElementById('transfer_start').textContent = "Начальная точка:"
+        document.getElementById('transfer_end').textContent = "Конечная точка:"
+
+        state.scannedCodes = new Set()
+        state.currentCode = ''
+        state.transfer_start = null
+        state.transfer_start_guid = null
+        state.transfer_end = null
+        state.transfer_end_guid = null
     }
 
 </script>

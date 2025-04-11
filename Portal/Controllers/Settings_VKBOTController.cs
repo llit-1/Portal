@@ -147,6 +147,18 @@ namespace Portal.Controllers
              
             return PartialView(receivedPromocodes);
         }
+
+        public IActionResult VKBOTStatistics(int days = 0)
+        {
+            var promo = dbSql.ReceivedPromocodesVK.Include(x => x.PromocodesVK)
+                                                  .Where(x => x.Date > DateTime.Now.Date.AddDays(-days) && x.Date < DateTime.Now)
+                                                  .AsEnumerable()
+                                                  .GroupBy(x => x.PromocodesVK.CodeWord).ToList();
+
+            ViewBag.Days = days;
+
+            return PartialView(promo);
+        }
     }
 }
 

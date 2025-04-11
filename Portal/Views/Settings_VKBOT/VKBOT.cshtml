@@ -53,7 +53,7 @@
                                     <tr>
                                         <th>Название купона</th>
                                         <th>Кодовое слово</th>
-                                        <th>Ссылка</th>
+                                        <th class="hidden">Ссылка</th>
                                         <th width="10%">Комментарий</th>
                                         <th style="text-align: center">Дата начала</th>
                                         <th style="text-align: center">Дата конца</th>
@@ -70,13 +70,17 @@
                                             <td class="tdPersonTable">
                                                 <p class="list-item-heading">@item.CodeWord</p>
                                             </td>
-                                            <td class="tdPersonTable">
+                                            <td class="tdPersonTable hidden">
                                                 <p class="userName text-muted">@item.Link</p>
                                             </td>
                                             @if(item.Text != null)
                                             {
                                                 <td class="tdPersonTable">
-                                                    <p class="text-muted">@item.Text</p>
+                                                    <p class="text-muted" style="
+                                                                            display: inline-block;
+                                                                            max-width: 400px;
+                                                                            white-space: nowrap;
+                                                                            overflow: auto;">@item.Text</p>
                                                 </td>
                                             } else {
                                                 <td class="tdPersonTable">

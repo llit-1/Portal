@@ -1,0 +1,147 @@
+@model List<System.Linq.IGrouping<string, Portal.Models.MSSQL.ReceivedPromocodesVK>>
+@{
+    Layout = null;
+}
+
+<div class="vk_statistics_wrapper">
+
+    <div class="vk_statistics_buttons">
+        @{
+            var buttons = new[]
+            {
+                new { Value = 0, Text = "Сегодня" },
+                new { Value = 1, Text = "Вчера" },
+                new { Value = 7, Text = "7 дней" },
+                new { Value = 30, Text = "30 дней" },
+                new { Value = 90, Text = "90 дней" }
+            };
+
+            foreach (var btn in buttons)
+            {
+                <button class="@(ViewBag.Days == btn.Value ? "active" : "")" value="@btn.Value">@btn.Text</button>
+            }
+        }
+    </div>
+
+    <div class="info-panel_wrapper">
+        <div class="info-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;"><strong>Общее количество активаций:</strong> <p style="margin: 0px">@Model.Sum(g => g.Count())</p></div>
+            <div class="info-panel_stats">
+                @foreach (var item in Model.OrderByDescending(x => x.Count()))
+                {
+                    <div><strong>@item.First().PromocodesVK.CodeWord:</strong> @item.Count()</div>
+                }
+            </div>
+        </div>
+
+        <div class="vk_statistics">
+
+            <div class="chart-container" style="width: 800px; height: 600px;">
+                <canvas id="promoChart"></canvas>
+            </div>
+
+        </div>
+    </div>
+    
+</div>
+
+    
+
+    <script>
+
+    const chartData = [
+        @foreach (var group in Model)
+        {
+            <text>
+                    {
+                        name: '@Html.Raw(group.Key)',
+                        codeWord: '@Html.Raw(group.First().PromocodesVK?.CodeWord)',
+                        count: @group.Count(),
+                        lastDate: '@group.Max(x => x.Date).ToString("yyyy-MM-ddTHH:mm:ss")'
+                    },
+            </text>
+        }
+    ];
+
+    // 2. Извлечение данных для графика
+    const labels = chartData.map(item => item.codeWord || item.name);
+    const counts = chartData.map(item => item.count);
+
+    const optimizeCounts = counts.map(elem => {
+
+        if (elem >= 100) return 100;
+        if (elem <= 10) return 10;
+        return elem;
+    });
+
+
+        const testConfig = {
+        type: 'polarArea',
+            data: {
+        labels: labels,
+        datasets: [{
+            data: optimizeCounts,
+            backgroundColor: [
+                '#FF6384',  // Розовый
+                '#36A2EB',  // Голубой
+                '#FFCE56',  // Жёлтый
+                '#4BC0C0',  // Бирюзовый (контрастный акцент)
+                '#9966FF',  // Лавандовый (мягкий фиолетовый)
+                '#FF9F40',  // Оранжевый (тёплый тон)
+                '#8AC249',   // Сочный зелёный (для баланса)
+                '#FF6B6B',  // Тёплый коралловый 🌸
+                '#6B5B95',  // Сливово-синий 🫐 (глубокий)
+                '#A0E7E5',  // Мятный леденец 🍃 (пастельный)
+                '#FFA07A',  // Светло-лососевый 🍣 (нежный)
+                '#9370DB',  // Средний фиолетовый 💜
+                '#3CB371'
+            ],
+            borderWidth: 1,
+            originalData: counts
+        }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                    label: function(context) {
+                        // Показываем оригинальные значения из originalData
+                        const originalValue = context.dataset.originalData[context.dataIndex];
+                        return [
+                            `Активаций: ${originalValue}`
+                        ];
+                    }
+                }
+                }
+            },
+            scales: {
+                r: {
+                    pointLabels: {
+                        display: true,
+                        centerPointLabels: true,
+                        font: {
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        display: false,
+                    }
+                }
+            }
+        }
+    };
+    new Chart(document.getElementById('promoChart'), testConfig);
+</script>
+
+<script>
+    document.querySelectorAll(".vk_statistics_buttons > button").forEach(x => x.addEventListener("click", () => {
+        document.querySelectorAll(".vk_statistics_buttons > button").forEach(y => y.classList.remove("active"))
+        x.classList.add("active")
+        $('#container-fluid').load('/Settings_VKBOT/VKBOTStatistics?days=' + x.value)
+    }))
+</script>
