@@ -6,7 +6,6 @@
 
         <div class="details_card">
             <div class="card_title" style="min-height: 32.67px;"> Трансфер </div>
-            <p class="transfer_position" id="transfer_start">Начальная точка:</p>
             <p class="transfer_position" id="transfer_end">Конечная точка:</p>
             <div class="card_search_wrapper">
                 <img src="/themes/clearmin/img/search.png">
@@ -21,8 +20,7 @@
                     <div class="location_item">
                         <p style="margin: 0;">@item.Name</p>
                         <div class="item_button_handler">
-                            <button id="transferFrom" class="btn btn-default md-call-made" onclick="pickTransferPoint('@item.Name', 'start', this, '@item.Guid')"></button>
-                            <button id="transferTo" class="btn btn-default md-call-received" onclick="pickTransferPoint('@item.Name', 'end', this, '@item.Guid')"></button>
+                            <button id="transferTo" class="btn btn-default md-call-received" onclick="pickTransferPoint('@item.Name', this, '@item.Guid')"></button>
                         </div>
                     </div>
                 }
@@ -32,47 +30,48 @@
 
         </div>
 
-        <div class="details_card card_scan" style="width: 50%;">
+        <div class="details_card card_scan" style="width: 110%;">
 
-            <div class="owner_object hand_scan">
+            <div class="hand_scan owner_object">
                 <div class="card_title newOwner"> Новый держатель </div>
-                <div class="scan_add">
-                    <input id="newowner" style="width: 100%; text-align: center;" class="scan_add_input" placeholder=""/>
+                <div class="owner_topBlockSearch">
+                    <div class="card_search_wrapper">
+                        <img src="/themes/clearmin/img/search.png">
+                        <input class="card_search card_search_newowner" placeholder="Поиск..." />
+                    </div>
+                    <button class="btn btn-success topBlockSearch_button" onclick="openModalAddPerson()">Добавить</button>
+                </div>
+               
+                <div class="newowner_list">
+                    
                 </div>
             </div>
+        </div>
 
+        <div class="details_card card_scan" style="width: 60%;">
 
             <div class="comments_wrapper hand_scan">
                 <div class="card_title"> Комментарий </div>
                 <textarea placeholder="Введите текст комментария" class="comments_area"></textarea>
             </div>
-            
-        </div>
-
-        <div class="details_card card_scan" style="width: 60%;">
-
-            <div class="hand_scan">
-                <div class="card_title"> Ручное добавление </div>
-                <div class="scan_add">
-                    <input oninput="document.getElementById('scan_add').disabled = this.value.length !== 24"
-                           class="scan_add_input"
-                           id="scan_add_input"
-                           maxlength="24"
-                           placeholder="000000000000000000000000" />
-                    <button id="scan_add"
-                            class="scan_add_button btn btn-sm btn-success"
-                            disabled
-                            onclick="addNewRaw(document.querySelector('#scan_add_input').value)">
-                        Добавить
-                    </button>
-                </div>
-            </div>
 
             <div class="auto_scan">
-                <div class="card_title"> Сканирование </div>
+                <div class="card_title"> Сканирование и ручное добавление</div>
                 <div class="auto_scan_wrapper">
-                    <span>1. Нажмите на кнопку</span>
-                    <span>2. Поднесите метку к считывателю</span>
+                    <div class="scan_add" style="padding: 0px">
+                        <input oninput="document.getElementById('scan_add').disabled = this.value.length !== 24"
+                               class="scan_add_input"
+                               id="scan_add_input"
+                               maxlength="24"
+                               placeholder="000000000000000000000000" />
+                        <button id="scan_add"
+                                class="scan_add_button btn btn-sm btn-success"
+                                disabled
+                                style=" font-family: 'Akrobat-regular'; font-size: 12px;line-height: inherit;"
+                                onclick="addNewRaw(document.querySelector('#scan_add_input').value)">
+                            Добавить
+                        </button>
+                    </div>
                     <button class="scan_button md-play-arrow" onclick="toggleRecord(event, this)"></button>
                 </div>
                 
@@ -93,13 +92,13 @@
                                 <table class="data-table nowrap" style="width: 100%; border-spacing: 0 10px;">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th class="forHidden">ID</th>
                                             <th>Наименование</th>
                                             <th>Начальная точка</th>
                                             <th>Конечная точка</th>
                                             <th style="width: 25%">Комментарий</th>
-                                            <th>Новый держатель</th>
-                                            <th>Заполнил</th>
+                                            <th class="forHidden">Новый держатель</th>
+                                            <th class="forHidden">Заполнил</th>
                                         </tr>
                                     </thead>
                                     <tbody id="transfer_table"></tbody>
@@ -113,38 +112,160 @@
     </div>
 
     <div class="transfer_buttons">
-        <button class="transfer_button button_clear" onclick="clearAllFields()">Очистить</button>
-        <button class="transfer_button btn btn-sm btn-success" onclick="SendStockTransferDataToAPI()">Отправить</button>
+        <button class="transfer_button button_clear" onclick="clearAllFields()" style=" font-family: 'Akrobat-regular'; font: 14px">Очистить</button>
+        <button class="transfer_button btn btn-sm btn-success" onclick="SendStockTransferDataToAPI()" style=" font-family: 'Akrobat-regular'; font-size: 12px">Отправить</button>
     </div>
 
 </div>
 
+
+<div class="stockTransfer_modal" style="display: none">
+    <div class="modal_body">
+        <div class="modal_header">Ошибка</div>
+        <div class="modal_message">Не выбрана начальная точка</div>
+        <div class="model_button"> <button onclick="closeModal()" class="btn btn-default">ОК</button> </div>
+    </div>
+</div>
+
+
+<div class="stockTransfer_modalAddPerson" style="display: none">
+    <div class="modal_body_modalAddPerson">
+        <div class="modal_header">Добавление держателя</div>
+        <div class="modal_message">
+
+            <label class="label-light">Фамилия</label>
+            <div class="form-group">
+                <input id="modal_surname" class="form-control" />
+            </div>
+
+            <label class="label-light">Имя</label>
+            <div class="form-group">
+                <input id="modal_name" class="form-control" />
+            </div>
+
+            <label class="label-light">Отчество</label>
+            <div class="form-group">
+                <input id="modal_patronymic" class="form-control" />
+            </div>
+
+            <label class="label-light">Должность</label>
+            <div class="form-group">
+                <input id="modal_jobTitle" class="form-control" />
+            </div>
+
+            <label class="label-light">Отдел</label>
+            <div class="form-group">
+                <input id="modal_department" class="form-control" />
+            </div>
+
+        </div>
+        <div class="model_button">
+            <button disabled id="addNewHolder" onclick="addNewHolder()" class="btn btn-success">Добавить</button>
+            <button id="closeModalNewHolder" onclick="closeModalAddPerson()" class="btn btn-default">Закрыть</button>
+        </div>
+    </div>
+</div>
+
 <script>
+
+    const modal = document.querySelector('.stockTransfer_modal');
+    const modal_body = document.querySelector('.modal_body'); 
+    const modal_message = document.querySelector('.modal_message');
+    const modal_header = document.querySelector('.modal_header');
+    
+    const modalAddPerson = document.querySelector('.stockTransfer_modalAddPerson');
+    const modal_body_modalAddPerson = document.querySelector('.modal_body_modalAddPerson');
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    function closeModalAddPerson() {
+        modalAddPerson.style.display = "none";
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (!modal_body.contains(e.target)) {
+            closeModal();
+        }
+    })
+
+     modalAddPerson.addEventListener('click', (e) => {
+        if (!modal_body_modalAddPerson.contains(e.target)) {
+            closeModalAddPerson();
+        }
+    })
+
+    function openModal(header ,message) {
+        modal_message.textContent = message;
+        modal_header.textContent = header;
+        modal.style.display = "block";
+    }
+
+    async function getAllHolders() {
+        const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/GetAllHolders')
+        const result = await response.json()
+        return result;
+    }
+
+    async function putHoldersInfo() {
+
+        const data = await getAllHolders();
+        const list = document.querySelector('.newowner_list');
+
+        data.forEach(element => {
+            list.innerHTML +=   `<div class="newowner_item" id=${element.id}>
+                                    <p style="margin: 0;">${element.surname} ${element.name} ${element.patronymic}</p>
+                                    <div class="item_button_handler">
+                                        <button class="btn btn-default md-account-box" onclick='openModalAddPerson(${element.id})'></button>
+                                        <button id="newowner" class="btn btn-default newowner_button md-check" onclick='pickNewOwner(this)'></button>
+                                    </div>
+                                </div>`;
+        })
+    }
+
+    putHoldersInfo()
 
     const state = {
         scannedCodes: new Set(),
         currentCode: '',
-        transfer_start: null,
-        transfer_start_guid: null,
         transfer_end: null,
         transfer_end_guid: null,
+        newowner: null,
+        newownername: null,
     };
 
-    function pickTransferPoint(location, action, element, guid) {
-        if(action === "start") {
-            state.transfer_start = location
-            state.transfer_start_guid = guid
-            document.getElementById("transfer_start").innerText = `Начальная точка: ${location}`
-            document.querySelectorAll("#transferFrom").forEach(x => x.disabled = false)
+    function pickTransferPoint(location, element, guid) {
+
+        if(element.style.border == "2px solid green")
+        {
+            element.style.border = "1px solid rgba(0, 0, 0, 0.09)"
+            document.getElementById("transfer_end").innerText = `Конечная точка:`
+            state.transfer_end = null;
+            state.transfer_end_guid = null;
         } else {
             state.transfer_end = location
             state.transfer_end_guid = guid
             document.getElementById("transfer_end").innerText = `Конечная точка: ${location}`
-            document.querySelectorAll("#transferTo").forEach(x => x.disabled = false)
+            document.querySelectorAll("#transferTo").forEach(x => x.style.border = "1px solid rgba(0, 0, 0, 0.09)")
+            element.style.border = "2px solid green"
         }
-
-        element.disabled = true;
     }
+
+     function pickNewOwner(element) {
+
+         if(element.style.border == "2px solid green") {
+             element.style.border = "1px solid #00000017"
+             state.newowner = null;
+             state.newownername = null;
+         } else {
+             document.querySelectorAll(".newowner_button").forEach(x => x.style.border = "1px solid #00000017");
+             element.style.border = "2px solid green";
+             state.newowner = element.parentElement.parentElement.id;
+             state.newownername = element.parentElement.parentElement.children[0].textContent;
+         }
+         
+     }
     
     function toggleRecord(event, element) {
         event.preventDefault(); // Предотвращаем стандартное поведение
@@ -208,17 +329,39 @@
         });
     });
 
+
+    const newowner_input = document.querySelector('.card_search_newowner');
+    const newowner_list = document.querySelectorAll('.newowner_list');
+
+    newowner_input.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase(); // Получаем введённый текст в нижнем регистре
+
+        newowner_list.forEach(item => {
+            const itemName = item.querySelector('p').textContent.toLowerCase(); // Берём текст из <p>
+
+            if (itemName.includes(searchTerm)) {
+                item.style.display = 'flex'; // Показываем, если совпадение
+            } else {
+                item.style.display = 'none'; // Скрываем, если нет совпадения
+            }
+        });
+    });
+
+
     async function getObjectFromApi(id) {
         try {
             const response = await fetch(`https://warehouseapi.ludilove.ru/api/objects/getObject?id=${id}`);
 
             if (!response.ok) {
+                openModal("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
                 throw new Error(`HTTP Error: ${response.status}`);
             }
 
             const result = await response.json();
+            console.log(result)
             return result; // Return the parsed data
         } catch (error) {
+            openModal("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
             console.error("Fetch error:", error);
             throw error; // Re-throw to handle it in the calling function
         }
@@ -237,28 +380,39 @@
             state.scannedCodes.add(id)
         }
 
+        
+
+        if(state.transfer_end === null && state.newowner === null)
+        {
+            openModal("Ошибка" ,"Вы должны заполнить конечную точку или нового держателя!")
+            state.scannedCodes.delete(id)
+            return null;
+        }
+
         const result = await getObjectFromApi(id)
 
+        
+
         table.innerHTML += `<tr class="activeRow itemTransferObject" onclick="">
-                                <td>
+                                <td class="forHidden">
                                     <p class="text-mute itemTransferObjectID">${id}</p>
                                 </td>
                                 <td>
                                     <p class="text-muted">${result.warehouseCategories.name}</p>
                                 </td>
                                 <td>
-                                    <p class="text-muted">${state.transfer_start}</p>
+                                    <p class="text-muted">${result.location?.name != undefined ? result.location?.name : ""}</p>
                                 </td>
                                 <td>
-                                    <p class="text-muted">${state.transfer_end}</p>
+                                    <p class="text-muted locationId" id="${state.transfer_end_guid != null ? state.transfer_end_guid : ""}">${state.transfer_end != null ? state.transfer_end : ""}</p>
                                 </td>
                                 <td >
                                     <p class="text-muted"><input class='inputForComment' value='${comments.value}' /></p>
                                 </td>
-                                 <td>
-                                    <p class="text-muted itemTransferObjectNewOwner">${newowner.value}</p>
+                                 <td class="forHidden">
+                                    <p class="text-muted itemTransferObjectNewOwner ownerid" id="${state.newowner != null ? state.newowner : ""}">${state.newownername != null ? state.newownername : ""}</p>
                                 </td>
-                                <td>
+                                <td class="forHidden">
                                     <p class="text-muted">@User.Identity.Name.ToString()</p>
                                 </td>
                             </tr>`
@@ -273,9 +427,8 @@
             const tempObj = {}
             tempObj.WarehouseObjectsId = x.querySelector(".itemTransferObjectID").textContent;
             tempObj.User = '@Html.Raw(User.Identity.Name)';
-            tempObj.NewOwner = x.querySelector(".itemTransferObjectNewOwner").textContent;
-            tempObj.LocationStart = state.transfer_start_guid;
-            tempObj.LocationEnd =state.transfer_end_guid;
+            tempObj.NewHolder = state.newowner;  x.querySelector('.ownerid').id != "" ? x.querySelector('.ownerid').id : null;
+            tempObj.Location = x.querySelector('.locationId').id != "" ? x.querySelector('.locationId').id : null;
             tempObj.DateTime = '@DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss")'
             tempObj.Comment = x.querySelector(".inputForComment").value;
             tempObj.WarehouseAction = 2;
@@ -292,14 +445,11 @@
                 body: JSON.stringify(finalArr)
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('Success:', data);
-            return data;
+            openModal("Успех", "Данные успешно сохранены!")
+            clearAllFields()
+            return true;
         } catch (error) {
+            openModal("Ошибка", "Данные не отправлены!")
             console.error('Error:', error);
             throw error;
         }
@@ -311,19 +461,224 @@
         document.getElementById('scan_add_input').value = ""
         document.getElementById('newowner').value = ""
         document.querySelector('.comments_area').value = ""
-
-        document.querySelectorAll('#transferFrom').forEach(x => x.disabled = false)
-        document.querySelectorAll('#transferTo').forEach(x => x.disabled = false)
-        
-        document.getElementById('transfer_start').textContent = "Начальная точка:"
+       
         document.getElementById('transfer_end').textContent = "Конечная точка:"
 
         state.scannedCodes = new Set()
         state.currentCode = ''
-        state.transfer_start = null
-        state.transfer_start_guid = null
         state.transfer_end = null
         state.transfer_end_guid = null
+        state.newowner = null
+        state.newownername = null
+
+        
+        document.querySelectorAll('#newowner').forEach(x => x.style.border = "1px solid rgba(0, 0, 0, 0.09)")
+        document.querySelectorAll('#transferTo').forEach(x => x.style.border = "1px solid rgba(0, 0, 0, 0.09)")
+        
+        document.querySelectorAll('.newowner_button').forEach(x => x.disabled = false)
+        
     }
 
+    const modal_surname = document.getElementById("modal_surname")
+    const modal_name = document.getElementById("modal_name")
+    const modal_patronymic = document.getElementById("modal_patronymic")
+    const modal_jobTitle = document.getElementById("modal_jobTitle")
+    const modal_department = document.getElementById("modal_department")
+    const button = document.getElementById('addNewHolder')
+
+    // Проверяет заполненность обязательных инпутов
+    function checkInputs() {
+
+        const isInput1Filled = modal_surname.value.trim() !== '';
+        const isInput2Filled = modal_name.value.trim() !== '';
+
+        button.disabled = !(isInput1Filled && isInput2Filled);
+    }
+
+    document.querySelectorAll('.form-group input').forEach(input => {
+        input.addEventListener('input', checkInputs);
+    });
+
+    async function addNewHolder() {
+
+        const obj = {}
+
+        obj.Surname = modal_surname.value;
+        obj.Name = modal_name.value;
+        obj.Patronymic = modal_patronymic.value;
+        obj.JobTitle = modal_jobTitle.value;
+        obj.Department = modal_department.value;
+        obj.Actual = 1;
+
+        const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/PostHolder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(obj)
+        });
+
+        // Убираем всех пользователей
+        document.querySelectorAll(".newowner_item").forEach(x => x.remove())
+
+        // Подгружаем новый список пользователей
+        await putHoldersInfo()
+
+        state.newowner = null,
+        state.newownername = null,
+
+        modal_surname.value = ""
+        modal_name.value = ""
+        modal_patronymic.value = ""
+        modal_jobTitle.value = ""
+        modal_department.value = ""
+
+        closeModalAddPerson()
+    }
+
+    async function openModalAddPerson(id = null) {
+
+        if(id === null)
+        {
+            document.getElementById('addNewHolder').style.display = "block"
+            document.getElementById('closeModalNewHolder').style.display = "none"
+            modalAddPerson.style.display = "block";
+
+            modal_surname.value = ""
+            modal_name.value = ""
+            modal_patronymic.value = ""
+            modal_jobTitle.value = ""
+            modal_department.value = ""
+
+            document.querySelectorAll('.form-group input').forEach(input => {
+                input.disabled = false;
+            });
+
+        } else {
+            document.getElementById('addNewHolder').style.display = "none"
+            document.getElementById('closeModalNewHolder').style.display = "block"
+            modalAddPerson.style.display = "block";
+
+            const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/GetHolder?id=' + id)
+            const result = await response.json()
+            
+            modal_surname.value = result.surname;
+            modal_name.value = result.name;
+            modal_patronymic.value = result.patronymic;
+            modal_jobTitle.value = result.jobTitle;
+            modal_department.value = result.department;
+
+            document.querySelectorAll('.form-group input').forEach(input => {
+                input.disabled = true;
+            });
+        }
+
+    }
+
+
 </script>
+
+<style>
+    .stockTransfer_modal {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .stockTransfer_modalAddPerson {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal_body {
+        margin: 15% auto;
+        background: white;
+        border: 1px solid #D3D2D2;
+        width: 90%;
+        min-width: 30%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+        height: fit-content;
+        max-width: 600px;
+    }
+
+    .modal_body_modalAddPerson {
+        margin: 15% auto;
+        background: white;
+        border: 1px solid #D3D2D2;
+        width: 30%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        height: fit-content;
+        max-width: 600px;
+        min-width: 360px;
+    }
+
+    .modal_header {
+        border-bottom: 1px solid #d3d2d2;
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        font-family: 'Akrobat-Regular';
+        font-size: 20px;
+    }
+
+    .modal_message {
+        font-family: 'Akrobat-Regular';
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .model_button {
+        border-top: 1px solid #d3d2d2;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .modal_body_modalAddPerson > .modal_message {
+        padding: 0px;
+        width: 37%;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 220px;
+    }
+
+        .modal_body_modalAddPerson > .modal_message > .form-group {
+            margin: 0px;
+        }
+
+        .modal_body_modalAddPerson > .modal_message > label {
+            margin: 0px;
+            padding: 0px;
+        }
+
+    .modal_body_modalAddPerson button {
+        font-family: 'Akrobat-Regular';
+    }
+
+    .modal_body_modalAddPerson > .model_button {
+        border: none;
+    }
+
+</style>

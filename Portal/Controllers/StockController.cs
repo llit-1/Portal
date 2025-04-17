@@ -121,6 +121,39 @@ namespace Portal.Controllers
             }
         }
 
+
+        [HttpPatch]
+        public async Task<IActionResult> SaveSubCategory([FromForm] int Id, [FromForm] string Name, [FromForm] int? Parent, [FromForm] string Actual, [FromForm] IFormFile? Img)
+        {
+            if (string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(Actual))
+            {
+                return BadRequest("Required fields are missing.");
+            }
+
+            var parent = dbSql.WarehouseCategories.FirstOrDefault(x => x.Id == Id).Parent;
+
+            var category = new Models.MSSQL.WarehouseCategories
+            {
+                Id = Id,
+                Name = Name,
+                Parent = parent,
+                Actual = int.Parse(Actual)
+            };
+
+            using var httpClient = new HttpClient();
+            var content = new StringContent(JsonConvert.SerializeObject(category), Encoding.UTF8, "application/json");
+            using HttpResponseMessage response = await httpClient.PatchAsync("https://warehouseapi.ludilove.ru/api/category/UpdateCategory", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+        }
+
         public async Task<IActionResult> SaveNewCategory([FromForm] int? Id, [FromForm] string Name, [FromForm] int? Parent, [FromForm] string Actual, [FromForm] IFormFile? Img)
         {
             if (Name == null)

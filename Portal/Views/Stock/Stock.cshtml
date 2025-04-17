@@ -10,7 +10,7 @@
         </div>
 
         <div class="back_active">
-            <span style="font-family: 'Akrobat-regular'; font-weight: bold;">Показать неактивные записи</span>
+            <span style="font-family: 'Akrobat-regular'; font-weight: bold;">Показать только активные записи</span>
 
             <div class="material-switch pull-right">
                 <input class="slider addCategory"
@@ -64,6 +64,19 @@
 
     <div id="modalContainer" class="modal" style="display: none;"></div>
     
+
+</div>
+
+<div class="modalEditStock" style="display: none" id="editStockModal">
+
+    <div class="modalEditStock-content">
+        <label style="margin: 0px">Название категории</label>
+        <input id="modalEditStock-name" value="">
+        <div>
+            <button id="modalEditStock-delete" style="background-color: #a9a9a9">Удалить</button>
+            <button id="modalEditStock-save">Сохранить</button>
+        </div>
+    </div>
 
 </div>
 
@@ -162,15 +175,12 @@
 <script>
     async function switchActive(id, event) {
         event.stopPropagation();
+        const actual = document.getElementById("stock-category-actual")
 
-        try {
-            const response = await fetch("/Stock/SwitchActual?id=" + id, {
-                method: "UPDATE",
-                headers: { "Content-Type": "text/html" }
-            });
-
-        } catch (error) {
-            console.error("Error:", error);
+        if(actual.textContent == 1) {
+            actual.textContent = 0
+        } else {
+            actual.textContent = 1
         }
     }
 </script>
@@ -245,6 +255,70 @@
 </script>
 
 <script>
+    function showDetails(elem) {
+        elem.classList.toggle('active');
+        document.querySelectorAll(".item_subcategory_details_" + elem.childNodes[1].textContent.replaceAll(" ", "")).forEach(x => x.classList.toggle("hidden"))
+    }
+</script>
+
+<script>
+
+    let modalEditStock = document.getElementById('editStockModal');
+    const modalContent = modalEditStock.querySelector('.modalEditStock-content');
+
+    // Функция для закрытия модального окна
+    function closeModal() {
+        let  modalEditStock = document.getElementById('editStockModal');
+      modalEditStock.style.display = "none"
+    }
+
+
+    function showModalY(id, name) {
+        let modalEditStock = document.querySelector(".modalEditStock").style.display = "flex"
+        modalEditStock = document.getElementById('editStockModal');
+
+        modalEditStock.addEventListener('click', function(e) {
+            if (!modalContent.contains(e.target)) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('modalEditStock-name').value = name;
+        document.getElementById('modalEditStock-delete').onclick = function() {
+            DeleteCategory(id);
+        };
+        document.getElementById('modalEditStock-save').onclick = function() {
+            SaveSubCategory(id, document.getElementById('modalEditStock-name').value)
+        };
+    }
+
+    async function SaveSubCategory(id, name) {
+
+        const formData = new FormData();
+        formData.append('Id', id);
+        formData.append('Name', name.trim());
+        formData.append('Parent', null);
+        formData.append('Actual', 1);
+        formData.append('Img', null);
+
+
+        $("#spinner").show();
+
+        const response = await fetch("/Stock/SaveSubCategory", {
+            method: "PATCH",
+            body: formData
+        });
+
+        $("#spinner").hide();
+
+        $("#modalContainer").remove();
+
+        return await $(".stock").load("/Stock/Stock");
+    }
+
+</script>
+
+<script>
     async function SaveCategory(id) {
         const name = document.getElementById("stock-category-name").value;
         const parent = document.getElementById("stock-category-parent").textContent;
@@ -256,6 +330,8 @@
         formData.append('Name', name.trim());
         formData.append('Parent', parent.trim());
         formData.append('Actual', actual.trim());
+
+        console.log(actual)
 
         if(image.src == '/themes/clearmin/img/question.png')
         {

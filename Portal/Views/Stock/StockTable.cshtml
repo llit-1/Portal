@@ -10,7 +10,7 @@
             </div>
 
             <div class="back_wrapper_button">
-            <button onclick="addSubCategoryItemModal(@Model.CategoryID)">ДОБАВИТЬ</button>
+                <button onclick="addSubCategoryItemModal(@Model.CategoryID)">ДОБАВИТЬ</button>
             </div>
         </div>
 
@@ -34,7 +34,7 @@
                     <div class="category_table_item" onclick="showDetails(this)">
                         <div class="table_item_subcategory" data-count="@category.Categories.Count()">@category.Name</div>
                         <div>
-                            <img onclick="event.stopPropagation()" src="/themes/clearmin/img/settings.png" class="card_header_img">
+                            <img onclick='event.stopPropagation(); showModalY("@category.Id", "@category.Name" )' src="/themes/clearmin/img/settings.png" class="card_header_img">
                         </div>
                     </div>
 
@@ -50,7 +50,7 @@
                 {
                     <div class='item_subcategory_details hidden item_subcategory_details_@category.Name.Replace(" ", "")'>
                         <div style=""> @item.Name </div>
-                        <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" /> </div>
+                        <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" onclick="showModalY('@item.Id', '@item.Name')" /> </div>
                     </div>
                 }
             </div>
@@ -63,6 +63,62 @@
 
 <div id="modalContainer" class="modal" style="display: none;"></div>
 
+
+<style>
+    .modalEditStock {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modalEditStock-content {
+        margin: 15% auto;
+        padding: 20px;
+        background: white;
+        border: 1px solid #D3D2D2;
+        width: fit-content;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        height: fit-content;
+    }
+
+    .modalEditStock-content > label {
+            font-size: 16px;
+            font-family: "Akrobat-regular";
+    }
+
+    .modalEditStock-content > input {
+            padding: 8px;
+            border: 1px solid #CCCCCC;
+    }
+
+    .modalEditStock-content > div {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+    }
+
+    .modalEditStock-content > div > button {
+            padding: 5px 10px;
+            color: white;
+            border: none;
+            background-color: #F47920;
+            font-family: "Akrobat-regular";
+            transition: all 0.25s linear;
+    }
+
+    </style>
+
+
+
 <script>
     function backButton() {
             $('#PageHeader').text('Склад');
@@ -73,45 +129,50 @@
 <script>
         async function addSubCategoryItemModal(id) {
             try {
-            const response = await fetch("/Stock/LoadModalStockTable?id=" + id, {
-                method: "GET",
-                headers: { "Content-Type": "text/html" }
-            });
-
-            if (response.ok) {
-                const modalHtml = await response.text();
-                const modalContainer = document.getElementById("modalContainer");
-                modalContainer.innerHTML = modalHtml;
-                modalContainer.style.display = "block";
-
-                const closeModalButton = document.getElementById("closeModalButton");
-                if (closeModalButton) {
-                    closeModalButton.addEventListener("click", function () {
-                        modalContainer.style.display = "none";
-                        modalContainer.innerHTML = "";
-                    });
-                }
-
-                modalContainer.addEventListener("click", function (e) {
-                    if (e.target === modalContainer) {
-                        modalContainer.style.display = "none";
-                        modalContainer.innerHTML = "";
-                    }
+                const response = await fetch("/Stock/LoadModalStockTable?id=" + id, {
+                    method: "GET",
+                    headers: { "Content-Type": "text/html" }
                 });
-            } else {
-                alert("������ �������� ���������� ����");
+
+                if (response.ok) {
+                    const modalHtml = await response.text();
+                    const modalContainer = document.getElementById("modalContainer");
+                    modalContainer.innerHTML = modalHtml;
+                    modalContainer.style.display = "block";
+
+                    const closeModalButton = document.getElementById("closeModalButton");
+                    if (closeModalButton) {
+                        closeModalButton.addEventListener("click", function () {
+                            modalContainer.style.display = "none";
+                            modalContainer.innerHTML = "";
+                        });
+                    }
+
+                    modalContainer.addEventListener("click", function (e) {
+                        if (e.target === modalContainer) {
+                            modalContainer.style.display = "none";
+                            modalContainer.innerHTML = "";
+                        }
+                    });
+                } else {
+                    alert("������ �������� ���������� ����");
+                }
+            } catch (error) {
+                console.error("������:", error);
             }
-        } catch (error) {
-            console.error("������:", error);
-        }
         }
 </script>
 
 <script>
     async function addSubCategoryItem(event, id, name) {
 
-        event.preventDefault()
+        if(event) {
+            event.preventDefault()
+        }
         
+        
+        const idCategory = "@Model.CategoryID.ToString()";
+
         const data = {
             Id: null,
             Name: name.trim(),
@@ -132,18 +193,13 @@
 
         $("#spinner").hide()
 
-        return await $(".stock").load("/Stock/StockTable?id=" + @Model.CategoryID)
+        return await $(".stock").load("/Stock/StockTable?id=" + idCategory);
     }
 
     
 </script>
 
-<script>
-    function showDetails(elem) {
-        elem.classList.toggle('active');
-        document.querySelectorAll(".item_subcategory_details_" + elem.childNodes[1].textContent.replaceAll(" ", "")).forEach(x => x.classList.toggle("hidden"))
-    }
-</script>
+
 
 <style>
     .stock_back_wrapper {
