@@ -131,14 +131,14 @@ namespace Portal.Controllers
             {
                 json = json.Replace("pp", "+");
                 var cashMessageView = JsonConvert.DeserializeObject<ViewModels.CashMessages.CashMessageView>(json);
-                
+
                 // проверка введенных данных
                 if (DateTime.Now.TimeOfDay.Hours >= 23 | DateTime.Now.TimeOfDay.Hours <= 6)
                 {
                     return new ObjectResult("сообщения на кассы можно отправлять в интервале от 07:00 до 23:00");
                 }
 
-                if(cashMessageView.Name.Length == 0)
+                if (cashMessageView.Name.Length == 0)
                 {
                     return new ObjectResult("некорректный заголовок сообщения");
                 }
@@ -187,6 +187,7 @@ namespace Portal.Controllers
                 //отправка на API для отправки на кассы через SignalR
                 Message message = new Message();
                 message.Date = DateTime.Now.ToString();
+                message.Header = cashMessageView.Name;
                 message.Text = cashMessageView.Text;
                 message.IsReading = false;
                 MessageOrder messageOrder = new MessageOrder();
