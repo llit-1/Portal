@@ -8,6 +8,8 @@ using Portal.ViewModels.CashMessages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Portal.Models.MSSQL;
+using System.Net.Http;
 
 namespace Portal.Controllers
 {
@@ -181,6 +183,19 @@ namespace Portal.Controllers
                         cashMsgStates.Add(cashMsgState);
                     }                    
                 }
+
+                //отправка на API для отправки на кассы через SignalR
+                Message message = new Message();
+                message.Date = DateTime.Now.ToString();
+                message.Text = cashMessageView.Text;
+                message.IsReading = false;
+                MessageOrder messageOrder = new MessageOrder();
+                messageOrder.Message = message;
+                List<RKNet_Model.TT.TT> tTs = db.TTs.Include(x => x.CashStations)
+                                                    .Where(x => cashMessageView.ttIds.Contains(x.Id))
+                                                    .ToList();
+                messageOrder.TTs = tTs;
+                ApiRequest.SendMessage(messageOrder);
 
                 // запись данных в бд
                 var cashMessage = new Models.MSSQL.CashMessage();

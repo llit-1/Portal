@@ -3,6 +3,10 @@ using IdentityModel.Client;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc;
+using RKNet_Model;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace Portal.Models
 {
@@ -965,6 +969,34 @@ namespace Portal.Models
             }
             return result;
         }
+
+        public static void SendMessage(MessageOrder messageOrder)
+        {
+            var requestUrl = Host + "/CashClients/SendMessages";
+            using (var client = new HttpClient())
+            {
+                client.SetBearerToken(OAuth2Token());
+                var settings = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+                var json = JsonConvert.SerializeObject(messageOrder, settings);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = client.PostAsync(requestUrl, content).Result;
+
+                // ошибка авторизации (если по какой-то причине токен перестал быть актуальным, например, перезагрузка сервера)
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    tokenResponse = null;
+                    client.SetBearerToken(OAuth2Token());
+                    response = client.PostAsync(requestUrl, content).Result;
+                }
+                
+            }
+        }
+
+
 
     }
 
