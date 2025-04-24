@@ -1,0 +1,228 @@
+@model Portal.Controllers.StockController.DataStockSearch
+
+
+<div class="stock_filters_wrapper">
+
+    <div class="stock_filters">
+
+        <select onchange="buttonSendTurnOn()" class="stock_search_select" id="holdersCategory">
+
+            <option value="" disabled selected style="select_option"> Выберите ФИО </option>
+
+            @foreach(var item in Model.Holders.OrderBy(x => x.Surname))
+            {
+                <option id="@item.Id" style="select_option"> @item.Surname @item.Name @item.Patronymic </option>
+            }
+            
+        </select>
+
+        <select onchange="buttonSendTurnOn()" class="stock_search_select" id="ttSelect">
+            <option value="" disabled selected style="select_option"> Выберите ТТ </option>
+            @foreach (var item in Model.Locations.OrderBy(x => x.Name))
+            {
+                <option id="@item.Guid" style="select_option"> @item.Name </option>
+            }
+        </select>
+
+        <select class="stock_search_select" id="categorySelect" onchange="enableOtherSelect(this, 1)">
+            <option value="" disabled selected style="select_option"> Выберите категорию </option>
+            @foreach (var item in Model.MainCategories.OrderBy(x => x.Name))
+            {
+                <option id="@item.Id" style="select_option"> @item.Name </option>
+            }
+        </select>
+
+        <select disabled class="stock_search_select" onchange="enableOtherSelect(this, 2)" id="subCategorySelect"></select>
+        <select onchange="buttonSendTurnOn()" disabled class="stock_search_select" id="subSubCategorySelect"></select>
+
+        <button class="stock_search_button btn btn-success" disabled id="sendDataButton" onclick="sendData()">Поиск</button>
+        <button class="stock_search_button btn btn-default" onclick="clearFields()">Очистить</button>
+    </div>
+    
+    
+
+</div>
+
+<div class="header_stock_wrapper">
+    <div class="header_stock">
+        <p style="width: 20%">Категория</p>
+        <p style="width: 20%">Подкатегория</p>
+        <p style="width: 20%">Подподкатегория</p>
+        <p style="width: 30%" class="mobile_hidden">Держатель</p>
+        <p style="width: 20%" class="mobile_hidden">ТТ</p>
+        <p style="width: 10%">Количество</p>
+    </div>
+
+    <div id="null-message" style="text-align: center;" class="hidden">К сожалению, ничего не найдено</div>
+
+    <div id='body_stock' class="body_stock"></div>
+
+</div>
+
+<script>
+    const holdersCategory = document.getElementById('holdersCategory');
+    const ttSelect = document.getElementById('ttSelect');
+    const categorySelect = document.getElementById('categorySelect');
+    const subCategorySelect = document.getElementById('subCategorySelect');
+    const subSubCategorySelect = document.getElementById('subSubCategorySelect');
+    const sendDataButton = document.getElementById('sendDataButton');
+    const nullMessage = document.getElementById('null-message')
+    const body_stock = document.getElementById('body_stock')
+    
+    async function enableOtherSelect(elem, level) {
+
+        const selectedOption = elem.options[elem.selectedIndex];
+        const id = selectedOption.id;
+        
+
+        try {
+
+            $("#spinner").show()
+
+            const response = await fetch("https://warehouseapi.ludilove.ru/api/category/childCategories?id=" + id)
+
+            const result = await response.json()
+
+            let CategorySelect; document.getElementById('subCategorySelect')
+
+            if(level === 1) {
+                CategorySelect = document.getElementById('subCategorySelect')
+                document.getElementById('subCategorySelect').innerHTML = ""
+                document.getElementById('subCategorySelect').disabled = true
+                document.getElementById('subSubCategorySelect').innerHTML = ""
+                document.getElementById('subSubCategorySelect').disabled = true
+            } else {
+                CategorySelect = document.getElementById('subSubCategorySelect')
+            }
+
+            if(result.length)
+            {
+                CategorySelect.disabled = false;
+                CategorySelect.innerHTML = `<option id="" disabled selected style="select_option"> Выберите подкатегорию </option>`
+                result.forEach(x => CategorySelect.innerHTML += `<option id="${x.id}" style="select_option">${x.name}</option>`)
+            }
+
+            buttonSendTurnOn()
+        } finally {
+            $("#spinner").hide()
+        }
+        
+    }
+
+    async function sendData() {
+        // Собираем нужные селекты в объект для перебора
+        const selects = {
+            holdersCategory,
+            ttSelect,
+        };
+
+        // Функция для безопасного получения выбранного id
+        const getSelectedId = select =>
+            select.options[select.selectedIndex]?.id || null;
+
+        // Формируем объект с данными
+        const obj = {
+            holdersCategory: getSelectedId(selects.holdersCategory),
+            ttSelect:       getSelectedId(selects.ttSelect),
+        };
+
+        // Определяем приоритет категорий
+        const categoryOrder = [
+            subSubCategorySelect,
+            subCategorySelect,
+            categorySelect,
+        ];
+        const category =
+            categoryOrder
+            .map(getSelectedId)
+            .find(id => id !== null) || null;
+        obj.category = category;
+
+        // Строим URL с параметрами
+        const url = new URL("https://warehouseapi.ludilove.ru/api/category/gethardmodel");
+        const params = new URLSearchParams();
+
+        if (obj.category)        params.append("cathegory", obj.category);
+        if (obj.holdersCategory) params.append("holder",   obj.holdersCategory);
+        if (obj.ttSelect)        params.append("location",       obj.ttSelect);
+
+        url.search = params.toString();
+
+        try {
+            $("#spinner").show();
+            const response = await fetch(url.toString());
+            const result = await response.json();
+            console.log(result.length);
+
+            if(!result.length) {
+                body_stock.innerHTML = ""
+                return nullMessage.classList.remove('hidden')
+            }
+
+            showData(result)
+
+        } catch (e) {
+            console.error(e.message);
+        } finally {
+            $("#spinner").hide();
+        }
+    }
+
+    function showData(data) {
+        body_stock.innerHTML = ""
+
+        nullMessage.classList.add('hidden')
+
+        data.forEach(category => {
+            body_stock.innerHTML += `
+                <div class="body_main_item header_stock" onclick="showDetails(${category.mainCat.id})">
+                    <p style="width: 20%">${category.mainCat ? category.mainCat.name : "-"}</p>
+                    <p style="width: 20%">${category.cat ? category.cat.name : "-"}</p>
+                    <p style="width: 20%">${category.secondCat ? category.secondCat.name : "-"}</p>
+                    <p style="width: 30%" class="mobile_hidden">${category.warehouseHolder ? category.warehouseHolder.surname + " " + category.warehouseHolder.name + " " + category.warehouseHolder.patronymic   : "-"}</p>
+                    <p style="width: 20%" class="mobile_hidden">${category.location ? category.location.name : "-"}</p>
+                    <p style="width: 10%">${category.items.length}</p>
+                </div>
+            `
+
+            category.items.forEach(items => {
+                body_stock.innerHTML += `
+                    <div class="body_main_item header_stock main_item_children children-${category.mainCat.id} hidden">
+                        <p style="width: 20%">${items.mainCat ? items.mainCat.name : "-"}</p>
+                        <p style="width: 20%">${items.cat ? items.cat.name : "-"}</p>
+                        <p style="width: 20%">${items.secondCat ? items.secondCat.name : "-"}</p>
+                        <p style="width: 30%" class="mobile_hidden">${items.warehouseHolder ? items.warehouseHolder.surname + " " + items.warehouseHolder.name + " " + items.warehouseHolder.patronymic   : "-"}</p>
+                        <p style="width: 20%" class="mobile_hidden">${items.location ? items.location.name : "-"}</p>
+                        <p style="width: 20%">${items.code}</p>
+                    </div>
+                `
+            })
+
+        })
+        
+    }
+
+
+    function showDetails(id) {
+
+        document.querySelectorAll('.children-' + id).forEach(x => {
+            x.classList.toggle("hidden")
+        })
+    }
+
+    function clearFields() {
+        holdersCategory.selectedIndex = 0;
+        ttSelect.selectedIndex = 0;
+        categorySelect.selectedIndex = 0;
+        subCategorySelect.innerHTML = ""
+        subCategorySelect.disabled = true;
+        subSubCategorySelect.innerHTML = ""
+        subSubCategorySelect.disabled = true;
+        sendDataButton.disabled = true;
+    }
+
+    function buttonSendTurnOn() {
+        sendDataButton.disabled = false;
+    }
+</script>
+

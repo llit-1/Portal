@@ -23,6 +23,7 @@ using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
 using System.Globalization;
 using Portal.Models.MSSQL.Location;
+using Portal.Models.MSSQL;
 
 namespace Portal.Controllers
 {
@@ -49,6 +50,43 @@ namespace Portal.Controllers
 
             return PartialView(locations);
         }
+
+        public async Task<IActionResult> StockSearch()
+        {
+            DataStockSearch data = await GetDataForStockSearch();
+            return PartialView(data);
+        }
+
+        static async Task<DataStockSearch> GetDataForStockSearch()
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/getlazymodel");
+                response.EnsureSuccessStatusCode();
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                return System.Text.Json.JsonSerializer.Deserialize<DataStockSearch>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new DataStockSearch();
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибки
+                Console.WriteLine($"Error in GetDataForStockSearch: {ex.Message}");
+                return new DataStockSearch();
+            }
+        }
+
+        public class DataStockSearch
+        {
+
+            public List<Portal.Models.MSSQL.WarehouseHolder> Holders { get; set; }
+            public List<Location> Locations { get; set; }
+            public List<WarehouseCategories> MainCategories { get; set; } = new();
+        }
+
 
         public async Task<IActionResult> Stock(int actual = 0)
         {
