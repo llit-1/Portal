@@ -57,6 +57,11 @@ namespace Portal.Controllers
             return PartialView(data);
         }
 
+        public IActionResult StockSearchCard(string code = null) {
+            
+            return PartialView("StockSearchCard", code);
+        }
+
         static async Task<DataStockSearch> GetDataForStockSearch()
         {
             try

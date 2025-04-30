@@ -530,6 +530,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding-bottom: 20px;
 }
 
 .header_stock {
@@ -594,5 +595,328 @@
 
     .mobile_hidden {
         display: none;
+    }
+}
+
+
+
+.search_page_wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+}
+
+.search_card_wrapper {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.search_wrapper {
+    width: 100%;
+    height: 50px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: border-color 0.55s linear, border-width 0.55s linear;
+
+    & > img {
+        width: 20px;
+        height: 20px;
+        margin-left: 10px;
+    }
+
+    
+}
+
+.search_wrapper--error {
+    border: 2px solid #ff00007d;
+}
+
+.search_card {
+    background-color: transparent;
+    width: 100%;
+    height: 50px;
+    border-radius: 4px;
+    border: none;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.btn_search, .btn_scan, .btn-write-off {
+    height: 50px;
+    border-radius: 6px;
+    padding: 0px 15px;
+    border: none;
+    font-family: 'Akrobat-Regular';
+    font-size: 16px;
+}
+
+.btn-write-off {
+    color: #333;
+    background-color: #E6E6E6;
+    border-color: #ADADAD;
+}
+
+.card_details {
+    width: 100%;
+    overflow: hidden;
+    height: 0%;
+    background-color: white;
+    border-radius: 10px;
+    transition: all 2s ease-in;
+    margin-bottom: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
+.details {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    height: 88.5%;
+}
+
+@keyframes showDetails {
+    0% {
+        height: 0%;
+    }
+    100% {
+        height: 100%;
+    }
+}
+
+.details_current {
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    margin: 15px;
+    padding: 15px;
+    width: fit-content;
+    padding-right: 30px;
+    border-radius: 10px;
+    gap: 10px;
+    height: fit-content;
+
+    & > h3 {
+        display: inline-flex;
+        gap: 5px;
+    }
+
+    & > p {
+        margin: 0;
+        font-family: "Akrobat-regular";
+        font-size: 16px;
+    }
+}
+
+.details_history {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    overflow: auto;
+}
+
+.history_card {
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.history_card_header {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    padding: 16px;
+    font-family: 'Akrobat-Regular';
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.history_card_body {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 0px;
+    gap: 10px;
+
+    & > p {
+        margin: 0;
+        width: 20%;
+        position: relative;
+    }
+
+    
+    & > p:before {
+        content: "Ответственный:";
+        position: absolute;
+        left: 0;
+        top: -14px;
+        color: #959595;
+        font-size: 11px;
+    }
+
+    & > p:nth-child(1) {
+        width: 35%;
+        text-align: start;
+    }
+
+    & > p:nth-child(1)::before {
+        content: "Ответственный:";
+    }
+
+    & > p:nth-child(2)::before {
+        content: "ТТ:";
+    }
+
+    & > p:nth-child(3)::before {
+        content: "Дата:";
+    }
+
+    & > p:nth-child(4)::before {
+        content: "Комментарий:";
+    }
+
+    & > p:nth-child(5) {
+        width: 35%;
+        text-align: start;
+    }
+
+    & > p:nth-child(5)::before {
+        content: "Новый держатель:";
+    }
+}
+
+.btn_wrapper {
+    display: flex;
+    width: 100%;
+    justify-content: end;
+    padding: 15px;
+}
+
+@media screen and (max-width: 1440px) {
+    .details {
+        flex-direction: column;
+    }
+}
+
+@media screen and (max-width: 1100px) {
+    .details_current {
+        width: auto;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .history_card_body > p:nth-child(1) {
+        display: none;
+    }
+
+    .history_card_body > p:nth-child(4) {
+        display: none;
+    }
+
+    .history_card_body > p:nth-child(2) {
+        width: 30%;
+    }
+
+    .history_card_body > p:nth-child(3) {
+        width: 25%;
+    }
+
+    .history_card_body > p:nth-child(5) {
+        width: 55%;
+    }
+}
+
+
+@media screen and (max-width: 590px) {
+    .history_card_body > p:nth-child(3) {
+        display: none;
+    }
+
+    .history_card_body > p:nth-child(2) {
+        width: 35%;
+    }
+
+    .history_card_body > p:nth-child(5) {
+        width: 65%;
+    }
+}
+
+
+.stockSearchCard_modal {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.stockSearchCard_modal_body {
+    margin: 15% auto;
+    background: white;
+    border: 1px solid #D3D2D2;
+    width: 90%;
+    min-width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    height: fit-content;
+    max-width: 600px;
+}
+
+.stockSearchCard_modal_header {
+    border-bottom: 1px solid #d3d2d2;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    font-family: 'Akrobat-Regular';
+    font-size: 20px;
+}
+
+.stockSearchCard_modal_message {
+    font-family: 'Akrobat-Regular';
+    padding: 10px;
+    font-size: 16px;
+}
+
+.stockSearchCard_model_button {
+    border-top: 1px solid #d3d2d2;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+
+    & > button {
+        font-family: 'Akrobat-Regular';
+        font-size: 14px;
     }
 }

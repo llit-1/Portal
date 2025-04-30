@@ -35,14 +35,14 @@
     </div>
 
     <div id="stock_wrapper"  class="stock_wrapper">
-        <div class="wrapper_card wrapper_addNewCategories" onclick="event.stopPropagation();openModal(0)"> + </div>
+        <div class="wrapper_card wrapper_addNewCategories" onclick="event.stopPropagation();openModalStock(0)"> + </div>
         @foreach(var item in Model)
         {
             <div class="wrapper_card">
                 <div class="wrapper_card_header">
                     
                     
-                    <img onclick="event.stopPropagation();openModal(@item.Id)" src="/themes/clearmin/img/settings.png" class="card_header_img" />
+                    <img onclick="event.stopPropagation();openModalStock(@item.Id)" src="/themes/clearmin/img/settings.png" class="card_header_img" />
                 </div>
 
                 <div class="wrapper_card_body" onclick="openTable(@item.Id)">
@@ -186,7 +186,7 @@
 </script>
 
 <script>
-    async function openModal(id = 0) {
+    async function openModalStock(id = 0) {
         try {
             const response = await fetch("/Stock/LoadModal?id=" + id, {
                 method: "GET",

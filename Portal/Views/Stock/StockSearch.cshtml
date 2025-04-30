@@ -152,7 +152,6 @@
             $("#spinner").show();
             const response = await fetch(url.toString());
             const result = await response.json();
-            console.log(result.length);
 
             if(!result.length) {
                 body_stock.innerHTML = ""
@@ -174,6 +173,8 @@
         nullMessage.classList.add('hidden')
 
         data.forEach(category => {
+            
+
             body_stock.innerHTML += `
                 <div class="body_main_item header_stock" onclick="showDetails(${category.mainCat.id})">
                     <p style="width: 20%">${category.mainCat ? category.mainCat.name : "-"}</p>
@@ -186,8 +187,9 @@
             `
 
             category.items.forEach(items => {
+
                 body_stock.innerHTML += `
-                    <div class="body_main_item header_stock main_item_children children-${category.mainCat.id} hidden">
+                    <div class="body_main_item header_stock main_item_children children-${category.mainCat.id} hidden" onClick='loadCard("${items.code.toString()}")'>
                         <p style="width: 20%">${items.mainCat ? items.mainCat.name : "-"}</p>
                         <p style="width: 20%">${items.cat ? items.cat.name : "-"}</p>
                         <p style="width: 20%">${items.secondCat ? items.secondCat.name : "-"}</p>
@@ -202,6 +204,9 @@
         
     }
 
+    function loadCard(code) {
+        $('#container-fluid').load('/Stock/StockSearchCard?code=' + code.trim())
+    }
 
     function showDetails(id) {
 

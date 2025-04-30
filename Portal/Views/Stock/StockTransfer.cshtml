@@ -196,7 +196,7 @@
         }
     })
 
-    function openModal(header ,message) {
+    function openModalStockTransfer(header ,message) {
         modal_message.textContent = message;
         modal_header.textContent = header;
         modal.style.display = "block";
@@ -366,7 +366,7 @@
             const response = await fetch(`https://warehouseapi.ludilove.ru/api/objects/getObject?id=${id}`);
 
             if (!response.ok) {
-                openModal("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
+                openModalStockTransfer("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
                 throw new Error(`HTTP Error: ${response.status}`);
             }
 
@@ -374,7 +374,7 @@
             console.log(result)
             return result; // Return the parsed data
         } catch (error) {
-            openModal("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
+            openModalStockTransfer("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
             console.error("Fetch error:", error);
             throw error; // Re-throw to handle it in the calling function
         } finally {
@@ -399,7 +399,7 @@
 
         if(state.transfer_end === null && state.newowner === null)
         {
-            openModal("Ошибка" ,"Вы должны заполнить конечную точку или нового держателя!")
+            openModalStockTransfer("Ошибка" ,"Вы должны заполнить конечную точку или нового держателя!")
             state.scannedCodes.delete(id)
             state.currentCode = '';
             return null;
@@ -462,11 +462,11 @@
                 body: JSON.stringify(finalArr)
             });
 
-            openModal("Успех", "Данные успешно сохранены!")
+            openModalStockTransfer("Успех", "Данные успешно сохранены!")
             clearAllFields()
             return true;
         } catch (error) {
-            openModal("Ошибка", "Данные не отправлены!")
+            openModalStockTransfer("Ошибка", "Данные не отправлены!")
             console.error('Error:', error);
             throw error;
         } finally {
