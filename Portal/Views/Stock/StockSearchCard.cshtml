@@ -7,7 +7,7 @@
             @if(Model != null) {
                 <input oninput="checkError()" id="input_search" class="search_card" value="@Model" placeholder="000000000000000000000000" maxlength="24"/>
             } else {
-                <input oninput="checkError()" id="input_search" class="search_card" value="000000000000000000000000" placeholder="000000000000000000000000" maxlength="24"/>
+                <input oninput="checkError()" id="input_search" class="search_card" value="" placeholder="000000000000000000000000" maxlength="24"/>
             }
             
         </div>
@@ -33,6 +33,13 @@
 
 
 <script>
+    const search_page_wrapper = document.querySelector(".search_page_wrapper")
+    search_page_wrapper.addEventListener("keydown", (e) => {
+        if (e.key === 'Enter') {
+            search();
+        }
+    })
+
     const modal = document.querySelector('.stockSearchCard_modal');
     const modal_body = document.querySelector('.stockSearchCard_modal_body'); 
     const modal_message = document.querySelector('.stockSearchCard_modal_message');
@@ -56,11 +63,6 @@
     const card_details = document.getElementById("card_details")
     const input_search = document.getElementById("input_search")
     const search_wrapper = document.querySelector('.search_wrapper')
-
-    // Если код был передан, то сразу его запустить
-    if(input_search.value !== "000000000000000000000000") {
-        search();
-    }
 
     function toggleRecord(event, element) {
         event.preventDefault();
@@ -116,12 +118,22 @@
             code = input_search.value;
         }
 
-        if(code.length !== 24)
-        {
-            return search_wrapper.classList.add("search_wrapper--error")
-        }
+        // if(code.length !== 24)
+        // {
+        //     return search_wrapper.classList.add("search_wrapper--error")
+        // }
+
+        code.toString().padStart(24, "0")
+
+        input_search.value = input_search.value.padStart(24, "0")
 
         const data = await getData(input_search.value);
+
+        console.log(data)
+
+        if(!data.length) {
+            return search_wrapper.classList.add("search_wrapper--error")
+        }
 
         buildInterface(data, input_search.value)
 
@@ -136,9 +148,12 @@
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
                 }
             })
+
+
             return await response.json()
         } catch(e) {
             console.log(e.message)
+            return search_wrapper.classList.add("search_wrapper--error")
         }
     }
 

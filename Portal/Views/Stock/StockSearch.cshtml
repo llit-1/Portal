@@ -40,7 +40,7 @@
          <select class="stock_search_select" onchange="enableOtherSelect(this, 2)" id="subCategorySelect"></select>
          <select onchange="buttonSendTurnOn()" class="stock_search_select" id="subSubCategorySelect"></select>
        
-        <button class="stock_search_button btn btn-success" disabled id="sendDataButton" onclick="sendData()">Поиск</button>
+        <button class="stock_search_button btn btn-success" id="sendDataButton" onclick="sendData()">Поиск</button>
         <button class="stock_search_button btn btn-default" onclick="clearFields()">Очистить</button>
     </div>
     
@@ -313,7 +313,7 @@
 
             urlBackup = url.toString();
 
-            showData(result)
+            showData(result, custom_slider.id)
 
         } catch (e) {
             console.error(e.message);
@@ -322,7 +322,7 @@
         }
     }
 
-    function showData(data) {
+    function showData(data, sliderId) {
         body_stock.innerHTML = ""
 
         nullMessage.classList.add('hidden')
@@ -346,8 +346,6 @@
 
             category.items.forEach(items => {
 
-                console.log(1)
-
                 let name;
                 if(items.mainCat) name = items.mainCat.name;
                 if(items.cat) name = items.cat.name;
@@ -357,6 +355,10 @@
                 if(items.warehouseHolder === null && items?.location?.guid === "c6c585f2-2825-4946-88a7-92ce7c97013c")
                 {
                     color = "#00ff0625"
+                }
+
+                if(sliderId === "0") {
+                    color = "#ff00003d"
                 }
 
                 body_stock.innerHTML += `
