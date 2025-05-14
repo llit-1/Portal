@@ -131,7 +131,7 @@
             error: function (error) { 
                 document.getElementById('spinner').style.display = "none"
                 document.getElementById('buttonRefreshData').disabled = false
-                alert("Данные успешно обновлены");
+                alert(error.responseText)
             }
         });
     }

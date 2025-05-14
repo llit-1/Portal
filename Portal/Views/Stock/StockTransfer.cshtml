@@ -205,7 +205,13 @@
     async function getAllHolders() {
         try{
             $("#spinner").show()
-            const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/GetAllHolders')
+            const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/GetAllHolders',
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            })
             const result = await response.json()
             return result;
         } finally {
@@ -363,25 +369,34 @@
     async function getObjectFromApi(id) {
         try {
             $("#spinner").show()
-            const response = await fetch(`https://warehouseapi.ludilove.ru/api/objects/getObject?id=${id}`);
+            const response = await fetch(`https://warehouseapi.ludilove.ru/api/objects/getObject?id=${id}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            });
 
             if (!response.ok) {
-                openModalStockTransfer("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
-                throw new Error(`HTTP Error: ${response.status}`);
+                if(response.status === 400) {
+                    throw new Error("Метка с таким ID списана!");
+                }
+
+             if(response.status === 404) {
+                throw new Error("Метка с таким ID списана!");
+             }
+
             }
 
             const result = await response.json();
-            console.log(result)
-            return result; // Return the parsed data
+            return result;
         } catch (error) {
-            openModalStockTransfer("Ошибка" ,"Метки с такой ID не существует! Проверьте метку.")
-            console.error("Fetch error:", error);
-            throw error; // Re-throw to handle it in the calling function
+            openModalStockTransfer("Ошибка" ,error.message)
+            throw error;
         } finally {
             $("#spinner").hide()
         }
     }
-
 
     async function addNewRaw(id) {
         const table = document.getElementById("transfer_table")
@@ -458,6 +473,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
                 },
                 body: JSON.stringify(finalArr)
             });
@@ -534,7 +550,8 @@
             const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/PostHolder', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
             },
             body: JSON.stringify(obj)
             });
@@ -586,7 +603,12 @@
 
             try{
                 $("#spinner").show()
-                const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/GetHolder?id=' + id)
+                    const response = await fetch('https://warehouseapi.ludilove.ru/api/holder/GetHolder?id=' + id, {
+                  method: 'GET',
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                    }
+                })
                 const result = await response.json()
 
                 modal_surname.value = result.surname;

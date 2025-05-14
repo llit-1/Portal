@@ -5,9 +5,14 @@
 
     <div class="stock_filters">
 
+        <div class="custom_slider" id="1">
+            <div class="slider_option1" id="slider1" onclick="selectSide('green')">Только активные</div>
+            <div class="slider_option2" id="slider2" onclick="selectSide('red')">Только списанные</div>
+        </div>
+
         <select onchange="buttonSendTurnOn()" class="stock_search_select" id="holdersCategory">
 
-            <option value="" disabled selected style="select_option"> Выберите ФИО </option>
+            <option value="" selected style="select_option"> Выберите ФИО </option>
 
             @foreach(var item in Model.Holders.OrderBy(x => x.Surname))
             {
@@ -17,24 +22,24 @@
         </select>
 
         <select onchange="buttonSendTurnOn()" class="stock_search_select" id="ttSelect">
-            <option value="" disabled selected style="select_option"> Выберите ТТ </option>
-            @foreach (var item in Model.Locations.OrderBy(x => x.Name))
-            {
-                <option id="@item.Guid" style="select_option"> @item.Name </option>
-            }
-        </select>
+             <option value="" selected style="select_option"> Выберите ТТ </option>
+             @foreach (var item in Model.Locations.OrderBy(x => x.Name))
+             {
+                 <option id="@item.Guid" style="select_option"> @item.Name </option>
+             }
+         </select>
 
-        <select class="stock_search_select" id="categorySelect" onchange="enableOtherSelect(this, 1)">
-            <option value="" disabled selected style="select_option"> Выберите категорию </option>
-            @foreach (var item in Model.MainCategories.OrderBy(x => x.Name))
-            {
-                <option id="@item.Id" style="select_option"> @item.Name </option>
-            }
-        </select>
+         <select class="stock_search_select" id="categorySelect" onchange="enableOtherSelect(this, 1)">
+             <option value="" selected style="select_option"> Выберите категорию </option>
+             @foreach (var item in Model.MainCategories.OrderBy(x => x.Name))
+             {
+                 <option id="@item.Id" style="select_option"> @item.Name </option>
+             }
+         </select>
 
-        <select disabled class="stock_search_select" onchange="enableOtherSelect(this, 2)" id="subCategorySelect"></select>
-        <select onchange="buttonSendTurnOn()" disabled class="stock_search_select" id="subSubCategorySelect"></select>
-
+         <select class="stock_search_select" onchange="enableOtherSelect(this, 2)" id="subCategorySelect"></select>
+         <select onchange="buttonSendTurnOn()" class="stock_search_select" id="subSubCategorySelect"></select>
+       
         <button class="stock_search_button btn btn-success" disabled id="sendDataButton" onclick="sendData()">Поиск</button>
         <button class="stock_search_button btn btn-default" onclick="clearFields()">Очистить</button>
     </div>
@@ -59,7 +64,143 @@
 
 </div>
 
+@* Модальное окно для просмотра истории*@
+<div class="stockSearchCard_modal" style="display: none">
+    <div class="stockSearchCard_modal_body" id="stockSearchCard_modal_body">
+        <div class="stockSearchCard_modal_header">История</div>
+        <div class="stockSearchCard_modal_message" id="card_details"></div>
+    </div>
+</div>
+
 <script>
+    
+    const custom_slider = document.querySelector(".custom_slider")
+    const slider1 = document.getElementById("slider1")
+    const slider2 = document.getElementById("slider2")
+
+    function selectSide(side) {
+
+        if(side === "red")
+        {
+            custom_slider.id = 0;
+            slider1.style = "width: 20px;justify-content: end;"
+            slider2.style = "width: 120px"
+        }
+
+        if(side === "green")
+        {
+            custom_slider.id = 1;
+            slider1.style = "width: 120px;"
+            slider2.style = "width: 40px;"
+        }
+    }
+
+    const modal = document.querySelector('.stockSearchCard_modal');
+    const modal_body = document.querySelector('.stockSearchCard_modal_body');
+    const modal_message = document.querySelector('.stockSearchCard_modal_message');
+    const modal_header = document.querySelector('.stockSearchCard_modal_header');
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (!modal_body.contains(e.target)) {
+            closeModal();
+        }
+    })
+
+    function openModalStockSearchCard(code, name) {
+        modal_header.innerHTML = `<p>${code}</p> <b>${name}</b>`
+        modal.style.display = "block";
+        search(code)
+    }
+
+     async function search(code) {
+
+        const data = await getData(code);
+
+        buildInterface(data, code)
+     }
+
+    async function getData(id) {
+        try {
+            const response = await fetch('https://warehouseapi.ludilove.ru/api/transfer/GetObjectHistory?id=' + id, 
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            })
+            return await response.json()
+        } catch(e) {
+            console.log(e.message)
+        }
+    }
+
+    async function buildInterface(data, id) {
+
+        const card_details = document.getElementById("card_details")
+
+        const objectInfo = {
+            category: null,
+            subcategory: null,
+            subsubcategory: null,
+            holder: data[0]?.warehouseObjects?.holder ? data[0]?.warehouseObjects?.holder : null,
+            location: data[0]?.warehouseObjects?.location?.name ? data[0]?.warehouseObjects?.location?.name : null,
+            status: data[0]?.warehouseObjects?.actual ? data[0]?.warehouseObjects?.actual : null
+        }
+
+        const category = data[0]?.warehouseObjects?.warehouseCategories;
+
+        if (!category) {
+            console.error("Категория не найдена в данных");
+            return;
+        }
+
+        let block = `
+            <div class="details_history">
+
+                <div class="history_card" style="background-color: #00ff001c">
+                    <div class="history_card_header">Оприходование</div>
+                </div>`
+
+        let str = ""
+
+        data.forEach((elem, index) => {
+
+            if(index === 1 && elem.warehouseAction?.id === 2) {
+                str += `<div class="history_card" style="background-color: #ffff001c">
+                            <div class="history_card_header">Перемещение</div>
+                        </div>`
+            }
+
+
+
+            if((index === data.length - 1) && data[0].warehouseObjects?.actual === 0) {
+                str += `<div class="history_card" style="background-color: #ff00001c">
+                        <div class="history_card_header">Списание</div>
+                      </div>`
+            }
+
+            str += `
+                <div class="history_card">
+                    <div class="history_card_body">
+                        <p>${elem?.user}</p>
+                        <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                        <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                        <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                        <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                    </div>
+                </div>`
+        })
+
+        const resString = block + str + "</div></div>";
+
+        card_details.innerHTML = resString;
+    }
+
+    let urlBackup;
     const holdersCategory = document.getElementById('holdersCategory');
     const ttSelect = document.getElementById('ttSelect');
     const categorySelect = document.getElementById('categorySelect');
@@ -79,7 +220,13 @@
 
             $("#spinner").show()
 
-            const response = await fetch("https://warehouseapi.ludilove.ru/api/category/childCategories?id=" + id)
+            const response = await fetch("https://warehouseapi.ludilove.ru/api/category/childCategories?id=" + id,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            })
 
             const result = await response.json()
 
@@ -138,25 +285,33 @@
             .find(id => id !== null) || null;
         obj.category = category;
 
-        // Строим URL с параметрами
         const url = new URL("https://warehouseapi.ludilove.ru/api/category/gethardmodel");
         const params = new URLSearchParams();
 
         if (obj.category)        params.append("cathegory", obj.category);
         if (obj.holdersCategory) params.append("holder",   obj.holdersCategory);
-        if (obj.ttSelect)        params.append("location",       obj.ttSelect);
+        if (obj.ttSelect)        params.append("location", obj.ttSelect);
+        params.append("actual", custom_slider.id);
 
         url.search = params.toString();
 
+        
         try {
             $("#spinner").show();
-            const response = await fetch(url.toString());
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            });
             const result = await response.json();
 
             if(!result.length) {
                 body_stock.innerHTML = ""
                 return nullMessage.classList.remove('hidden')
             }
+
+            urlBackup = url.toString();
 
             showData(result)
 
@@ -172,7 +327,7 @@
 
         nullMessage.classList.add('hidden')
 
-        data.forEach(category => {
+        data.forEach((category, index) => {
             
 
             body_stock.innerHTML += `
@@ -186,10 +341,26 @@
                 </div>
             `
 
+           
+            
+
             category.items.forEach(items => {
 
+                console.log(1)
+
+                let name;
+                if(items.mainCat) name = items.mainCat.name;
+                if(items.cat) name = items.cat.name;
+                if(items.secondCat) name = items.secondCat.name;
+
+                let color;
+                if(items.warehouseHolder === null && items?.location?.guid === "c6c585f2-2825-4946-88a7-92ce7c97013c")
+                {
+                    color = "#00ff0625"
+                }
+
                 body_stock.innerHTML += `
-                    <div class="body_main_item header_stock main_item_children children-${category.mainCat.id} hidden" onClick='loadCard("${items.code.toString()}")'>
+                    <div style="background-color: ${color}" class="body_main_item header_stock main_item_children children-${category.mainCat.id} hidden" onClick='openModalStockSearchCard("${items.code}", "${name}")'>
                         <p style="width: 20%">${items.mainCat ? items.mainCat.name : "-"}</p>
                         <p style="width: 20%">${items.cat ? items.cat.name : "-"}</p>
                         <p style="width: 20%">${items.secondCat ? items.secondCat.name : "-"}</p>

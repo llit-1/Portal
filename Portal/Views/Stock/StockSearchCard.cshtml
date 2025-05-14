@@ -13,7 +13,7 @@
         </div>
 
         <button class="btn btn-default btn_search" id="search_card" onclick="search()">Поиск</button>
-        <button class="btn btn-default btn_scan" onclick="toggleRecord(event, this)">Сканировать</button>
+        <button class="btn btn-default btn_scan" id="card_scan" onclick="toggleRecord(event, this)">Сканировать</button>
     </div>
 
     <div class="card_details" id="card_details"></div>
@@ -99,6 +99,8 @@
             if (state.currentCode.length === 24) {
                 input_search.value = state.currentCode;
                 await search(state.currentCode)
+                document.getElementById("card_scan").innerText = "СКАНИРОВАТЬ"
+                window.removeEventListener('keydown', handleKeyDown);
             }
             state.currentCode = '';
         } 
@@ -128,7 +130,12 @@
 
     async function getData(id) {
         try {
-            const response = await fetch('https://warehouseapi.ludilove.ru/api/transfer/GetObjectHistory?id=' + id)
+            const response = await fetch('https://warehouseapi.ludilove.ru/api/transfer/GetObjectHistory?id=' + id, {
+              method: 'GET',
+              headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            })
             return await response.json()
         } catch(e) {
             console.log(e.message)
@@ -143,7 +150,12 @@
 
     async function getCategory(id) {
         try {
-            const response = await fetch("https://warehouseapi.ludilove.ru/api/category/getcategory?id=" + id);
+                const response = await fetch("https://warehouseapi.ludilove.ru/api/category/getcategory?id=" + id, {
+      method: 'GET',
+      headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+    });
             if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch(e) {
@@ -261,7 +273,10 @@
 
     async function writeOffItem(name) {
         const id = input_search.value;
-        const url = new URL("https://warehouseapi.ludilove.ru/api/objects/WriteOffObject");
+        const url = new URL("https://warehouseapi.ludilove.ru/api/objects/WriteOffObject", {
+          method: 'GET',
+          credentials: 'include'
+        });
         const params = new URLSearchParams();
         params.append("id", id);
         params.append("user", name);

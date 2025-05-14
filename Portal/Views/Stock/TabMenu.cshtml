@@ -1,4 +1,6 @@
-﻿<!--горизонтальные меню над контентом-->
+﻿@model Portal.Global.Functions.TokenData;
+
+<!--горизонтальные меню над контентом-->
 <div class="cm-flex">
     <div class="nav-tabs-container">
         <ul class="nav nav-tabs">
@@ -9,3 +11,8 @@
         </ul>
     </div>
 </div>
+
+
+<script style="font-size: 0px">
+    localStorage.setItem("token", "@Html.Raw(Model.token)");
+</script>

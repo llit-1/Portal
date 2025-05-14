@@ -24,6 +24,7 @@ using Portal.Models.MSSQL.PersonalityVersions;
 using System.Globalization;
 using Portal.Models.MSSQL.Location;
 using Portal.Models.MSSQL;
+using System.Net.Http.Headers;
 
 namespace Portal.Controllers
 {
@@ -39,9 +40,19 @@ namespace Portal.Controllers
             dbSql = dbSqlContext;
         }
 
-        public IActionResult TabMenu()
+        public async Task<IActionResult> TabMenu()
         {
-            return PartialView();
+            var token = await Portal.Global.Functions.GetTokenFromApi();
+
+            Response.Cookies.Append("access_token", token.token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddHours(24)
+            });
+
+            return PartialView(token);
         }
 
         public IActionResult StockTransfer()
@@ -62,11 +73,13 @@ namespace Portal.Controllers
             return PartialView("StockSearchCard", code);
         }
 
-        static async Task<DataStockSearch> GetDataForStockSearch()
+        public async Task<DataStockSearch> GetDataForStockSearch()
         {
             try
             {
                 using var httpClient = new HttpClient();
+                var token = HttpContext.Request.Cookies["access_token"];
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/getlazymodel");
                 response.EnsureSuccessStatusCode();
 
@@ -151,6 +164,8 @@ namespace Portal.Controllers
             }
 
             using var httpClient = new HttpClient();
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var content = new StringContent(JsonConvert.SerializeObject(category), Encoding.UTF8, "application/json");
             using HttpResponseMessage response = await httpClient.PatchAsync("https://warehouseapi.ludilove.ru/api/category/UpdateCategory", content);
 
@@ -185,6 +200,8 @@ namespace Portal.Controllers
 
             using var httpClient = new HttpClient();
             var content = new StringContent(JsonConvert.SerializeObject(category), Encoding.UTF8, "application/json");
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using HttpResponseMessage response = await httpClient.PatchAsync("https://warehouseapi.ludilove.ru/api/category/UpdateCategory", content);
 
             if (response.IsSuccessStatusCode)
@@ -230,7 +247,8 @@ namespace Portal.Controllers
             // ���������� ������ �� ������ ������ � ������� JSON
             using var httpClient = new HttpClient();
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             // ���������� ������ �� ������ ������
             using HttpResponseMessage response = await httpClient.PostAsync($"https://warehouseapi.ludilove.ru/api/category/SetCategory", content);
 
@@ -249,7 +267,8 @@ namespace Portal.Controllers
         public async Task<IActionResult> DeleteCategory (int categoryId)
         {
             using var httpClient = new HttpClient();
-
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using HttpResponseMessage response = await httpClient.DeleteAsync($"https://warehouseapi.ludilove.ru/api/category/DeleteCategory?id=" + categoryId.ToString());
 
             if (response.IsSuccessStatusCode)
@@ -267,6 +286,8 @@ namespace Portal.Controllers
         {
             using var httpClient = new HttpClient();
             var content = new StringContent("", Encoding.UTF8, "application/json");
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using HttpResponseMessage response = await httpClient.PatchAsync($"https://warehouseapi.ludilove.ru/api/category/UpdateCategoryActual?id={id}", content);
 
             if (response.IsSuccessStatusCode)
@@ -279,9 +300,13 @@ namespace Portal.Controllers
             }
         }
 
-        static async Task<List<Models.MSSQL.WarehouseCategories>> GetAsync()
+        public async Task<List<Models.MSSQL.WarehouseCategories>> GetAsync()
         {
             using var httpClient = new HttpClient();
+
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/maincategories");
             response.EnsureSuccessStatusCode();
 
@@ -292,9 +317,12 @@ namespace Portal.Controllers
             });
         }
 
-        static async Task<Models.MSSQL.WarehouseCategories> GetOneCategoryAsync(int id)
+        public async Task<Models.MSSQL.WarehouseCategories> GetOneCategoryAsync(int id)
         {
             using var httpClient = new HttpClient();
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/maincategories");
             response.EnsureSuccessStatusCode();
 
@@ -308,6 +336,8 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> StockTable(int id) {
             using var httpClient = new HttpClient();
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using HttpResponseMessage response = await httpClient.GetAsync("https://warehouseapi.ludilove.ru/api/category/ChildCategories?id=" + id);
             var jsonResponse = await response.Content.ReadAsStringAsync();
             var categoriesHierarchy = System.Text.Json.JsonSerializer.Deserialize<List<CategoriesHierarchy>>(jsonResponse, new JsonSerializerOptions
@@ -337,6 +367,8 @@ namespace Portal.Controllers
             }
 
             using var httpClient = new HttpClient();
+            var token = HttpContext.Request.Cookies["access_token"];
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
             using HttpResponseMessage response = await httpClient.PostAsync($"https://warehouseapi.ludilove.ru/api/category/SetCategory", content);
 
