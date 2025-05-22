@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
@@ -150,7 +151,7 @@ namespace Portal.Controllers
             Portal.Models.MSSQL.Location.Location location = dbSql.Locations.FirstOrDefault(c => c.Guid == Guid.Parse(locationGuid));
             DateData dateData = new DateData();
             dateData.Date = date;
-            
+
             dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                   .Include(c => c.JobTitle)
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
@@ -168,7 +169,7 @@ namespace Portal.Controllers
             trackingDataEditModel.Personalities = dbSql.Personalities.ToList();
             trackingDataEditModel.PersonalityVersions = pervers;
             trackingDataEditModel.JobTitles = dbSql.JobTitles.ToList();
-           
+
             return PartialView(trackingDataEditModel);
         }
 
@@ -305,6 +306,188 @@ namespace Portal.Controllers
                 }
             }
             return "";
+        }
+
+        public IActionResult TrackingChart(string locationGuid, string date)
+        {
+            TrackingChartData trackingChartData = new TrackingChartData();
+            List<DataForCharts> mainData = new List<DataForCharts>();
+
+            // нужна дата формата 21-05-2025
+            if(date == null)
+            {
+                date = DateTime.Now.ToString();
+            }
+
+            trackingChartData.selectedDate = date;
+
+            var now = DateTime.Parse(date);
+            var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            // Добавляем тт, которые привзяаны к пользователю
+            string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
+            RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null && d.Type != null && d.Type.Id != 3))
+                                                    .FirstOrDefault(c => c.Login == userLogin);
+            trackingChartData.locations = new();
+            foreach (var tt in user.TTs)
+            {
+                var location = dbSql.Locations.FirstOrDefault(c => c.RKCode == tt.Restaurant_Sifr);
+                if (location == null) { continue; }
+                trackingChartData.locations.Add(location);
+            }
+
+            if (locationGuid == null)
+            {
+                locationGuid = trackingChartData.locations.OrderBy(x => x.Name).FirstOrDefault().Guid.ToString();
+            }
+
+            trackingChartData.selectedLocation = locationGuid;
+
+            // Берем все смены, по этой ТТ за месяц
+            List<TimeSheet> timeSheets = dbSql.TimeSheets.Include(x => x.Location)
+                                                         .Include(x => x.Personalities)
+                                                         //.Where(x => x.Location.Guid == Guid.Parse(locationGuid))
+                                                         .Where(x => x.Begin >= firstDayOfMonth && x.End <= lastDayOfMonth)
+                                                         .ToList();
+
+            // Список пользователей (которые работали в этом месяце)
+            var personalityGuids = timeSheets.Where(x => x.Location.Guid == Guid.Parse(locationGuid)).Select(p => p.Personalities.Guid).ToList();
+
+            List<PersonalityVersion> personalities = dbSql.PersonalityVersions.Include(x => x.Location)
+                                                                              .Include(x => x.Personalities)
+                                                                              .Where(x => x.Actual == 1)
+                                                                              .Where(x => personalityGuids.Contains(x.Personalities.Guid))
+                                                                              .ToList();
+
+            List<PersonalityVersion> personalitiesFromThisTT = dbSql.PersonalityVersions.Include(x => x.Location)
+                                                                                        .Include(x => x.Personalities)
+                                                                                        .Where(x => x.Location.Guid == Guid.Parse(locationGuid))
+                                                                                        .Where(x => x.Actual == 1)
+                                                                                        .Where(x => !personalities.Contains(x))
+                                                                                        .ToList();
+
+            personalities.AddRange(personalitiesFromThisTT);
+
+            foreach (var person in personalities)
+            {
+
+                List<TimeSheet> timesheets = timeSheets.Where(x => x.Personalities.Guid == person.Personalities.Guid)
+                                                       .ToList();
+
+                DataForCharts data = new DataForCharts
+                {
+                    person = person,
+                    timesheets = timesheets,
+                    shedules = Enumerable.Range(0, lastDayOfMonth.Day)
+                             .Select(_ => new sheduleItem())
+                             .ToList()
+                };
+
+
+                double totalHours = 0;
+
+                foreach (var timesheet in timesheets)
+                {
+                    var duration = (timesheet.End - timesheet.Begin).TotalHours;
+                    totalHours += duration;
+
+                    sheduleItem sheduleItem = new();
+                    sheduleItem.duration = duration;
+                    sheduleItem.location = timesheet.Location.Guid.ToString();
+
+                    int day = timesheet.Begin.Day - 1;
+                    
+                    // traitorStatus обозначает "верность" сотрудника к своей ТТ
+                    // 0 - сотрудник посещал только свою ТТ
+                    // 1 - сотрудник посещал только другую ТТ
+                    // 2 - сотрудник посещал и свою и чужую ТТ
+
+                    // Если это первое заполнение этой ячейки, то просто проверим на соответствие ТТ
+                    if (data.shedules[day].location == null)
+                    {
+                        // Ставим предателя, если смена была не на родной точке
+                        if(sheduleItem.location != locationGuid)
+                        {
+                            sheduleItem.traitorStatus = 1;
+                        }
+                        else
+                        {
+                            sheduleItem.traitorStatus = 0;
+                        }
+
+                        data.shedules[day] = sheduleItem;
+                    }
+                    else
+                    {
+                        
+                        // Если это не первая ячейка, то проверим на соответствие родной точки 
+                        data.shedules[day].duration += duration;
+
+
+                        if (sheduleItem.location == locationGuid)
+                        {
+                            // Если запись уже не первая и статус (ходил только на свою || ходил и туда и сюда), то ставим  ходил и туда и сюда
+
+                            if(data.shedules[day].traitorStatus == 0)
+                            {
+                                data.shedules[day].traitorStatus = 0;
+                            } else
+                            {
+                                data.shedules[day].traitorStatus = 2;
+                            }
+
+                        }
+                        else
+                        {
+                            // Если запись не первая и статус (ходил только на чужую || ходил и туда и сюда), то ставим ходил и туда и сюда
+                            if(data.shedules[day].traitorStatus == 0)
+                            {
+                                data.shedules[day].traitorStatus = 2;
+                            } else
+                            {
+                                data.shedules[day].traitorStatus = 1;
+                            }
+                            // если запись не первая и статус ходил только на свою, то оставляем его
+                        }
+                    }
+                }
+
+                
+
+                data.Hours = totalHours;
+
+                mainData.Add(data);
+            }
+
+            trackingChartData.DataForCharts = mainData;
+
+            
+
+            return PartialView(trackingChartData);
+        }
+
+        public class TrackingChartData
+        {
+            public List<DataForCharts> DataForCharts { get; set; }
+            public List<Portal.Models.MSSQL.Location.Location> locations { get; set; }
+            public string selectedLocation { get; set; }
+            public string selectedDate { get; set; }
+        }
+
+        public class DataForCharts
+        {
+            public PersonalityVersion person { get; set; }
+            public List<TimeSheet> timesheets { get; set; }
+            public double Hours { get; set; }
+            public List<sheduleItem> shedules { get; set; }
+        }
+
+        public class sheduleItem
+        {
+            public double duration { get; set; }
+            public string location { get; set; }
+            public int traitorStatus { get; set; }
         }
 
     }

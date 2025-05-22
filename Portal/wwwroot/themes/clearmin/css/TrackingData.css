@@ -329,9 +329,57 @@
     font-size: 16px;
 }
 
-/*@media screen and (max-width: 1030px)
-{
-    #getTableView {
+
+
+@media print {
+    #trackingChart {
+        zoom: 0.77;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+
+    table {
+        width: 100% !important;
+        border-collapse: collapse;
+    }
+
+    #trackingChart_wrapper {
+        transform: scale(0.9);
+        padding: 10px;
+    }
+
+    #global {
+        padding: 0;
+        height: 100%;
+    }
+
+    #cm-menu {
         display: none;
     }
-}*/
+
+    #cm-header {
+        display: none;
+    }
+
+    #cm-footer {
+        display: none;
+    }
+
+    #headMenu {
+        display: none;
+    }
+
+    #container-fluid {
+        margin: 0;
+        padding: 0;
+    }
+
+    @page {
+        margin: 1mm;
+    }
+}

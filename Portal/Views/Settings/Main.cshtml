@@ -59,7 +59,18 @@
                         <label style="padding-left: 0px; margin-bottom: 0px" class="col-sm-12 control-label" for="refreshData_days"> Введите кол-во дней </label>
                         <input id="refreshData_days" class="form-control" style="text-align: center" value="7"/>
 
-                        <button id = 'buttonRefreshData' class="btn btn-success btn-sm" style="margin-top: 10px" onclick="RefreshData(event)">Обновить</button>
+                        <button disabled id='buttonRefreshData' class="btn btn-success btn-sm" style="position: relative;margin-top: 10px;width: 88px; height: 34px; border-color: transparent; background-color: transparent" onclick="RefreshData(event)">
+
+                            <div id="loading2" style="width: 40px; height: 38px" class="lds-ring center-block">
+                                <div style="width: 24px; height: 24px;"></div>
+                                <div style="width: 24px; height: 24px;"></div>
+                                <div style="width: 24px; height: 24px;"></div>
+                                <div style="width: 24px; height: 24px;"></div>
+                            </div>
+
+                            <span id="textButton" style="display: none"> Обновить </span>
+
+                        </button>
 
                     </form>
                 </div>
@@ -111,28 +122,66 @@
 </script>
 
 <script>
-    function RefreshData(event) {
+    const loading = document.getElementById('loading2')
+    const textButton = document.getElementById('textButton')
+    const button = document.getElementById('buttonRefreshData')
+
+    async function RefreshData(event) {
         event.preventDefault()
-        document.getElementById('spinner').style.display = "block"
-        document.getElementById('buttonRefreshData').disabled = true
+        
         const days = document.getElementById('refreshData_days').value;
+        const url = '/Settings/UpdateSaleObjects?daysAgo=' + days
 
+        try {
+            loading2.style.display = "block"
+            textButton.style.display = "none"
+            button.disabled = true;
+            button.style.backgroundColor = "transparent"
+            button.style.borderColor = "transparent"
 
-        $.ajax({
-            type: "POST",
-            url: '/Settings/UpdateSaleObjects?daysAgo=' + days,
-            timeout: 0,
-            datatype: "text",
-            success: function (result) {
-                alert("Данные успешно обновлены");
-                document.getElementById('spinner').style.display = "none"
-                document.getElementById('buttonRefreshData').disabled = false
-            },
-            error: function (error) { 
-                document.getElementById('spinner').style.display = "none"
-                document.getElementById('buttonRefreshData').disabled = false
-                alert(error.responseText)
+            const response = await fetch(url)
+
+            const result = await response.text();
+
+            if(!response.ok) {
+                throw new Error(result)
             }
-        });
+
+            alert(result)
+
+        } catch(e) {
+            loading2.style.display = "none"
+            textButton.style.display = "block"
+            button.disabled = false;
+            button.style.backgroundColor = "#2ECC71"
+            button.style.borderColor = "#29B765"
+            alert(e)
+        }
     }
+
+    async function CheckActiveUpdateSaleObjects() {
+
+        const url = '/Settings/CheckStatusFromUpdateSaleObjects'
+
+        try {
+            const response = await fetch(url)
+            const result = await response.text()
+
+            if(!response.ok) {
+                throw new Error(result)
+            }
+
+            loading2.style.display = "none"
+            textButton.style.display = "block"
+            button.disabled = false;
+            button.style.backgroundColor = "#2ECC71"
+            button.style.borderColor = "#29B765"
+
+        }
+        catch(e) {
+            setTimeout(() => CheckActiveUpdateSaleObjects(), 60000)
+        }
+    }
+
+    CheckActiveUpdateSaleObjects() 
 </script>

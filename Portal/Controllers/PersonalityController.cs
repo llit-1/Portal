@@ -253,21 +253,19 @@ namespace Portal.Controllers
                         return BadRequest("Номер телефона должен содержать 10 символов и иметь вид 9ХХХХХХХХХ");
                     }
 
-                    // 911 174 40 10
-
                     if(dbSql.Personalities.FirstOrDefault(x => x.Name.ToLower().Trim() == personality.Name.ToLower().Trim()) != null && dbSql.Personalities.FirstOrDefault(x => x.BirthDate == personality.BirthDate) != null)
                     {
-                        return BadRequest("Пользователь уже существует");
+                        return BadRequest("Пользователь с таким ФИО и датой рождения уже существует");
                     }
 
                     if(personalityJson.SNILS != "" && dbSql.Personalities.FirstOrDefault(x => x.SNILS == personalityJson.SNILS) != null)
                     {
-                        return BadRequest("Пользователь уже существует");
+                        return BadRequest("Пользователь с таким снилсом уже существует");
                     }
 
                     if (personalityJson.INN != "" && dbSql.Personalities.FirstOrDefault(x => x.INN == personalityJson.INN) != null)
                     {
-                        return BadRequest("Пользователь уже существует");
+                        return BadRequest("Пользователь с таким ИНН уже существует");
                     }
 
                     dbSql.Add(personality);

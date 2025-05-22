@@ -48,19 +48,37 @@
         </table>
         <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
             <table class="table table-for-an">
-                @foreach (var item in Model.PersonalityVersions.Where(x => x.Actual == 1 && x.Location.Guid != Guid.Parse("CBE656C5-7B5F-41A1-A0D8-84B75028C272")).OrderBy(g => g.Surname))
+                @if (Model.TTData.Location.Guid == Guid.Parse("CBE656C5-7B5F-41A1-A0D8-84B75028C272"))
                 {
-                    <tr class="personList hidden">
-                        <td class="hidden">@item.Personalities.Guid</td>
-                        <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
-                        <td>@item.JobTitle.Name</td>
-                        <td class="hidden">@item.JobTitle.Guid</td>
-                        <td class="hidden">@item.Location.Guid</td>
-                        <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
-                        <td class="hidden">@item.Schedule.BeginTime</td>
-                        <td class="hidden">@item.Schedule.EndTime</td>
-                    </tr>
+                    @foreach (var item in Model.PersonalityVersions.Where(x => x.Actual == 1).OrderBy(g => g.Surname))
+                    {
+                        <tr class="personList hidden">
+                            <td class="hidden">@item.Personalities.Guid</td>
+                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+                            <td>@item.JobTitle.Name</td>
+                            <td class="hidden">@item.JobTitle.Guid</td>
+                            <td class="hidden">@item.Location.Guid</td>
+                            <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
+                            <td class="hidden">@item.Schedule.BeginTime</td>
+                            <td class="hidden">@item.Schedule.EndTime</td>
+                        </tr>
+                    }
+                } else {
+                    @foreach (var item in Model.PersonalityVersions.Where(x => x.Actual == 1 && x.Location.Guid != Guid.Parse("CBE656C5-7B5F-41A1-A0D8-84B75028C272")).OrderBy(g => g.Surname))
+                    {
+                        <tr class="personList hidden">
+                            <td class="hidden">@item.Personalities.Guid</td>
+                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+                            <td>@item.JobTitle.Name</td>
+                            <td class="hidden">@item.JobTitle.Guid</td>
+                            <td class="hidden">@item.Location.Guid</td>
+                            <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
+                            <td class="hidden">@item.Schedule.BeginTime</td>
+                            <td class="hidden">@item.Schedule.EndTime</td>
+                        </tr>
+                    }
                 }
+                
             </table>
         </div>
     </div>

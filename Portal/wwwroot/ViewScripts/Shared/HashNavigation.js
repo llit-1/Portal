@@ -73,7 +73,10 @@ $(function () {
         if (hash == '#Personality') loadContent(hash.replace('#', ''), '/Personality/Personality');
         if (hash == '#TrackingData') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingData');
         if (hash == '#TimesheetsFactory') loadContent(hash.replace('#', ''), '/TimesheetsFactory/TimesheetsMain');
+        if (hash == '#TrackingChart') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingChart');
+
         
+
         if (hash == '#stock') loadTabMenu(hash.replace('#', ''), '/Stock/TabMenu');
         
         // Запросы пользователей

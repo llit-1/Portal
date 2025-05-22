@@ -1,0 +1,340 @@
+@using System.Text.Json
+@model Portal.Controllers.TimeTrackingController.TrackingChartData
+
+@{
+    var helper = true;
+
+    var date = Model.selectedDate;
+
+    var year = DateTime.Parse(date).Year.ToString();
+    var mount = "";
+    if (DateTime.Parse(date).Month.ToString().Length == 1) 
+    {
+        mount = "0" + DateTime.Parse(date).Month.ToString();
+    }
+    else {
+        mount = DateTime.Parse(date).Month.ToString();
+    }
+
+
+    bool IsWeekend(int day)
+    {
+        var date = new DateTime(int.Parse(year), int.Parse(mount), day);
+        return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    }
+}
+
+<!--шапка-->
+<div id="headMenu" class="row trackingChart_header" style="margin:0px">
+    <div class="col-12">
+
+        <!--блок заголовка-->
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--заголовок-->
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <select id="trackingChart_select" class="form-control form-control-sm trackingChart_select">
+            @foreach (var location in Model?.locations)
+            {
+                if (location.Guid == Guid.Parse(Model.selectedLocation))
+                {
+                    <option selected value="@location.Guid">@location.Name</option>
+                }
+                else
+                {
+                    <option value="@location.Guid">@location.Name</option>
+                }
+
+            }
+    </select>
+
+    <input id="trackingChart_input" type='month' value='@year-@mount' class="form-control form-control-sm trackingChart_input">
+
+    <button id="trackingChart_button" class="btn btn-success trackingChart_button" onclick="sendData()">Применить</button>
+
+    <button id="trackingCart_Print" class="btn btn-success trackingChart_button" onclick="printTabel()">Печать</button>
+
+</div>
+
+<div id="trackingChart">
+    <div id="trackingChart_wrapper" class="trackingChart_wrapper">
+        <table border="1" class="trackingChart_table">
+            <thead>
+
+                <tr>
+                    <th>&nbsp;</th>
+                    @for (var item = 1; item <= Model.DataForCharts[0].shedules.Count; item++)
+                    {
+                        <th>
+                            @if(IsWeekend(item))
+                            {
+                                <div style="color: red" class="trackingChart_th">@item</div>
+                            } 
+                            else {
+                                <div class="trackingChart_th">@item</div>
+                            }
+
+                        </th>
+                    }
+                    <th><div class="trackingChart_th">Всего</div></th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model.DataForCharts.OrderBy(x => x.person.Location.Guid))
+                {
+
+                    <tr>
+                        @if (item.person.Location.Guid != Guid.Parse(Model.selectedLocation))
+                        {
+                            helper = true;
+
+                            <td style="background-color: #e7e7e7" title="Сотрудник другой ТТ">
+                                <div class="trackingChart_name">
+                                    @item.person.Personalities.Name
+                                </div>
+                            </td>
+
+                        } else {
+
+                            helper = false;
+
+                            <td>
+                                <div class="trackingChart_name">
+                                    @item.person.Personalities.Name
+                                </div>
+                            </td>
+                        }
+                        
+
+                        @for (var i = 0; i < item.shedules.Count; i++)
+                        {
+                            if (item.shedules[i].duration == 0)
+                            {
+                                <td align="center" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                    <div class='trackingChart_td'></div>
+                                </td>
+                            }
+                            else
+                            {
+
+                                if ((item.shedules[i].traitorStatus == 0 || helper == true) && item.shedules[i].location == Model.selectedLocation)
+                                {
+                                    <td align="center" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <div class="trackingChart_td">@item.shedules[i].duration</div>
+                                    </td>
+                                }
+                                else if(item.shedules[i].traitorStatus == 1 && helper == false)
+                                {
+                                    <td title="Сотрудник работал на другой ТТ" align="center" style="background-color: #ffff7f" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <div class="trackingChart_td">@item.shedules[i].duration</div>
+                                    </td>
+                                }
+                                else if (item.shedules[i].traitorStatus == 2 && helper == false)
+                                {
+                                    <td align="center" title="Сотрудник также работал на другой ТТ" style="background-color: #d7e9ff" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <div class="trackingChart_td">@item.shedules[i].duration</div>
+                                    </td>
+                                } else {
+                                    <td align="center" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <div class='trackingChart_td'></div>
+                                    </td>
+                                }
+                                
+                            }
+                        }
+
+                        <td>
+                            <div class="trackingChart_total">
+                                @item.Hours ч.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                }
+
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<script>
+    const location = document.getElementById("trackingChart_select").style.display = "block";
+    const date = document.getElementById("trackingChart_input").style.display = "block";
+    const button = document.getElementById("trackingChart_button").style.display = "block";
+
+    $('#PageHeader').text('Табель');
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        $("#container-fluid").load("TimeTracking/TrackingData")
+     });
+
+    function sendData() {
+        const location = document.getElementById("trackingChart_select").value;
+        const date = "01-" + document.getElementById("trackingChart_input").value.split("-").reverse().join("-");
+
+        $("#container-fluid").load('TimeTracking/TrackingChart?locationGuid=' + location + "&date=" + date)
+    }
+
+    function editShedule(day, location)
+    {
+        const locations = @Html.Raw(JsonSerializer.Serialize(Model.locations));
+
+        if(!locations.some(x => x.Guid == location))
+        {
+            return alert("У вас недостаточно прав, для просмотра этой смены.")
+        }
+
+        day = +day + 1; 
+
+        if(day.toString().length === 1)
+        {
+            day = "0" + day;
+        }
+        const date = day + "-" + document.getElementById("trackingChart_input").value.split("-").reverse().join("-");
+
+        document.getElementById("trackingChart_select").style.display = "none";
+        document.getElementById("trackingChart_input").style.display = "none";
+        document.getElementById("trackingChart_button").style.display = "none";
+
+        const loc = document.getElementById("trackingChart_select").value;
+        const dat = "01-" + document.getElementById("trackingChart_input").value.split("-").reverse().join("-");
+
+        if(!location)
+        {
+            location = loc;
+        }
+
+        $("#trackingChart").load(`/TimeTracking/TrackingDataEdit?stringDate=${date}&locationGuid=${location}`, function () {
+            $('#back').unbind('click');
+            $('#back').click(function () {
+                $("#container-fluid").load('TimeTracking/TrackingChart?locationGuid=' + loc + "&date=" + dat)
+             });
+        });
+    }
+
+    function printTabel() {
+
+        const table = document.getElementById('trackingChart');
+        if (!table) {
+            alert('Таблица для печати не найдена!');
+            return;
+        }
+
+      window.print();
+
+      setTimeout(() => {
+        document.body.removeChild(printDiv);
+      }, 500);
+    }
+  
+</script>
+
+<style>
+    .trackingChart_header {
+        display: flex;
+        margin: 0px;
+        align-items: center;
+    }
+
+    .trackingChart_wrapper {
+        background: white;
+        padding: 5px;
+        border: 1px solid #CCC;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .trackingChart_table {
+        width: 100%;
+    }
+
+    .trackingChart_table tbody  > tr {
+        max-height: 35px;
+        min-height: 35px;
+    }
+
+    .trackingChart_table tbody  > tr > td:not(:first-child) {
+        min-width: 35px;
+        min-height: 35px;
+        max-height: 35px;
+        max-width: 35px;
+        vertical-align: middle;
+        line-height: 35px;
+        transition: background-color 0.25s ease-in-out;
+    }
+
+    .trackingChart_table tbody  > tr > td:not(:first-child):not(:last-child):hover {
+        cursor: pointer;
+        background-color: #CCC;
+    }
+
+    .trackingChart_total {
+        width: 66px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        font-family: "Akrobat-regular";
+        font-size: 14px;
+    }
+
+    .trackingChart_name {
+        max-width: 250px;
+        padding-left: 5px;
+    }
+
+    .trackingChart_th {
+        height: 35px;
+        font-family: "Akrobat-Regular";
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        font-size: 16px;
+    }
+
+    .trackingChart_td {
+        width: 35px;
+    }
+
+    .trackingChart_input {
+        width: 200px;
+        margin: 0px 15px;
+    }
+
+    .trackingChart_select {
+        width: 200px;
+    }
+
+    .trackingChart_button {
+        font-family: "Akrobat-regular";
+    }
+
+    #trackingCart_Print {
+        margin-left: 10px;
+    }
+
+</style>

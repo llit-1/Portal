@@ -18,6 +18,7 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using System.Text;
+using Portal.Models.MSSQL;
 
 namespace Portal.Controllers
 {
@@ -71,7 +72,60 @@ namespace Portal.Controllers
             }            
         }
 
-        public async Task<IActionResult> UpdateSaleObjects(string daysAgo)
+        //public async Task<IActionResult> UpdateSaleObjects(string daysAgo)
+        //{
+        //    try
+        //    {
+        //        DateTime today = DateTime.Now;
+        //        string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
+        //        string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
+
+        //        if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
+        //        {
+        //            return BadRequest("Запрос уже выполняется другим пользователем, попробуйте позже");
+        //        }
+
+        //        using (var connection = new SqlConnection(connectionString))
+        //        {
+        //            await connection.OpenAsync();
+        //            using (var command = new SqlCommand($"EXEC RKNET.dbo.UpdateSaleobjects @now = '{morning}', @daysAgo = '-{daysAgo}' ", (SqlConnection)connection))
+        //            {
+        //                command.CommandTimeout = 1500;
+        //                int rowsAffected = await command.ExecuteNonQueryAsync();
+        //                return Ok(rowsAffected);
+        //            }
+        //        }
+        //    }
+        //    catch (SqlException sqlEx)
+        //    {
+        //        return StatusCode(500, $"SQL Error: {sqlEx.Message}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
+        //}
+
+        public IActionResult UpdateSaleObjects(string daysAgo)
+        {
+            try
+            {
+                if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
+                {
+                    return Ok("Запрос уже выполняется другим пользователем, попробуйте позже");
+                }
+
+                Task.Run(() => ExecuteUpdateSaleObjectsAsync(daysAgo));
+
+                return Ok("Запрос на обновление данных отправлен");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка: {ex.Message}");
+            }
+        }
+
+        private async Task ExecuteUpdateSaleObjectsAsync(string daysAgo)
         {
             try
             {
@@ -79,30 +133,37 @@ namespace Portal.Controllers
                 string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
                 string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
 
-                if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
-                {
-                    return BadRequest("Запрос уже выполняется другим пользователем, попробуйте позже");
-                }
-
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
                     using (var command = new SqlCommand($"EXEC RKNET.dbo.UpdateSaleobjects @now = '{morning}', @daysAgo = '-{daysAgo}' ", (SqlConnection)connection))
                     {
                         command.CommandTimeout = 900;
-                        int rowsAffected = await command.ExecuteNonQueryAsync();
-                        return Ok(rowsAffected);
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
             }
-            catch (SqlException sqlEx)
-            {
-                return StatusCode(500, $"SQL Error: {sqlEx.Message}");
-            }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Ошибка при выполнении UpdateSaleobjects: {ex.Message}");
             }
+        }
+
+        public IActionResult CheckStatusFromUpdateSaleObjects()
+        {
+            SettingsVariables settingsVariables = dbSql.SettingsVariables.FirstOrDefault();
+
+            if(settingsVariables.Value == 0 && settingsVariables.Error != null)
+            {
+                return BadRequest($"Ошибка: {settingsVariables.Error}");
+            }
+
+            if(settingsVariables.Value == 1)
+            {
+                return StatusCode(100, "В процессе выполнения");
+            }
+
+            return Ok();
         }
 
         // Р-КИПЕР------------------------------------------------------------------------------------------

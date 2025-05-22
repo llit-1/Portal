@@ -83,7 +83,7 @@
                     </div>
 
                     <label class="label-light">ИНН</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите ИНН" id="INNPerson" value="@Model.PersonalitiesVersions.Personalities?.INN">
+                    <input type="text" class="inputPersonData" maxlength="12" placeholder="Введите ИНН" id="INNPerson" value="@Model.PersonalitiesVersions.Personalities?.INN">
 
                 </div>
                 
@@ -271,7 +271,7 @@
                     </div>
 
                     <label class="label-light">ИНН</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите ИНН" id="INNPerson" value="">
+                    <input type="text" class="inputPersonData" maxlength="12" placeholder="Введите ИНН" id="INNPerson" value="">
                 </div>
                 
                 <div class="rightBlockPersonData">
@@ -443,6 +443,28 @@
     })
 </script>
 
+
+
+   
+<script>
+
+    document.getElementById('SNILSPerson').addEventListener('input', function(e) {
+        // 1. Удаляем все не-цифры (дефисы, пробелы и т.д.)
+        let value = e.target.value.replace(/\D/g, '');
+
+        // 2. Добавляем дефисы и пробел
+        if (value.length > 3) value = value.slice(0, 3) + '-' + value.slice(3);
+        if (value.length > 7) value = value.slice(0, 7) + '-' + value.slice(7);
+        if (value.length > 11) value = value.slice(0, 11) + ' ' + value.slice(11);
+
+        // 3. Обрезаем лишнее (если больше 11 цифр)
+        e.target.value = value.slice(0, 14); // Максимум 14 символов (XXX-XXX-XXX XX)
+    });
+    
+
+</script>
+
+
 <script>
     const name = document.getElementById('namePerson');
     const surname = document.getElementById('surnamePerson');
@@ -561,9 +583,9 @@
     function addUser() {
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
-        Personality.Name = $('#namePerson').val();
-        Personality.Surname = $('#surnamePerson').val();
-        Personality.Patronymic = $('#patronymicPerson').val();
+        Personality.Name = $('#namePerson').val().trim();
+        Personality.Surname = $('#surnamePerson').val().trim();
+        Personality.Patronymic = $('#patronymicPerson').val().trim();
         Personality.BirthDate = $('#birthDatePerson').val();
         Personality.JobTitle = $('#jobTitlePerson').val();
         Personality.location = $('#TTPerson').val();
@@ -579,12 +601,10 @@
         Personality.personGUID = personGUID;
         Personality.VersionStartDate = $('#VersionStartDate').val();
         Personality.VersionEndDate = $('#VersionEndDate').val();
-        Personality.Tel = $('#tel').val();
+        Personality.Tel = $('#tel').val().trim();
 
-        Personality.SNILS = $('#SNILSPerson').val()
-        Personality.INN = $('#INNPerson').val()
-        
-
+        Personality.SNILS = $('#SNILSPerson').val().trim()
+        Personality.INN = $('#INNPerson').val().trim()
 
         const json = JSON.stringify(Personality)
          $.ajax({
@@ -677,9 +697,9 @@
         const personGUID = document.getElementById('personGUID').value;
         const personVersionGUID = document.getElementById('personVersionGUID').value;
         Personality.Guid = personVersionGUID;
-        Personality.Name = $('#namePerson').val();
-        Personality.Surname = $('#surnamePerson').val();
-        Personality.Patronymic = $('#patronymicPerson').val();
+        Personality.Name = $('#namePerson').val().trim();
+        Personality.Surname = $('#surnamePerson').val().trim();
+        Personality.Patronymic = $('#patronymicPerson').val().trim();
         Personality.BirthDate = $('#birthDatePerson').val();
         Personality.JobTitle = $('#jobTitlePerson').val();
         Personality.location = $('#TTPerson').val();
@@ -695,10 +715,10 @@
         Personality.EntityCost = EntityCostGUID;
         Personality.NewPerson = $('#NewPerson').val();
         Personality.personGUID = personGUID;
-        Personality.Tel = $('#tel').val();
+        Personality.Tel = $('#tel').val().trim();
 
-        Personality.SNILS = $('#SNILSPerson').val()
-        Personality.INN = $('#INNPerson').val()
+        Personality.SNILS = $('#SNILSPerson').val().trim()
+        Personality.INN = $('#INNPerson').val().trim()
 
         const json = JSON.stringify(Personality)
         $.ajax({
