@@ -52,21 +52,19 @@
 
             <div class="comments_wrapper hand_scan">
                 <div class="card_title"> Комментарий </div>
-                <textarea placeholder="Введите текст комментария" class="comments_area"></textarea>
+                <textarea placeholder="Пожалуйста, укажите номер заявки или другие данные по перемещению" class="comments_area"></textarea>
             </div>
 
             <div class="auto_scan">
                 <div class="card_title"> Сканирование и ручное добавление</div>
                 <div class="auto_scan_wrapper">
                     <div class="scan_add" style="padding: 0px">
-                        <input oninput="document.getElementById('scan_add').disabled = this.value.length !== 24"
-                               class="scan_add_input"
+                        <input class="scan_add_input"
                                id="scan_add_input"
                                maxlength="24"
                                placeholder="000000000000000000000000" />
                         <button id="scan_add"
                                 class="scan_add_button btn btn-sm btn-success"
-                                disabled
                                 style=" font-family: 'Akrobat-regular'; font-size: 12px;line-height: inherit;"
                                 onclick="addNewRaw(document.querySelector('#scan_add_input').value)">
                             Добавить
@@ -168,6 +166,8 @@
 
 <script>
 
+    $('#PageHeader').text('Склад');
+
     const modal = document.querySelector('.stockTransfer_modal');
     const modal_body = document.querySelector('.modal_body'); 
     const modal_message = document.querySelector('.modal_message');
@@ -226,8 +226,14 @@
         const list = document.querySelector('.newowner_list');
 
         data.forEach(element => {
+
+            if(element.patronymic == null)
+            {
+                element.patronymic = ""
+            }
+
             list.innerHTML +=   `<div class="newowner_item" id=${element.id}>
-                                    <p style="margin: 0;">${element.surname} ${element.name} ${element.patronymic}</p>
+                                    <p style="margin: 0;">${element.surname} ${element.name} ${element?.patronymic}</p>
                                     <div class="item_button_handler">
                                         <button class="btn btn-default md-account-box" onclick='openModalAddPerson(${element.id})'></button>
                                         <button id="newowner" class="btn btn-default newowner_button md-check" onclick='pickNewOwner(this)'></button>
@@ -307,21 +313,25 @@
     function handleKeyDown(e) {
         // Предотвращаем действие по умолчанию для всех клавиш
         e.preventDefault();
-        
+
         // RFID-метки обычно заканчиваются Enter
         if (e.key === 'Enter') {
 
             if (state.currentCode.length === 24) {
+
                 if(!state.scannedCodes.has(state.currentCode))
                 {
+                    state.currentCode = state.currentCode.replaceAll("Ф","A").replaceAll("И","B").replaceAll("С","C").replaceAll("В","D").replaceAll("У","E").replaceAll("А","F")
+
                     addNewRaw(state.currentCode)
                 }
                 state.scannedCodes.add(state.currentCode);
             }
+
             state.currentCode = '';
         } 
         // Игнорируем служебные клавиши
-        else if (e.key.length === 1 && /[0-9a-zA-Z]/.test(e.key)) {
+        else if (e.key.length === 1 && /[0-9a-zA-Zа-яА-ЯёЁ]/.test(e.key)) {
             state.currentCode += e.key;
         }
     }
@@ -391,6 +401,8 @@
             const result = await response.json();
             return result;
         } catch (error) {
+            state.scannedCodes.delete(state.currentCode)
+            state.currentCode = '';
             openModalStockTransfer("Ошибка" ,error.message)
             throw error;
         } finally {
@@ -399,6 +411,21 @@
     }
 
     async function addNewRaw(id) {
+
+        const scan_button = document.querySelector(".scan_button ")
+
+        scan_button.classList.replace("md-stop", "md-play-arrow");
+        window.removeEventListener('keydown', handleKeyDown);
+        scan_button.blur();
+
+
+
+        const input = document.getElementById("scan_add_input")
+
+
+
+        id = input.value.toString().padStart(24, "0")
+
         const table = document.getElementById("transfer_table")
         const comments = document.querySelector(".comments_area")
         const owner = document.getElementById("newowner")
@@ -411,6 +438,12 @@
         }
 
         
+        // if(comments.value == "" || comments.value.length < 2)
+        // {
+        //     openModalStockTransfer("Вы должны указать комментарий!")
+        //     return null;
+        // }
+
 
         if(state.transfer_end === null && state.newowner === null)
         {

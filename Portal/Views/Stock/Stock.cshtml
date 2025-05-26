@@ -83,6 +83,54 @@
 <div class="fullShadow"></div>
 
 <script>
+    const input = document.getElementById("modalEditStock-name")
+
+    input.addEventListener('input', removeBackticks);
+
+    function removeBackticks(e) {
+        e.target.value = e.target.value.replace(/[`']/g, '');
+    }
+</script>
+
+
+<script>
+    async function addSubCategoryItemModal(id) {
+        try {
+            const response = await fetch("/Stock/LoadModalStockTable?id=" + id, {
+                method: "GET",
+                headers: { "Content-Type": "text/html" }
+            });
+
+            if (response.ok) {
+                const modalHtml = await response.text();
+                const modalContainer = document.getElementById("modalContainer");
+                modalContainer.innerHTML = modalHtml;
+                modalContainer.style.display = "block";
+
+                const closeModalButton = document.getElementById("closeModalButton");
+                if (closeModalButton) {
+                    closeModalButton.addEventListener("click", function () {
+                        modalContainer.style.display = "none";
+                        modalContainer.innerHTML = "";
+                    });
+                }
+
+                modalContainer.addEventListener("click", function (e) {
+                    if (e.target === modalContainer) {
+                        modalContainer.style.display = "none";
+                        modalContainer.innerHTML = "";
+                    }
+                });
+            } else {
+                alert("Ошибка при добавлении");
+            }
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
+</script>
+
+<script>
     $('#PageHeader').text('Склад');
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#" });
@@ -266,33 +314,45 @@
     let modalEditStock = document.getElementById('editStockModal');
     const modalContent = modalEditStock.querySelector('.modalEditStock-content');
 
+    modalEditStock.style.display = "none"
+
     // Функция для закрытия модального окна
     function closeModal() {
-        let  modalEditStock = document.getElementById('editStockModal');
+      let  modalEditStock = document.getElementById('editStockModal');
       modalEditStock.style.display = "none"
     }
 
 
     function showModalY(id, name) {
         let modalEditStock = document.querySelector(".modalEditStock").style.display = "flex"
+
         modalEditStock = document.getElementById('editStockModal');
 
-        modalEditStock.addEventListener('click', function(e) {
-            if (!modalContent.contains(e.target)) {
-                closeModal();
-            }
-        });
+        
 
         document.getElementById('modalEditStock-name').value = name;
+
         document.getElementById('modalEditStock-delete').onclick = function() {
             DeleteCategory(id);
+            document.querySelector(".modalEditStock").style.display = "none"
         };
+
         document.getElementById('modalEditStock-save').onclick = function() {
             SaveSubCategory(id, document.getElementById('modalEditStock-name').value)
+            document.querySelector(".modalEditStock").style.display = "none"
         };
     }
 
+    modalEditStock.addEventListener('click', function(e) {
+            if (!modalContent.contains(e.target)) {
+                closeModal();
+            }
+    });
+
     async function SaveSubCategory(id, name) {
+
+        name = name.replace(/[`']/g, '');
+
 
         const formData = new FormData();
         formData.append('Id', id);
@@ -320,18 +380,16 @@
 
 <script>
     async function SaveCategory(id) {
-        const name = document.getElementById("stock-category-name").value;
+        let name = document.getElementById("stock-category-name").value;
         const parent = document.getElementById("stock-category-parent").textContent;
         const actual = document.getElementById("stock-category-actual").textContent;
         const image = document.getElementById('stock_category_img');
-
+        name = name.replace(/[`']/g, '');
         const formData = new FormData();
         formData.append('Id', id);
         formData.append('Name', name.trim());
         formData.append('Parent', parent.trim());
         formData.append('Actual', actual.trim());
-
-        console.log(actual)
 
         if(image.src == '/themes/clearmin/img/question.png')
         {
@@ -351,7 +409,9 @@
 
         $("#spinner").hide();
 
+        $(".modalEditStock").remove();
         $("#modalContainer").remove();
+        $(".modal-content-stock").remove();
 
         return await $(".stock").load("/Stock/Stock");
     }
@@ -359,7 +419,10 @@
 
 <script>
     async function SaveNewCategory() {
-        const name = document.getElementById("stock-category-name").value;
+        let name = document.getElementById("stock-category-name").value;
+        
+        name = name.replace(/[`']/g, '');
+
         const image = document.getElementById('stock_category_img');
         
         const formData = new FormData();
@@ -387,7 +450,9 @@
 
 
          $("#spinner").hide()
-
+         
+         $(".modalEditStock").remove();
+         $(".modal-content-stock").remove();
          $("#modalContainer").remove()
 
          return await $(".stock").load("/Stock/Stock")
@@ -431,8 +496,11 @@ async function Stock() {
 
     return await $(".stock").load("/Stock/Stock")
 }
-    
+
+
 </script>
+
+
 
 <style>
     .stock {

@@ -241,7 +241,6 @@
 
         var logjsn = JSON.stringify(log);
         logjsn = logjsn.replace(/ /g, "%bkspc%");
-        console.log(log)
         try {
 
             await $.ajax({
@@ -251,7 +250,6 @@
                 dataType: "text",
                 success: function (result) {
                     const ok = JSON.parse(result)
-                    console.log(1)
                     if (!ok.ok) {
                         switch(ok.errorMessage){
                             case "401":

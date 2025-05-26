@@ -257,9 +257,6 @@
         let date = str.parentElement.parentElement.children[0].children[0].textContent.split("-")[0].trim().replaceAll(".","-");
         let guid = str.parentElement.parentElement.children[2].textContent;
 
-        console.log(date)
-        console.log(guid)
-
             p = '/TimeTracking/TrackingDataEdit?stringDate=' + date + '&locationGuid=' + guid
             $('#page').load(p);
             $('#loading').show();

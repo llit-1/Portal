@@ -1,5 +1,13 @@
 @model string
 
+@{
+    var rights = false;
+    if (User.IsInRole("warehouse_admin"))
+    {
+        rights = true;
+    }
+}
+
 <div class="search_page_wrapper">
     <div class="search_card_wrapper">
         <div class="search_wrapper">
@@ -99,7 +107,7 @@
         if (e.key === 'Enter') {
 
             if (state.currentCode.length === 24) {
-                input_search.value = state.currentCode;
+                input_search.value = state.currentCode.replaceAll("Ф","A").replaceAll("И","B").replaceAll("С","C").replaceAll("В","D").replaceAll("У","E").replaceAll("А","F");
                 await search(state.currentCode)
                 document.getElementById("card_scan").innerText = "СКАНИРОВАТЬ"
                 window.removeEventListener('keydown', handleKeyDown);
@@ -107,7 +115,7 @@
             state.currentCode = '';
         } 
         // Игнорируем служебные клавиши
-        else if (e.key.length === 1 && /[0-9a-zA-Z]/.test(e.key)) {
+        else if (e.key.length === 1 && /[0-9a-zA-Zа-яА-ЯёЁ]/.test(e.key)) {
             state.currentCode += e.key;
         }
     }
@@ -129,11 +137,11 @@
 
         const data = await getData(input_search.value);
 
-        console.log(data)
-
         if(!data.length) {
             return search_wrapper.classList.add("search_wrapper--error")
         }
+
+        checkError()
 
         buildInterface(data, input_search.value)
 
@@ -148,7 +156,6 @@
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
                 }
             })
-
 
             return await response.json()
         } catch(e) {
@@ -219,13 +226,18 @@
             }
         }
 
+        if(objectInfo.holder.patronymic == null)
+        {
+            objectInfo.holder.patronymic = ""
+        }
+
         let block = `
         <div class="details">
             <div class="details_current">
                 <h3><b>ID:</b> ${id} </h3>
                 <p><b>Категория:</b> ${objectInfo.category ? objectInfo.category : ""} </p>
                 <p><b>Подкатегория:</b> ${objectInfo.subcategory ? objectInfo.subcategory : ""}</p>
-                <p><b>Подподкатегория:</b> ${objectInfo.subsubcategory ? objectInfo.subsubcategory : ""}</p>
+                <p><b>Наименование:</b> ${objectInfo.subsubcategory ? objectInfo.subsubcategory : ""}</p>
                 <p><b>Держатель:</b> ${objectInfo.holder ? objectInfo.holder.surname + " " + objectInfo.holder.name + " " + objectInfo.holder.patronymic : ""}</p>
                 <p><b>ТТ:</b> ${objectInfo.location ? objectInfo.location : ""}</p>
                 <p><b>Статус:</b> ${objectInfo?.status === 1 ? "Активен" : "Списан"}</p>
@@ -255,6 +267,11 @@
                       </div>`
             }
 
+            if(elem.holder && elem.holder.patronymic == null)
+            {
+                elem.holder.patronymic = ""
+            }
+
             str += `
                 <div class="history_card">
                     <div class="history_card_body">
@@ -275,9 +292,19 @@
                 <button style="cursor: not-allowed;" class="btn btn-default btn-write-off" disabled>Списать</button>
             </div>`
         } else {
-            buttons = `<div class="btn_wrapper">
-                <button class="btn btn-default btn-write-off" onClick='openModalStockSearchCard()'>Списать</button>
-            </div>`
+
+           const rights = "@rights"
+
+           if(rights == "true")
+           {
+               buttons = `<div class="btn_wrapper">
+                    <button class="btn btn-default btn-write-off" onClick='openModalStockSearchCard()'>Списать</button>
+                </div>`
+           } else {
+               buttons = `<div class="btn_wrapper">
+                    <button style="cursor: not-allowed;" class="btn btn-default btn-write-off" disabled>Списать</button>
+                </div>`
+           }
         }
 
         const resString = block + str + "</div></div>";

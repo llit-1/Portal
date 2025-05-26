@@ -152,8 +152,6 @@
 
     function debounce(func, delay) {
 
-        console.log(debounceTimers)
-
         return function () {
             // Сбрасываем все предыдущие таймеры
             while (debounceTimers.length > 0) {

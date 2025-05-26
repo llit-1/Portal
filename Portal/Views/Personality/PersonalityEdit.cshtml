@@ -214,7 +214,7 @@
 
                     @{
                         <label class="label-light" style="padding-top: 12px">Номер телефона</label>
-                        <input type="text" class="inputPersonData" placeholder="Введите номер телефона" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
+                        <input type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
                     }
                     
 
@@ -370,7 +370,7 @@
                     }
 
                     <label class="label-light">Номер телефона</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите номер телефона" id="tel" value="">
+                    <input type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="">
 
                     <div class="buttonAddPerson ">
                         <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
@@ -958,5 +958,28 @@
         });
     }
 
+
+</script>
+
+<script>
+    // Проверка инпутов при вводе
+    function checkOnlyRussianTextInput(e) {
+        if (/[a-zA-Z0-9.,]/.test(e.target.value)) {
+            e.target.value = e.target.value.replace(/[a-zA-Z0-9.,]/g, ''); // Удаляем латиницу
+        }
+    }
+
+    function checkOnlyNumberInput(e) {
+        if (/[а-яА-Яa-zA-Z.,]/.test(e.target.value)) {
+            e.target.value = e.target.value.replace(/[а-яА-Яa-zA-Z.,]/g, '');
+        }
+    }
+
+    $('#INNPerson').on('input', checkOnlyNumberInput);
+    $('#tel').on('input', checkOnlyNumberInput);
+
+    $('#surnamePerson').on('input', checkOnlyRussianTextInput);
+    $('#namePerson').on('input', checkOnlyRussianTextInput);
+    $('#patronymicPerson').on('input', checkOnlyRussianTextInput);
 
 </script>

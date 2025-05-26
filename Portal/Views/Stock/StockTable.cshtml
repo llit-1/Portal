@@ -126,42 +126,7 @@
     } 
 </script>
 
-<script>
-        async function addSubCategoryItemModal(id) {
-            try {
-                const response = await fetch("/Stock/LoadModalStockTable?id=" + id, {
-                    method: "GET",
-                    headers: { "Content-Type": "text/html" }
-                });
 
-                if (response.ok) {
-                    const modalHtml = await response.text();
-                    const modalContainer = document.getElementById("modalContainer");
-                    modalContainer.innerHTML = modalHtml;
-                    modalContainer.style.display = "block";
-
-                    const closeModalButton = document.getElementById("closeModalButton");
-                    if (closeModalButton) {
-                        closeModalButton.addEventListener("click", function () {
-                            modalContainer.style.display = "none";
-                            modalContainer.innerHTML = "";
-                        });
-                    }
-
-                    modalContainer.addEventListener("click", function (e) {
-                        if (e.target === modalContainer) {
-                            modalContainer.style.display = "none";
-                            modalContainer.innerHTML = "";
-                        }
-                    });
-                } else {
-                    alert("������ �������� ���������� ����");
-                }
-            } catch (error) {
-                console.error("������:", error);
-            }
-        }
-</script>
 
 <script>
     async function addSubCategoryItem(event, id, name) {

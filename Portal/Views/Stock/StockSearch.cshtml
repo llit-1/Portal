@@ -16,7 +16,7 @@
 
             @foreach(var item in Model.Holders.OrderBy(x => x.Surname))
             {
-                <option id="@item.Id" style="select_option"> @item.Surname @item.Name @item.Patronymic </option>
+                <option id="@item.Id" style="select_option"> @item.Surname @item.Name @item?.Patronymic </option>
             }
             
         </select>
@@ -52,7 +52,7 @@
     <div class="header_stock">
         <p style="width: 20%">Категория</p>
         <p style="width: 20%">Подкатегория</p>
-        <p style="width: 20%">Подподкатегория</p>
+        <p style="width: 20%">Наименование</p>
         <p style="width: 30%" class="mobile_hidden">Держатель</p>
         <p style="width: 20%" class="mobile_hidden">ТТ</p>
         <p style="width: 10%">Количество</p>
@@ -181,6 +181,10 @@
                 str += `<div class="history_card" style="background-color: #ff00001c">
                         <div class="history_card_header">Списание</div>
                       </div>`
+            }
+
+            if(elem.holder && elem.holder.patronymic == null) {
+                elem.holder.patronymic = ""
             }
 
             str += `
@@ -329,13 +333,17 @@
 
         data.forEach((category, index) => {
             
+            if(category.warehouseHolder && category.warehouseHolder.patronymic == null)
+            {
+                category.warehouseHolder.patronymic = ""
+            }
 
             body_stock.innerHTML += `
                 <div class="body_main_item header_stock" onclick="showDetails(${category.mainCat.id})">
                     <p style="width: 20%">${category.mainCat ? category.mainCat.name : "-"}</p>
                     <p style="width: 20%">${category.cat ? category.cat.name : "-"}</p>
                     <p style="width: 20%">${category.secondCat ? category.secondCat.name : "-"}</p>
-                    <p style="width: 30%" class="mobile_hidden">${category.warehouseHolder ? category.warehouseHolder.surname + " " + category.warehouseHolder.name + " " + category.warehouseHolder.patronymic   : "-"}</p>
+                    <p style="width: 30%" class="mobile_hidden">${category.warehouseHolder ? category.warehouseHolder.surname + " " + category.warehouseHolder.name + " " + category.warehouseHolder.patronymic: "-"}</p>
                     <p style="width: 20%" class="mobile_hidden">${category.location ? category.location.name : "-"}</p>
                     <p style="width: 10%">${category.items.length}</p>
                 </div>
@@ -359,6 +367,11 @@
 
                 if(sliderId === "0") {
                     color = "#ff00003d"
+                }
+
+                if(items.warehouseHolder && items.warehouseHolder.patronymic == null)
+                {
+                    items.warehouseHolder.patronymic = ""
                 }
 
                 body_stock.innerHTML += `

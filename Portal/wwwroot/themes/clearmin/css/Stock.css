@@ -457,6 +457,12 @@
         flex-wrap: nowrap;
     }
 
+    .newowner_list {
+        max-height: 300px;
+        flex-direction: column;
+        flex-wrap: nowrap;
+    }
+
     .location_item {
         width: 100%;
     }
