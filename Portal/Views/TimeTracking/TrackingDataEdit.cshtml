@@ -122,8 +122,8 @@
                                         </select>
                                     </th>
                                     <th class="newRowAlign" style="width: fit-content;">
-                                        <input type="time" value='@item.Begin.ToString("HH:mm")' onChange="calculateHours()" class="timeBeginForJSON">
-                                        <input type="time" value='@item.End.ToString("HH:mm")' onChange="calculateHours()" class="timeEndForJSON">
+                                        <input type="time" step="1800" value='@item.Begin.ToString("HH:mm")' onChange="calculateHours()" class="timeBeginForJSON">
+                                        <input type="time" step="1800" value='@item.End.ToString("HH:mm")' onChange="calculateHours()" class="timeEndForJSON">
                                     </th>
 
                                     <th class="newRowAlign" style="align-content: center;padding-right: 16px;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
@@ -198,16 +198,16 @@
 
                                         @if (User.IsInRole("time_tracking_administrator") || DateTime.Now > item.End)
                                         {
-                                            <input type="time" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON">
-                                            <input type="time" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
+                                            <input type="time" step="1800" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON">
+                                            <input type="time" step="1800" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
                                         } else if(item.Status == 0)
                                         {
-                                            <input type="time" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' min="@DateTime.Now.AddHours(1).ToString("HH:mm")" class="timeBeginForJSON">
-                                            <input type="time" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
+                                            <input type="time" step="1800" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' min="@DateTime.Now.AddHours(1).ToString("HH:mm")" class="timeBeginForJSON">
+                                            <input type="time" step="1800" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON">
                                         } else
                                         {
-                                             <input type="time" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON" disabled>
-                                            <input type="time" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON" disabled>
+                                            <input type="time" step="1800" onChange="calculateHours()" value='@item.Begin.ToString("HH:mm")' class="timeBeginForJSON" disabled>
+                                            <input type="time" step="1800" onChange="calculateHours()" value='@item.End.ToString("HH:mm")' class="timeEndForJSON" disabled>
                                         }
 
 
@@ -597,8 +597,8 @@
         guidNameCell.textContent = guidName;
         nameCell.textContent = name;
         jobTitleIdCell.textContent = guidJobTitle;
-        timeCell.innerHTML = `<input type="time" value='${timeBegin}' onChange="calculateHours()" class='timeBeginForJSON'>
-                                  <input type="time" value='${timeEnd}' onChange="calculateHours()" class='timeEndForJSON'>`;
+        timeCell.innerHTML = `<input type="time" step="1800" value='${timeBegin}' onChange="calculateHours()" class='timeBeginForJSON'>
+                                  <input type="time" step="1800" value='${timeEnd}' onChange="calculateHours()" class='timeEndForJSON'>`;
         deletePersonCell.innerHTML = `<label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label>`;
 
         // Добавляем ячейки в строку
@@ -678,8 +678,8 @@
 
         guidNameCell.textContent = 0;
         nameCell.textContent = name;
-        timeCell.innerHTML = `<input type="time" value='06:30' class='timeBeginForJSON' onChange="calculateHours()">
-                                  <input type="time" value='19:00' class='timeEndForJSON' onChange="calculateHours()">`;
+        timeCell.innerHTML = `<input type="time" step="1800" value='06:30' class='timeBeginForJSON' onChange="calculateHours()">
+                                  <input type="time" step="1800" value='19:00' class='timeEndForJSON' onChange="calculateHours()">`;
         deletePersonCell.innerHTML = `<label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label>`;
 
         // Добавляем ячейки в строку
