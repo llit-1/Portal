@@ -1,7 +1,7 @@
 let remain = 0;
 
 self.onmessage = function (e) {
-    remain = e.data; // получаем оставшееся время
+    remain = e.data;
     tick();
 };
 

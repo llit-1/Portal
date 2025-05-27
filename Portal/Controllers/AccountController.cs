@@ -294,11 +294,18 @@ namespace Portal.Controllers
         public void SaveSession(RKNet_Model.Account.User user)
         {
             Models.MSSQL.UserSessions session = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
-            var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id)?.Date;
+            var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
+
+            var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
+
+            if (oldSession.UserName.ToLower().Split(" ").Contains("розница"))
+            {
+                sessionTime = 60;
+            }
 
             if (session != null)
             {
-                if(oldSession?.AddHours(1) < DateTime.Now)
+                if(oldSession.Date.AddMinutes(sessionTime) < DateTime.Now)
                 {
                     session.SessionID = HttpContext.Session.Id;
                     session.Date = DateTime.Now;

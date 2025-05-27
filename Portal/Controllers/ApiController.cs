@@ -328,11 +328,20 @@ namespace Portal.Controllers
         [HttpGet("GetSessionTime")]
         public IActionResult GetSessionTime()
         {
+            // Получаем id пользователя из файловой БД
             var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
-            var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql).Date;
+            // Получаем дату и время последнего входа на портал (по дефодту сейчас)
+            var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
+            // Узнаем срок жизни сессии
             var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
 
-            var sessionEndTime = sessionStartFromDBSQL.AddMinutes(sessionTime); 
+            if (sessionStartFromDBSQL.UserName.ToLower().Split(" ").Contains("розница"))
+            {
+                sessionTime = 60;
+            }
+
+            // Вычисляем конец сессии
+            var sessionEndTime = sessionStartFromDBSQL.Date.AddMinutes(sessionTime);
 
             var timeLeft = sessionEndTime - DateTime.Now;
 

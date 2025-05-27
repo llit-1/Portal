@@ -38,7 +38,7 @@ namespace Portal
         public void ConfigureServices(IServiceCollection services)
         {
             IsTest = Configuration.GetSection("TestMode")["test"] != "0";
-            var SessionMinutes = 60; // время в минутах
+            var SessionMinutes = 1440; // время в минутах
             // CookieAuthenticationOptions
             //services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromSeconds(10));
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

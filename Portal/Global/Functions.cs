@@ -12,6 +12,7 @@ namespace Portal.Global
 {
     public static class Functions
     {
+        // Не используется
         public static bool CheckSessionID(DB.MSSQLDBContext dbSqlContext, string sessionID)
         {
             var session = dbSqlContext.UserSessions.FirstOrDefault(x => x.SessionID == sessionID);
