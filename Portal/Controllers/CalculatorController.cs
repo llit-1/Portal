@@ -858,11 +858,11 @@ namespace Portal.Controllers
                 var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
                 var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
 
-                // Отключено на время теста
-                //if (oldSession.Date.AddHours(1) < DateTime.Now)
-                //{
-                //    throw new Exception("401");
-                //}
+                
+                if (oldSession.Date.AddHours(1) < DateTime.Now)
+                {
+                   throw new Exception("401");
+                }
 
                 logjsn = logjsn.Replace("%bkspc%", " ");
                 CalculatorLog calculatorLog = JsonConvert.DeserializeObject<CalculatorLog>(logjsn);

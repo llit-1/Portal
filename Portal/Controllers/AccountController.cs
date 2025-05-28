@@ -296,16 +296,9 @@ namespace Portal.Controllers
             Models.MSSQL.UserSessions session = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
             var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == user.Id);
 
-            var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
-
-            if (oldSession.UserName.ToLower().Split(" ").Contains("розница"))
-            {
-                sessionTime = 60;
-            }
-
             if (session != null)
             {
-                if(oldSession.Date.AddMinutes(sessionTime) < DateTime.Now)
+                if(oldSession.Date.AddHours(1) < DateTime.Now)
                 {
                     session.SessionID = HttpContext.Session.Id;
                     session.Date = DateTime.Now;

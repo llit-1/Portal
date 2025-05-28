@@ -15,21 +15,21 @@ namespace Portal
     public class Startup
     {
         public bool IsTest { get; set; }
-        // Запуск приложения
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
             SettingsInternal.Configuration = configuration;
 
-            // логируем запуск и обновление версии портала
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             var log = new LogEvent<string>();
 
             if (log.isNewVersion())
             {
-                log.Name = "Портал обновлен";
+                log.Name = "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
                 log.Save();
             }
-            log.Name = "Портал запущен";
+            log.Name = "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
             log.Save();
         }
         public IConfiguration Configuration { get; }
@@ -38,7 +38,7 @@ namespace Portal
         public void ConfigureServices(IServiceCollection services)
         {
             IsTest = Configuration.GetSection("TestMode")["test"] != "0";
-            var SessionMinutes = 1440; // время в минутах
+            var SessionMinutes = 60; 
             // CookieAuthenticationOptions
             //services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromSeconds(10));
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -109,7 +109,7 @@ namespace Portal
 
             services.AddResponseCaching();
             services.AddHttpClient();
-            // Выдача потокового видео
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             services.AddScoped<Portal.Services.IStreamVideoService, Portal.Services.StreamVideoService>();
         }
 
@@ -144,8 +144,8 @@ namespace Portal
 
             app.UseRouting();
 
-            app.UseAuthentication();    // аутентификация
-            app.UseAuthorization();     // авторизация            
+            app.UseAuthentication();    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+            app.UseAuthorization();     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ            
 
             app.UseSession();
 
@@ -161,11 +161,11 @@ namespace Portal
 
         }
 
-        // Остановка приложения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         private void OnShutdown()
         {
             var log = new LogEvent<string>();
-            log.Name = "Портал остановлен";
+            log.Name = "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
             log.Save();
         }
     }

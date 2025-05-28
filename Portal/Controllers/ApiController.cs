@@ -330,15 +330,8 @@ namespace Portal.Controllers
         {
             // Получаем id пользователя из файловой БД
             var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
-            // Получаем дату и время последнего входа на портал (по дефодту сейчас)
             var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
-            // Узнаем срок жизни сессии
             var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
-
-            if (sessionStartFromDBSQL.UserName.ToLower().Split(" ").Contains("розница"))
-            {
-                sessionTime = 60;
-            }
 
             // Вычисляем конец сессии
             var sessionEndTime = sessionStartFromDBSQL.Date.AddMinutes(sessionTime);
