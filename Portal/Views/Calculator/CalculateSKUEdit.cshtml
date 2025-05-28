@@ -121,11 +121,13 @@
 
 <script>
   function SaveNewItem() {
+      const coefficientInput = document.getElementById('SKUCoefficient').value.trim().replace(',', '.');
+      const coefficient = parseFloat(coefficientInput);
       const SKU = {
             Name:  document.getElementById('SKUName').value,
             RkCode: document.getElementById('SKUCode').value,
             ItemsGroup: document.getElementById('SKUGroup').value,
-            Coefficient: document.getElementById('SKUCoefficient').value,
+            Coefficient:coefficient,
             Sequence: +document.getElementById('SKUSequence').value,
             DefrostTime: document.getElementById('SKUDefrostTime').value,
             BakingMode: document.getElementById('SKUBakingMode').value,
