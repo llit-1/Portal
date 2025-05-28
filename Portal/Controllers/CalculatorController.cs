@@ -777,6 +777,11 @@ namespace Portal.Controllers
                 item.DefrostTime = SKU.DefrostTime;
                 item.BakingMode = SKU.BakingMode;
                 item.MinShowCase = SKU.MinShowCase;
+                item.SandwichOnBuns = SKU.SandwichOnBuns;
+                if (item.SandwichOnBuns == 0)
+                {
+                    item.SandwichOnBuns = null;
+                }
             }
             CalculatorDb.SaveChanges();
             return Ok();

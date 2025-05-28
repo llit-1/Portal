@@ -14,5 +14,6 @@ namespace Portal.Models.MSSQL.Calculator
         public string DefrostTime { get; set; }
         public string BakingMode { get; set; }
         public int MinShowCase { get; set; }
+        public int? SandwichOnBuns { get; set; }
     }
 }

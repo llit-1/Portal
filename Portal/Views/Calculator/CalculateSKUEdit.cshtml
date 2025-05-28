@@ -33,7 +33,7 @@
 
         <label class="label-light">Группа</label>
         <div style="width:100%; float:left; margin-bottom:15px">
-            <select id="SKUGroup" class="form-control selectors" data-width="100%">
+            <select id="SKUGroup" class="form-control selectors" data-width="100%" onchange="CheckSandwichOnBuns()">
                 @foreach (var itemsGroup in Model?.ItemsGroups.OrderBy(o => o.Name))
                 {
                     if (itemsGroup.Guid == Model?.ItemsGroup?.Guid)
@@ -62,8 +62,12 @@
         <div style="width:100%; margin-bottom:15px" class="@formClass">
             <input id="SKUMinShowCase" type="text" class="form-control" value="@Model?.Item?.MinShowCase" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
-        
-            
+        <div id="SandwichOnBuns" class="hidden">
+            <label class="label-light">Количество сэндвичей за 1 булку</label>
+        <div style="width:100%; margin-bottom:15px" class="@formClass">
+                <input id="SandwichOnBunsInput" type="text" class="form-control" value="@Model?.Item?.SandwichOnBuns" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        </div>
+        </div>
     </div>
     <div class="col-md-4 col-lg-4" @blockStyle>
             <!--заголовок-->
@@ -97,13 +101,23 @@
 
 <!--сохранить новую роль-->
 <script>
+    function CheckSandwichOnBuns(){
+    if( document.getElementById('SKUGroup').value.toUpperCase() === '9C42DDD0-3ABE-4105-AFA1-BFDA989C3836'){
+        document.getElementById('SandwichOnBuns').classList.remove('hidden');
+     }
+     else{
+         document.getElementById('SandwichOnBuns').classList.add('hidden');
+     }
+    }
+</script>
+
+<script>
      $('#back').on('click', function(event) {
       event.preventDefault(); // Отменяем стандартное поведение ссылки
       $('#page').load('/Calculator/CalculateSKU'); // Загружаем контент
     });
+    CheckSandwichOnBuns();
 </script>
-
-
 
 <script>
   function SaveNewItem() {
@@ -115,7 +129,8 @@
             Sequence: +document.getElementById('SKUSequence').value,
             DefrostTime: document.getElementById('SKUDefrostTime').value,
             BakingMode: document.getElementById('SKUBakingMode').value,
-            MinShowCase: +document.getElementById('SKUMinShowCase').value
+            MinShowCase: +document.getElementById('SKUMinShowCase').value,
+            SandwichOnBuns: +document.getElementById('SandwichOnBunsInput').value
       };
 
       if(SKU.Name === '') {

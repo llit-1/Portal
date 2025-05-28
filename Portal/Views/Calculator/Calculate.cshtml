@@ -53,6 +53,10 @@
                         <th>Осталось</th>
                         <th>План</th>
                         <th>Факт</th>
+                        @if (Model.Items[0].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
+                        {
+                            <th>Расход булок</th>
+                        }                        
                     </tr>
                 </thread>
                 <tbody>
@@ -92,6 +96,15 @@
                                 <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
                                 <input class="itemMinShowCase" value="@Model.Items[i].ItemOnTT.Item.MinShowCase">
+                                @if (Model.Items[i].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
+                                {
+                                    <input class="isSandvich" value="true">
+                                    <input class="SandwichOnBuns" value="@Model.Items[i].ItemOnTT.Item.SandwichOnBuns">
+                                }
+                                 else
+                                {
+                                    <input class="isSandvich" value="false">
+                                }
                             </td>
                             <td>
                                 @if (ViewBag.logs[i]?.Fact == null)
@@ -100,9 +113,12 @@
                                 } else 
                                 {
                                     <input class="fact" placeholder="@ViewBag.logs[i]?.Fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
-                                }
-                                
+                                }                                
                             </td>
+                            @if (Model.Items[i].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
+                            {
+                                <td style="text-align: center" class="Buns"></td>
+                            }
                         </tr>
                     }
                 </tbody>
@@ -125,6 +141,7 @@
         inputObject.value = inputObject.value.replace(/[^\d]/g, '');      
         let trObject = inputObject.parentNode.parentNode;
         let answerObject = trObject.querySelector('.answer');
+        let isSandvichObject = trObject.querySelector('.isSandvich');
 
         let averageRestOfThisPeriod = trObject.querySelector('.averageRestOfThisPeriod').value.replace(/(,)/, ".");
         if(+averageRestOfThisPeriod < 0.3 || +averageRestOfThisPeriod > 1){
@@ -176,8 +193,12 @@
 
         resp = getResultWithMinShowCase(inputObject.value, resp, itemMinShowCase);
 
-        answerObject.textContent = resp;
+        // корректировка по булкам для сэндвичей
+        if(isSandvichObject.value === 'true'){
+                resp = bunsCorrect(trObject, resp);
+        }
 
+        answerObject.textContent = resp;
         var log = {};
         log.UserName = '@Html.Raw(Model.User)';
         log.ItemCode = itemCode;
@@ -210,6 +231,11 @@
         function factChange(factObject){
         factObject.value = factObject.value.replace(/[^\d.]/g, '');
         let trObject = factObject.parentNode.parentNode;
+        let isSandvichObject = trObject.querySelector('.isSandvich');
+    // корректировка по булкам для сэндвичей
+        if(isSandvichObject.value === 'true'){
+           trObject.querySelector('.itemName').textContent = bunsCorrect(trObject, factObject.value);
+        }
         let itemCode = trObject.querySelector('.itemCode').value;
         let itemName = trObject.querySelector('.itemName').value;
         let answerObject = trObject.querySelector('.answer');
@@ -343,6 +369,22 @@
         hideOrShow()
     })
 </script>
+
+<script>
+    // корректировка по булкам для сэндвичей
+    function bunsCorrect(trObject, resp) {
+                    let bunsObject = trObject.querySelector('.SandwichOnBuns');
+                    let buns = trObject.querySelector('.Buns');
+                    let bunscount = +bunsObject.value;
+                    if(bunscount !== 0){
+                     resp = +resp + resp%bunscount;
+                     buns.textContent = +resp/bunscount;
+                    }
+                    return resp;
+    }
+</script>
+
+
 <!-------------------------------------------------------------------->
 
 
