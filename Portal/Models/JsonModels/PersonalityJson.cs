@@ -27,6 +27,7 @@
             public string Tel { get; set; }
             public string SNILS { get; set; }
             public string INN { get; set; }
+            public string Email { get; set; }
         }
     }
 

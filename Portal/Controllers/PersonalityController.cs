@@ -268,6 +268,11 @@ namespace Portal.Controllers
                         return BadRequest("Пользователь с таким ИНН уже существует");
                     }
 
+                    if (personalityJson.Email != "" && dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email) != null)
+                    {
+                        return BadRequest("Пользователь с таким Email уже существует");
+                    }
+
                     dbSql.Add(personality);
                     dbSql.SaveChanges();
                     Guid newPersonalityGuid = personality.Guid;
@@ -290,6 +295,7 @@ namespace Portal.Controllers
                     personalityVersion.ModifiedDate = DateTime.Now;
                     personalityVersion.Personalities.INN = personalityJson.INN;
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
+                    personalityVersion.Personalities.Email = personalityJson.Email;
 
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
@@ -329,6 +335,7 @@ namespace Portal.Controllers
 
                     personalityVersion.Personalities.INN = personalityJson.INN;
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
+                    personalityVersion.Personalities.Email = personalityJson.Email;
 
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
@@ -366,7 +373,7 @@ namespace Portal.Controllers
                 personalityVersion.Personalities.BirthDate = personalityJson.BirthDate;
                 personalityVersion.ModifiedBy = User.Identity.Name;
                 personalityVersion.ModifiedDate = DateTime.Now;
-
+                personalityVersion.Personalities.Email = personalityJson.Email;
                 personalityVersion.Personalities.INN = personalityJson.INN;
                 personalityVersion.Personalities.SNILS = personalityJson.SNILS;
 

@@ -214,9 +214,11 @@
 
                     @{
                         <label class="label-light" style="padding-top: 12px">Номер телефона</label>
-                        <input type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
+                        <input style="margin-bottom: 0;" type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
                     }
-                    
+
+                    <label class="label-light" style="padding-top: 12px">Email</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="@Model?.PersonalitiesVersions?.Personalities?.Email">
 
                     @if (Model.NewPerson == "1")
                     {
@@ -370,7 +372,10 @@
                     }
 
                     <label class="label-light">Номер телефона</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="">
+                    <input style="margin-bottom: 0;" type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="">
+
+                    <label class="label-light" style="padding-top: 12px">Email</label>
+                    <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="">
 
                     <div class="buttonAddPerson ">
                         <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
@@ -602,7 +607,7 @@
         Personality.VersionStartDate = $('#VersionStartDate').val();
         Personality.VersionEndDate = $('#VersionEndDate').val();
         Personality.Tel = $('#tel').val().trim();
-
+        Personality.Email = $("#email").val().trim();
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
 
@@ -716,7 +721,7 @@
         Personality.NewPerson = $('#NewPerson').val();
         Personality.personGUID = personGUID;
         Personality.Tel = $('#tel').val().trim();
-
+        Personality.Email = $("#email").val().trim();
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
 
