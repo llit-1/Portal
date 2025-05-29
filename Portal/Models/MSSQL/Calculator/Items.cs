@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models.MSSQL.Calculator
 {
@@ -15,5 +16,10 @@ namespace Portal.Models.MSSQL.Calculator
         public string BakingMode { get; set; }
         public int MinShowCase { get; set; }
         public int? SandwichOnBuns { get; set; }
+        [Column("ReplacementGroups")]
+        public int? ReplacementGroupsId { get; set; }
+        [ForeignKey("ReplacementGroupsId")]
+        public ReplacementGroups ReplacementGroups { get; set; }
+
     }
 }

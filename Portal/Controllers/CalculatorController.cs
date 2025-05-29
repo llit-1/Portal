@@ -754,8 +754,20 @@ namespace Portal.Controllers
         }
 
         public IActionResult ReplacementGroups()
-        { 
-        return PartialView();        
+        {
+            ReplacementGroupsModel model = new ReplacementGroupsModel();
+            model.ReplacementGroups = new List<ReplacementGroup>();
+            model.Items = CalculatorDb.Items.ToList();
+            List<ReplacementGroups> replacements = CalculatorDb.ReplacementGroups.ToList();
+            foreach (var group in replacements)
+            { 
+            ReplacementGroup replacementGroup = new ReplacementGroup();
+                replacementGroup.ID = group.ID;
+                replacementGroup.Name = group.Name;
+                replacementGroup.Items = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == group.ID).ToList();
+                model.ReplacementGroups.Add(replacementGroup);
+            }
+            return PartialView(model);
         }
 
         [HttpPost]
@@ -782,6 +794,7 @@ namespace Portal.Controllers
                 item.BakingMode = SKU.BakingMode;
                 item.MinShowCase = SKU.MinShowCase;
                 item.SandwichOnBuns = SKU.SandwichOnBuns;
+                item.ReplacementGroups = null;
                 if (item.SandwichOnBuns == 0)
                 {
                     item.SandwichOnBuns = null;
@@ -990,4 +1003,17 @@ namespace Portal.Controllers
         public string Orderer { get; set; }
     }
 
+    public class ReplacementGroup
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public List<Items> Items { get; set; }
+
+    }
+    public class ReplacementGroupsModel
+    {
+        public List<Items> Items { get; set; }
+        public List<ReplacementGroup> ReplacementGroups { get; set; }
+
+    }
 }

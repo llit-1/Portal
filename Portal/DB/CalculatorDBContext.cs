@@ -26,6 +26,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.Calculator.NumberOfSales> NumberOfSales { get; set; } // таблица с данными продаж по периодам
         public DbSet<Models.MSSQL.Calculator.SpecialDay> SpecialDays { get; set; } // специальные дни
         public DbSet<Models.MSSQL.Calculator.TT> TT { get; set; } // торговые точки
-
+        public DbSet<Models.MSSQL.Calculator.ReplacementGroups> ReplacementGroups { get; set; } // торговые точки
     }
 }
