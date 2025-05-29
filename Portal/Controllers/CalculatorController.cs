@@ -753,6 +753,10 @@ namespace Portal.Controllers
             return PartialView(calculateSpecialDays);
         }
 
+        public IActionResult ReplacementGroups()
+        { 
+        return PartialView();        
+        }
 
         [HttpPost]
 
@@ -840,7 +844,6 @@ namespace Portal.Controllers
         }
 
         [HttpDelete]
-
         public IActionResult DeleteTask(string task)
         {
             string SqlRaw = $"Exec msdb.dbo.sp_delete_job @job_name = N\'{task}\'";
@@ -863,10 +866,10 @@ namespace Portal.Controllers
                 var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
                 var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
 
-                
+
                 if (oldSession.Date.AddHours(1) < DateTime.Now)
                 {
-                   throw new Exception("401");
+                    throw new Exception("401");
                 }
 
                 logjsn = logjsn.Replace("%bkspc%", " ");
