@@ -25,12 +25,14 @@
 
         <div class="stock_back_input">
             <img src="/themes/clearmin/img/search.png">
-            <input id="stock_search" />
+            <input autocomplete="off" id="stock_search" />
+
+            <div id="searchResults" class="search-results" style="display: none;">
+                <span>Ничего нет</span>
+            </div>
         </div>
 
-        <div id="searchResults" class="search-results" style="display: none;">
-            <span>Ничего нет</span>
-        </div>
+        
 
     </div>
 
@@ -141,20 +143,21 @@
     const inputWrapper = document.querySelector(".stock_back_input")
     const fullShadow = document.querySelector(".fullShadow")
 
-    inputElement.addEventListener('focus', () => {
-        inputWrapper.style = "width: 70%"
-        fullShadow.style = "opacity: 1; visibility: visible;"
-    });
+    // inputElement.addEventListener('focus', () => {
+    //     inputWrapper.style = "width: 50%"
+    //     fullShadow.style = "opacity: 1; visibility: visible;"
+    // });
 
-    inputElement.addEventListener('blur', () => {
-        inputWrapper.style = "width: 23%"
-        fullShadow.style = "opacity: 0; visibility: hidden;"
-    });
+    // inputElement.addEventListener('blur', () => {
+    //     inputWrapper.style = "width: 23%"
+    //     fullShadow.style = "opacity: 0; visibility: hidden;"
+    // });
 </script>
 
 <script>
     const inputElement = document.getElementById('stock_search');
     const searchResultsContainer = document.getElementById('searchResults');
+    const searchResults = document.getElementById("searchResults")
 
         inputElement.addEventListener('input', async (e) => {
         const query = inputElement.value.trim();
@@ -180,7 +183,7 @@
 
                 // Проверяем, есть ли результаты
                 if (results?.message != undefined) {
-                    searchResultsContainer.innerHTML = '<p>Ничего не найдено</p>';
+                    searchResultsContainer.innerHTML = '<span>Ничего не найдено</span>';
                 } else {
                     // Создаём список результатов
                     const ul = document.createElement('ul');
@@ -214,7 +217,8 @@
 
     // Скрываем результаты, если кликнули вне инпута
     document.addEventListener('click', (event) => {
-        if (!inputElement.contains(event.target)) {
+        if (!inputElement.contains(event.target) && !searchResults.contains(event.target)) {
+            console.log(event.target)
             searchResultsContainer.style.display = 'none';
         }
     });
@@ -409,7 +413,7 @@
 
         $("#spinner").hide();
 
-        $(".modalEditStock").remove();
+        $(".modalEditStock").style = "display: none";
         $("#modalContainer").remove();
         $(".modal-content-stock").remove();
 
@@ -451,7 +455,7 @@
 
          $("#spinner").hide()
          
-         $(".modalEditStock").remove();
+         $(".modalEditStock").style = "display: none";
          $(".modal-content-stock").remove();
          $("#modalContainer").remove()
 
@@ -651,19 +655,20 @@ async function Stock() {
 
     .search-results {
         position: absolute;
-        top: 100px;
-        /* left: 0; */
-        right: 20px;
+        top: 35px;
+        left: -1px;
+        /* right: 20px; */
         width: fit-content;
         background-color: white;
         border: 1px solid #ccc;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 1231131;
+        z-index: 200;
         max-height: 200px;
         overflow-y: auto;
         padding: 10px;
         align-items: start;
         flex-direction: column;
+        min-width: 160px;
     }
     
 

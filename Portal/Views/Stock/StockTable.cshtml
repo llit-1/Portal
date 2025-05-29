@@ -3,6 +3,8 @@
  
     <div id="stock_back">
 
+        <p id="categoryID" class="hidden">@Model.CategoryID.ToString()</p>
+
         <div class="stock_back_wrapper">
             <div id="back" onclick="backButton()">
                 <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
@@ -136,7 +138,7 @@
         }
         
         
-        const idCategory = "@Model.CategoryID.ToString()";
+        const idCategory = document.getElementById("categoryID").textContent;
 
         const data = {
             Id: null,
