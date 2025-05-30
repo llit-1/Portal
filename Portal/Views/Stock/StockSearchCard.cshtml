@@ -226,7 +226,7 @@
             }
         }
 
-        if(objectInfo.holder.patronymic == null)
+        if(objectInfo?.holder && objectInfo?.holder?.patronymic == null)
         {
             objectInfo.holder.patronymic = ""
         }

@@ -839,9 +839,9 @@ namespace Portal.Controllers
             return Ok();
         }
         [HttpPost]
-        public IActionResult SetItemsInGroup(SetItemsInGroup itemsModel)
+        public IActionResult SetItemsInGroup([FromBody] SetItemsInGroup itemsModel)
         {
-            if (itemsModel == null)
+            if (itemsModel == null || itemsModel.Group == 0)
             {
                 return BadRequest(new { Message = "itemsModel is null" });
             }
@@ -864,6 +864,14 @@ namespace Portal.Controllers
         [HttpDelete]
         public IActionResult DeleteGroup(int id)
         {
+            var group = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == id).Count();
+
+            if(group != 0)
+            {
+                return BadRequest(new { Message = "Удаляемая группа содержит SKU" });
+            }
+
+
             CalculatorDb.ReplacementGroups.Remove(CalculatorDb.ReplacementGroups.FirstOrDefault(x => x.ID == id));
             CalculatorDb.SaveChanges();
             return Ok();

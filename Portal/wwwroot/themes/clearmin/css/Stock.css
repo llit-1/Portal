@@ -1038,3 +1038,170 @@
         background-color: #CCC;
         cursor: pointer;
     }
+
+
+.replacement_wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.replacement_panel {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 0px 20px 0px #00000020;
+}
+
+.groupList_header, .replacement_panel_header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ECE7E6;
+    padding: 10px;
+    height: 55px;
+}
+
+    .groupList_header > p, .replacement_panel_header > p {
+        margin: 0;
+        font-size: 16px;
+        font-family: 'Akrobat-Regular';
+        font-weight: 600;
+    }
+
+    .groupList_header > button {
+        font-family: 'Akrobat-Regular';
+    }
+
+.groupList_body {
+    padding: 10px;
+}
+
+.groupList_body_search {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    padding: 0px 10px;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid #ECE7E6;
+    width: 100%;
+}
+
+    .groupList_body_search > img {
+        width: 15px;
+        height: 15px;
+    }
+
+    .groupList_body_search > input {
+        border: none;
+        width: 100%;
+        padding: 5px;
+    }
+
+.groupList {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: overlay;
+    padding-top: 10px;
+}
+
+.groupList_items {
+    border: 1px solid #ECE7E6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Akrobat-Regular';
+    font-size: 16px;
+    padding: 10px;
+    transition: all 0.15s ease-in-out;
+}
+
+    .groupList_items:hover:not(.groupList_items--active) {
+        cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .groupList_items:active {
+        box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.2);
+    }
+
+.groupList_items--active {
+    background-color: #F47920;
+    color: white;
+}
+
+.replacement_panel_body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+#button_save {
+    height: 40px;
+}
+
+.modalEditReplacement {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modalEditReplacement-content {
+    margin: 15% auto;
+    padding: 20px;
+    background: white;
+    border: 1px solid #D3D2D2;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    height: fit-content;
+}
+
+    .modalEditReplacement-content > label {
+        font-size: 16px;
+        font-family: "Akrobat-regular";
+    }
+
+    .modalEditReplacement-content > input {
+        padding: 8px;
+        border: 1px solid #CCCCCC;
+    }
+
+    .modalEditReplacement-content > div {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+        .modalEditReplacement-content > div > button {
+            padding: 5px 10px;
+            color: white;
+            border: none;
+            background-color: #F47920;
+            font-family: "Akrobat-regular";
+            transition: all 0.25s linear;
+        }
+
+
+@media screen and (max-width: 650px) {
+    .replacement_wrapper {
+        flex-direction: column;
+    }
+}

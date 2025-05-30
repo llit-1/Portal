@@ -1,4 +1,6 @@
-﻿<!--шапка-->
+﻿@model Portal.Controllers.ReplacementGroupsModel
+
+<!--шапка-->
 <div id="headMenu" class="row" style="margin:0px">
     <div class="col-12">
         <div class="row" style="margin-top: 0px; margin-bottom:10px">
@@ -17,45 +19,264 @@
         <div class="replacement_panel">
             <div class="groupList_header">
                 <p>Группы</p>
-                <button class="btn btn-success">Добавить</button>
+                <button class="btn btn-success" onclick="showModalReplacement()">Добавить</button>
             </div>
 
             <div class="groupList_body">
 
-                <div class="groupList_body_search">
-                    <img src="/themes/clearmin/img/search.png">
-                    <input class="card_search" placeholder="Поиск..." />
+
+                <div class="groupList" id="groupList">
+                    @* <div class="groupList_items groupList_items--active">Сладкие слойки</div> *@
+                    @* <div class="groupList_items">Сытные слойки</div> *@
+                    @* <div class="groupList_items">Вкусные десерты</div> *@
+                    @* <div class="groupList_items">Мягкие батоны</div> *@
+                    @* <div class="groupList_items">Жесткие хлеба</div> *@
+                    @* <div class="groupList_items">Вкуснейшие пироги</div> *@
+
+                    @foreach(var group in Model.ReplacementGroups)
+                    {
+                        <div id="@group.ID" class="groupList_items">
+                            @group.Name
+                        </div>
+                    }
                 </div>
 
-                <div class="groupList">
-                    <div class="groupList_item">Сладкие слойки</div>
-                    <div class="groupList_item">Сытные слойки</div>
-                    <div class="groupList_item">Вкусные десерты</div>
-                    <div class="groupList_item">Мягкие батоны</div>
-                    <div class="groupList_item">Жесткие хлеба</div>
-                    <div class="groupList_item">Вкуснейшие пироги</div>
-                </div>
-                
             </div>
         </div>
 
         <div class="replacement_panel">
 
-            
+            <div class="replacement_panel_header">
+                <p>Выбор продукции</p>
+            </div>
 
-            <select>
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
-            </select>
+
+            <div class="replacement_panel_body">
+                <div class="form-group">
+                    <div style="width:100%; float:left; margin-bottom:15px">
+                        <select id="groupList_item" class="form-control selectors" multiple="multiple" data-width="100%">
+
+                            @foreach(var item in Model.Items)
+                            {
+                                int? value = 0;
+
+                                if (item.ReplacementGroups?.ID != null)
+                                {
+                                    value = item.ReplacementGroups?.ID;
+                                }
+
+                                <option id="@item.RkCode" value="@value">@item.Name</option>
+                            }
+
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn_success" id="button_save" onclick="SetItemsInGroup()">Сохранить</button>
+
         </div>
 
     </div>
 
 </div>
 
+
+<div class="modalEditReplacement" style="display: none" id="editReplacementModal">
+    <div class="modalEditReplacement-content">
+        <label style="margin: 0px">Название группы</label>
+        <input id="modalEditReplacement-name" value="">
+        <div class="ReplacementButtonsWrapper">
+            <button id="modalEditReplacement-delete" style="background-color: #a9a9a9; display: none">Удалить</button>
+            <button id="modalEditReplacement-save">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    groupList_items = document.querySelectorAll(".groupList_items");
+
+    const state = {
+        selectedGroup: groupList_items[0]
+    }
+
+    groupList_items.forEach(elem => {
+        elem.addEventListener("click", () => {
+            groupList_items.forEach(x => x.classList.remove("groupList_items--active"))
+            elem.classList.add("groupList_items--active")
+
+            state.selectedGroup = elem;
+
+            const groupList_item = document.getElementById("groupList_item")
+            const id = elem.id;
+
+            $('#groupList_item').val(null).trigger('change');
+
+            document.querySelectorAll("option").forEach(x => {
+                if(x.value === id)
+                {
+                    x.selected = true;
+                } else {
+                    x.selected = false;
+                }
+            }) 
+
+            $('#groupList_item').trigger('change');
+        })
+    })
+
+    state.selectedGroup.click()
+
+
+    $('#groupList_item').select2({
+        theme: "bootstrap4",
+        language: "ru",
+        closeOnSelect: false,
+        placeholder: "выберите продукт..."
+    });
+
+    let modalEditReplacement = document.getElementById('editReplacementModal');
+    const modalContent = modalEditReplacement.querySelector('.modalEditReplacement-content');
+    const modalName = document.getElementById("modalEditReplacement-name")
+    const buttonSave = document.getElementById("modalEditReplacement-save")
+    const buttonDelete = document.getElementById("modalEditReplacement-delete")
+    
+    // Функция для закрытия модального окна
+    function closeModal() {
+      let  modalEditReplacement = document.getElementById('editReplacementModal');
+      modalEditReplacement.style.display = "none"
+    }
+
+    function showModalReplacement() {
+        document.querySelector(".modalEditReplacement").style.display = "flex"
+        buttonSave.onclick = function() {
+            // Берем значение поля только при клике
+            addGroup(modalName.value);
+        };
+    }
+
+    async function addGroup(name) {
+
+        if(!name)
+        {
+            alert("Поле имени пустое")
+        }
+
+        try {
+
+            $("#spinner").show()
+
+            const request = await fetch("Calculator/CreateGroup?name=" + name, {method: "POST"})
+
+            if(!request.ok)
+            {
+                const response = await request.json()
+
+                throw new Error(response.message);
+            }
+
+            $("#container-fluid").load("Calculator/ReplacementGroups")
+
+        } catch(e) {
+
+            alert(e)
+
+        } finally {
+
+            $("#spinner").hide()
+
+        }
+        
+    }
+
+    modalEditReplacement.addEventListener('click', function(e) {
+        if (!modalContent.contains(e.target)) {
+            closeModal();
+        }
+    });
+
+    async function SetItemsInGroup() {
+
+        const itemsModel = {
+            Group: +state.selectedGroup.id,
+            Items: [],
+        }
+
+        $('#groupList_item').select2('data').forEach(x => {
+            itemsModel.Items.push(+x.element.id)
+        })
+
+        try {
+
+            $("#spinner").show()
+
+            const request = await fetch("/Calculator/SetItemsInGroup", {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                method: "POST",
+                body: JSON.stringify(itemsModel)
+            })
+
+            if(!request.ok)
+            {
+                const response = await request.json()
+
+                throw new Error(response.message);
+            }
+
+            $("#container-fluid").load("Calculator/ReplacementGroups")
+
+        } catch(e) {
+
+            alert(e)
+
+        } finally {
+
+            $("#spinner").hide()
+
+        }
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if(e.key === "Delete")
+        {
+            const answer = confirm("Вы действительно хотите удалить группу?")
+
+            if(answer)
+            {
+                deleteGroup()
+            }
+        }
+    })
+
+    async function deleteGroup() {
+        try {
+            $("#spinner").show()
+            const request = await fetch("/Calculator/DeleteGroup?id=" + state.selectedGroup.id, {method: "DELETE"})
+
+            if(!request.ok)
+            {
+                const response = await request.json()
+
+                throw new Error(response.message);
+            }
+
+            $("#container-fluid").load("Calculator/ReplacementGroups")
+
+        } catch(e) {
+
+            alert(e)
+
+        } finally {
+
+            $("#spinner").hide()
+
+        }
+    }
+
+</script>
 
 <style>
     .replacement_wrapper {
@@ -76,16 +297,17 @@
         box-shadow: 0px 0px 20px 0px #00000020;
     }
 
-    .groupList_header {
+    .groupList_header, .replacement_panel_header {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid #ECE7E6;
         padding: 10px;
+        height: 55px;
     }
 
-    .groupList_header > p {
+    .groupList_header > p, .replacement_panel_header > p {
         margin: 0;
         font-size: 16px;
         font-family: 'Akrobat-Regular';
@@ -131,7 +353,7 @@
         padding-top: 10px;
     }
 
-    .groupList_item {
+    .groupList_items {
         border: 1px solid #ECE7E6;
         display: flex;
         justify-content: center;
@@ -139,11 +361,81 @@
         font-family: 'Akrobat-Regular';
         font-size: 16px;
         padding: 10px;
-        transition: background-color 0.25s ease-in-out;
+        transition: all 0.15s ease-in-out;
+    }
 
-        &:hover {
-            cursor: pointer;
-            background-color: rgba(0, 0, 0, 0.05);
-        }
+    .groupList_items:hover:not(.groupList_items--active)
+    {
+        cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .groupList_items:active {
+        box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.2);
+    }
+
+    .groupList_items--active {
+        background-color: #F47920;
+        color: white;
+    }
+
+    .replacement_panel_body {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #button_save {
+        height: 40px;
+    }
+
+    .modalEditReplacement {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modalEditReplacement-content {
+        margin: 15% auto;
+        padding: 20px;
+        background: white;
+        border: 1px solid #D3D2D2;
+        width: fit-content;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        height: fit-content;
+    }
+
+    .modalEditReplacement-content > label {
+            font-size: 16px;
+            font-family: "Akrobat-regular";
+    }
+
+    .modalEditReplacement-content > input {
+            padding: 8px;
+            border: 1px solid #CCCCCC;
+    }
+
+    .modalEditReplacement-content > div {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+    }
+
+    .modalEditReplacement-content > div > button {
+            padding: 5px 10px;
+            color: white;
+            border: none;
+            background-color: #F47920;
+            font-family: "Akrobat-regular";
+            transition: all 0.25s linear;
     }
 </style>
