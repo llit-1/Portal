@@ -760,8 +760,8 @@ namespace Portal.Controllers
             model.Items = CalculatorDb.Items.ToList();
             List<ReplacementGroups> replacements = CalculatorDb.ReplacementGroups.ToList();
             foreach (var group in replacements)
-            { 
-            ReplacementGroup replacementGroup = new ReplacementGroup();
+            {
+                ReplacementGroup replacementGroup = new ReplacementGroup();
                 replacementGroup.ID = group.ID;
                 replacementGroup.Name = group.Name;
                 replacementGroup.Items = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == group.ID).ToList();
@@ -804,19 +804,6 @@ namespace Portal.Controllers
             return Ok();
         }
 
-        [HttpDelete]
-        public IActionResult DeleteSKU(string RkCode)
-        {
-            int skuCode = int.Parse(RkCode);
-            Items item = CalculatorDb.Items.FirstOrDefault(c => c.RkCode == skuCode);
-            if (item is null) // создание СКЮ
-            {
-                return BadRequest("СКЮ " + skuCode + " отсутствует в БД");
-            }
-            CalculatorDb.Items.Remove(item);
-            CalculatorDb.SaveChanges();
-            return Ok();
-        }
 
         [HttpPost]
         public IActionResult SaveSpecialDay([FromBody] FrontSpecialDay frontSpecialDay)
@@ -841,6 +828,62 @@ namespace Portal.Controllers
             CalculatorDb.SaveChanges(true);
             return Ok();
         }
+
+        [HttpPost]
+        public IActionResult CreateGroup(string name)
+        {
+            ReplacementGroups replacementGroups = new ReplacementGroups();
+            replacementGroups.Name = name;
+            CalculatorDb.ReplacementGroups.Add(replacementGroups);
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+        [HttpPost]
+        public IActionResult SetItemsInGroup(SetItemsInGroup itemsModel)
+        {
+            if (itemsModel == null)
+            {
+                return BadRequest(new { Message = "itemsModel is null" });
+            }
+            List<Items> OldGroupItems = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == itemsModel.Group).ToList();
+            foreach (var item in OldGroupItems)
+            {
+                item.ReplacementGroupsId = null;
+            }
+            List<Items> items = CalculatorDb.Items.Where(x => itemsModel.Items.Contains(x.RkCode)).ToList();
+            foreach (var item in items)
+            {
+                item.ReplacementGroupsId = itemsModel.Group;
+            }
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+
+
+        [HttpDelete]
+        public IActionResult DeleteGroup(int id)
+        {
+            CalculatorDb.ReplacementGroups.Remove(CalculatorDb.ReplacementGroups.FirstOrDefault(x => x.ID == id));
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+        [HttpDelete]
+        public IActionResult DeleteSKU(string RkCode)
+        {
+            int skuCode = int.Parse(RkCode);
+            Items item = CalculatorDb.Items.FirstOrDefault(c => c.RkCode == skuCode);
+            if (item is null) // создание СКЮ
+            {
+                return BadRequest("СКЮ " + skuCode + " отсутствует в БД");
+            }
+            CalculatorDb.Items.Remove(item);
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+
 
         [HttpDelete]
         public IActionResult DeleteSpesialDay(string Id)
@@ -1015,5 +1058,10 @@ namespace Portal.Controllers
         public List<Items> Items { get; set; }
         public List<ReplacementGroup> ReplacementGroups { get; set; }
 
+    }
+    public class SetItemsInGroup
+    {
+        public int Group { get; set; }
+        public List<int?> Items { get; set; }
     }
 }
