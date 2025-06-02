@@ -493,7 +493,7 @@
             tempObj.User = '@Html.Raw(User.Identity.Name)';
             tempObj.NewHolder = state.newowner;  x.querySelector('.ownerid').id != "" ? x.querySelector('.ownerid').id : null;
             tempObj.Location = x.querySelector('.locationId').id != "" ? x.querySelector('.locationId').id : null;
-            tempObj.DateTime = '@DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss")'
+            tempObj.DateTime = '@DateTime.Now.ToString("yyyy-MM-ddHH:mm:ss")'
             tempObj.Comment = x.querySelector(".inputForComment").value;
             tempObj.WarehouseAction = 2;
 

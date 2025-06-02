@@ -58,21 +58,15 @@
 
                 </select>
 
-            @*@if(!true)
-            {
-                <span class="input-group-btn @display">
-                    <!--редактировать-->
-                    <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                    <!--сохранить-->
-                    <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
-                    <!--сохранение...-->
-                    <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                    <!--отменить-->
-                    <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-                </span>
-            }*@
-           
-        </div>                                 
+        </div>
+        
+        <div class="folderOn">
+            <span>Создать папку</span>
+            <div id="folderOn" class="switch-btn">
+                <input class="hidden" id="folderOnInput" checked="@Model.folderStatus" type="checkbox"/>
+            </div>
+        </div>
+        
 
     </div>
 
@@ -361,13 +355,15 @@
 
 <!--сохранить новую организацию-->
 <script>
+    const folderOnInput = document.getElementById("folderOnInput");
+
     function SaveNewItem() {
 
         var organization = {};
         organization.Guid = orgId;
         organization.Name = $('#orgName').val();
         organization.Owner = $('#owner').val();
-
+        organization.Checked = folderOnInput.checked;
 
         var orgjsn = JSON.stringify(organization);
         orgjsn = orgjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -422,4 +418,69 @@
 
         return items;
     }
+
+    const btn = document.getElementById("folderOn");
+
+    btn.addEventListener("click", () => {
+        
+        if(btn.classList.contains("switch-on"))
+        {
+            folderOnInput.checked = false;
+        } else {
+            folderOnInput.checked = true;
+        }
+
+         btn.classList.toggle("switch-on")
+
+    }) 
+
 </script>
+
+
+
+<style>
+    .switch-btn {
+        display: inline-block;
+        width: 42px;
+        height: 24px;
+        background: #bfbfbf;
+        z-index: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        position: relative;
+        transition-duration: 300ms;
+    }
+
+    .switch-btn::after {
+        content: "";
+        height: 18px;
+        width: 18px;
+        background: #fff;
+        top: 3px;
+        left: 3px;
+        transition-duration: 300ms;
+        position: absolute;
+        z-index: 1;
+    }
+
+    .switch-on {
+        background: #F47920;
+    }
+
+    .switch-on::after {
+        left: 20px;
+    }
+
+    .folderOn {
+        display: flex;
+        gap: 5px;
+        flex-direction: column;
+    }
+
+    .folderOn > span {
+            font-family: Akrobat-light;
+            color: #ABABAA;
+    }
+</style>

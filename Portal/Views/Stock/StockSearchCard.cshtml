@@ -251,37 +251,78 @@
 
         let str = ""
 
-        data.forEach((elem, index) => {
+        data.filter(x => x?.warehouseAction?.id == 1).forEach((elem) => {
 
-            if(index === 1 && elem.warehouseAction?.id === 2) {
+                if(elem.holder && elem.holder.patronymic == null)
+                {
+                    elem.holder.patronymic = ""
+                }
+
+                str += `
+                    <div class="history_card">
+                        <div class="history_card_body">
+                            <p>${elem?.user}</p>
+                            <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                            <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                            <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                            <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                        </div>
+                    </div>`
+        })
+
+        if(data.filter(x => x?.warehouseAction?.id == 2).length > 0)
+        {
                 str += `<div class="history_card" style="background-color: #ffff001c">
                             <div class="history_card_header">Перемещение</div>
                         </div>`
-            }
+        }
 
+        data.filter(x => x?.warehouseAction?.id == 2).forEach((elem) => {
 
+            
 
-            if((index === data.length - 1) && data[0].warehouseObjects?.actual === 0) {
+                if(elem.holder && elem.holder.patronymic == null)
+                {
+                    elem.holder.patronymic = ""
+                }
+
+                str += `
+                    <div class="history_card">
+                        <div class="history_card_body">
+                            <p>${elem?.user}</p>
+                            <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                            <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                            <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                            <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                        </div>
+                    </div>`
+        })
+
+        if(data.filter(x => x?.warehouseAction?.id == 3).length > 0)
+        {
                 str += `<div class="history_card" style="background-color: #ff00001c">
                         <div class="history_card_header">Списание</div>
                       </div>`
-            }
+        }
 
-            if(elem.holder && elem.holder.patronymic == null)
-            {
-                elem.holder.patronymic = ""
-            }
+        data.filter(x => x?.warehouseAction?.id == 3).forEach((elem) => {
 
-            str += `
-                <div class="history_card">
-                    <div class="history_card_body">
-                        <p>${elem?.user}</p>
-                        <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
-                        <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
-                        <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
-                        <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
-                    </div>
-                </div>`
+
+                if(elem.holder && elem.holder.patronymic == null)
+                {
+                    elem.holder.patronymic = ""
+                }
+
+                str += `
+                    <div class="history_card">
+                        <div class="history_card_body">
+                            <p>${elem?.user}</p>
+                            <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                            <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                            <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                            <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                        </div>
+                    </div>`
         })
 
         let buttons;

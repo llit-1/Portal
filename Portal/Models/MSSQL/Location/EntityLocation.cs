@@ -12,5 +12,6 @@ namespace Portal.Models.MSSQL.Location
         public List<Entity>? Entities { get; set; }
         public List<LocationVersions>? LocationVersions { get; set; }
         public int New { get; set; }
+        public bool? folderStatus { get; set; }
     }
 }

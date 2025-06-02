@@ -16,5 +16,6 @@ namespace Portal.ViewModels.Settings_Access.json
         public string Guid; // Guid Entity
         public string Name; // Location
         public int Owner; // Owner Entity ( 1 - own, 0 - not own)
+        public bool Checked;
     }
 }
