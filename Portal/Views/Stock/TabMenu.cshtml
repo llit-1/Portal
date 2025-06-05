@@ -7,7 +7,7 @@
             @if(User.IsInRole("warehouse_admin"))
             {
                 <li class="active"><a href="" data-toggle="tab" onclick="$('#container-fluid').load('/Stock/Stock')">Структура</a></li>
-                <li><a href="" data-toggle="tab" onclick="$('#container-fluid').load('/Stock/StockTransfer')">Передача</a></li>
+                <li><a href="" data-toggle="tab" id="stockTransferRedirect">Передача</a></li>
                 <li><a href="" data-toggle="tab" onclick="$('#container-fluid').load('/Stock/StockSearch')">Поиск</a></li>
                 <li><a href="" data-toggle="tab" onclick="$('#container-fluid').load('/Stock/StockSearchCard')">Карточка</a></li>
             }
@@ -25,4 +25,21 @@
 
 <script style="font-size: 0px">
     localStorage.setItem("token", "@Html.Raw(Model.token)");
+
+
+    const stockTransferRedirect = document.getElementById("stockTransferRedirect")
+
+    const width = window.innerWidth;
+
+    if(width <= 700)
+    {
+        stockTransferRedirect.onclick = () => {
+            $('#container-fluid').load('/Stock/StockTransferMobile')
+        }
+    } else {
+        stockTransferRedirect.onclick = () => {
+            $('#container-fluid').load('/Stock/StockTransfer')
+        }
+    }
+
 </script>

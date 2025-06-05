@@ -608,6 +608,10 @@
         Personality.VersionEndDate = $('#VersionEndDate').val();
         Personality.Tel = $('#tel').val().trim();
         Personality.Email = $("#email").val().trim();
+        if(Personality.Email.length < 2)
+        {
+            Personality.Email = null;
+        }
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
 
@@ -722,6 +726,10 @@
         Personality.personGUID = personGUID;
         Personality.Tel = $('#tel').val().trim();
         Personality.Email = $("#email").val().trim();
+        if(Personality.Email.length < 2)
+        {
+            Personality.Email = null;
+        }
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
 

@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -284,7 +285,7 @@ namespace Portal.Controllers
                                                                      .Include(x => x.Entity)
                                                                      .FirstOrDefault(x => x.Guid == Guid.Parse(guid));
 
-            List<Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
+            List<Models.MSSQL.Location.Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
             List<Entity> entity = dbSql.Entity.ToList();
             List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
             List<BindingLocationToUsers> bindingLocationToUsers = dbSql.BindingLocationToUsers.Where(x => x.LocationID == locationVersion.Guid).ToList();
@@ -308,7 +309,7 @@ namespace Portal.Controllers
                                                                      .Include(x => x.Entity)
                                                                      .FirstOrDefault(x => x.Guid == Guid.Parse(guid));
 
-            List<Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
+            List<Models.MSSQL.Location.Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
             List<Entity> entity = dbSql.Entity.ToList();
             List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
             List<BindingLocationToUsers> bindingLocationToUsers = dbSql.BindingLocationToUsers.Where(x => x.LocationID == locationVersion.Guid).ToList();
@@ -404,7 +405,7 @@ namespace Portal.Controllers
                 var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
 
                 LocationVersions locationVersions = new LocationVersions();
-                Location location = new Location();
+                Models.MSSQL.Location.Location location = new Models.MSSQL.Location.Location();
 
                 location.Name = ttJsn.Name;
                 location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
@@ -543,7 +544,7 @@ namespace Portal.Controllers
                 var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
 
                 LocationVersions locationVersions = new LocationVersions();
-                Location location = new Location();
+                Models.MSSQL.Location.Location location = new Models.MSSQL.Location.Location();
 
                 location.Name = ttJsn.Name;
                 location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
@@ -889,7 +890,7 @@ namespace Portal.Controllers
                                                                                .ToList();
 
                     LocationVersions locversion = new();
-                    Location location = new();
+                    Models.MSSQL.Location.Location location = new();
                     if (ttJsn.original != null)
                     {
                         location = dbSql.LocationVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid)).Location;
@@ -1351,6 +1352,9 @@ namespace Portal.Controllers
                                                                         .ToList(),
                     New = 0
                 };
+
+                model.folderStatus = FolderIsExist(model.Entities[0].Name);
+
                 return PartialView(model);
             }
             else
@@ -1361,10 +1365,83 @@ namespace Portal.Controllers
                     Entities = dbSql.Entity.ToList(),
                     LocationVersions = dbSql.LocationVersions.Include(t => t.Entity)
                                                                         .Include(t => t.Location)
-                                                                        .ToList()
+                                                                        .ToList()  
                 };
+
+                model.folderStatus = FolderIsExist(model.Entities[0].Name);
+
                 return PartialView(model);
             }
+        }
+
+        public static bool CreateFolder(string folderName)
+        {
+
+            var invalidChars = Path.GetInvalidFileNameChars();
+            string sanitizedName = new string(folderName
+                .Where(c => !invalidChars.Contains(c))
+                .ToArray());
+
+            string folderPath = "\\\\fs1\\LLWork\\Розница. Документы\\" + sanitizedName;
+
+            try
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при создании папки: {ex.Message}");
+            }
+
+            return true;
+        }
+        
+
+        public static bool DeleteFolder(string folderName)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            string sanitizedName = new string(folderName
+                .Where(c => !invalidChars.Contains(c))
+                .ToArray());
+
+            string folderPath = "\\\\fs1\\LLWork\\Розница. Документы\\" + sanitizedName;
+
+            try
+            {
+                Directory.Delete(folderPath, true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при создании папки: {ex.Message}");
+            }
+
+            return true;
+        }
+
+        public static bool FolderIsExist(string folderName)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            string sanitizedName = new string(folderName
+                .Where(c => !invalidChars.Contains(c))
+                .ToArray());
+
+            string folderPath = "\\\\fs1\\LLWork\\Розница. Документы\\" + sanitizedName;
+
+            try
+            {
+                bool folderExists = Directory.Exists(folderPath);
+
+                if (folderExists == false)
+                {
+                    return false;
+                } 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при проверке папки: {ex.Message}");
+            }
+
+            return true;
         }
 
         // Сохранение организации
@@ -1404,6 +1481,20 @@ namespace Portal.Controllers
                     dbSql.Add(entity1);
 
                 }
+
+                var folderExist = FolderIsExist(org.Name);
+
+                // Если галка нажата === папка нужна
+                if (org.Checked && !folderExist)
+                {
+                    CreateFolder(org.Name);
+                }
+
+                if (!org.Checked && folderExist)
+                {
+                    DeleteFolder(org.Name);
+                }
+
                 dbSql.SaveChanges();
             }
             catch (Exception e)
@@ -1453,7 +1544,7 @@ namespace Portal.Controllers
         // Таблица типов
         public IActionResult TypesTable()
         {
-            List<Location> location = dbSql.Locations.Include(x => x.LocationType)
+            List<Models.MSSQL.Location.Location> location = dbSql.Locations.Include(x => x.LocationType)
                                                      .ToList();
 
             List<LocationType> locationType = dbSql.LocationTypes.ToList();

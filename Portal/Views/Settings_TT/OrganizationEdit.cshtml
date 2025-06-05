@@ -61,7 +61,7 @@
         </div>
         
         <div class="folderOn">
-            <span>Создать папку</span>
+            <label class="label-light">каталог на диске</label>
             <div id="folderOn" class="switch-btn">
                 <input class="hidden" id="folderOnInput" checked="@Model.folderStatus" type="checkbox"/>
             </div>
@@ -420,6 +420,11 @@
     }
 
     const btn = document.getElementById("folderOn");
+
+    if(folderOnInput.checked) {
+        btn.classList.add("switch-on")
+    }
+
 
     btn.addEventListener("click", () => {
         

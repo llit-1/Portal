@@ -509,6 +509,7 @@
     border-radius: 5px;
     border: none;
     min-width: 160px;
+    height: 40px;
 }
 
 .stock_search_select:disabled {

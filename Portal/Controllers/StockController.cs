@@ -49,6 +49,12 @@ namespace Portal.Controllers
 
             return PartialView(locations);
         }
+        public IActionResult StockTransferMobile()
+        {
+            List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
+
+            return PartialView(locations);
+        }
 
         public async Task<IActionResult> StockSearch()
         {

@@ -218,7 +218,6 @@
     // Скрываем результаты, если кликнули вне инпута
     document.addEventListener('click', (event) => {
         if (!inputElement.contains(event.target) && !searchResults.contains(event.target)) {
-            console.log(event.target)
             searchResultsContainer.style.display = 'none';
         }
     });
