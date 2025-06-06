@@ -23,7 +23,7 @@
                                             <p class="list-item-heading itemName">@organization.Name</p>
                                         </td>
                                         <td>
-                                            <p class="text-muted">@Model.LocationVersions.Where(c => c.Entity?.Guid == @organization.Guid).Count()</p>
+                                            <p class="text-muted">@Model.LocationVersions.Where(x => x.Actual == 1).Where(c => c.Entity?.Guid == @organization.Guid).Count()</p>
                                         </td>
                                         @if(organization.Owner == 1)
                                         {

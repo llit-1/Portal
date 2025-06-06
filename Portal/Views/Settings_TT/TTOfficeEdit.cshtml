@@ -187,6 +187,12 @@
         loc.type = document.getElementById("type").value;
         loc.open = document.getElementById("open").value;
         loc.parent = document.getElementById("parent").value;
+
+        if(loc.parent == "")
+        {
+            loc.parent = null;
+        }
+
         loc.close = document.getElementById("close").value;
         loc.latitude = document.getElementById("latitude").value;
         loc.longitude = document.getElementById("longitude").value;

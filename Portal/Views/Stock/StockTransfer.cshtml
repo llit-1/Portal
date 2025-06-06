@@ -580,9 +580,9 @@
 
         obj.Surname = modal_surname.value;
         obj.Name = modal_name.value;
-        obj.Patronymic = modal_patronymic.value;
-        obj.JobTitle = modal_jobTitle.value;
-        obj.Department = modal_department.value;
+        obj.Patronymic = modal_patronymic.value ? modal_patronymic.value : null;
+        obj.JobTitle = modal_jobTitle.value ? modal_jobTitle.value : null;
+        obj.Department = modal_department.value ? modal_department.value : null;
         obj.Actual = 1;
 
         try{

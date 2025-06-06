@@ -86,7 +86,7 @@
 
                     @if(Model.LocationVersions != null)
                     {
-                        @foreach (var tt in Model.LocationVersions.OrderBy(t => t.Name))
+                        @foreach (var tt in Model.LocationVersions.Where(x => x.Actual == 1).OrderBy(t => t.Name))
                         {
                             if(Model?.New != 1)
                             {

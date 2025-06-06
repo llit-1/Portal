@@ -2,6 +2,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Portal.Models.JsonModels;
@@ -490,8 +491,26 @@ namespace Portal.Controllers
                 {
                     locationVersions.Location.Parent = null;
                 }
-                locationVersions.Location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
-                locationVersions.Location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+
+                double latitude;
+                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out latitude))
+                {
+                    locationVersions.Location.Latitude = latitude;
+                }
+                else
+                {
+                    locationVersions.Location.Latitude = null;
+                }
+
+                double longitude;
+                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out longitude))
+                {
+                    locationVersions.Location.Longitude = longitude;
+                }
+                else
+                {
+                    locationVersions.Location.Longitude = null;
+                }
                 locationVersions.Location.Actual = 1;
 
 
@@ -499,7 +518,16 @@ namespace Portal.Controllers
                 locationVersions.OBD = null;
                 locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
                 locationVersions.Actual = 1;
-                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+
+                if (ttJsn.open != "")
+                {
+                    locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                }
+                else
+                {
+                    locationVersions.VersionStartDate = null;
+                }
+
                 if (ttJsn.close != "")
                 {
                     locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);
@@ -508,7 +536,6 @@ namespace Portal.Controllers
                 {
                     locationVersions.VersionEndDate = null;
                 }
-                locationVersions.Address = ttJsn.address;
 
                 List<Models.MSSQL.BindingLocationToUsers> toDelete = dbSql.BindingLocationToUsers.Where(x => x.LocationID == Guid.Parse(ttJsn.guid)).ToList();
                 toDelete.ForEach(x =>
@@ -547,7 +574,7 @@ namespace Portal.Controllers
                 Models.MSSQL.Location.Location location = new Models.MSSQL.Location.Location();
 
                 location.Name = ttJsn.Name;
-                location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse("3810B715-2164-4524-F182-08DBF1A777FF"));
+                location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
                 location.RKCode = 0;
                 location.AggregatorsCode = null;
 
