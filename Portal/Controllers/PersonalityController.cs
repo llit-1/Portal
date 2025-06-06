@@ -268,7 +268,7 @@ namespace Portal.Controllers
                         return BadRequest("Пользователь с таким ИНН уже существует");
                     }
 
-                    if (personalityJson.Email != "" && dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email) != null)
+                    if (personalityJson.Email != null && dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email) != null)
                     {
                         return BadRequest("Пользователь с таким Email уже существует");
                     }

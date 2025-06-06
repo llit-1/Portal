@@ -36,17 +36,17 @@
         </div>    
 
         <!--тип тт-->
-        <div class="form-group" style="margin-bottom:15px">
-            <label class="label-light" style="width:100%">тип</label>
-            <div style="width:100%; float:left">
-                <select id="type" class="form-control selectors" data-width="100%" required>
-                    @foreach (var type in Model?.locationTypes.OrderBy(t => t.Name))
-                    {
-                        <option value="@type.Guid">@type.Name</option>
-                    }
-                </select>
-            </div>
-        </div>
+        @* <div class="form-group" style="margin-bottom:15px"> *@
+        @*     <label class="label-light" style="width:100%">тип</label> *@
+        @*     <div style="width:100%; float:left"> *@
+        @*         <select id="type" class="form-control selectors" data-width="100%" required> *@
+        @*             @foreach (var type in Model?.locationTypes.OrderBy(t => t.Name)) *@
+        @*             { *@
+        @*                 <option value="@type.Guid">@type.Name</option> *@
+        @*             } *@
+        @*         </select> *@
+        @*     </div> *@
+        @* </div> *@
 
         <!--тип тт-->
         <div class="form-group" style="padding-top: 30px;">
@@ -151,13 +151,19 @@
         loc.name = document.getElementById("name").value;
         loc.address = document.getElementById("address").value;
         loc.entity = document.getElementById("entity").value;
-        loc.type = document.getElementById("type").value;
+        //loc.type = document.getElementById("type").value;
         loc.open = document.getElementById("open").value;
         loc.close = document.getElementById("close").value;
         loc.latitude = document.getElementById("latitude").value;
         loc.longitude = document.getElementById("longitude").value;
         loc.usersid = DataFromSelector(document.getElementById('users'));
         loc.parent = document.getElementById("parent").value;
+
+        if(loc.parent == "")
+        {
+            loc.parent = null;
+        }
+
         loc.actual = 1;
 
         const json = JSON.stringify(loc)

@@ -149,13 +149,13 @@
                                     }
                                     else if (item.shedules[i].traitorStatus == 1 && helper == false)
                                     {
-                                        <td title="Сотрудник работал на другой ТТ" align="center" style="background-color: #ffff7f" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <td title="Сотрудник работал на @item.shedules[i].locationName" align="center" style="background-color: #ffff7f" onclick='editShedule("@i", "@item.shedules[i].location")'>
                                             <div class="trackingChart_td">@item.shedules[i].duration</div>
                                         </td>
                                     }
                                     else if (item.shedules[i].traitorStatus == 2 && helper == false)
                                     {
-                                        <td align="center" title="Сотрудник также работал на другой ТТ" style="background-color: #d7e9ff" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <td align="center" title="Сотрудник работал на этой ТТ, а так же на @item.shedules[i].locationName" style="background-color: #d7e9ff" onclick='editShedule("@i", "@item.shedules[i].location")'>
                                             <div class="trackingChart_td">@item.shedules[i].duration</div>
                                         </td>
                                     }

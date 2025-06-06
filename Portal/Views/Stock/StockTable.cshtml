@@ -33,7 +33,7 @@
 
 
                 <div class="category_wrapper_list">
-                    <div class="category_table_item" onclick="showDetails(this)">
+                    <div class="category_table_item" id="@category.Id" onclick="showDetails(this)">
                         <div class="table_item_subcategory" data-count="@category.Categories.Count()">@category.Name</div>
                         <div>
                             <img onclick='event.stopPropagation(); showModalY("@category.Id", "@category.Name" )' src="/themes/clearmin/img/settings.png" class="card_header_img">
@@ -50,7 +50,7 @@
 
                 @foreach (var item in category.Categories)
                 {
-                    <div class='item_subcategory_details hidden item_subcategory_details_@category.Name.Replace(" ", "")'>
+                    <div class='item_subcategory_details hidden item_subcategory_details_@category.Id'>
                         <div style=""> @item.Name </div>
                         <div class="subcategory_details_edit" style="width: 20%"> <img src="/themes/clearmin/img/edit.png" onclick="showModalY('@item.Id', '@item.Name')" /> </div>
                     </div>

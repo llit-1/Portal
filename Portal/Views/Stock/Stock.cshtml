@@ -308,7 +308,7 @@
 <script>
     function showDetails(elem) {
         elem.classList.toggle('active');
-        document.querySelectorAll(".item_subcategory_details_" + elem.childNodes[1].textContent.replaceAll(" ", "")).forEach(x => x.classList.toggle("hidden"))
+        document.querySelectorAll(".item_subcategory_details_" + elem.id).forEach(x => x.classList.toggle("hidden"))
     }
 </script>
 

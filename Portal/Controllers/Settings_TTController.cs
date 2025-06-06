@@ -547,10 +547,12 @@ namespace Portal.Controllers
                 Models.MSSQL.Location.Location location = new Models.MSSQL.Location.Location();
 
                 location.Name = ttJsn.Name;
-                location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
+                location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse("3810B715-2164-4524-F182-08DBF1A777FF"));
                 location.RKCode = 0;
                 location.AggregatorsCode = null;
-                if (ttJsn?.parent != "" || ttJsn?.parent != null)
+
+
+                if (ttJsn?.parent != null)
                 {
                     location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
                 }
@@ -559,8 +561,24 @@ namespace Portal.Controllers
                     location.Parent = null;
                 }
 
-                location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
-                location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                double latitude;
+                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out latitude))
+                {
+                    location.Latitude = latitude; 
+                } else
+                {
+                    location.Latitude = null;
+                }
+
+                double longitude;
+                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out longitude))
+                {
+                    location.Longitude = longitude;
+                } else
+                {
+                    location.Longitude = null;
+                }
+
                 location.Actual = 1;
 
                 locationVersions.Location = location;
@@ -568,7 +586,16 @@ namespace Portal.Controllers
                 locationVersions.OBD = null;
                 locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
                 locationVersions.Actual = 1;
-                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+
+                if (ttJsn.open != "")
+                {
+                    locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                }
+                else
+                {
+                    locationVersions.VersionStartDate = null;
+                }
+
                 if (ttJsn.close != "")
                 {
                     locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);

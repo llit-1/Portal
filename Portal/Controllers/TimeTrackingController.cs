@@ -395,6 +395,7 @@ namespace Portal.Controllers
                     sheduleItem sheduleItem = new();
                     sheduleItem.duration = duration;
                     sheduleItem.location = timesheet.Location.Guid.ToString();
+                    sheduleItem.locationName = timesheet.Location.Name.ToString();
 
                     int day = timesheet.Begin.Day - 1;
                     
@@ -487,6 +488,7 @@ namespace Portal.Controllers
         {
             public double duration { get; set; }
             public string location { get; set; }
+            public string locationName { get; set; }
             public int traitorStatus { get; set; }
         }
 
