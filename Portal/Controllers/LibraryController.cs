@@ -199,8 +199,6 @@ namespace Portal.Controllers
         // Корневая папка из БД
         public IActionResult RootFolder(int id)
         {
-
-
             var path = db.RootFolders.FirstOrDefault(f => f.Id == id).Path;
             return RedirectToAction("Folder", new { path = path });
         }
@@ -260,10 +258,10 @@ namespace Portal.Controllers
             }
             else
             {
-                if (rootItem.Id <= 2 || rootItem.Id == 15 || rootItem.Id == 17)
+                if (rootItem.Id <= 2 || rootItem.Id == 15 || rootItem.Id == 17 || rootItem.Id == 18)
                     folderView.prevPath = "Index";
 
-                if ((rootItem.Id > 2 && rootItem.Id < 15) || rootItem.Id == 18)
+                if (rootItem.Id > 2 && rootItem.Id < 15)
                     folderView.prevPath = "InternalDocs";
 
             }
