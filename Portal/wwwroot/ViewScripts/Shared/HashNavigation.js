@@ -47,6 +47,7 @@ $(function () {
         if (hash == '#Passports') loadContent(hash.replace('#', ''), '/Library/Passports');                 // библиотека знаний -> паспорта качества
         if (hash == '#library_oss') loadContent(hash.replace('#', ''), '/Library/Oss');                     // библиотека знаний -> внутренние документы -> отдел системного сопровождения
         if (hash == '#Shzhleb') loadContent(hash.replace('#', ''), '/Library/Hleb');                        // библиотека знаний -> сестрорецкий хлебозавод
+        if (hash == '#SpravInformation') loadContent(hash.replace('#', ''), '/Library/SpravInformation')    // библиотека знаний -> папки франчайзи
 
         // Аудиты
         if (hash == '#AuditIndex') loadContent(hash.replace('#', ''), '/Audit/Index');                      // аудиты -> аудиты пекарен

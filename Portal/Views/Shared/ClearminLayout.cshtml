@@ -186,6 +186,11 @@
                                         <li><a id="Shzhleb" href="#Shzhleb">Сестрорецкий хлебозавод</a></li>
 
                                     }
+                                    @if (User.IsInRole("library_franch_IP") || User.IsInRole("library_franch_common"))
+                                    {
+                                        <li><a id="SpravInformation" href="#SpravInformation">Справочная информация</a></li>
+
+                                    }
                                 </ul>
                             </li>
                         }

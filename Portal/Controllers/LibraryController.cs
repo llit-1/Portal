@@ -1,11 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Portal.Models;
+using Portal.Models.MSSQL.Location;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Portal.Controllers
@@ -16,11 +21,13 @@ namespace Portal.Controllers
         private Portal.Services.IStreamVideoService streamService;
         DB.SQLiteDBContext db;
         string[] LibraryExtensions = { ".doc", ".docx", ".xls", ".xlsx", ".xlsb", ".ppt", ".pptx", ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov", ".avi" };
+        DB.MSSQLDBContext RKNET;
 
-        public LibraryController(DB.SQLiteDBContext sqliteContext, Portal.Services.IStreamVideoService streamServiceContext)
+        public LibraryController(DB.SQLiteDBContext sqliteContext, Portal.Services.IStreamVideoService streamServiceContext, DB.MSSQLDBContext mSSQLDB)
         {
             db = sqliteContext;
             streamService = streamServiceContext;
+            RKNET= mSSQLDB;
         }
 
         // Корневые разделы Библиотеки Знаний
@@ -179,14 +186,22 @@ namespace Portal.Controllers
         {
             return RedirectToAction("RootFolder", new { id = 16 });
         }
+        //  [Authorize(Roles = "library_franch")]
+        public IActionResult SpravInformation()
+        {
+            return RedirectToAction("RootFolder", new { id = 18 });
+
+        }
+
+
 
         // ----------------------------------------------------------------------------------------------------------------
         // Корневая папка из БД
         public IActionResult RootFolder(int id)
         {
-            //var folderView = new ViewModels.Library.FolderView();
-            var path = db.RootFolders.FirstOrDefault(f => f.Id == id).Path;
 
+
+            var path = db.RootFolders.FirstOrDefault(f => f.Id == id).Path;
             return RedirectToAction("Folder", new { path = path });
         }
 
@@ -209,7 +224,7 @@ namespace Portal.Controllers
             var rootItem = db.RootFolders.FirstOrDefault(r => folderView.curDirectory.FullName.Contains(r.Path));
 
             // условный каталог Внутренние документы
-            if (rootItem.Id != 1 && rootItem.Id != 2 && rootItem.Id != 14 && rootItem.Id != 15 && rootItem.Id != 17)
+            if (rootItem.Id != 1 && rootItem.Id != 2 && rootItem.Id != 14 && rootItem.Id != 15 && rootItem.Id != 17 && rootItem.Id != 18)
             {
                 var internalDocsItem = new RKNet_Model.Library.RootFolder();
                 internalDocsItem.Name = "Внутренние документы";
@@ -218,7 +233,6 @@ namespace Portal.Controllers
             }
 
             folderView.navItems.Add(rootItem);
-
             var rootDir = new DirectoryInfo(rootItem.Path);
 
             // промежуточные каталоги
@@ -249,7 +263,7 @@ namespace Portal.Controllers
                 if (rootItem.Id <= 2 || rootItem.Id == 15 || rootItem.Id == 17)
                     folderView.prevPath = "Index";
 
-                if (rootItem.Id > 2 && rootItem.Id < 15)
+                if ((rootItem.Id > 2 && rootItem.Id < 15) || rootItem.Id == 18)
                     folderView.prevPath = "InternalDocs";
 
             }
@@ -257,6 +271,28 @@ namespace Portal.Controllers
             // список недавно изменённых файлов
             folderView.newsFiles = GetNewsFiles(rootDir);
 
+            //спецпапка с распределением по тт
+            if (rootItem.Id == 18)
+            {
+                folderView.CastingFolders = true;
+                if (User.IsInRole("library_franch_common"))
+                {
+                    folderView.AllowedDirectories.Add(new DirectoryInfo(rootDir + "\\" + "Общие документы"));
+                }
+                if (User.IsInRole("library_franch_IP"))
+                {
+                    string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
+                    var user = db.Users.Include(x => x.TTs).FirstOrDefault(x => x.Login == userLogin);
+                    List<Models.MSSQL.Location.Location> locations = RKNET.Locations.AsEnumerable().Where(x => user.TTs.Any(y => y.Restaurant_Sifr == x.RKCode)).ToList();
+                    List<LocationVersions> locationVersions = RKNET.LocationVersions.Include(x => x.Entity).AsEnumerable().Where(x => locations.Any(y => y.Guid == x.Location.Guid && x.Actual == 1 && x.Entity != null)).ToList();
+                    folderView.AllowedDirectories.AddRange(RKNET.Entity.AsEnumerable().Where(x => locationVersions.Any(y => y.Entity.Guid == x.Guid)).Select(x => new DirectoryInfo(rootDir + "\\" + x.Name)).ToList());
+                }
+                folderView.newsFiles = folderView.newsFiles.Where(x => folderView.AllowedDirectories.Any(y => x.FullName.Contains(y.FullName.TrimEnd('.')))).ToList();
+                if (rootItem.Path != folderView.curDirectory.FullName)
+                {
+                    folderView.CastingFolders = false;
+                }
+            }
             return PartialView(folderView);
         }
 

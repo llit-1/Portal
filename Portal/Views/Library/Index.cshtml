@@ -163,7 +163,34 @@
             </a>
         </div>
     }
-
+    @if (User.IsInRole("library_franch_IP") || User.IsInRole("library_franch_common"))
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a href="#SpravInformation" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/FranchFiles.svg" width="30px" height="22px" style='transform: scale(2.7,2.7); margin-top: 10px;'>
+                    </span>
+                    <h4>Справочная информация</h4>
+                    <small>прочие документы</small>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-4">
+            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48" style="height:70px">
+                        <img src="~/svg/library/main/FranchFiles.svg" width="30px" height="22px" style='transform: scale(2.7,2.7); margin-top: 10px;'>
+                    </span>
+                    <h4>Справочная информация</h4>
+                    <small>прочие документы</small>
+                </div>
+            </a>
+        </div>
+    }
 </div>
 
 <!-------------------------------------------------------------------------------------------------->

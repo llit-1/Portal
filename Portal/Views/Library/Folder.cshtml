@@ -49,7 +49,6 @@
                     // экранирование "плюс" и "пробел"
                     path = path.Replace("+", "plustoreplace");
                     path = path.Replace(" ", "backspacetoreplace");
-
                     <li><a href="#link" onclick="Folder('@path')">@item.Name</a></li>
                 }
             }
@@ -82,31 +81,65 @@
     <!--блок папок и файлов-->
     <div class="col-sm-10 pre-scrollable" style="max-height: 74vh">
         <!--папки-->
-        @foreach (var dir in Model.curDirectory.GetDirectories().OrderBy(d => d.Name))
+
+        @if(Model.CastingFolders)
         {
-            // экранирование двойного слэша
-            var path = dir.FullName.Replace("\\", "slashtoreplace");
-
-            // иконка папки
-            var icon = "/svg/library/folder-u2.svg";
-
-            var iconFile = dir.GetFiles().Where(f => f.Name.Substring(f.Name.Length-3).ToLower() == "svg").FirstOrDefault();
-            if (iconFile != null)
+            foreach (var dir in Model.curDirectory.GetDirectories().OrderBy(d => d.Name).ToList().Where(x => Model.AllowedDirectories.Any( y => y.FullName == x.FullName)))
             {
-                icon = "/Library/GetFile?path=" + dir.FullName.Replace("\\", "%5C").Replace(" ", "%20") + "%5C";
-                icon += iconFile.Name;
+                // экранирование двойного слэша
+                var path = dir.FullName.Replace("\\", "slashtoreplace");
+
+                // иконка папки
+                var icon = "/svg/library/folder-u2.svg";
+
+                var iconFile = dir.GetFiles().Where(f => f.Name.Substring(f.Name.Length - 3).ToLower() == "svg").FirstOrDefault();
+                if (iconFile != null)
+                {
+                    icon = "/Library/GetFile?path=" + dir.FullName.Replace("\\", "%5C").Replace(" ", "%20") + "%5C";
+                    icon += iconFile.Name;
+                }
+
+                <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                    <a href="#folder" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="Folder('@path')">
+                        <div class="panel-body text-center folder" style="min-height: 147px;">
+                            <span class="svg-48" style="margin-bottom:10px">
+                                <img src="@icon" width="35">
+                            </span>
+                            <small>@dir.Name</small>
+                        </div>
+                    </a>
+                </div>
             }
 
-            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
-                <a href="#folder" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="Folder('@path')">
-                    <div class="panel-body text-center folder" style="min-height: 147px;">
-                        <span class="svg-48" style="margin-bottom:10px">
-                            <img src="@icon" width="35">
-                        </span>
-                        <small>@dir.Name</small>
+        }
+        else
+        {
+            foreach (var dir in Model.curDirectory.GetDirectories().OrderBy(d => d.Name))
+                {
+                    // экранирование двойного слэша
+                    var path = dir.FullName.Replace("\\", "slashtoreplace");
+
+                    // иконка папки
+                    var icon = "/svg/library/folder-u2.svg";
+
+                    var iconFile = dir.GetFiles().Where(f => f.Name.Substring(f.Name.Length-3).ToLower() == "svg").FirstOrDefault();
+                    if (iconFile != null)
+                    {
+                      icon = "/Library/GetFile?path=" + dir.FullName.Replace("\\", "%5C").Replace(" ", "%20") + "%5C";
+                     icon += iconFile.Name;
+                    }
+
+                    <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                        <a href="#folder" class="panel panel-default thumbnail cm-thumbnail tails-panel" onclick="Folder('@path')">
+                         <div class="panel-body text-center folder" style="min-height: 147px;">
+                                <span class="svg-48" style="margin-bottom:10px">
+                                    <img src="@icon" width="35">
+                                </span>
+                                <small>@dir.Name</small>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
+                }
         }
         <!--файлы-->
         @foreach (var file in Model.curDirectory.GetFiles().Where(f => !f.Attributes.HasFlag(System.IO.FileAttributes.Hidden)).OrderBy(f => f.Name))
