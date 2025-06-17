@@ -224,10 +224,10 @@
 
                             <!--заказы-->
                             <tr class="row-group-02 hidden items_@order.TTCode">
-                                <td><label><input class="hidden" type="checkbox" id="@order.OrderNumber">@order.OrderNumber</label></td>
-                                <td class="mobile-hide">@order.OrderName</td>
-                                <td>@order.DeliveryDate.ToString("dd.MM.yyyy")</td>
-                                <td class="mobile-hide">@order.UserName</td>
+                                <td style="vertical-align: middle"><label><input class="hidden" type="checkbox" id="@order.OrderNumber">@order.OrderNumber</label></td>
+                                <td style="vertical-align: middle; width: 300px;" class="mobile-hide">@order.OrderName от @order.FormingDateTime</td>
+                                <td style="vertical-align: middle">@order.DeliveryDate.ToString("dd.MM.yyyy")</td>
+                                <td style="vertical-align: middle" class="mobile-hide">@order.UserName</td>
 
                                 @{
                                     double? totalOrderPrice = 0;
@@ -249,36 +249,36 @@
                                         }
                                     }
 
-                                    <td class="mobile-hide">Сумма заказа: @Math.Round((float)totalOrderPrice, 2) руб.</td>
+                                    <td style="vertical-align: middle" class="mobile-hide">Сумма заказа: @Math.Round((float)totalOrderPrice, 2) руб.</td>
                                    
                                 }
 
                                 @if (canEdit & User.IsInRole("forders_edit"))
                                 {
-                                    <td width="50px"><label class="md-edit ico" onclick="orderEdit(@order.OrderNumber)"><br /></label></td>
-                                    <td width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
+                                    <td style="vertical-align: middle" width="50px"><label class="md-edit ico" onclick="orderEdit(@order.OrderNumber)"><br /></label></td>
+                                    <td style="vertical-align: middle" width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
                                 }
                                 else
                                 {
                                     if (User.IsInRole("forders_edit") & User.IsInRole("forders_historyedit"))
                                     {
-                                        <td width="50px"><label class="md-content-copy ico" onclick="orderCopy(@order.OrderNumber)"><br /></label></td>
-                                        <td width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
+                                        <td style="vertical-align: middle" width="50px"><label class="md-content-copy ico" onclick="orderCopy(@order.OrderNumber)"><br /></label></td>
+                                        <td style="vertical-align: middle" width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
 
                                     }
                                     else
                                     {
                                         if (User.IsInRole("forders_edit"))
                                         {
-                                            <td><label class="ico"></label></td>
-                                            <td width="50px"><label class="md-content-copy ico" onclick="orderCopy(@order.OrderNumber)"><br /></label></td>
+                                            <td style="vertical-align: middle"><label class="ico"></label></td>
+                                            <td style="vertical-align: middle" width="50px"><label class="md-content-copy ico" onclick="orderCopy(@order.OrderNumber)"><br /></label></td>
                                         }
                                         else
                                         {
                                             if (User.IsInRole("forders_historyedit"))
                                             {
-                                                <td><label class="ico"></label></td>
-                                                <td width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
+                                                <td style="vertical-align: middle"><label class="ico"></label></td>
+                                                <td style="vertical-align: middle" width="50px"><label class="md-delete ico" onclick="orderDelete(@order.OrderNumber)"><br /></label></td>
                                             }
                                             else
                                             {
@@ -299,18 +299,18 @@
 
 
                                 <tr class="hidden items_@order.OrderNumber">
-                                    <td class="mobile-hide">@item.Article</td>
-                                    <td style="text-align:center">@item.Count ед.</td>
-                                    <td colspan="2">@item.SKU</td>
-                                    <td>@totalItems ед. в этом месяце</td>
+                                    <td style="vertical-align: middle" class="mobile-hide">@item.Article</td>
+                                    <td style="text-align:center;vertical-align: middle">@item.Count ед.</td>
+                                    <td style="vertical-align: middle" colspan="2">@item.SKU</td>
+                                    <td style="vertical-align: middle">@totalItems ед. в этом месяце</td>
 
                                     @if (totalPriceItems != 0)
                                     {
                                         var totalPrice = item.Count * (float)Model.forders.Where(x => x.TTCode == item.TTCode).Where(x => x.SKU == item.SKU).Where(x => x.LastPrice != null).FirstOrDefault().LastPrice;
-                                        <td class="mobile-hide" colspan="2">@Math.Round(totalPrice, 2) руб.</td>
+                                        <td style="vertical-align: middle" class="mobile-hide" colspan="2">@Math.Round(totalPrice, 2) руб.</td>
                                     } else
                                     {
-                                        <td colspan="2" class="mobile-hide">Стоимость не указана</td>
+                                        <td style="vertical-align: middle" colspan="2" class="mobile-hide">Стоимость не указана</td>
                                     }
 
                                     
