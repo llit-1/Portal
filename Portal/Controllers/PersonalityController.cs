@@ -296,7 +296,7 @@ namespace Portal.Controllers
                     personalityVersion.Personalities.INN = personalityJson.INN;
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                     personalityVersion.Personalities.Email = personalityJson.Email;
-
+                    personalityVersion.PartTimer = personalityJson.PartTimer;
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }

@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models.MSSQL.Personality
 {
@@ -12,5 +12,12 @@ namespace Portal.Models.MSSQL.Personality
         public string Name { get; set; }
         public TimeSpan BeginTime { get; set; }
         public TimeSpan EndTime { get; set; }
+
+        [Column("JobTitle")]
+        public Guid JobTitleGuid { get; set; }
+
+        [ForeignKey("JobTitleGuid")]
+        public JobTitle JobTitle { get; set; }
+
     }
 }

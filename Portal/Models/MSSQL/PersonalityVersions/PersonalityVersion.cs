@@ -25,5 +25,6 @@ namespace Portal.Models.MSSQL.PersonalityVersions
         public int Actual { get; set; }
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public int? PartTimer { get; set; }
     }
 }
