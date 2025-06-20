@@ -12,7 +12,7 @@
             public string Surname { get; set; }
             public string Patronymic { get; set; }
             public DateTime BirthDate { get; set; }
-            public Guid JobTitle { get; set; }
+            public Guid? JobTitle { get; set; }
             public Guid Location { get; set; }
             public DateTime HireDate { get; set; }
             public DateTime? DismissalsDate { get; set; }
@@ -29,6 +29,6 @@
             public string INN { get; set; }
             public string Email { get; set; }
             public int PartTimer { get; set; }
-    }
+        }
     }
 

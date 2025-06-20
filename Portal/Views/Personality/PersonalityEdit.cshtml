@@ -9,16 +9,17 @@
         {
             <h3>Данные пользователя</h3>
         }
-        else
-        {
+        else {
+
             <h3>Данные версии пользователя</h3>
+
         }
 
         @if(@Model.NewPerson != null)
         {
             <input class="hidden" id="NewPerson" value="@Model.NewPerson"/>
         }
-        
+
         <!--Выпадающий список состояний работника-->
         @if (Model?.PersonalitiesVersions == null || Model.PersonalitiesVersions?.Actual == 1)
         {
@@ -64,16 +65,44 @@
                     <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.PersonalitiesVersions.Patronymic">
                     <label class="label-light">Дата рождения</label>
                     <input required type="date" min="1900-01-01" max="2010-01-01" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
+
+                    <label class="label-light">Парт-таймер</label>
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="partTimerId" class="inputPersonData" data-width="100%" value="">
+                            @if (Model.PersonalitiesVersions.PartTimer != null && Model.PersonalitiesVersions.PartTimer == 1)
+                            {
+                                <option selected value="1">Да</option>
+                                <option value="0">Нет</option>
+                            } else {
+                                <option value="1">Да</option>
+                                <option selected value="0">Нет</option>
+                            }
+
+
+                        </select>
+                    </div>
+
                     <label class="label-light">Должность</label>
                     <input type="hidden" id="personGUID" value="@Model.PersonalitiesVersions.Personalities.Guid">
                     <input type="hidden" id="personVersionGUID" value="@Model.PersonalitiesVersions.Guid">
 
+
+                    @{
+                        var disabled = false;
+                        if(Model.PersonalitiesVersions.PartTimer != null && Model.PersonalitiesVersions.PartTimer == 1)
+                        {
+                            disabled = true;
+                        }
+                    }
+
                     @* Выбор должности *@
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.JobTitle.Name">
-                            @if (Model.JobTitles.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.JobTitle.Guid) != null)
+                        <select disabled="@disabled" required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.JobTitle?.Name">
+                            @if (Model.JobTitles.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.JobTitle?.Guid) != null)
                             {
                                 <option value="@Model.PersonalitiesVersions.JobTitle.Guid" selected>@Model.PersonalitiesVersions.JobTitle.Name</option>
+                            } else {
+                                <option selected></option>
                             }
                             @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
                             {
@@ -112,16 +141,16 @@
                     <label class="label-light">Время смены</label>
                     @* Выбор смены *@
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Schedule.Name">
+                        <select disabled="@disabled" required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Schedule?.Name">
                             @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
                             {
-                                if (schedule.BeginTime == Model.PersonalitiesVersions.Schedule.BeginTime && schedule.EndTime == Model.PersonalitiesVersions.Schedule.EndTime && schedule.Name == Model.PersonalitiesVersions.Schedule.Name)
+                                if (schedule.BeginTime == Model.PersonalitiesVersions.Schedule?.BeginTime && schedule.EndTime == Model.PersonalitiesVersions.Schedule?.EndTime && schedule.Name == Model.PersonalitiesVersions.Schedule?.Name)
                                 {
                                     <option selected="selected" value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
                                 }
                                 else
                                 {
-                                    if (Model.PersonalitiesVersions.Schedule.Name == schedule.Name)
+                                    if (Model.PersonalitiesVersions.Schedule?.Name == schedule.Name)
                                     {
                                         <option value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
                                     }
@@ -148,11 +177,6 @@
                     <label class="label-light">СНИЛС</label>
                     <input type="text" class="inputPersonData" placeholder="Введите СНИЛС" id="SNILSPerson" value="@Model.PersonalitiesVersions.Personalities?.SNILS">
 
-
-                </div>
-
-                <div class='rightBlockPersonData'>
-                    @* Выбор Юр. лица разнесения затрат *@
                     <label class="label-light">Юр. лицо разнесения затрат</label>
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                         <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
@@ -166,6 +190,11 @@
                             }
                         </select>
                     </div>
+                </div>
+
+                <div class='rightBlockPersonData'>
+                    @* Выбор Юр. лица разнесения затрат *@
+                    
 
                     @if(Model.NewPerson == "1")
                     {
@@ -250,6 +279,15 @@
                     <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
                     <label class="label-light">Дата рождения</label>
                     <input required type="date" class="inputPersonData" id="birthDatePerson" min="1900-01-01" max="2010-01-01">
+
+                    <label class="label-light">Парт-таймер</label>
+                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                        <select required id="partTimerId" class="inputPersonData" data-width="100%" value="">
+                            <option value="1">Да</option>
+                            <option selected value="0">Нет</option>
+                        </select>
+                    </div>
+
                     <label class="label-light">Должность</label>
                     <input required type="hidden" id="personGUID" value="0">
 
@@ -266,8 +304,6 @@
                                 {
                                     <option value="@jobTitle.Guid">@jobTitle.Name</option>
                                 }
-                                    
-
                             }
                         </select>
                     </div>
@@ -329,19 +365,21 @@
 
                     <label class="label-light">СНИЛС</label>
                     <input type="text" class="inputPersonData" placeholder="Введите СНИЛС" id="SNILSPerson" value="">
-                </div>
 
-                <div class='rightBlockPersonData'>
-                    @* Выбор Юр. лица *@
                     <label class="label-light">Юр. лицо разнесения затрат</label>
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
                         <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
                             @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
                             {
-                                    <option selected="selected" value="@entity.Guid">@entity.Name</option>
+                                <option selected="selected" value="@entity.Guid">@entity.Name</option>
                             }
                         </select>
                     </div>
+                </div>
+
+                <div class='rightBlockPersonData'>
+                    @* Выбор Юр. лица *@
+                    
                     @if(Model.NewPerson == "1")
                     {
                     <label class="label-light hidden">Период действия версии</label>
@@ -592,11 +630,11 @@
         Personality.Surname = $('#surnamePerson').val().trim();
         Personality.Patronymic = $('#patronymicPerson').val().trim();
         Personality.BirthDate = $('#birthDatePerson').val();
-        Personality.JobTitle = $('#jobTitlePerson').val();
+        Personality.JobTitle = $('#jobTitlePerson').val() ? $('#jobTitlePerson').val() : null();
         Personality.location = $('#TTPerson').val();
         Personality.HireDate = $('#HireDate').val();
         Personality.DismissalsDate = $('#DismissalsDate').val();
-        Personality.Schedule = $('#ScheduleGUID').val();
+        Personality.Schedule = $('#ScheduleGUID').val() ? $('#ScheduleGUID').val() : null();
         Personality.Actual = $('.actual').val();
         const EntityGUID = document.getElementById('EntityGUID').value;
         const EntityCostGUID = document.getElementById('EntityCostGUID').value;
@@ -608,6 +646,7 @@
         Personality.VersionEndDate = $('#VersionEndDate').val();
         Personality.Tel = $('#tel').val().trim();
         Personality.Email = $("#email").val().trim();
+        Personality.PartTimer = $("#partTimerId").val().trim();
 
         if(Personality.Email.length < 2)
         {
@@ -690,6 +729,21 @@
         });
     })
 
+    const partTimerId = document.getElementById("partTimerId").addEventListener('change', (e) => {
+        console.log(e.target.value)
+        if(e.target.value == "1")
+        {
+            ScheduleGUID.disabled = true;
+            ScheduleGUID.value = null;
+            jobTitlePerson.disabled = true;
+            jobTitlePerson.value = null;
+        } else {
+            ScheduleGUID.disabled = false;
+            jobTitlePerson.disabled = false;
+        }
+    })
+
+
     // Ограничение минимума конца версии
     VersionStartDate.addEventListener('input', () => {
         VersionEndDate.min = VersionStartDate.value;
@@ -712,11 +766,11 @@
         Personality.Surname = $('#surnamePerson').val().trim();
         Personality.Patronymic = $('#patronymicPerson').val().trim();
         Personality.BirthDate = $('#birthDatePerson').val();
-        Personality.JobTitle = $('#jobTitlePerson').val();
+        Personality.JobTitle = $('#jobTitlePerson').val() ? $('#jobTitlePerson').val() : null;
         Personality.location = $('#TTPerson').val();
         Personality.HireDate = $('#HireDate').val();
         Personality.DismissalsDate = $('#DismissalsDate').val();
-        Personality.Schedule = $('#ScheduleGUID').val();
+        Personality.Schedule = $('#ScheduleGUID').val() ? $('#ScheduleGUID').val() : null;
         Personality.Actual = $('.actual').val();
         Personality.VersionStartDate = $('#VersionStartDate').val();
         Personality.VersionEndDate = $('#VersionEndDate').val();
@@ -734,6 +788,7 @@
         }
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
+        Personality.PartTimer = $("#partTimerId").val().trim();
 
         const json = JSON.stringify(Personality)
         $.ajax({

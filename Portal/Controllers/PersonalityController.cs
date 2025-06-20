@@ -101,7 +101,7 @@ namespace Portal.Controllers
 
             // Выбор нужных записей для страницы
             List<PersonalityModel> models = new List<PersonalityModel> ();
-            List<Personality> personalities;
+            List<Personality> personalities = new List<Personality>();
             
             /* Считаем кол-во уникальных сотрудников */
             int countPage = dbSql.Personalities.Count();
@@ -113,10 +113,31 @@ namespace Portal.Controllers
             }
             else
             {
-                personalities = dbSql.Personalities.AsEnumerable()
-                                                   .Where(x => string.Join("", x.Name.Split(" ", StringSplitOptions.RemoveEmptyEntries).Take(2))
-                                                   .ToLower().Contains(searchItem.ToLower()))
+                List<PersonalityVersion> persons = new List<PersonalityVersion> ();
+                List<PersonalityVersion> personsLocation = new List<PersonalityVersion>();
+
+                persons = dbSql.PersonalityVersions.Include(x => x.Personalities)
+                                                   .AsEnumerable()
+                                                   .GroupBy(x => x.Personalities.Guid)
+                                                   .Select(g => g.OrderByDescending(x => x.VersionStartDate).First())
+                                                   .Where(x => (x.Surname + x.Name + x.Patronymic).ToLower().Contains(searchItem.ToLower()))
                                                    .ToList();
+
+
+                personsLocation = dbSql.PersonalityVersions.Include(x => x.Personalities)
+                                                   .Include(x => x.Location)
+                                                   .AsEnumerable()
+                                                   .GroupBy(x => x.Personalities.Guid)
+                                                   .Select(g => g.OrderByDescending(x => x.VersionStartDate).First())
+                                                   .Where(x => x.Location.Name.ToLower().Contains(searchItem.ToLower()))
+                                                   .ToList();
+
+                persons.AddRange(personsLocation);
+
+                personalities = persons.Select(x => x.Personalities)
+                                       .GroupBy(p => p.Guid)
+                                       .Select(g => g.First())
+                                       .ToList();
 
                 if (personalities.Count != 0)
                 {
@@ -153,7 +174,9 @@ namespace Portal.Controllers
                                                               .Include(c => c.Personalities)
                                                               .Include(c => c.Schedule)
                                                               .Include(c => c.Entity)
-                                                              .FirstOrDefault(c => c.Personalities.Guid == person.Guid && c.VersionEndDate == null);             
+                                                              .Where(x => x.Personalities == person)
+                                                              .OrderByDescending(x => x.VersionStartDate)
+                                                              .FirstOrDefault();
 
                 PersonalityModel model = new PersonalityModel();
                 model.maxPage = maxPage;
@@ -260,17 +283,23 @@ namespace Portal.Controllers
 
                     if(personalityJson.SNILS != "" && dbSql.Personalities.FirstOrDefault(x => x.SNILS == personalityJson.SNILS) != null)
                     {
-                        return BadRequest("Пользователь с таким снилсом уже существует");
+                        var person = dbSql.Personalities.FirstOrDefault(x => x.SNILS == personalityJson.SNILS);
+                        var personVersion = dbSql.PersonalityVersions.FirstOrDefault(x => x.Personalities == person);
+                        return BadRequest("Указанный снилс уже закреплен за " + personVersion.Surname + " " + personVersion.Name + " " + personVersion.Patronymic);
                     }
 
                     if (personalityJson.INN != "" && dbSql.Personalities.FirstOrDefault(x => x.INN == personalityJson.INN) != null)
                     {
-                        return BadRequest("Пользователь с таким ИНН уже существует");
+                        var person = dbSql.Personalities.FirstOrDefault(x => x.INN == personalityJson.INN);
+                        var personVersion = dbSql.PersonalityVersions.FirstOrDefault(x => x.Personalities == person);
+                        return BadRequest("Указанный ИНН уже закреплен за " + personVersion.Surname + " " + personVersion.Name + " " + personVersion.Patronymic);
                     }
 
                     if (personalityJson.Email != null && dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email) != null)
                     {
-                        return BadRequest("Пользователь с таким Email уже существует");
+                        var person = dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email);
+                        var personVersion = dbSql.PersonalityVersions.FirstOrDefault(x => x.Personalities == person);
+                        return BadRequest("Указанный Email уже закреплен за " + personVersion.Surname + " " + personVersion.Name + " " + personVersion.Patronymic);
                     }
 
                     dbSql.Add(personality);
@@ -280,11 +309,15 @@ namespace Portal.Controllers
                     personalityVersion.Name = personalityJson.Name;
                     personalityVersion.Surname = personalityJson.Surname;
                     personalityVersion.Patronymic = personalityJson.Patronymic;
-                    personalityVersion.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                    personalityVersion.JobTitle = personalityJson.JobTitle.HasValue
+                                                                                    ? dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle)
+                                                                                    : null;
                     personalityVersion.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
                     personalityVersion.HireDate = personalityJson.HireDate;
                     personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
-                    personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                    personalityVersion.Schedule = personalityJson.Schedule.HasValue
+                                                                                ? dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule)
+                                                                                : null;
                     personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                     personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                     DateTime now = DateTime.Now;
@@ -319,11 +352,15 @@ namespace Portal.Controllers
                     personalityVersion.Name = personalityJson.Name;
                     personalityVersion.Surname = personalityJson.Surname;
                     personalityVersion.Patronymic = personalityJson.Patronymic;
-                    personalityVersion.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                    personalityVersion.JobTitle = personalityJson.JobTitle.HasValue
+                                                                                    ? dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle)
+                                                                                    : null;
                     personalityVersion.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
                     personalityVersion.HireDate = personalityJson.HireDate;
                     personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
-                    personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                    personalityVersion.Schedule = personalityJson.Schedule.HasValue
+                                                                                ? dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule)
+                                                                                : null;
                     personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                     personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                     personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
@@ -336,6 +373,7 @@ namespace Portal.Controllers
                     personalityVersion.Personalities.INN = personalityJson.INN;
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                     personalityVersion.Personalities.Email = personalityJson.Email;
+                    personalityVersion.PartTimer = personalityJson.PartTimer;
 
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
@@ -356,15 +394,21 @@ namespace Portal.Controllers
             try
             {
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
-                PersonalityVersion personalityVersion = dbSql.PersonalityVersions.FirstOrDefault(c => c.Guid == personalityJson.Guid);
+                PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(p => p.JobTitle)
+                                                                                 .Include(p => p.Schedule)
+                                                                                 .FirstOrDefault(c => c.Guid == personalityJson.Guid);
                 personalityVersion.Name = personalityJson.Name;
                 personalityVersion.Surname = personalityJson.Surname;
                 personalityVersion.Patronymic = personalityJson.Patronymic;
-                personalityVersion.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle);
+                personalityVersion.JobTitle = personalityVersion.JobTitle = personalityJson.JobTitle.HasValue
+                                                                                    ? dbSql.JobTitles.FirstOrDefault(c => c.Guid == personalityJson.JobTitle)
+                                                                                    : null;
                 personalityVersion.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == personalityJson.Location);
                 personalityVersion.HireDate = personalityJson.HireDate;
                 personalityVersion.DismissalsDate = personalityJson.DismissalsDate;
-                personalityVersion.Schedule = dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule);
+                personalityVersion.Schedule = personalityJson.Schedule.HasValue
+                                                                                ? dbSql.Schedules.FirstOrDefault(c => c.Guid == personalityJson.Schedule)
+                                                                                : null;
                 personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                 personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                 personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
@@ -376,6 +420,7 @@ namespace Portal.Controllers
                 personalityVersion.Personalities.Email = personalityJson.Email;
                 personalityVersion.Personalities.INN = personalityJson.INN;
                 personalityVersion.Personalities.SNILS = personalityJson.SNILS;
+                personalityVersion.PartTimer = personalityJson.PartTimer;
 
                 List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                              .ToList();

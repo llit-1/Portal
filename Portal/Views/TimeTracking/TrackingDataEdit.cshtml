@@ -55,12 +55,20 @@
                         <tr class="personList hidden">
                             <td class="hidden">@item.Personalities.Guid</td>
                             <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
-                            <td>@item.JobTitle.Name</td>
-                            <td class="hidden">@item.JobTitle.Guid</td>
+                            @if(item.PartTimer == 0 || item.PartTimer == null)
+                            {
+                                <td>@item.JobTitle?.Name</td>
+                                <td class="hidden">@item.JobTitle?.Guid</td>
+                            } else {
+                                <td>Парт-таймер</td>
+                                <td class="hidden">0</td>
+                            }
+                            
+                            
                             <td class="hidden">@item.Location.Guid</td>
                             <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
-                            <td class="hidden">@item.Schedule.BeginTime</td>
-                            <td class="hidden">@item.Schedule.EndTime</td>
+                            <td class="hidden">@item.Schedule?.BeginTime</td>
+                            <td class="hidden">@item.Schedule?.EndTime</td>
                         </tr>
                     }
                 } else {
@@ -69,12 +77,22 @@
                         <tr class="personList hidden">
                             <td class="hidden">@item.Personalities.Guid</td>
                             <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
-                            <td>@item.JobTitle.Name</td>
-                            <td class="hidden">@item.JobTitle.Guid</td>
+
+                            @if (item.PartTimer == 0 || item.PartTimer == null)
+                            {
+                                <td>@item.JobTitle?.Name</td>
+                                <td class="hidden">@item.JobTitle?.Guid</td>
+                            }
+                            else
+                            {
+                                <td>Парт-таймер</td>
+                                <td class="hidden">0</td>
+                            }
+
                             <td class="hidden">@item.Location.Guid</td>
                             <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
-                            <td class="hidden">@item.Schedule.BeginTime</td>
-                            <td class="hidden">@item.Schedule.EndTime</td>
+                            <td class="hidden">@item.Schedule?.BeginTime</td>
+                            <td class="hidden">@item.Schedule?.EndTime</td>
                         </tr>
                     }
                 }
@@ -105,12 +123,12 @@
                                 <tr>
                                     <th class="hidden guidForError">@item.Personalities.Guid</th>
                                     <th class="newRowAlign">@item.Personalities.Name</th>
-                                    <th class="hidden">@item.JobTitle.Guid</th>
+                                    <th class="hidden">@item.JobTitle?.Guid</th>
                                     <th class="newRowAlign">
                                         <select name="" id="selectJobTitle" class="selectJobTitle">
                                             @foreach (var job in Model.JobTitles)
                                             {
-                                                if (job.Name == item.JobTitle.Name)
+                                                if (job.Name == item.JobTitle?.Name)
                                                 {
                                                     <option value="@job.Guid" selected>@job.Name</option>
                                                 }
@@ -151,7 +169,7 @@
                                             <select name="" id="selectJobTitle" class="selectJobTitle">
                                                 @foreach (var job in Model.JobTitles)
                                                 {
-                                                    if (job.Name == item.JobTitles.Name)
+                                                    if (job.Name == item.JobTitles?.Name)
                                                     {
                                                         <option value="@job.Guid" selected>@job.Name</option>
                                                     }
@@ -166,7 +184,7 @@
                                             <select name="" id="selectJobTitle" class="selectJobTitle">
                                                 @foreach (var job in Model.JobTitles)
                                                 {
-                                                    if (job.Name == item.JobTitles.Name)
+                                                    if (job.Name == item.JobTitles?.Name)
                                                     {
                                                         <option value="@job.Guid" selected>@job.Name</option>
                                                     }
@@ -182,7 +200,7 @@
                                             <select name="" id="selectJobTitle" class="selectJobTitle" disabled>
                                                 @foreach (var job in Model.JobTitles)
                                                 {
-                                                    if (job.Name == item.JobTitles.Name)
+                                                    if (job.Name == item.JobTitles?.Name)
                                                     {
                                                         <option value="@job.Guid" selected>@job.Name</option>
                                                     }
@@ -479,6 +497,13 @@
                 if (str.children[3].textContent == jobTitle && str.children[4].textContent == ttguid) {
                     str.classList.remove('hidden');
                 }
+
+
+                if(str.children[3].textContent == 0 && jobTitle == "20975f74-e7d4-4152-f6bf-08dccc0eb665" && str.children[4].textContent == ttguid) {
+                    console.log(1)
+                    str.classList.remove('hidden');
+                }
+
             });
         }
     });

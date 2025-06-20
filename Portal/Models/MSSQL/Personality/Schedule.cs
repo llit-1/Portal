@@ -14,10 +14,10 @@ namespace Portal.Models.MSSQL.Personality
         public TimeSpan EndTime { get; set; }
 
         [Column("JobTitle")]
-        public Guid JobTitleGuid { get; set; }
+        public Guid? JobTitleGuid { get; set; }
 
         [ForeignKey("JobTitleGuid")]
-        public JobTitle JobTitle { get; set; }
+        public JobTitle? JobTitle { get; set; }
 
     }
 }

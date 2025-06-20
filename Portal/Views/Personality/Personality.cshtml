@@ -23,12 +23,12 @@
         <div class="tableMenu" id="tableMenu">
             
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
-                <input class="form-control-sm" id="personality_search" oninput="debounce(setupSearchInputHandler(), 750)" placeholder="Поиск" id="searchDatatable">
+                <input class="form-control-sm" id="personality_search" oninput="debounce(setupSearchInputHandler, 500)()" placeholder="Поиск" id="searchDatatable">
                 <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
             </div>
 
 
-            <div class="userActive">
+            <div class="userActive hidden">
                 <span class="textForCheckbox">Показать неактивных пользователей</span>
                 <label class="switch">
                     <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()">
@@ -150,36 +150,57 @@
 
     const debounceTimers = []; // Массив для хранения всех активных таймеров
 
+        // Храним последний AbortController для отмены запросов
+    let lastAbortController = null;
+
+    // Улучшенная версия debounce
     function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        // Отменяем предыдущий таймер
+        clearTimeout(timeoutId);
 
-        return function () {
-            // Сбрасываем все предыдущие таймеры
-            while (debounceTimers.length > 0) {
-                clearTimeout(debounceTimers.pop());
-            }
-            
-            const context = this;
-            const args = arguments;
+        // Отменяем предыдущий запрос, если он еще выполняется
+        if (lastAbortController) {
+          lastAbortController.abort();
+        }
 
-            const timer = setTimeout(() => {
-                func.apply(context, args);
-            }, delay);
+        // Создаем новый контроллер для текущего запроса
+        lastAbortController = new AbortController();
 
-            debounceTimers.push(timer); // Сохраняем текущий таймер
-        };
+        timeoutId = setTimeout(() => {
+          func.apply(this, [...args, lastAbortController.signal]);
+        }, delay);
+      };
     }
 
-    function setupSearchInputHandler() {
-        SpinnerShow();
-        const text = document.getElementById("personality_search").value
+    // Модифицированная функция поиска
+    function setupSearchInputHandler(signal) {
+      SpinnerShow();
+      const text = document.getElementById("personality_search").value;
 
-        fetch(`/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${text}`, {
-            method: "GET",
-        })
-        .then(response => response.text())
-        .then(data => {
-            $('#page').html(data);
-                SpinnerHide();
-        })
+      fetch(`/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${encodeURIComponent(text)}`, {
+        method: "GET",
+        signal: signal // Передаем signal для возможной отмены
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.text();
+      })
+      .then(data => {
+        if (!signal.aborted) { // Проверяем не был ли запрос отменен
+          $('#page').html(data);
+        }
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('Fetch error:', err);
+        }
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          SpinnerHide();
+        }
+      });
     }
 </script>

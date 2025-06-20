@@ -12,7 +12,7 @@ namespace Portal.Models.MSSQL.PersonalityVersions
         public string Name { get; set; }
         public string Surname { get; set; }
         public string? Patronymic { get; set; }
-        public Personality.JobTitle JobTitle { get; set; }
+        public Personality.JobTitle? JobTitle { get; set; }
         public Location.Location Location { get; set; }
         public DateTime HireDate { get; set; }
         public DateTime? DismissalsDate { get; set; }
