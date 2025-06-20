@@ -630,11 +630,11 @@
         Personality.Surname = $('#surnamePerson').val().trim();
         Personality.Patronymic = $('#patronymicPerson').val().trim();
         Personality.BirthDate = $('#birthDatePerson').val();
-        Personality.JobTitle = $('#jobTitlePerson').val() ? $('#jobTitlePerson').val() : null();
+        Personality.JobTitle = $('#jobTitlePerson').val() ? $('#jobTitlePerson').val() : null;
         Personality.location = $('#TTPerson').val();
         Personality.HireDate = $('#HireDate').val();
         Personality.DismissalsDate = $('#DismissalsDate').val();
-        Personality.Schedule = $('#ScheduleGUID').val() ? $('#ScheduleGUID').val() : null();
+        Personality.Schedule = $('#ScheduleGUID').val() ? $('#ScheduleGUID').val() : null;
         Personality.Actual = $('.actual').val();
         const EntityGUID = document.getElementById('EntityGUID').value;
         const EntityCostGUID = document.getElementById('EntityCostGUID').value;
@@ -712,10 +712,10 @@
     }
 
     jobTitlePerson.addEventListener('input', () => {
-        jobTitlePersonValue = jobTitlePerson.options[jobTitlePerson.selectedIndex].text;
+        jobTitlePersonValue = jobTitlePerson.options[jobTitlePerson.selectedIndex].value;
         $.ajax({
             type: 'POST',
-            url: `/Personality/GetScheduleList?jobTitleName=${jobTitlePersonValue}`,
+            url: `/Personality/GetScheduleList?jobTitleGuid=${jobTitlePersonValue}`,
             data: { name: jobTitlePersonValue },
             success: function (data) {
                 ScheduleGUID.disabled = false;

@@ -250,9 +250,9 @@ namespace Portal.Controllers
 
         /* Получение списка зависимостей Должностей\Тайм-слотов */
         [HttpPost]
-        public IActionResult GetScheduleList(string jobTitleName)
+        public IActionResult GetScheduleList(string jobTitleGuid)
         {
-            var result = dbSql.Schedules.Where(x => x.Name == jobTitleName).OrderBy(x => x.BeginTime).ToList();
+            var result = dbSql.Schedules.Where(x => x.JobTitleGuid == Guid.Parse(jobTitleGuid)).OrderBy(x => x.BeginTime).ToList();
             return Json(result);
         }
 

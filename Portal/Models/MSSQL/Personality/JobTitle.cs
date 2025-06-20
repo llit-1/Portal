@@ -10,5 +10,6 @@ namespace Portal.Models.MSSQL.Personality
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Guid { get; set; }
         public string Name { get; set; }
+        public int SEQUENCE { get; set; }
     }
 }
