@@ -154,7 +154,7 @@
                                 <tr class='row-group-03 hidden person_@day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid'>
                                     <td class="hidden">@person.Guid</td>
                                     <td style="vertical-align: middle;" align="left">@person.Personalities.Name</td>
-                                    <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitle.Name</td>
+                                    <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitle?.Name</td>
                                 <td style="text-align:center; vertical-align: middle;" align="center">
                                         @{
                                             double totalHours = 0;
@@ -207,7 +207,7 @@
                                     }
 
                                     <td style="text-align:center; vertical-align: middle;" align="center"></td>
-                                    <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitles.Name</td>
+                                    <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitles?.Name</td>
                                     <td style="text-align:center; vertical-align: middle;" align="center"></td>
                                     <td align="right">@person.Begin.ToString("HH:mm") - @person.End.ToString("HH:mm") </td>
                                 </tr>
