@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Office2019.Excel.RichData2;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ namespace Portal.Controllers
             dbSql = dbSqlContext;
         }
 
-
+        [Authorize(Roles = "HR")]
         public IActionResult Personality()
         {
             return PartialView();
@@ -92,6 +93,7 @@ namespace Portal.Controllers
         }
 
         /* Отображение таблицы с сотрудниками, принимает актуальность, номер страницы и\или отдельно взятого пользователя */
+        [Authorize(Roles = "HR")]
         public IActionResult PersonalityTable(string showUnActual, string page, string searchItem)
         {
             if(int.Parse(page) == 1)
@@ -191,6 +193,7 @@ namespace Portal.Controllers
         }
 
         /* Редактирование карточки сотрудника */
+        [Authorize(Roles = "HR")]
         public IActionResult PersonalityEdit(string typeGuid, string newPerson)
         {
             PersonalityEditModel model = new();
@@ -257,6 +260,7 @@ namespace Portal.Controllers
         }
 
         /* Добавление сотрудника */
+        [Authorize(Roles = "HR")]
         public IActionResult PersonalityAdd(string json)
         {
             var result = new Result<string>();
@@ -388,6 +392,7 @@ namespace Portal.Controllers
             }
         }
 
+        [Authorize(Roles = "HR")]
         public IActionResult PersonalityPut(string json)
         {
             var result = new Result<string>();
