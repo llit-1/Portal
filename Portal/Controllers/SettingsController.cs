@@ -131,7 +131,7 @@ namespace Portal.Controllers
             {
                 DateTime today = DateTime.Now;
                 string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
-                string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
+                string connectionString = "Data Source=RKSQL.shzhleb.ru\\SQL2019; Initial Catalog=RKNET; User ID=rk7; Password=wZSbs6NKl2SF";
 
                 using (var connection = new SqlConnection(connectionString))
                 {
