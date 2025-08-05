@@ -125,13 +125,13 @@ namespace Portal.Controllers
             }
         }
 
-        private async Task ExecuteUpdateSaleObjectsAsync(string daysAgo)
+        private async Task<IActionResult> ExecuteUpdateSaleObjectsAsync(string daysAgo)
         {
             try
             {
                 DateTime today = DateTime.Now;
                 string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
-                string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
+                string connectionString = "Data Source=RKSQL.shzhleb.ru\\SQL2019; Initial Catalog=RKNET; User ID=rk7; Password=wZSbs6NKl2SF";
 
                 using (var connection = new SqlConnection(connectionString))
                 {
@@ -142,10 +142,12 @@ namespace Portal.Controllers
                         await command.ExecuteNonQueryAsync();
                     }
                 }
+
+                return Ok();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при выполнении UpdateSaleobjects: {ex.Message}");
+                return StatusCode(500, $"Ошибка: {ex.Message}");
             }
         }
 

@@ -71,8 +71,7 @@
 
 
     <div class="wrapperForButtons">
-        <button value="10" class="mySwitchButton mySwitchButton_1 active">1-10</button>
-        <button value="20" class="mySwitchButton mySwitchButton_2">11-20</button>
+        <button value="15" class="mySwitchButton mySwitchButton_1 active">1-15</button>
         <button value="@currentMonthDays" class="mySwitchButton mySwitchButton_3">21-@currentMonthDays</button>
     </div>
 
@@ -167,7 +166,7 @@
             count = 1;
         }
         <tr id="addPersonButton" onclick="addRowForNewPerson()">
-            <td colspan="30">
+            <td colspan="50">
                 <p class="addPerson">+</p>
             </td>
         </tr>
@@ -181,7 +180,7 @@
             document.querySelectorAll('.mySwitchButton').forEach(y => y.classList.remove('active'))
             x.classList.add('active')
 
-            const count = e.target.value == 31 ? 21 : +e.target.value - 9
+            const count = e.target.value == 31 ? 16 : +e.target.value - 14
             document.querySelectorAll('.thday').forEach(x => x.classList.add('hidden'))
             document.querySelectorAll('.upperthday').forEach(x => x.classList.add('hidden'))
             let max = +event.target.value;
@@ -431,7 +430,7 @@
         for (let i = 1; i <= currentMonthDays * 2; i++) {
             let dayCell = document.createElement('td');
             dayCell.classList.add('dayTable', `day_${i}`);
-            if (i > 20) {
+            if (i > 30) {
                 dayCell.classList.add('hidden');
             }
             let input = document.createElement('input');
@@ -479,7 +478,7 @@
         addButtonRow.onclick = addRowForNewPerson;
 
         let addButtonCell = document.createElement('td');
-        addButtonCell.colSpan = 30;
+        addButtonCell.colSpan = 50;
 
         let addButton = document.createElement('p');
         addButton.classList.add('addPerson');
@@ -554,7 +553,7 @@
         for (let i = 1; i <= @currentMonthDays * 2; i++) {
             let dayCell = document.createElement('td');
             dayCell.classList.add('dayTable', `day_${i}`);
-            if (i > 20) {
+            if (i > 30) {
                 dayCell.classList.add('hidden');
             }
             let input = document.createElement('input');
@@ -589,7 +588,7 @@
         addButtonRow.onclick = addRowForNewPerson;
 
         let addButtonCell = document.createElement('td');
-        addButtonCell.colSpan = 30;
+        addButtonCell.colSpan = 50;
 
         let addButton = document.createElement('p');
         addButton.classList.add('addPerson');

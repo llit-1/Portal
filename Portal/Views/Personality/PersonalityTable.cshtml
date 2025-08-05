@@ -44,7 +44,13 @@
                                                 <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
                                             </td>
                                             <td class="tdPersonTable">
-                                                <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle?.Name</p>
+                                                @if(@Model[x].PersonalitiesVersions.JobTitle?.Name == null)
+                                                {
+                                                    <p class="text-muted">Парт-таймер</p>
+                                                } else {
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle?.Name</p>
+                                                }
+                                                
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted">@Model[x].PersonalitiesVersions.Location.Name</p>

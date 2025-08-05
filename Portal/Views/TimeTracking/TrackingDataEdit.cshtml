@@ -372,6 +372,18 @@
 
 <!-- Скрипт для заголовка -->
 <script>
+    // Убираем кнопку быстрого добавления из хедера
+    const header = document.querySelector(".header_stock_wrapper")
+    if(header)
+    {
+        header.classList.add("hidden")
+    }
+    const colorWrapper = document.querySelector(".selectorColorWrapper")
+    if(colorWrapper)
+    {
+        colorWrapper.classList.add("hidden")
+    }
+
     // Обновляем заголовок с датой и названием
     let tt = document.querySelector('.TTForHeader').textContent;
     let date = document.querySelector('.dateForHeader').textContent;
@@ -910,6 +922,7 @@
         sheduleData.TimeSheetJson = TimeSheetJson; // Добавляем журнал времени в данные расписания
         sheduleData.Date = date; // Добавляем дату в данные расписания
         sheduleData.Location = locationGuid.textContent; // Добавляем местоположение в данные расписания
+        console.log(sheduleData)
 
         const sheduleDataJSON = JSON.stringify(sheduleData); // Преобразуем данные в формат JSON
         $.ajax({
