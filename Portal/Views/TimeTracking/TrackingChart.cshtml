@@ -166,10 +166,6 @@
 
                             @for (var i = 0; i < item.shedules.Count; i++)
                             {
-                                @if (item.person.Name == "Дилбархон")
-                                {
-                                    Console.WriteLine();
-                                }
 
                                 if (item.shedules[i].duration == "0" || item.shedules[i].duration == null)
                                 {
@@ -244,29 +240,29 @@
                                             }
                                         </td>
                                     }
-                                    else if ((item.shedules[i].traitorStatus == 2 || helper == true) && item.shedules[i].location != Model.selectedLocation)
-                                    {
-                                        <td align="center" disabledfordelete="true" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
+                                    @* else if ((item.shedules[i].traitorStatus == 2) && item.shedules[i].location != Model.selectedLocation) *@
+                                    @* { *@
+                                    @*     <td align="center" disabledfordelete="true" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'> *@
 
-                                            @if (item.shedules[i].duration.Length > 12)
-                                            {
-                                                <div class="trackingChart_td multiShedule">
-                                                    <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
-                                                        @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
-                                                    </div>
+                                    @*          @if (item.shedules[i].duration.Length > 12)  *@
+                                    @*          {  *@
+                                    @*              <div class="trackingChart_td multiShedule">  *@
+                                    @*                  <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">  *@
+                                    @*                      @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]  *@
+                                    @*                  </div>  *@
 
-                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
-                                                        @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
-                                                    </div>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
-                                            }
+                                    @*                  <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">  *@
+                                    @*                      @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]  *@
+                                    @*                  </div>  *@
+                                    @*              </div>  *@
+                                    @*          }  *@
+                                    @*          else  *@
+                                    @*          {  *@
+                                    @*              <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div> *@
+                                    @*          }  *@
 
-                                        </td>
-                                    }
+                                    @*      </td> *@
+                                    @*  } *@
                                     else
                                     {
                                         <td id="@i" align="center" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
