@@ -71,8 +71,8 @@
                                 <td>Парт-таймер</td>
                                 <td class="hidden">0</td>
                             }
-                            
-                            
+
+
                             <td class="hidden">@item.Location.Guid</td>
                             <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
                             <td class="hidden">@item.Schedule?.BeginTime</td>
@@ -104,7 +104,7 @@
                         </tr>
                     }
                 }
-                
+
             </table>
         </div>
     </div>
@@ -245,84 +245,84 @@
                                     } else
                                     {
                                         <th class="newRowAlign">
-                                        <div class="custom-select" id="selectMini">
-                                            <div class="selected-option">
+                                            <div class="custom-select" id="selectMini">
+                                                <div class="selected-option">
 
-                                                @if (item.Status == 0)
+                                                    @if (item.Status == 0)
+                                                    {
+                                                        <img src="/pic/seach.png" id="0" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 1)
+                                                    {
+                                                        <img src="/pic/clock.png" id="1" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 2)
+                                                    {
+                                                        <img src="/pic/block.png" id="2" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 3)
+                                                    {
+                                                        <img src="/pic/close.png" id="3" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 4)
+                                                    {
+                                                        <img src="/pic/check.png" id="4" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 5)
+                                                    {
+                                                        <img src="/pic/ruble.png" id="5" alt="icon" />
+                                                    }
+                                                </div>
+
+                                                @if(User.IsInRole("time_tracking_administrator"))
                                                 {
-                                                    <img src="/pic/seach.png" id="0" alt="icon" />
-                                                }
-                                                else if (item.Status == 1)
+                                                    <ul class="options-list">
+                                                        <li data-value="0">
+                                                            <img src="/pic/seach.png" id="0" alt="icon" /> Сотрудник запрошен
+                                                        </li>
+                                                        <li data-value="1">
+                                                            <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
+                                                        </li>
+                                                        <li data-value="2">
+                                                            <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
+                                                        </li>
+                                                        <li data-value="3">
+                                                            <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
+                                                        </li>
+                                                        <li data-value="4">
+                                                            <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
+                                                        </li>
+                                                        <li data-value="5">
+                                                            <img src="/pic/ruble.png" id="5" alt="icon" /> Оплачена
+                                                        </li>
+                                                    </ul>
+                                                } else if(item.Status == 1 && item.End <= DateTime.Now)
                                                 {
-                                                    <img src="/pic/clock.png" id="1" alt="icon" />
-                                                }
-                                                else if (item.Status == 2)
-                                                {
-                                                    <img src="/pic/block.png" id="2" alt="icon" />
-                                                }
-                                                else if (item.Status == 3)
-                                                {
-                                                    <img src="/pic/close.png" id="3" alt="icon" />
-                                                }
-                                                else if (item.Status == 4)
-                                                {
-                                                    <img src="/pic/check.png" id="4" alt="icon" />
-                                                }
-                                                else if (item.Status == 5)
-                                                {
-                                                    <img src="/pic/ruble.png" id="5" alt="icon" />
+                                                    <ul class="options-list">
+
+                                                        <li data-value="1">
+                                                            <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
+                                                        </li>
+
+                                                        <li data-value="2">
+                                                            <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
+                                                        </li>
+
+                                                        <li data-value="3">
+                                                            <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
+                                                        </li>
+
+                                                        <li data-value="4">
+                                                            <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
+                                                        </li>
+
+                                                    </ul>
                                                 }
                                             </div>
-
-                                            @if(User.IsInRole("time_tracking_administrator"))
-                                            {
-                                                <ul class="options-list">
-                                                <li data-value="0">
-                                                    <img src="/pic/seach.png" id="0" alt="icon" /> Сотрудник запрошен
-                                                </li>
-                                                <li data-value="1">
-                                                    <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
-                                                </li>
-                                                <li data-value="2">
-                                                    <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
-                                                </li>
-                                                <li data-value="3">
-                                                    <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
-                                                </li>
-                                                <li data-value="4">
-                                                    <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
-                                                </li>
-                                                <li data-value="5">
-                                                    <img src="/pic/ruble.png" id="5" alt="icon" /> Оплачена
-                                                </li>
-                                                </ul>
-                                            } else if(item.Status == 1 && item.End <= DateTime.Now)
-                                            {
-                                                <ul class="options-list">
-
-                                                     <li data-value="1">
-                                                        <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
-                                                    </li>
-                                                
-                                                    <li data-value="2">
-                                                        <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
-                                                    </li>
-
-                                                     <li data-value="3">
-                                                        <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
-                                                    </li>
-
-                                                    <li data-value="4">
-                                                        <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
-                                                    </li>
-
-                                                </ul>
-                                            }
-                                        </div>
-                                    </th>
+                                        </th>
                                     }
 
-                                    
+
 
                                 </tr>
                             }
@@ -336,35 +336,30 @@
         <!--Кнопки сохранить/отмена-->
         <div class="col-4 trackingData_buttons" style="height:40px">
             <button class="btn btn-gray" href="javascript:void(0)" type="button" onclick="addRowPeronFromExchange()" style="float:right">Запросить на бирже</button>
-            <span id="hours"> 
+            <span id="hours">
                 @{
-                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ day.Hours пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
-                    int hours = (int)Model.Hours;
+                    double hours = Math.Round((double)Model.Hours, 2);
+                    int hoursInt = (int)Math.Floor(hours);
 
-                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
-                    string lastDigit = hours.ToString().Substring(hours.ToString().Length - 1);
+                    string stringHourse;
 
-                    string stringHourse = "";
-                }
-
-
-                @switch (lastDigit)
-                {
-                    case "1":
+                    if (hoursInt % 10 == 1 && hoursInt % 100 != 11)
+                    {
                         stringHourse = " час";
-                        break;
-                    case "2":
-                    case "3":
-                    case "4":
+                    }
+                    else if (new[] { 2, 3, 4 }.Contains(hoursInt % 10) && !(hoursInt % 100 >= 12 && hoursInt % 100 <= 14))
+                    {
                         stringHourse = " часа";
-                        break;
-                    default:
+                    }
+                    else
+                    {
                         stringHourse = " часов";
-                        break;
+                    }
                 }
 
-                Всего: @Model.Hours @stringHourse
+                Всего: @hours @stringHourse
             </span>
+
             <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="sendData()" style="float:right">Сохранить</button>
         </div>
     </div>
@@ -562,49 +557,42 @@
 <script>
 
     function calculateHours() {
-        const beginArr = document.querySelectorAll(".timeBeginForJSON") // '06:30'
-        const endArr = document.querySelectorAll(".timeEndForJSON") // 
+        const beginArr = document.querySelectorAll(".timeBeginForJSON");
+        const endArr = document.querySelectorAll(".timeEndForJSON");
 
-        let totalHours = 0;
+        let totalMinutes = 0;
 
-        for(let i = 0; i < beginArr.length; i++)
-        {
-            let end = endArr[i].value;
-            let endHours = end.split(":")[0]
-            let endMinutes = end.split(":")[1]
+        for (let i = 0; i < beginArr.length; i++) {
+            const [beginH, beginM] = beginArr[i].value.split(":").map(Number);
+            const [endH, endM] = endArr[i].value.split(":").map(Number);
 
-            let begin = beginArr[i].value
-            let beginHours = begin.split(":")[0]
-            let beginMinutes = begin.split(":")[1]
+            let startMinutes = beginH * 60 + beginM;
+            let finishMinutes = endH * 60 + endM;
 
-            if(endHours == "00")
-            {
-                totalHours += ((24 - +beginHours) * 60 + +endMinutes - +beginMinutes) / 60;
-            } else {
-                totalHours += ((+endHours - +beginHours) * 60 + +endMinutes - +beginMinutes) / 60;
+            // Если конец меньше начала — значит, это следующий день
+            if (finishMinutes <= startMinutes) {
+                finishMinutes += 24 * 60;
             }
-        }
-       
-        let endSwitch = String(totalHours).split("")[String(totalHours).length - 1]
 
-        totalHours.toFixed(2);
-
-        switch (endSwitch) {
-            case "1":
-                endSwitch = " час";
-                break;
-            case "2":
-            case "3":
-            case "4":
-                endSwitch = " часа";
-                break;
-            default:
-                endSwitch = " часов";
-                break;
+            totalMinutes += finishMinutes - startMinutes;
         }
 
-        document.getElementById("hours").textContent = "Всего: " + totalHours + endSwitch;
+        const totalHours = (totalMinutes / 60).toFixed(2);
+
+        // Правильное склонение слова "час"
+        const hoursInt = Math.floor(totalHours);
+        let endSwitch;
+        if (hoursInt % 10 === 1 && hoursInt % 100 !== 11) {
+            endSwitch = " час";
+        } else if ([2, 3, 4].includes(hoursInt % 10) && ![12, 13, 14].includes(hoursInt % 100)) {
+            endSwitch = " часа";
+        } else {
+            endSwitch = " часов";
+        }
+
+        document.getElementById("hours").textContent = `Всего: ${totalHours}${endSwitch}`;
     }
+
 
     // Функция для добавления новой строки с данными о сотруднике
     function addRowPeron(data) {

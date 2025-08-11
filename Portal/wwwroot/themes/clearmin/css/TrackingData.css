@@ -70,6 +70,16 @@
     vertical-align: middle !important;
     font-weight: 400;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 230px;
+}
+
+@media screen and (max-width: 488px) and (orientation: portrait) {
+    .newRowAlign {
+        white-space: wrap;
+    }
 }
 
     .newRowAlign > input {
