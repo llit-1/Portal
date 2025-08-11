@@ -175,7 +175,7 @@
                                 }
                                 else
                                 {
-                                    if ((item.shedules[i].traitorStatus == 0 || helper == true) && item.shedules[i].location == Model.selectedLocation)
+                                    if ((item.shedules[i].traitorStatus == 0) && item.shedules[i].location == Model.selectedLocation)
                                     {
                                         <td align="center" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
 
@@ -219,6 +219,7 @@
                                             }
                                         </td>
                                     }
+                                    // Если предатель на моей точке
                                     else if (item.shedules[i].traitorStatus == 2 && helper == false)
                                     {
                                         <td id="@i" disabledfordelete="true" align="center" title="Сотрудник работал на этой ТТ, а так же на @item.shedules[i].locationName" style="border: 2px solid red;background-color: #d7e9ff" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
@@ -240,29 +241,15 @@
                                             }
                                         </td>
                                     }
-                                    @* else if ((item.shedules[i].traitorStatus == 2) && item.shedules[i].location != Model.selectedLocation) *@
-                                    @* { *@
-                                    @*     <td align="center" disabledfordelete="true" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'> *@
-
-                                    @*          @if (item.shedules[i].duration.Length > 12)  *@
-                                    @*          {  *@
-                                    @*              <div class="trackingChart_td multiShedule">  *@
-                                    @*                  <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">  *@
-                                    @*                      @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]  *@
-                                    @*                  </div>  *@
-
-                                    @*                  <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">  *@
-                                    @*                      @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]  *@
-                                    @*                  </div>  *@
-                                    @*              </div>  *@
-                                    @*          }  *@
-                                    @*          else  *@
-                                    @*          {  *@
-                                    @*              <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div> *@
-                                    @*          }  *@
-
-                                    @*      </td> *@
-                                    @*  } *@
+                                    // Если помощник
+                                    else if (helper == true && item.shedules[i].location == Model.selectedLocation)
+                                    {
+                                        <td id="@i" align="center" style="background-color: #d7e9ff" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
+                                            <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">
+                                                @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                            </div>
+                                        </td>
+                                    }
                                     else
                                     {
                                         <td id="@i" align="center" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
@@ -272,13 +259,6 @@
 
                                 }
                             }
-
-                            @* <td> *@
-                            @*     <div class="trackingChart_total"> *@
-                            @*         @item.Hours ч. *@
-                            @*     </div> *@
-
-                            @* </td> *@
 
                         </tr>
 
