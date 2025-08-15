@@ -200,7 +200,7 @@ namespace Portal.Controllers
                                                                     .ToList();
                 }
 
-                
+
                 List<Guid> selectedPersonalityGuid = timeSheetJsonModel.TimeSheetJson.Select(c => c.Personalities).Distinct().ToList();
                 List<TimeSheet> checkingTimeSeets = new List<TimeSheet>();
 
@@ -218,6 +218,14 @@ namespace Portal.Controllers
                 if (error != "")
                 {
                     return new ObjectResult(error);
+                }
+
+                if (removedTimeSheets != null)
+                {
+                    foreach (var item in removedTimeSheets)
+                    {
+                        dbSql.TimeSheetsLogs.Where(x => x.TimeSheets.Guid == item.Guid).ToList().ForEach(x => x.TimeSheets = null);
+                    }
                 }
 
                 dbSql.TimeSheets.RemoveRange(removedTimeSheets);
@@ -329,7 +337,7 @@ namespace Portal.Controllers
             List<DataForCharts> mainData = new List<DataForCharts>();
 
             // нужна дата формата 21-05-2025
-            if(date == null)
+            if (date == null)
             {
                 date = DateTime.Now.ToString();
             }
@@ -410,7 +418,7 @@ namespace Portal.Controllers
 
                     sheduleItem sheduleItem = new();
                     //sheduleItem.duration = duration;
-                    sheduleItem.duration = timesheet.Begin.ToString("HH:mm") + " " + timesheet.End.ToString("HH:mm"); 
+                    sheduleItem.duration = timesheet.Begin.ToString("HH:mm") + " " + timesheet.End.ToString("HH:mm");
                     sheduleItem.location = timesheet.Location.Guid.ToString();
                     sheduleItem.locationName = timesheet.Location.Name.ToString();
 
@@ -421,22 +429,23 @@ namespace Portal.Controllers
                     // 1 - сотрудник посещал только другую ТТ
                     // 2 - сотрудник посещал и свою и чужую ТТ
 
-                    
-                    if(sheduleItem.jobTitle == null)
+
+                    if (sheduleItem.jobTitle == null)
                     {
                         sheduleItem.jobTitle = new List<string>();
                     }
 
-                    if(timesheet?.JobTitle?.Name == null)
+                    if (timesheet?.JobTitle?.Name == null)
                     {
                         var jobname = dbSql.JobTitles.FirstOrDefault().Name;
                         sheduleItem.jobTitle.Add(jobname);
-                    } else
+                    }
+                    else
                     {
                         sheduleItem.jobTitle.Add(timesheet?.JobTitle?.Name);
                     }
 
-                    
+
 
                     // Если это первое заполнение этой ячейки, то просто проверим на соответствие ТТ
                     if (data.shedules[day].location == null)
@@ -460,19 +469,20 @@ namespace Portal.Controllers
                     }
                     else
                     {
-                        
+
                         // Если это не первая ячейка, то проверим на соответствие родной точки 
-                        data.shedules[day].duration += " " +  timesheet.Begin.ToString("HH:mm") + " " + timesheet.End.ToString("HH:mm");
+                        data.shedules[day].duration += " " + timesheet.Begin.ToString("HH:mm") + " " + timesheet.End.ToString("HH:mm");
                         data.shedules[day].jobTitle.Add(timesheet?.JobTitle?.Name);
 
                         if (sheduleItem.location == locationGuid)
                         {
                             // Если запись уже не первая и статус (ходил только на свою || ходил и туда и сюда), то ставим  ходил и туда и сюда
 
-                            if(data.shedules[day].traitorStatus == 0)
+                            if (data.shedules[day].traitorStatus == 0)
                             {
                                 data.shedules[day].traitorStatus = 0;
-                            } else
+                            }
+                            else
                             {
                                 data.shedules[day].traitorStatus = 2;
                             }
@@ -481,10 +491,11 @@ namespace Portal.Controllers
                         else
                         {
                             // Если запись не первая и статус (ходил только на чужую || ходил и туда и сюда), то ставим ходил и туда и сюда
-                            if(data.shedules[day].traitorStatus == 0)
+                            if (data.shedules[day].traitorStatus == 0)
                             {
                                 data.shedules[day].traitorStatus = 2;
-                            } else
+                            }
+                            else
                             {
                                 data.shedules[day].traitorStatus = 1;
                             }
@@ -493,7 +504,7 @@ namespace Portal.Controllers
                     }
                 }
 
-                
+
 
                 data.Hours = totalHours;
 
@@ -506,7 +517,7 @@ namespace Portal.Controllers
 
             trackingChartData.jobTitles = jobTitles;
 
-       
+
 
             return PartialView(trackingChartData);
         }
@@ -529,41 +540,91 @@ namespace Portal.Controllers
                 .Where(x => x.Location.Guid == Guid.Parse(location))
                 .ToList();
 
-            if(timeSheet != null)
+            if (timeSheet != null)
             {
+                foreach(var item in timeSheet)
+                {
+                    dbSql.TimeSheetsLogs.Where(x => x.TimeSheets.Guid == item.Guid).ToList().ForEach(x => x.TimeSheets = null);
+                }
+
                 dbSql.TimeSheets.RemoveRange(timeSheet);
                 dbSql.SaveChanges();
             }
-            
+
             return new ObjectResult(result);
         }
 
-        public class TrackingChartData
+        public IActionResult TimeTrackingCancalled(string json)
         {
-            public List<DataForCharts> DataForCharts { get; set; }
-            public List<Portal.Models.MSSQL.Location.Location> locations { get; set; }
-            public string selectedLocation { get; set; }
-            public string selectedDate { get; set; }
-            public List<JobTitle> jobTitles { get; set; }
+            var result = new RKNet_Model.Result<string>();
+
+            TrackingCancalled trackingCancalledJsonModel = JsonConvert.DeserializeObject<TrackingCancalled>(json);
+
+            TimeSheet timesheet = dbSql.TimeSheets.Include(x => x.Location)
+                                                  .Include(x => x.Personalities)
+                                                  .Include(x => x.JobTitle)
+                                                  .FirstOrDefault(x => x.Guid == Guid.Parse(trackingCancalledJsonModel.Guid));
+
+            TimeSheetsLogs timeSheetsLogs = new TimeSheetsLogs();
+
+            timeSheetsLogs.Personalities = timesheet.Personalities;
+            timeSheetsLogs.Location = timesheet.Location;
+            timeSheetsLogs.JobTitle = timesheet.JobTitle;
+            timeSheetsLogs.Begin = timesheet.Begin;
+            timeSheetsLogs.End = timesheet.End;
+            timeSheetsLogs.Text = trackingCancalledJsonModel.Text;
+
+            if (trackingCancalledJsonModel.ToDelete == 1)
+            {
+                dbSql.TimeSheetsLogs.Where(x => x.TimeSheets.Guid == timesheet.Guid).ToList().ForEach(x => x.TimeSheets = null);
+
+                timeSheetsLogs.TimeSheets = null;
+                dbSql.TimeSheets.Remove(timesheet);
+            }
+
+            if(trackingCancalledJsonModel.ToDelete == 0)
+            {
+                timeSheetsLogs.TimeSheets = timesheet;
+            }
+
+            dbSql.TimeSheetsLogs.Add(timeSheetsLogs);
+            dbSql.SaveChanges();
+
+            return new ObjectResult(result);
         }
 
-        public class DataForCharts
+        public class TrackingCancalled
         {
-            public PersonalityVersion person { get; set; }
-            public List<TimeSheet> timesheets { get; set; }
-            public double Hours { get; set; }
-            public List<sheduleItem> shedules { get; set; }
+            public string Guid { get; set; }
+            public string Text { get; set; }
+            public int ToDelete { get; set; }
         }
 
-        public class sheduleItem
-        {
-            //public double duration { get; set; }
-            public string duration { get; set; }
-            public string location { get; set; }
-            public string locationName { get; set; }
-            public int traitorStatus { get; set; }
-            public List<string>? jobTitle { get ; set; }
-        }
+            public class TrackingChartData
+            {
+                public List<DataForCharts> DataForCharts { get; set; }
+                public List<Portal.Models.MSSQL.Location.Location> locations { get; set; }
+                public string selectedLocation { get; set; }
+                public string selectedDate { get; set; }
+                public List<JobTitle> jobTitles { get; set; }
+            }
 
+            public class DataForCharts
+            {
+                public PersonalityVersion person { get; set; }
+                public List<TimeSheet> timesheets { get; set; }
+                public double Hours { get; set; }
+                public List<sheduleItem> shedules { get; set; }
+            }
+
+            public class sheduleItem
+            {
+                //public double duration { get; set; }
+                public string duration { get; set; }
+                public string location { get; set; }
+                public string locationName { get; set; }
+                public int traitorStatus { get; set; }
+                public List<string>? jobTitle { get; set; }
+            }
     }
 }

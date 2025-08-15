@@ -703,9 +703,15 @@
         justify-content: start;
         align-items: start;
         width: 100%;
-        /* max-height: calc(100vh - 140px); */
-        /* overflow-y: auto; */
-        /* overflow-x: auto; */
+        max-height: calc(100vh - 170px);
+        overflow-y: auto;
+    }
+
+    .trackingChart_table thead th {
+        position: sticky;
+        top: -6px;
+        background: white; /* или цвет под твой дизайн */
+        z-index: 2; /* чтобы была поверх содержимого */
     }
 
     .trackingChart_table {
@@ -714,6 +720,16 @@
         width: 100%;
         border-collapse: collapse;
         position: relative;
+    }
+
+    .trackingChart_table thead th::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -1px;
+        height: 1px;
+        width: 100%;
+        background: gray;
     }
 
     .trackingChart_table th:first-child,
@@ -778,7 +794,7 @@
     }
 
     .trackingChart_th {
-        height: 35px;
+        height: 40px;
         font-family: "Akrobat-Regular";
         display: flex;
         justify-content: center;

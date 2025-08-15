@@ -353,6 +353,7 @@ namespace Portal.Controllers
                                 {
                                     typeFilter = production.Cells[x, 10].Value.ToString();
                                 }
+
                                 break;
                             case 4:
                                 forder.Sku = production.Cells[x, 1].Value.ToString();

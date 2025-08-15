@@ -47,11 +47,12 @@
     </div>
 
     <!--Сотрудник-->
-    <div class="col-sm-5">
+    <div class="col-sm-4">
         <table class="table">
             <tr class="bg-primary">
-                <th class="text-left">Сотрудник</th>
-                <th class="text-center">Должность</th>
+                <th width="53%" class="text-left">Сотрудник</th>
+                <th width="35%" class="text-left">Должность</th>
+                <th width="15%"></th>
             </tr>
         </table>
         <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
@@ -62,7 +63,9 @@
                     {
                         <tr class="personList hidden">
                             <td class="hidden">@item.Personalities.Guid</td>
-                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+
+                            <td width="55%"><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+
                             @if(item.PartTimer == 0 || item.PartTimer == null)
                             {
                                 <td>@item.JobTitle?.Name</td>
@@ -84,7 +87,7 @@
                     {
                         <tr class="personList hidden">
                             <td class="hidden">@item.Personalities.Guid</td>
-                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+                            <td width="55%"><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
 
                             @if (item.PartTimer == 0 || item.PartTimer == null)
                             {
@@ -110,13 +113,15 @@
     </div>
 
     <!--Заказ-->
-    <div class="col-sm-5">
+    <div class="col-sm-6">
         <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
             <table class="table">
                 <tr class="bg-primary">
-                    <th class="text-left">Сотрудник</th>
-                    <th class="text-left">Должность</th>
-                    <th class="text-left">Время</th>
+                    <th width="35%" class="text-left">Сотрудник</th>
+                    <th width="30%" class="text-left">Должность</th>
+                    <th width="25%" class="text-center">Время</th>
+                    <th width="5%"></th>
+                    <th width="5%"></th>
                 </tr>
             </table>
 
@@ -130,9 +135,9 @@
                             {
                                 <tr>
                                     <th class="hidden guidForError">@item.Personalities.Guid</th>
-                                    <th class="newRowAlign">@item.Personalities.Name</th>
+                                    <th width="35%" style="text-align: start" class="newRowAlign">@item.Personalities.Name</th>
                                     <th class="hidden">@item.JobTitle?.Guid</th>
-                                    <th class="newRowAlign">
+                                    <th width="30%" class="newRowAlign">
                                         <select name="" id="selectJobTitle" class="selectJobTitle">
                                             @foreach (var job in Model.JobTitles)
                                             {
@@ -147,13 +152,13 @@
                                             }
                                         </select>
                                     </th>
-                                    <th class="newRowAlign" style="width: fit-content;">
+                                    <th width="25%" class="newRowAlign" style="width: fit-content;">
                                         <input type="time" step="1800" value='@item.Begin.ToString("HH:mm")' onChange="calculateHours()" class="timeBeginForJSON">
                                         <input type="time" step="1800" value='@item.End.ToString("HH:mm")' onChange="calculateHours()" class="timeEndForJSON">
                                     </th>
 
-                                    <th class="newRowAlign" style="align-content: center;padding-right: 16px;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
-
+                                    <th width="5%" class="newRowAlign" style="align-content: center;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
+                                    <th width="5%" class="newRowAlign" style="align-content: center;"><label class="md-deleteWithMessage ico" style="margin: 0;" onclick='createModal("@item.Guid", this)'></label></th>
                                 </tr>
                             }
 
@@ -321,12 +326,8 @@
                                             </div>
                                         </th>
                                     }
-
-
-
                                 </tr>
                             }
-
                         }
                     </tbody>
                 </table>
@@ -616,6 +617,7 @@
         timeCell.classList.add('newRowAlign');
 
         let deletePersonCell = document.createElement('td');
+        deletePersonCell.colSpan = 2;
         deletePersonCell.classList.add('newRowAlign');
 
         // Извлекаем данные о сотруднике
@@ -702,6 +704,7 @@
 
         let deletePersonCell = document.createElement('td');
         deletePersonCell.classList.add('newRowAlign');
+        deletePersonCell.colSpan = 2;
 
         // Устанавливаем данные по умолчанию
         let name = "Сотрудник с биржи";
@@ -908,8 +911,8 @@
 
         sheduleData.WorkSlotsJson = WorkSlotsJson; // Добавляем рабочие слоты в данные расписания
         sheduleData.TimeSheetJson = TimeSheetJson; // Добавляем журнал времени в данные расписания
-        sheduleData.Date = date; // Добавляем дату в данные расписания
-        sheduleData.Location = locationGuid.textContent; // Добавляем местоположение в данные расписания
+        sheduleData.Date = date;
+        sheduleData.Location = locationGuid.textContent;
         console.log(sheduleData)
 
         const sheduleDataJSON = JSON.stringify(sheduleData); // Преобразуем данные в формат JSON
@@ -921,12 +924,150 @@
             success: function (result) {
                 if (result.ok) {
                     SpinnerShow(); // Показываем спиннер
-                    $('#page').load('/TimeTracking/TrackingData', function () { SpinnerHide(); }); // Загружаем данные
+                    $('#page').load('/TimeTracking/TrackingDataEdit?stringDate=' + sheduleData.Date.split(" ")[0].split("-").reverse().join("-") + "&locationGuid=" + sheduleData.Location, function () { SpinnerHide(); }); // Загружаем данные
                 } else {
                     openModal('Ошибка', result); // Открываем модальное окно с ошибкой
                 }
             },
             error: function (error) { openModal('Ошибка', error); } // Открываем модальное окно при ошибке
         });
+    }
+</script>
+
+<script>
+    function createModal(guid, element) {
+      // Создаём элементы
+      const modalOverlay = document.createElement('div');
+      const modal = document.createElement('div');
+      const closeButton = document.createElement('button');
+      const saveButton = document.createElement('button');
+      const saveButtonWithDelete = document.createElement('button');
+      const header = document.createElement("span")
+      const textArea = document.createElement("textarea")
+
+      // Стили для оверлея (фона)
+      modalOverlay.style.position = 'fixed';
+      modalOverlay.style.top = '0';
+      modalOverlay.style.left = '0';
+      modalOverlay.style.width = '100%';
+      modalOverlay.style.height = '100%';
+      modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      modalOverlay.style.display = 'flex';
+      modalOverlay.style.justifyContent = 'center';
+      modalOverlay.style.alignItems = 'center';
+      modalOverlay.style.zIndex = '1000';
+      modalOverlay.id = "trackingModalOverlay";
+
+      // Стили для модального окна
+      modal.style.backgroundColor = 'white';
+      modal.style.padding = '20px';
+      modal.style.maxWidth = '500px';
+      modal.style.width = '80%';
+      modal.style.display = "flex"
+      modal.style.flexDirection = "column"
+      modal.style.alignItems = 'center';
+      modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+
+      textArea.classList.add("trackingModalTextArea")
+      textArea.id = "trackingModalTextArea"
+
+      saveButton.textContent = "Отправить сообщение"
+      saveButton.style.marginTop = '15px';
+      saveButton.style.padding = '5px 8px';
+      saveButton.style.cursor = 'pointer';
+      saveButton.classList.add("trackingModalSaveButton")
+      saveButton.onclick = () => {
+        sendCancalledSheet(guid, element, 0);
+      };
+
+      saveButtonWithDelete.textContent = "Отправить сообщение и удалить смену"
+      saveButtonWithDelete.style.marginTop = '5px';
+      saveButtonWithDelete.style.padding = '5px 8px';
+      saveButtonWithDelete.style.cursor = 'pointer';
+      saveButtonWithDelete.classList.add("trackingModalSaveButtonWithDelete")
+      saveButtonWithDelete.onclick = () => {
+        sendCancalledSheet(guid, element, 1);
+      };
+
+      // Стили для кнопки закрытия
+      closeButton.textContent = "закрыть";
+      closeButton.style.marginTop = '5px';
+      closeButton.style.padding = '5px 8px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.classList.add("trackingModalCloseButton")
+
+      header.textContent = "Напишите причину изменения"
+      header.classList.add("trackingModalSpanHeader")
+      
+
+      // Собираем структуру
+      modal.appendChild(header);
+      modal.appendChild(textArea);
+      modal.appendChild(saveButton);
+      modal.appendChild(saveButtonWithDelete);
+      modal.appendChild(closeButton);
+      modalOverlay.appendChild(modal);
+
+      // Добавляем в body
+      document.body.appendChild(modalOverlay);
+
+      // Закрытие по кнопке
+      closeButton.addEventListener('click', () => {
+        document.body.removeChild(modalOverlay);
+      });
+      
+      // Возвращаем объект для управления модалкой (если нужно)
+      return {
+        close: () => document.body.removeChild(modalOverlay)
+      };
+    }
+</script>
+
+<script>
+    function sendCancalledSheet(guid, element, toDelete)
+    {
+        const text = document.getElementById("trackingModalTextArea")
+        const trackingModalOverlay = document.getElementById("trackingModalOverlay")
+
+        if(text.value.trim().length == 0)
+        {
+            text.style.border = "2px solid red"
+            return;
+        }
+
+        const data = {
+            Guid: guid,
+            Text: text.value,
+            ToDelete: toDelete,
+        }
+
+        const json = JSON.stringify(data);
+        SpinnerShow();
+        $.ajax({
+            type: "POST",
+            url: '/TimeTracking/TimeTrackingCancalled',
+            data: { json: json },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    SpinnerHide();
+
+                    if(toDelete == 1)
+                    {
+                        deletePersonRow(element)
+                        sendData()
+                    }
+
+                } else {
+                    openModal('Ошибка', result);
+                }
+            },
+            error: function (error) { 
+                SpinnerHide();
+                openModal('Ошибка', error); 
+            }
+        });
+
+        document.body.removeChild(trackingModalOverlay)
     }
 </script>
