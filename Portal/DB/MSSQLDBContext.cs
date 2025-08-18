@@ -30,7 +30,8 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.PersonalityVersions.PersonalityVersion> PersonalityVersions { get; set; } // версии сотрудников
         public DbSet<Models.MSSQL.Personality.JobTitle> JobTitles { get; set; } // должность
         public DbSet<Models.MSSQL.Personality.Schedule> Schedules { get; set; } // типы смен
-        public DbSet<Models.MSSQL.TimeSheet> TimeSheets { get; set; } // типы смен
+        public DbSet<Models.MSSQL.TimeSheet> TimeSheets { get; set; }
+        public DbSet<Models.MSSQL.TimeSheetsLogs> TimeSheetsLogs { get; set; }
         public DbSet<Models.MSSQL.Personality.Entity> Entity { get; set; } // ЮЛ
         public DbSet<Models.MSSQL.Personality.EntityCost> EntityCost { get; set; } // ЮЛ
         public DbSet<SaleObject> SaleObjects { get; set; }

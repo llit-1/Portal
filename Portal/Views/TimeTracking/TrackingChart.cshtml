@@ -22,6 +22,16 @@
         var date = new DateTime(int.Parse(year), int.Parse(mount), day);
         return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
     }
+
+    var colorFromJobTitle = new Dictionary<string, string>
+    {
+        { "Дневной", "#f7bfff" },
+        { "Вечерний", "#dcdcff" },
+        { "Основной", "#beffdf" },
+        { "Ночной пекарь", "#dbdbdb" },
+        { "Работник пекарни", "#ffbdc0" },
+        { "Администратор", "#ffdd9e" },
+    };
 }
 
 <!--шапка-->
@@ -45,30 +55,53 @@
             </tbody>
         </table>
     </div>
-
-    <select id="trackingChart_select" class="form-control form-control-sm trackingChart_select">
-            @foreach (var location in Model?.locations)
-            {
-                if (location.Guid == Guid.Parse(Model.selectedLocation))
+    
+    <div class="header_stock_wrapper">
+        <div class="header_stock_item">
+            <select id="trackingChart_select" class="form-control form-control-sm trackingChart_select">
+                @foreach (var location in Model?.locations.OrderBy(x => x.Name))
                 {
-                    <option selected value="@location.Guid">@location.Name</option>
+                    if (location.Guid == Guid.Parse(Model.selectedLocation))
+                    {
+                        <option selected value="@location.Guid">@location.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@location.Guid">@location.Name</option>
+                    }
+
                 }
-                else
-                {
-                    <option value="@location.Guid">@location.Name</option>
-                }
+            </select>
 
-            }
-    </select>
+            <input id="trackingChart_input" type='month' value='@year-@mount' class="form-control form-control-sm trackingChart_input">
 
-    <input id="trackingChart_input" type='month' value='@year-@mount' class="form-control form-control-sm trackingChart_input">
+            <button id="trackingChart_button" class="btn btn-success trackingChart_button" onclick="sendData()">Применить</button>
 
-    <button id="trackingChart_button" class="btn btn-success trackingChart_button" onclick="sendData()">Применить</button>
+            <button id="trackingCart_Print" class="btn btn-success trackingChart_button" onclick="printTabel()">Печать</button>
+        </div>
 
-    <button id="trackingCart_Print" class="btn btn-success trackingChart_button" onclick="printTabel()">Печать</button>
+        <label for="fastAdd" style="margin: 0;" class="header_stock_item fastAddButton">
+            <label style="margin: 0; user-select: none;" for="fastAdd"> Быстрое заполнение </label>
+            <input style="margin: 0; width: 20px; height: 20px;" id="fastAdd" type="checkbox" name="name" value="" onchange="fastAddActivation()" />
+        </label>
+
+    </div>
 
 </div>
 
+
+
+<div class="selectorColorWrapper hidden">
+    <select id="trackingChart_selectd" class="form-control" onchange="getSheduleTime(this.value)">
+        @foreach(var item in Model.jobTitles) {
+            <option value="@item.Guid" data-color="@colorFromJobTitle[item.Name.Trim()]">@item.Name.Trim()</option>
+        }
+    </select>
+
+    <select id="trackingChart_selectTime" class="form-control form-control-sm trackingChart_select" disabled></select>
+
+    <button class="button_delete" onclick="switchActiveType(3, this)">Удалить</button>
+</div>
 
 
 <div id="trackingChart">
@@ -95,7 +128,7 @@
 
                             </th>
                         }
-                        <th><div class="trackingChart_th">Всего</div></th>
+                        @* <th><div class="trackingChart_th">Всего</div></th> *@
                     </tr>
 
                 </thead>
@@ -105,12 +138,13 @@
                     @foreach (var item in Model?.DataForCharts?.OrderBy(x => x.person.Location.Guid))
                     {
 
-                        <tr>
+                        <tr id="@item.person.Personalities.Guid">
+
                             @if (item.person.Location.Guid != Guid.Parse(Model.selectedLocation))
                             {
                                 helper = true;
 
-                                <td style="background-color: #e7e7e7" title="Сотрудник другой ТТ">
+                                <td class="fixed-column" style="background-color: #e7e7e7" title="Сотрудник другой ТТ">
                                     <div class="trackingChart_name">
                                         @item.person.Personalities.Name
                                     </div>
@@ -122,7 +156,7 @@
 
                                 helper = false;
 
-                                <td>
+                                <td class="fixed-column">
                                     <div class="trackingChart_name">
                                         @item.person.Personalities.Name
                                     </div>
@@ -132,49 +166,99 @@
 
                             @for (var i = 0; i < item.shedules.Count; i++)
                             {
-                                if (item.shedules[i].duration == 0)
+
+                                if (item.shedules[i].duration == "0" || item.shedules[i].duration == null)
                                 {
-                                    <td align="center" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                    <td align="center" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
                                         <div class='trackingChart_td'></div>
                                     </td>
                                 }
                                 else
                                 {
-
-                                    if ((item.shedules[i].traitorStatus == 0 || helper == true) && item.shedules[i].location == Model.selectedLocation)
+                                    if ((item.shedules[i].traitorStatus == 0) && item.shedules[i].location == Model.selectedLocation)
                                     {
-                                        <td align="center" onclick='editShedule("@i", "@item.shedules[i].location")'>
-                                            <div class="trackingChart_td">@item.shedules[i].duration</div>
+                                        <td align="center" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
+
+                                            @if (item.shedules[i].duration.Length > 12)
+                                            {
+                                                <div class="trackingChart_td multiShedule">
+                                                    <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+                                                </div>
+                                            } else {
+                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+                                            }
+                                            
                                         </td>
                                     }
                                     else if (item.shedules[i].traitorStatus == 1 && helper == false)
                                     {
-                                        <td title="Сотрудник работал на @item.shedules[i].locationName" align="center" style="background-color: #ffff7f" onclick='editShedule("@i", "@item.shedules[i].location")'>
-                                            <div class="trackingChart_td">@item.shedules[i].duration</div>
+                                        <td id="@i" disabledfordelete="true" title="Сотрудник работал на @item.shedules[i].locationName" align="center" style="border: 2px solid blue; background-color: #ffff7f" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
+                                            @if (item.shedules[i].duration.Length > 12)
+                                            {
+                                                <div class="trackingChart_td multiShedule">
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">
+                                                    @item.shedules[i].duration
+                                                </div>
+                                            }
                                         </td>
                                     }
+                                    // Если предатель на моей точке
                                     else if (item.shedules[i].traitorStatus == 2 && helper == false)
                                     {
-                                        <td align="center" title="Сотрудник работал на этой ТТ, а так же на @item.shedules[i].locationName" style="background-color: #d7e9ff" onclick='editShedule("@i", "@item.shedules[i].location")'>
-                                            <div class="trackingChart_td">@item.shedules[i].duration</div>
+                                        <td id="@i" disabledfordelete="true" align="center" title="Сотрудник работал на этой ТТ, а так же на @item.shedules[i].locationName" style="border: 2px solid red;background-color: #d7e9ff" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
+                                            @if (item.shedules[i].duration.Length > 12)
+                                            {
+                                                <div class="trackingChart_td multiShedule">
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+                                            }
+                                        </td>
+                                    }
+                                    // Если помощник
+                                    else if (helper == true && item.shedules[i].location == Model.selectedLocation)
+                                    {
+                                        <td id="@i" align="center" style="background-color: #d7e9ff" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
+                                            <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">
+                                                @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                            </div>
                                         </td>
                                     }
                                     else
                                     {
-                                        <td align="center" onclick='editShedule("@i", "@item.shedules[i].location")'>
+                                        <td id="@i" align="center" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
                                             <div class='trackingChart_td'></div>
                                         </td>
                                     }
 
                                 }
                             }
-
-                            <td>
-                                <div class="trackingChart_total">
-                                    @item.Hours ч.
-                                </div>
-
-                            </td>
 
                         </tr>
 
@@ -192,6 +276,317 @@
 
 
 <script>
+    /*
+        actionType == 1 - прямой переход на страницу редактирования смены
+        actionType == 2 - быстрое проставление смен
+        actionType == 3 - быстрое удаление
+    */
+    let actionType = 1;
+    let currentHoverStyle = null;
+    document.querySelector(".header_stock_wrapper").classList.remove("hidden")
+
+    actionTypeSwitcher()
+
+    function switchActiveType(type, element)
+    {
+        if(actionType === 3)
+        {
+            if (currentHoverStyle) {
+                document.head.removeChild(currentHoverStyle);
+                currentHoverStyle = null;
+            }
+            element.classList.remove("button_delete_active")
+            actionType = 2
+        } else {
+            actionType = 3
+            element.style = `
+                background-color: red;
+            `
+
+            element.classList.add("button_delete_active")
+
+            const style = document.createElement('style');
+            style.innerHTML = `
+              .trackingChart_table tbody > tr > td:not(:first-child) > div:hover {
+                background-color: #ff00007a !important;
+              }
+
+              .trackingChart_table tbody > tr > td:not(:first-child) > div:has(> :nth-child(2)) > div:hover {
+                background-color: #ff00007a !important;
+              }
+            `;
+
+            if (currentHoverStyle) {
+                document.head.removeChild(currentHoverStyle);
+                currentHoverStyle = null;
+            }
+
+            currentHoverStyle = style;
+            document.head.appendChild(style);
+        }
+
+        actionTypeSwitcher()
+    }
+
+
+    function actionTypeSwitcher(day = "", guid = "", element1 = null) {
+        
+        console.log("ActionType при нажатии на плитку", actionType)
+
+        const date = document.getElementById("trackingChart_input").value;
+        const time = document.getElementById("trackingChart_selectTime");
+        const allTd = document.querySelectorAll(".trackingChart_td")
+
+        function contextMenuHandler(event, element) {
+            event.preventDefault();
+            editShedule(element.parentElement.id);
+        }
+
+        if(actionType === 1) {
+            // Отписываемся от всех предыдущих событий
+            allTd.forEach(element => {
+                // Удаляем все обработчики click
+                element.parentElement.onclick = null;
+                // Удаляем все обработчики contextmenu
+                element.parentElement.removeEventListener('contextmenu', contextMenuHandler);
+
+                // Назначаем новый обработчик только для левой кнопки
+                element.parentElement.onclick = function(event) {
+                    editShedule(element.parentElement.id);
+                };
+            });
+            return;
+        }
+
+        if(actionType === 3)
+        {
+            allTd.forEach(element => {
+                // Удаляем все обработчики click
+                element.parentElement.onclick = null;
+                // Удаляем все обработчики contextmenu
+                element.parentElement.removeEventListener('contextmenu', contextMenuHandler);
+
+                
+
+                // Назначаем новый обработчик только для левой кнопки
+                element.parentElement.onclick = function(event) {
+                    const loc = document.getElementById("trackingChart_select").value;
+                    if(element.children.length > 1)
+                    {
+                        return openModal("Быстрое удаление невозможно!", "Для удаления смены перейдите в карточку заполнения плана на день.")
+                    }
+                    DeleteTimeSheet(element.parentElement.id, element.parentElement.parentElement.id, loc, element)
+                };
+            });
+            return;
+        }
+
+        
+
+        allTd.forEach(element => {
+
+            element.parentElement.onclick = null;
+
+            element.parentElement.onclick = function(event) {
+
+                if(element.parentElement.style.backgroundColor !== trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color)
+                {
+                    const data = {}
+
+                    day = element.parentElement.id;
+                    day = +day + 1;
+
+                    if(day < 10)
+                    {
+                        day = "0" + day;
+                    }
+                    const TimeSheetJson = [];
+
+                    TimeSheetJson.push({
+                        Personalities: element.parentElement.parentElement.id,
+                        JobTitle: trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value,
+                        Location: document.getElementById("trackingChart_select").value,
+                        Begin: date + "-" + day + " " + time.options[time.selectedIndex].innerHTML.split("-")[0],
+                        End: date + "-" + day + " " + time.options[time.selectedIndex].innerHTML.split("-")[1],
+                    });
+
+                    data.Date = date + "-" + day + " 00:00:00";
+                    data.Location = document.getElementById("trackingChart_select").value;
+                    data.TimeSheetJson = TimeSheetJson;
+                    data.WorkSlotsJson = []
+
+                    const beginTimeForChart = time.options[time.selectedIndex].innerHTML.split("-")[0].slice(0, 5)
+                    const endTimeForChart = time.options[time.selectedIndex].innerHTML.split("-")[1].slice(0, 5)
+
+
+                    SpinnerShow();
+                    const sheduleDataJSON = JSON.stringify(data); // Преобразуем данные в формат JSON
+                    $.ajax({
+                        type: "POST",
+                        url: '/TimeTracking/TimeTrackingAdd?editChart=true',
+                        data: { json: sheduleDataJSON }, // Отправляем данные на сервер
+                        datatype: "text",
+                        success: function (result) {
+                            SpinnerHide();
+
+                            if (result.ok) {
+
+                                console.log(result.data)
+
+                                if(element.textContent.trim().length == 0)
+                                {
+
+                                    element.innerHTML = `${beginTimeForChart} ${endTimeForChart}`
+                                    element.style = `background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}`
+
+                                } else {
+
+                                    const oldTime = element.textContent;
+                                    const color = element.style.backgroundColor;
+
+                                    element.parentElement.style = "background-color: none;"
+                                    element.classList.add("multiShedule")
+
+                                    element.innerHTML = ""
+                                    element.innerHTML += `<div style="${color}">
+                                        ${oldTime}
+                                    </div>`
+
+                                    element.innerHTML += `<div style="background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}">
+                                        ${beginTimeForChart} ${endTimeForChart}
+                                    </div>`
+                                }
+                            } else {
+                                openModal('Ошибка', result); // Открываем модальное окно с ошибкой
+                            }
+                        },
+                        error: function (error) { openModal('Ошибка', error); } // Открываем модальное окно при ошибке
+                    });
+                }
+                
+            };
+
+            element.parentElement.addEventListener('contextmenu', (e) => contextMenuHandler(e, element));
+            
+        })
+    }    
+
+    function fastAddActivation() {
+
+        const stockStyle = document.createElement('style');
+
+        stockStyle.innerHTML = `
+            .trackingChart_table tbody > tr > td:not(:first-child):hover {
+                background-color: #CCC !important;
+                }
+            `;
+
+        document.head.appendChild(stockStyle);
+
+        const trackingChart_selectd = document.getElementById("trackingChart_selectd");
+        const colorSelector = document.querySelector(".selectorColorWrapper")
+        let color = trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color;
+        const style = document.createElement('style');
+        colorSelector.classList.toggle("hidden")
+
+        if(colorSelector.classList.contains("hidden"))
+        {
+            color = "#CCC"
+        }
+        
+        style.innerHTML = `
+          .trackingChart_table tbody > tr > td:not(:first-child):hover {
+              cursor: pointer;
+            background-color: ${color} !important;
+          }
+        `;
+
+
+        if (currentHoverStyle) {
+            document.head.removeChild(currentHoverStyle);
+        }
+        currentHoverStyle = style;
+        document.head.appendChild(style);
+
+        if(actionType == 1)
+        {
+            actionType = 2;
+        } else {
+            actionType = 1;
+        }
+
+        console.log("ActionType при нажатии на чекбокс", actionType)
+        actionTypeSwitcher()
+    }
+
+    async function getSheduleTime(guid) {
+
+        const trackingChart_selectTime = document.getElementById("trackingChart_selectTime")
+        const colorSelector = document.querySelector(".selectorColorWrapper")
+
+        const response = await fetch("/TimeTracking/GetSheduleTime?guid=" + guid)
+        const data = await response.json()
+
+        if(!data)
+        {
+            return console.log(data)
+        }
+
+        trackingChart_selectTime.disabled = false;
+        trackingChart_selectTime.innerHTML = ""
+        data.forEach(item => {
+            trackingChart_selectTime.innerHTML += `<option value="${item.guid}">${item.beginTime}-${item.endTime}</option>`
+        })
+
+        if(!colorSelector.classList.contains("hidden"))
+        {
+            const color = trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color;
+
+            const style = document.createElement('style');
+            style.innerHTML = `
+              .trackingChart_table tbody > tr > td:not(:first-child):not(:last-child):hover {
+                background-color: ${color} !important;
+              }
+            `;
+
+            if (currentHoverStyle) {
+                document.head.removeChild(currentHoverStyle);
+            }
+
+            currentHoverStyle = style;
+            document.head.appendChild(style);
+        }
+    }
+
+    getSheduleTime(document.getElementById("trackingChart_selectd").value)
+
+    // Инициализируем Select2 заново
+        $('#trackingChart_selectd').select2({
+            height: '34px',
+            width: '240px',
+            minimumResultsForSearch: Infinity,
+            templateResult: formatOption,
+            templateSelection: formatOption
+        });
+
+    // Функция для добавления цветных квадратов
+    function formatOption(option) {
+        if (!option.id) return option.text; // Для пустого option
+
+        const color = $(option.element).data('color');
+        const $wrapper = $('<span></span>');
+
+        // Цветной квадрат (12x12px, отступ справа 8px)
+        $wrapper.append(
+            $('<span style="position: relative;top: 2px;display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: ' + color + '"></span>')
+        );
+
+        // Текст option
+        $wrapper.append(option.text);
+
+        return $wrapper;
+    }
+
     const location = document.getElementById("trackingChart_select").style.display = "block";
     const date = document.getElementById("trackingChart_input").style.display = "block";
     const button = document.getElementById("trackingChart_button").style.display = "block";
@@ -210,11 +605,11 @@
         $("#container-fluid").load('TimeTracking/TrackingChart?locationGuid=' + location + "&date=" + date)
     }
 
-    function editShedule(day, location)
+    function editShedule(day)
     {
         const locations = @Html.Raw(JsonSerializer.Serialize(Model.locations));
-
         const loc = document.getElementById("trackingChart_select").value;
+        let location;
 
         if(!location)
         {
@@ -226,6 +621,7 @@
             return alert("У вас недостаточно прав, для просмотра этой смены.")
         }
 
+        console.log(day)
         day = +day + 1; 
 
         if(day.toString().length === 1)
@@ -242,7 +638,7 @@
         
         const dat = "01-" + document.getElementById("trackingChart_input").value.split("-").reverse().join("-");
 
-        
+        console.log(date)
 
         $("#trackingChart").load(`/TimeTracking/TrackingDataEdit?stringDate=${date}&locationGuid=${location}`, function () {
             $('#back').unbind('click');
@@ -266,6 +662,29 @@
         document.body.removeChild(printDiv);
       }, 500);
     }
+
+    async function DeleteTimeSheet(day, person, location, element) {
+
+        // Подготовка даты
+        day = +day + 1;
+
+        if(day.toString().length === 1)
+        {
+            day = "0" + day;
+        }
+        const date = day + "-" + document.getElementById("trackingChart_input").value.split("-").reverse().join("-");
+
+        const result = await fetch(`/TimeTracking/DeleteTimeSheet?day=${date}&person=${person}&location=${location}`)
+
+        const response = await result.json();
+
+        if(response.ok)
+        {
+            element.classList.remove("multiShedule")
+            element.innerHTML = ""
+            element.style = "background-color: none;"
+        }
+    }
   
 </script>
 
@@ -281,13 +700,57 @@
         padding: 5px;
         border: 1px solid #CCC;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        justify-content: start;
+        align-items: start;
         width: 100%;
+        max-height: calc(100vh - 170px);
+        overflow-y: auto;
+    }
+
+    .trackingChart_table thead th {
+        position: sticky;
+        top: -6px;
+        background: white; /* или цвет под твой дизайн */
+        z-index: 2; /* чтобы была поверх содержимого */
     }
 
     .trackingChart_table {
         width: 100%;
+
+        width: 100%;
+        border-collapse: collapse;
+        position: relative;
+    }
+
+    .trackingChart_table thead th::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -1px;
+        height: 1px;
+        width: 100%;
+        background: gray;
+    }
+
+    .trackingChart_table th:first-child,
+    .trackingChart_table td:first-child {
+        position: sticky;
+        z-index: 10;
+        background-color: white; /* или ваш цвет фона */
+        min-width: 240px; /* Фиксированная ширина столбца */
+        padding: 4px 10px;
+        left: -6px;
+        border: 1px solid black;
+        box-shadow: 
+        1px 0 0 0 #ccc, /* Правая граница */
+        -1px 0 0 0 #ccc;
+        overflow: hidden;
+         white-space: nowrap;
+         text-overflow: ellipsis;
+    }
+
+    .trackingChart_table th:first-child {
+        z-index: 20; /* Чтобы заголовок был выше других элементов */
     }
 
     .trackingChart_table tbody  > tr {
@@ -298,14 +761,15 @@
     .trackingChart_table tbody  > tr > td:not(:first-child) {
         min-width: 35px;
         min-height: 35px;
+        height: 35px;
         max-height: 35px;
-        max-width: 35px;
+        max-width: 25px;
         vertical-align: middle;
         line-height: 35px;
         transition: background-color 0.25s ease-in-out;
     }
 
-    .trackingChart_table tbody  > tr > td:not(:first-child):not(:last-child):hover {
+    .trackingChart_table tbody  > tr > td:not(:first-child):hover {
         cursor: pointer;
         background-color: #CCC;
     }
@@ -321,12 +785,16 @@
     }
 
     .trackingChart_name {
-        max-width: 250px;
+        max-width: 260px;
         padding-left: 5px;
+        min-height: 30px;
+        display: flex;
+        justify-content: start;
+        align-items: center
     }
 
     .trackingChart_th {
-        height: 35px;
+        height: 40px;
         font-family: "Akrobat-Regular";
         display: flex;
         justify-content: center;
@@ -336,7 +804,17 @@
     }
 
     .trackingChart_td {
-        width: 35px;
+        line-height: 20px;
+        padding: 0px 3px;
+        height: 100%;
+        height: 100%; /* Наследует высоту родителя */
+        min-height: 35px; /* Запасной вариант */
+        box-sizing: border-box; /* Учитывает padding в высоте */
+        padding: 0 3px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .trackingChart_input {
@@ -356,4 +834,104 @@
         margin-left: 10px;
     }
 
+
+    .multiShedule {
+        font-size: 11px;
+        line-height: 11px;
+        padding: 0px;
+    }
+
+    .multiShedule > div {
+        padding: 2px 4px;
+    }
+
+    .header_stock_wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .header_stock_item {
+        display: flex;
+        align-items: center;
+    }
+
+    .fastAddButton {
+        gap: 15px;
+        flex-direction: row-reverse;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        height: 34px;
+        padding: 0px 10px;
+        border: 1px solid #BFBFBF;
+        border-radius: 2px;
+        transition: all 0.25s linear;
+    }
+
+    .fastAddButton > * {
+        cursor: pointer;
+    }
+
+    .fastAddButton:hover {
+        cursor: pointer;
+        background-color: #efefef;
+    }
+
+    /* Убираем скругленные углы */
+    .select2-container--default .select2-selection--single,
+    .select2-container--default .select2-dropdown {
+        border-radius: 2px !important;
+    }
+
+    /* Фиксируем ширину (если вдруг Select2 её переопределяет) */
+    .select2-container {
+        width: 240px !important;
+    }
+
+    /* Убираем лишние отступы */
+    .select2-container--default .select2-selection--single {
+        height: 34px !important;
+        padding: 4px 12px;
+    }
+
+    /* Стиль при фокусе */
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #BFBFBF;
+        outline: 0;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        top: 4px !important;
+    }
+
+    .selectorColorWrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        padding-bottom: 10px;
+    }
+
+    .button_delete {
+        height: 34px;
+        border: 1px solid red;
+        border-radius: 2px;
+        padding: 0px 15px;
+        background: #ff4040;
+        color: white;
+        text-transform: uppercase;
+        font-size: 13px;
+        font-family: 'Akrobat-Regular';
+        font-weight: 600;
+    }
+
+    .button_delete:hover {
+        background-color: #ff4040c9;
+    }
+
+    .button_delete_active {
+        box-shadow: inset 0px 0px 10px 0px #00000070;
+    }
 </style>

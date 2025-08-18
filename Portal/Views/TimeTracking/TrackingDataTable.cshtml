@@ -114,35 +114,36 @@
                             <td width=30% style="vertical-align: middle;" align="center"> @countPerson</td>
                             <td class="hidden @day.Date.ToString("dd-MM-yyyy")_@tt.Location.Guid">@tt.Location.Guid</td>
                             <td width=10% align="center" style="vertical-align: middle;" class="row-group-02-hours">
-                                   
 
+                                @using System.Globalization
                                 @{
-                                    // ����������� day.Hours � ����� �����, ����� �������� ������ � ������
-                                    int hours = (int)day.Hours;
+                                    // округляем до 2 знаков
+                                    double hours = Math.Round((double)day.Hours, 2);
 
-                                    // �������� ��������� ������ ������
-                                    string lastDigit = hours.ToString().Substring(hours.ToString().Length - 1);
+                                    // целая часть для правил склонения
+                                    int hoursInt = (int)Math.Floor(hours);
 
-                                    string stringHourse = "";
-                                }
-                                    
-
-                                    @switch (lastDigit)
+                                    string stringHourse;
+                                    if (hoursInt % 10 == 1 && hoursInt % 100 != 11)
                                     {
-                                        case "1":
-                                            stringHourse = " час";
-                                            break;
-                                        case "2":
-                                        case "3":
-                                        case "4":
-                                            stringHourse = " часа";
-                                            break;
-                                        default:
-                                            stringHourse = " часов";
-                                            break;
+                                        stringHourse = " час";
+                                    }
+                                    else if ((hoursInt % 10 >= 2 && hoursInt % 10 <= 4) && !(hoursInt % 100 >= 12 && hoursInt % 100 <= 14))
+                                    {
+                                        stringHourse = " часа";
+                                    }
+                                    else
+                                    {
+                                        stringHourse = " часов";
                                     }
 
-                                    @day.Hours @stringHourse
+                                    // форматируем вывод с двумя знаками после дробной точки
+                                    // используем InvariantCulture, если хочешь точку как разделитель; убери CultureInfo, если нужен локальный разделитель (запятая)
+                                    string hoursStr = hours.ToString("F2", CultureInfo.InvariantCulture);
+                                }
+
+                                @hoursStr@stringHourse
+
                                 </td>
 
                                 <td width=15% style="vertical-align: middle;" align="right"><label id="getTableView" class="md-assessment ico ClassForGetDate trackTableView" onclick="loadTask(this, event)"></label></td>
@@ -156,37 +157,38 @@
                                     <td style="vertical-align: middle;" align="left">@person.Personalities.Name</td>
                                     <td style="text-align:center; vertical-align: middle;" align="center">@person.JobTitle?.Name</td>
                                 <td style="text-align:center; vertical-align: middle;" align="center">
-                                        @{
-                                            double totalHours = 0;
+                                    @{
+                                        double totalHours = 0;
 
-                                            TimeSpan duration = person.End - person.Begin;
-                                            if (duration < TimeSpan.Zero)
-                                            {
-                                                duration = TimeSpan.FromHours(24) - person.Begin.TimeOfDay + person.End.TimeOfDay;
-                                            }
-                                            totalHours += duration.TotalHours;
-
-                                            string lastDigitTotalHours = totalHours.ToString().Substring(totalHours.ToString().Length - 1);
-
-                                            string stringHourseTotalHours = "";
-
-                                            switch (lastDigitTotalHours)
-                                            {
-                                                case "1":
-                                                    stringHourseTotalHours = " час";
-                                                    break;
-                                                case "2":
-                                                case "3":
-                                                case "4":
-                                                    stringHourseTotalHours = " часа";
-                                                    break;
-                                                default:
-                                                    stringHourseTotalHours = " часов";
-                                                    break;
-                                            }
+                                        TimeSpan duration = person.End - person.Begin;
+                                        if (duration < TimeSpan.Zero)
+                                        {
+                                            duration = TimeSpan.FromHours(24) - person.Begin.TimeOfDay + person.End.TimeOfDay;
                                         }
+                                        totalHours += duration.TotalHours;
 
-                                        @totalHours @stringHourseTotalHours
+                                        // Округляем до сотых
+                                        totalHours = Math.Round(totalHours, 2);
+
+                                        // Целая часть для склонения
+                                        int hoursGInt = (int)Math.Floor(totalHours);
+
+                                        string stringHourseTotalHours;
+                                        if (hoursGInt % 10 == 1 && hoursGInt % 100 != 11)
+                                        {
+                                            stringHourseTotalHours = " час";
+                                        }
+                                        else if ((hoursGInt % 10 >= 2 && hoursGInt % 10 <= 4) && !(hoursGInt % 100 >= 12 && hoursGInt % 100 <= 14))
+                                        {
+                                            stringHourseTotalHours = " часа";
+                                        }
+                                        else
+                                        {
+                                            stringHourseTotalHours = " часов";
+                                        }
+                                    }
+
+                                    @totalHours @stringHourseTotalHours
 
                                     </td>
                                     <td align="center"></td>

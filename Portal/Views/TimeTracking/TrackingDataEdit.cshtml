@@ -47,11 +47,12 @@
     </div>
 
     <!--Сотрудник-->
-    <div class="col-sm-5">
+    <div class="col-sm-4">
         <table class="table">
             <tr class="bg-primary">
-                <th class="text-left">Сотрудник</th>
-                <th class="text-center">Должность</th>
+                <th width="53%" class="text-left">Сотрудник</th>
+                <th width="35%" class="text-left">Должность</th>
+                <th width="15%"></th>
             </tr>
         </table>
         <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
@@ -62,7 +63,9 @@
                     {
                         <tr class="personList hidden">
                             <td class="hidden">@item.Personalities.Guid</td>
-                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+
+                            <td width="55%"><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+
                             @if(item.PartTimer == 0 || item.PartTimer == null)
                             {
                                 <td>@item.JobTitle?.Name</td>
@@ -71,8 +74,8 @@
                                 <td>Парт-таймер</td>
                                 <td class="hidden">0</td>
                             }
-                            
-                            
+
+
                             <td class="hidden">@item.Location.Guid</td>
                             <td onclick="addRowPeron(this)"><label class="md-add-circle-outline ico" style="margin: 0;"></label> </td>
                             <td class="hidden">@item.Schedule?.BeginTime</td>
@@ -84,7 +87,7 @@
                     {
                         <tr class="personList hidden">
                             <td class="hidden">@item.Personalities.Guid</td>
-                            <td><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
+                            <td width="55%"><input type="checkbox" class="hidden"><label class="namePersons">@item.Surname @item.Name @item.Patronymic</label></td>
 
                             @if (item.PartTimer == 0 || item.PartTimer == null)
                             {
@@ -104,19 +107,21 @@
                         </tr>
                     }
                 }
-                
+
             </table>
         </div>
     </div>
 
     <!--Заказ-->
-    <div class="col-sm-5">
+    <div class="col-sm-6">
         <div class="col-4 panel panel-default height" style="margin-bottom: 10px">
             <table class="table">
                 <tr class="bg-primary">
-                    <th class="text-left">Сотрудник</th>
-                    <th class="text-left">Должность</th>
-                    <th class="text-left">Время</th>
+                    <th width="35%" class="text-left">Сотрудник</th>
+                    <th width="30%" class="text-left">Должность</th>
+                    <th width="25%" class="text-center">Время</th>
+                    <th width="5%"></th>
+                    <th width="5%"></th>
                 </tr>
             </table>
 
@@ -130,9 +135,9 @@
                             {
                                 <tr>
                                     <th class="hidden guidForError">@item.Personalities.Guid</th>
-                                    <th class="newRowAlign">@item.Personalities.Name</th>
+                                    <th width="35%" style="text-align: start" class="newRowAlign">@item.Personalities.Name</th>
                                     <th class="hidden">@item.JobTitle?.Guid</th>
-                                    <th class="newRowAlign">
+                                    <th width="30%" class="newRowAlign">
                                         <select name="" id="selectJobTitle" class="selectJobTitle">
                                             @foreach (var job in Model.JobTitles)
                                             {
@@ -147,13 +152,13 @@
                                             }
                                         </select>
                                     </th>
-                                    <th class="newRowAlign" style="width: fit-content;">
+                                    <th width="25%" class="newRowAlign" style="width: fit-content;">
                                         <input type="time" step="1800" value='@item.Begin.ToString("HH:mm")' onChange="calculateHours()" class="timeBeginForJSON">
                                         <input type="time" step="1800" value='@item.End.ToString("HH:mm")' onChange="calculateHours()" class="timeEndForJSON">
                                     </th>
 
-                                    <th class="newRowAlign" style="align-content: center;padding-right: 16px;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
-
+                                    <th width="5%" class="newRowAlign" style="align-content: center;"><label class="md-remove-circle-outline ico" style="margin: 0;" onclick='deletePersonRow(this)'></label></th>
+                                    <th width="5%" class="newRowAlign" style="align-content: center;"><label class="md-deleteWithMessage ico" style="margin: 0;" onclick='createModal("@item.Guid", this)'></label></th>
                                 </tr>
                             }
 
@@ -245,88 +250,84 @@
                                     } else
                                     {
                                         <th class="newRowAlign">
-                                        <div class="custom-select" id="selectMini">
-                                            <div class="selected-option">
+                                            <div class="custom-select" id="selectMini">
+                                                <div class="selected-option">
 
-                                                @if (item.Status == 0)
+                                                    @if (item.Status == 0)
+                                                    {
+                                                        <img src="/pic/seach.png" id="0" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 1)
+                                                    {
+                                                        <img src="/pic/clock.png" id="1" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 2)
+                                                    {
+                                                        <img src="/pic/block.png" id="2" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 3)
+                                                    {
+                                                        <img src="/pic/close.png" id="3" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 4)
+                                                    {
+                                                        <img src="/pic/check.png" id="4" alt="icon" />
+                                                    }
+                                                    else if (item.Status == 5)
+                                                    {
+                                                        <img src="/pic/ruble.png" id="5" alt="icon" />
+                                                    }
+                                                </div>
+
+                                                @if(User.IsInRole("time_tracking_administrator"))
                                                 {
-                                                    <img src="/pic/seach.png" id="0" alt="icon" />
-                                                }
-                                                else if (item.Status == 1)
+                                                    <ul class="options-list">
+                                                        <li data-value="0">
+                                                            <img src="/pic/seach.png" id="0" alt="icon" /> Сотрудник запрошен
+                                                        </li>
+                                                        <li data-value="1">
+                                                            <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
+                                                        </li>
+                                                        <li data-value="2">
+                                                            <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
+                                                        </li>
+                                                        <li data-value="3">
+                                                            <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
+                                                        </li>
+                                                        <li data-value="4">
+                                                            <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
+                                                        </li>
+                                                        <li data-value="5">
+                                                            <img src="/pic/ruble.png" id="5" alt="icon" /> Оплачена
+                                                        </li>
+                                                    </ul>
+                                                } else if(item.Status == 1 && item.End <= DateTime.Now)
                                                 {
-                                                    <img src="/pic/clock.png" id="1" alt="icon" />
-                                                }
-                                                else if (item.Status == 2)
-                                                {
-                                                    <img src="/pic/block.png" id="2" alt="icon" />
-                                                }
-                                                else if (item.Status == 3)
-                                                {
-                                                    <img src="/pic/close.png" id="3" alt="icon" />
-                                                }
-                                                else if (item.Status == 4)
-                                                {
-                                                    <img src="/pic/check.png" id="4" alt="icon" />
-                                                }
-                                                else if (item.Status == 5)
-                                                {
-                                                    <img src="/pic/ruble.png" id="5" alt="icon" />
+                                                    <ul class="options-list">
+
+                                                        <li data-value="1">
+                                                            <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
+                                                        </li>
+
+                                                        <li data-value="2">
+                                                            <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
+                                                        </li>
+
+                                                        <li data-value="3">
+                                                            <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
+                                                        </li>
+
+                                                        <li data-value="4">
+                                                            <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
+                                                        </li>
+
+                                                    </ul>
                                                 }
                                             </div>
-
-                                            @if(User.IsInRole("time_tracking_administrator"))
-                                            {
-                                                <ul class="options-list">
-                                                <li data-value="0">
-                                                    <img src="/pic/seach.png" id="0" alt="icon" /> Сотрудник запрошен
-                                                </li>
-                                                <li data-value="1">
-                                                    <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
-                                                </li>
-                                                <li data-value="2">
-                                                    <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
-                                                </li>
-                                                <li data-value="3">
-                                                    <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
-                                                </li>
-                                                <li data-value="4">
-                                                    <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
-                                                </li>
-                                                <li data-value="5">
-                                                    <img src="/pic/ruble.png" id="5" alt="icon" /> Оплачена
-                                                </li>
-                                                </ul>
-                                            } else if(item.Status == 1 && item.End <= DateTime.Now)
-                                            {
-                                                <ul class="options-list">
-
-                                                     <li data-value="1">
-                                                        <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
-                                                    </li>
-                                                
-                                                    <li data-value="2">
-                                                        <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
-                                                    </li>
-
-                                                     <li data-value="3">
-                                                        <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
-                                                    </li>
-
-                                                    <li data-value="4">
-                                                        <img src="/pic/check.png" id="4" alt="icon" /> Выполнена
-                                                    </li>
-
-                                                </ul>
-                                            }
-                                        </div>
-                                    </th>
+                                        </th>
                                     }
-
-                                    
-
                                 </tr>
                             }
-
                         }
                     </tbody>
                 </table>
@@ -336,35 +337,30 @@
         <!--Кнопки сохранить/отмена-->
         <div class="col-4 trackingData_buttons" style="height:40px">
             <button class="btn btn-gray" href="javascript:void(0)" type="button" onclick="addRowPeronFromExchange()" style="float:right">Запросить на бирже</button>
-            <span id="hours"> 
+            <span id="hours">
                 @{
-                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ day.Hours пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
-                    int hours = (int)Model.Hours;
+                    double hours = Math.Round((double)Model.Hours, 2);
+                    int hoursInt = (int)Math.Floor(hours);
 
-                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
-                    string lastDigit = hours.ToString().Substring(hours.ToString().Length - 1);
+                    string stringHourse;
 
-                    string stringHourse = "";
-                }
-
-
-                @switch (lastDigit)
-                {
-                    case "1":
+                    if (hoursInt % 10 == 1 && hoursInt % 100 != 11)
+                    {
                         stringHourse = " час";
-                        break;
-                    case "2":
-                    case "3":
-                    case "4":
+                    }
+                    else if (new[] { 2, 3, 4 }.Contains(hoursInt % 10) && !(hoursInt % 100 >= 12 && hoursInt % 100 <= 14))
+                    {
                         stringHourse = " часа";
-                        break;
-                    default:
+                    }
+                    else
+                    {
                         stringHourse = " часов";
-                        break;
+                    }
                 }
 
-                Всего: @Model.Hours @stringHourse
+                Всего: @hours @stringHourse
             </span>
+
             <button class="btn btn-success" href="javascript:void(0)" type="button" onclick="sendData()" style="float:right">Сохранить</button>
         </div>
     </div>
@@ -372,6 +368,18 @@
 
 <!-- Скрипт для заголовка -->
 <script>
+    // Убираем кнопку быстрого добавления из хедера
+    const header = document.querySelector(".header_stock_wrapper")
+    if(header)
+    {
+        header.classList.add("hidden")
+    }
+    const colorWrapper = document.querySelector(".selectorColorWrapper")
+    if(colorWrapper)
+    {
+        colorWrapper.classList.add("hidden")
+    }
+
     // Обновляем заголовок с датой и названием
     let tt = document.querySelector('.TTForHeader').textContent;
     let date = document.querySelector('.dateForHeader').textContent;
@@ -550,49 +558,42 @@
 <script>
 
     function calculateHours() {
-        const beginArr = document.querySelectorAll(".timeBeginForJSON") // '06:30'
-        const endArr = document.querySelectorAll(".timeEndForJSON") // 
+        const beginArr = document.querySelectorAll(".timeBeginForJSON");
+        const endArr = document.querySelectorAll(".timeEndForJSON");
 
-        let totalHours = 0;
+        let totalMinutes = 0;
 
-        for(let i = 0; i < beginArr.length; i++)
-        {
-            let end = endArr[i].value;
-            let endHours = end.split(":")[0]
-            let endMinutes = end.split(":")[1]
+        for (let i = 0; i < beginArr.length; i++) {
+            const [beginH, beginM] = beginArr[i].value.split(":").map(Number);
+            const [endH, endM] = endArr[i].value.split(":").map(Number);
 
-            let begin = beginArr[i].value
-            let beginHours = begin.split(":")[0]
-            let beginMinutes = begin.split(":")[1]
+            let startMinutes = beginH * 60 + beginM;
+            let finishMinutes = endH * 60 + endM;
 
-            if(endHours == "00")
-            {
-                totalHours += ((24 - +beginHours) * 60 + +endMinutes - +beginMinutes) / 60;
-            } else {
-                totalHours += ((+endHours - +beginHours) * 60 + +endMinutes - +beginMinutes) / 60;
+            // Если конец меньше начала — значит, это следующий день
+            if (finishMinutes <= startMinutes) {
+                finishMinutes += 24 * 60;
             }
-        }
-       
-        let endSwitch = String(totalHours).split("")[String(totalHours).length - 1]
 
-        totalHours.toFixed(2);
-
-        switch (endSwitch) {
-            case "1":
-                endSwitch = " час";
-                break;
-            case "2":
-            case "3":
-            case "4":
-                endSwitch = " часа";
-                break;
-            default:
-                endSwitch = " часов";
-                break;
+            totalMinutes += finishMinutes - startMinutes;
         }
 
-        document.getElementById("hours").textContent = "Всего: " + totalHours + endSwitch;
+        const totalHours = (totalMinutes / 60).toFixed(2);
+
+        // Правильное склонение слова "час"
+        const hoursInt = Math.floor(totalHours);
+        let endSwitch;
+        if (hoursInt % 10 === 1 && hoursInt % 100 !== 11) {
+            endSwitch = " час";
+        } else if ([2, 3, 4].includes(hoursInt % 10) && ![12, 13, 14].includes(hoursInt % 100)) {
+            endSwitch = " часа";
+        } else {
+            endSwitch = " часов";
+        }
+
+        document.getElementById("hours").textContent = `Всего: ${totalHours}${endSwitch}`;
     }
+
 
     // Функция для добавления новой строки с данными о сотруднике
     function addRowPeron(data) {
@@ -616,6 +617,7 @@
         timeCell.classList.add('newRowAlign');
 
         let deletePersonCell = document.createElement('td');
+        deletePersonCell.colSpan = 2;
         deletePersonCell.classList.add('newRowAlign');
 
         // Извлекаем данные о сотруднике
@@ -702,6 +704,7 @@
 
         let deletePersonCell = document.createElement('td');
         deletePersonCell.classList.add('newRowAlign');
+        deletePersonCell.colSpan = 2;
 
         // Устанавливаем данные по умолчанию
         let name = "Сотрудник с биржи";
@@ -908,8 +911,9 @@
 
         sheduleData.WorkSlotsJson = WorkSlotsJson; // Добавляем рабочие слоты в данные расписания
         sheduleData.TimeSheetJson = TimeSheetJson; // Добавляем журнал времени в данные расписания
-        sheduleData.Date = date; // Добавляем дату в данные расписания
-        sheduleData.Location = locationGuid.textContent; // Добавляем местоположение в данные расписания
+        sheduleData.Date = date;
+        sheduleData.Location = locationGuid.textContent;
+        console.log(sheduleData)
 
         const sheduleDataJSON = JSON.stringify(sheduleData); // Преобразуем данные в формат JSON
         $.ajax({
@@ -920,12 +924,150 @@
             success: function (result) {
                 if (result.ok) {
                     SpinnerShow(); // Показываем спиннер
-                    $('#page').load('/TimeTracking/TrackingData', function () { SpinnerHide(); }); // Загружаем данные
+                    $('#page').load('/TimeTracking/TrackingDataEdit?stringDate=' + sheduleData.Date.split(" ")[0].split("-").reverse().join("-") + "&locationGuid=" + sheduleData.Location, function () { SpinnerHide(); }); // Загружаем данные
                 } else {
                     openModal('Ошибка', result); // Открываем модальное окно с ошибкой
                 }
             },
             error: function (error) { openModal('Ошибка', error); } // Открываем модальное окно при ошибке
         });
+    }
+</script>
+
+<script>
+    function createModal(guid, element) {
+      // Создаём элементы
+      const modalOverlay = document.createElement('div');
+      const modal = document.createElement('div');
+      const closeButton = document.createElement('button');
+      const saveButton = document.createElement('button');
+      const saveButtonWithDelete = document.createElement('button');
+      const header = document.createElement("span")
+      const textArea = document.createElement("textarea")
+
+      // Стили для оверлея (фона)
+      modalOverlay.style.position = 'fixed';
+      modalOverlay.style.top = '0';
+      modalOverlay.style.left = '0';
+      modalOverlay.style.width = '100%';
+      modalOverlay.style.height = '100%';
+      modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      modalOverlay.style.display = 'flex';
+      modalOverlay.style.justifyContent = 'center';
+      modalOverlay.style.alignItems = 'center';
+      modalOverlay.style.zIndex = '1000';
+      modalOverlay.id = "trackingModalOverlay";
+
+      // Стили для модального окна
+      modal.style.backgroundColor = 'white';
+      modal.style.padding = '20px';
+      modal.style.maxWidth = '500px';
+      modal.style.width = '80%';
+      modal.style.display = "flex"
+      modal.style.flexDirection = "column"
+      modal.style.alignItems = 'center';
+      modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+
+      textArea.classList.add("trackingModalTextArea")
+      textArea.id = "trackingModalTextArea"
+
+      saveButton.textContent = "Отправить сообщение"
+      saveButton.style.marginTop = '15px';
+      saveButton.style.padding = '5px 8px';
+      saveButton.style.cursor = 'pointer';
+      saveButton.classList.add("trackingModalSaveButton")
+      saveButton.onclick = () => {
+        sendCancalledSheet(guid, element, 0);
+      };
+
+      saveButtonWithDelete.textContent = "Отправить сообщение и удалить смену"
+      saveButtonWithDelete.style.marginTop = '5px';
+      saveButtonWithDelete.style.padding = '5px 8px';
+      saveButtonWithDelete.style.cursor = 'pointer';
+      saveButtonWithDelete.classList.add("trackingModalSaveButtonWithDelete")
+      saveButtonWithDelete.onclick = () => {
+        sendCancalledSheet(guid, element, 1);
+      };
+
+      // Стили для кнопки закрытия
+      closeButton.textContent = "закрыть";
+      closeButton.style.marginTop = '5px';
+      closeButton.style.padding = '5px 8px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.classList.add("trackingModalCloseButton")
+
+      header.textContent = "Напишите причину изменения"
+      header.classList.add("trackingModalSpanHeader")
+      
+
+      // Собираем структуру
+      modal.appendChild(header);
+      modal.appendChild(textArea);
+      modal.appendChild(saveButton);
+      modal.appendChild(saveButtonWithDelete);
+      modal.appendChild(closeButton);
+      modalOverlay.appendChild(modal);
+
+      // Добавляем в body
+      document.body.appendChild(modalOverlay);
+
+      // Закрытие по кнопке
+      closeButton.addEventListener('click', () => {
+        document.body.removeChild(modalOverlay);
+      });
+      
+      // Возвращаем объект для управления модалкой (если нужно)
+      return {
+        close: () => document.body.removeChild(modalOverlay)
+      };
+    }
+</script>
+
+<script>
+    function sendCancalledSheet(guid, element, toDelete)
+    {
+        const text = document.getElementById("trackingModalTextArea")
+        const trackingModalOverlay = document.getElementById("trackingModalOverlay")
+
+        if(text.value.trim().length == 0)
+        {
+            text.style.border = "2px solid red"
+            return;
+        }
+
+        const data = {
+            Guid: guid,
+            Text: text.value,
+            ToDelete: toDelete,
+        }
+
+        const json = JSON.stringify(data);
+        SpinnerShow();
+        $.ajax({
+            type: "POST",
+            url: '/TimeTracking/TimeTrackingCancalled',
+            data: { json: json },
+            datatype: "text",
+            success: function (result) {
+                if (result.ok) {
+                    SpinnerHide();
+
+                    if(toDelete == 1)
+                    {
+                        deletePersonRow(element)
+                        sendData()
+                    }
+
+                } else {
+                    openModal('Ошибка', result);
+                }
+            },
+            error: function (error) { 
+                SpinnerHide();
+                openModal('Ошибка', error); 
+            }
+        });
+
+        document.body.removeChild(trackingModalOverlay)
     }
 </script>

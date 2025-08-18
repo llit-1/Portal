@@ -70,6 +70,20 @@
     vertical-align: middle !important;
     font-weight: 400;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 230px;
+}
+
+.md-deleteWithMessage {
+    background-image: url(../img/md/dark/email.svg) !important;
+}
+
+@media screen and (max-width: 488px) and (orientation: portrait) {
+    .newRowAlign {
+        white-space: wrap;
+    }
 }
 
     .newRowAlign > input {
@@ -127,7 +141,7 @@
 
 #selectJobTitle {
     height: 40px;
-    width: 150px;
+    width: 170px;
 }
 
 .allPersonsDiv, .allPersonsTable, .getAllPersons {
@@ -383,3 +397,80 @@
         margin: 1mm;
     }
 }
+
+.namePersons {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 230px;
+}
+
+.trackingModalCloseButton {
+    font-family: 'Akrobat-Regular';
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid #ff000050;
+    color: #ff000050;
+    background: none;
+    transition: all 0.2s linear;
+    width: 100%;
+    height: 34px;
+    text-transform: uppercase;
+}
+
+.trackingModalSaveButton {
+    font-family: 'Akrobat-Regular';
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    height: 34px;
+    color: white;
+    background: #2ECC71;
+    transition: all 0.2s linear;
+    width: 100%;
+    text-transform: uppercase;
+}
+
+.trackingModalSaveButtonWithDelete {
+    font-family: 'Akrobat-Regular';
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    height: 34px;
+    color: white;
+    background: #d5cd6a;
+    transition: all 0.2s linear;
+    width: 100%;
+    text-transform: uppercase;
+}
+
+
+
+.trackingModalCloseButton:hover {
+    border: 2px solid red;
+    color: red;
+}
+
+.trackingModalSaveButton:hover {
+    background-color: #25A25A;
+}
+
+.trackingModalSaveButtonWithDelete:hover {
+    background-color: #b9af32;
+}
+
+.trackingModalSpanHeader {
+    font-family: 'Akrobat-Regular';
+    font-size: 20px;
+}
+
+.trackingModalTextArea {
+    width: 100%;
+    margin-top: 16px;
+    height: 80px;
+    border: 1px solid #CCC;
+    padding: 5px;
+    resize: none;
+    border-radius: 3px;
+}
+

@@ -7,8 +7,6 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        @try
-                        {
                             <table class="data-table nowrap" id="tableDataPerson">
                                 <thead>
                                     <tr>
@@ -44,7 +42,13 @@
                                                 <p class="text-muted">@Model[x].Personalities.BirthDate.ToString("dd.MM.yyyy")</p>
                                             </td>
                                             <td class="tdPersonTable">
-                                                <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle?.Name</p>
+                                                @if(@Model[x].PersonalitiesVersions.JobTitle?.Name == null)
+                                                {
+                                                    <p class="text-muted">Парт-таймер</p>
+                                                } else {
+                                                    <p class="text-muted">@Model[x].PersonalitiesVersions.JobTitle?.Name</p>
+                                                }
+                                                
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted">@Model[x].PersonalitiesVersions.Location.Name</p>
@@ -89,16 +93,9 @@
                                                 </td>
                                             }
                                         </tr>
-
-
                                     }
                                 </tbody>
                             </table>
-                        }
-                        catch
-                        {
-                            <div> Данных нет :( </div>
-                        }
                     </div>
                 </div>
             </div>
@@ -107,116 +104,118 @@
 </div>
 
 @*Добавление блока с пагинацией*@
-<ul id="logPages" class="pagination shadowed classForStyles">
-    <li id="leftPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-left"></i></span></a></li>
-    @*Вычисление кол-ва страниц и выбор активной*@
-    @{
-        var numPages = 1;
-        var totalPages = 1;
-        var lastPage = 1;
-        var firstPage = 1;
-        if (Model.Count() != 0)
-        {
-            numPages = 6;
-            totalPages = Model[0].maxPage;
-            firstPage = 1;
-
-
-
-            while (firstPage <= Model[0].currentPage) firstPage += numPages;
-            if (firstPage != 1) firstPage -= numPages;
-
-            lastPage = firstPage + numPages - 1;
-            var id = "";
-            var o = 1;
-
-            for (var p = firstPage; p <= lastPage; p++)
+@if (Model.Count > 0)
+{
+    <ul id="logPages" class="pagination shadowed classForStyles">
+        <li id="leftPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-left"></i></span></a></li>
+        @*Вычисление кол-ва страниц и выбор активной*@
+        @{
+            var numPages = 1;
+            var totalPages = 1;
+            var lastPage = 1;
+            var firstPage = 1;
+            if (Model.Count != 0)
             {
-                if (p <= totalPages)
+                numPages = 6;
+                totalPages = Model[0].maxPage;
+                firstPage = 1;
+
+
+
+                while (firstPage <= Model[0].currentPage) firstPage += numPages;
+                if (firstPage != 1) firstPage -= numPages;
+
+                lastPage = firstPage + numPages - 1;
+                var id = "";
+                var o = 1;
+
+                for (var p = firstPage; p <= lastPage; p++)
                 {
-                    id = "page_" + o.ToString();
-                    var active = "";
-                    if (p == Model[0].currentPage) active = "class = active";
+                    if (p <= totalPages)
+                    {
+                        id = "page_" + o.ToString();
+                        var active = "";
+                        if (p == Model[0].currentPage) active = "class = active";
 
-                    <li @active style="cursor:pointer"><a id="@id">@p</a></li>
+                        <li @active style="cursor:pointer"><a id="@id">@p</a></li>
 
-                    o++;
+                        o++;
+                    }
                 }
             }
         }
-    }
-    <li id="rightPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-right"></i></span></a></li>
-</ul>
+        <li id="rightPages" class="ignore"><a style="cursor:pointer"><span><i class="fa fa-angle-right"></i></span></a></li>
+    </ul>
 
+    <script>
+        const countData = "@Model.Count"
+        var selectedPage = "@Model[0].currentPage";
+        var numPages = @Html.Raw(Json.Serialize(numPages));
+        var totalPages = "@Model[0].maxPage";
+        var firstPage = @Html.Raw(Json.Serialize(firstPage));
+        var lastPage = @Html.Raw(Json.Serialize(lastPage));
 
-<script>
-    var selectedPage = "@Model[0].currentPage";
-    var numPages = @Html.Raw(Json.Serialize(numPages));
-    var totalPages = "@Model[0].maxPage";
-    var firstPage = @Html.Raw(Json.Serialize(firstPage));
-    var lastPage = @Html.Raw(Json.Serialize(lastPage));
-
-    // Получение номера станрницы на которую тыкнули
-    $('#logPages').children('li').children('a').click(function () {
-        if (!$(this).parent('li').hasClass('ignore')) {
-            if (!$(this).parent('li').hasClass('active')) {
-                selectedPage = $(this).text();
-                $('#logPages').children('li').removeClass('active');
-                $(this).parent('li').addClass('active');
-                let a = $(this).parent('li')
-                GetData(selectedPage);
-            }
-        }
-    });
-
-    // перемотка номеров вправо
-    $('#rightPages').click(function () {
-        if (lastPage < totalPages) {
-            let i = 1;
-            while (i <= numPages) {
-                var pageNumber = lastPage + i;
-                var id = "#page_" + i;
-
-                $(id).text(pageNumber);
-
-                if (pageNumber > totalPages) $(id).hide();
-                else {
-                    $(id).show();
-                    $('#logPages').children('li').removeClass('active');
-                    if (pageNumber == selectedPage + numPages) $(id).click();
+            // Получение номера станрницы на которую тыкнули
+            $('#logPages').children('li').children('a').click(function () {
+                if (!$(this).parent('li').hasClass('ignore')) {
+                    if (!$(this).parent('li').hasClass('active')) {
+                        selectedPage = $(this).text();
+                        $('#logPages').children('li').removeClass('active');
+                        $(this).parent('li').addClass('active');
+                        let a = $(this).parent('li')
+                        GetData(selectedPage);
+                    }
                 }
-                i++;
-            }
-            firstPage = firstPage + numPages;
-            lastPage = lastPage + numPages;
-        }
-    });
+            });
 
-    // перемотка номеров влево
-    $('#leftPages').click(function () {
+            // перемотка номеров вправо
+            $('#rightPages').click(function () {
+                if (lastPage < totalPages) {
+                    let i = 1;
+                    while (i <= numPages) {
+                        var pageNumber = lastPage + i;
+                        var id = "#page_" + i;
 
-        if (firstPage > 1) {
-            let i = numPages;
-            while (i >= 1) {
-                var pageNumber = firstPage - i;
-                var id = "#page_" + i;
-                $(id).text(pageNumber);
-                if (pageNumber < 1) $(id).hide();
-                else {
-                    $(id).show();
-                    $('#logPages').children('li').removeClass('active');
-                    if (pageNumber == selectedPage - numPages) $(id).click();
+                        $(id).text(pageNumber);
+
+                        if (pageNumber > totalPages) $(id).hide();
+                        else {
+                            $(id).show();
+                            $('#logPages').children('li').removeClass('active');
+                            if (pageNumber == selectedPage + numPages) $(id).click();
+                        }
+                        i++;
+                    }
+                    firstPage = firstPage + numPages;
+                    lastPage = lastPage + numPages;
                 }
-                i--;
-            }
-            firstPage = firstPage + numPages;
-            lastPage = lastPage + numPages;
-            $(`#page_1`).click();
-        }
-    });
+            });
 
+            // перемотка номеров влево
+            $('#leftPages').click(function () {
 
-</script>
+                if (firstPage > 1) {
+                    let i = numPages;
+                    while (i >= 1) {
+                        var pageNumber = firstPage - i;
+                        var id = "#page_" + i;
+                        $(id).text(pageNumber);
+                        if (pageNumber < 1) $(id).hide();
+                        else {
+                            $(id).show();
+                            $('#logPages').children('li').removeClass('active');
+                            if (pageNumber == selectedPage - numPages) $(id).click();
+                        }
+                        i--;
+                    }
+                    firstPage = firstPage + numPages;
+                    lastPage = lastPage + numPages;
+                    $(`#page_1`).click();
+                }
+            });
+    </script>
+}
+
 
 
 <script>

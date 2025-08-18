@@ -125,7 +125,7 @@ namespace Portal.Controllers
             }
         }
 
-        private async Task ExecuteUpdateSaleObjectsAsync(string daysAgo)
+        private async Task<IActionResult> ExecuteUpdateSaleObjectsAsync(string daysAgo)
         {
             try
             {
@@ -142,10 +142,12 @@ namespace Portal.Controllers
                         await command.ExecuteNonQueryAsync();
                     }
                 }
+
+                return Ok();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при выполнении UpdateSaleobjects: {ex.Message}");
+                return StatusCode(500, $"Ошибка: {ex.Message}");
             }
         }
 
