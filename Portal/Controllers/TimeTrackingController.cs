@@ -104,7 +104,6 @@ namespace Portal.Controllers
 
             return PartialView(trackingDataModel);
         }
-
         public double CalculateHours(List<TimeSheet> timeSheets, List<WorkingSlots> workingSlots)
         {
             double totalHours = 0;
@@ -132,7 +131,6 @@ namespace Portal.Controllers
 
             return totalHours;
         }
-
         public IActionResult TrackingData()
         {
             return PartialView();
@@ -511,6 +509,80 @@ namespace Portal.Controllers
                 mainData.Add(data);
             }
 
+            var workingSlots = dbSql.WorkingSlots.Include(x => x.Locations)
+                                                 .Include(x => x.Personalities)
+                                                 .Where(x => x.Begin >= firstDayOfMonth && x.End <= lastDayOfMonth)
+                                                 .Where(x => x.Locations.Guid == Guid.Parse(locationGuid))
+                                                 .AsEnumerable()
+                                                 .GroupBy(x => x.Personalities == null ? null : x.Personalities)
+                                                 .ToList();
+
+            List<DataForCharts> exchangeData = new List<DataForCharts>();
+
+            foreach(var item in workingSlots)
+            {
+                if(item.Key == null)
+                {
+                    DataForCharts data = new DataForCharts
+                    {
+                        person = null,
+                        timesheets = null,
+                        shedules = Enumerable.Range(0, lastDayOfMonth.Day)
+                            .Select(_ => new sheduleItem())
+                            .ToList()
+                    };
+
+                    foreach (var exch in item)
+                    {
+                        int day = exch.Begin.Day - 1;
+                        sheduleItem sheduleItem = new();
+                        sheduleItem.location = exch.Locations.Guid.ToString();
+                        sheduleItem.locationName = exch.Locations.Name;
+                        sheduleItem.traitorStatus = 0;
+                        List<string> jobs = new List<string>();
+                        jobs.Add(exch.JobTitles.Name);
+                        sheduleItem.duration = exch.Begin.ToString("HH:mm") + " " + exch.End.ToString("HH:mm");
+                        sheduleItem.jobTitle = jobs;
+
+                        data.shedules[day] = sheduleItem;
+                    }
+
+                    exchangeData.Add(data);
+                } else
+                {
+                    PersonalityVersion person = dbSql.PersonalityVersions.Include(x => x.Personalities).FirstOrDefault(x => x.Personalities.Guid == item.FirstOrDefault().Personalities.Guid);
+                    DataForCharts data = new DataForCharts
+                    {
+                        person = person,
+                        timesheets = null,
+                        shedules = Enumerable.Range(0, lastDayOfMonth.Day)
+                            .Select(_ => new sheduleItem())
+                            .ToList()
+                    };
+
+                    foreach (var exch in item)
+                    {
+                        int day = exch.Begin.Day - 1;
+                        sheduleItem sheduleItem = new();
+                        sheduleItem.location = exch.Locations.Guid.ToString();
+                        sheduleItem.locationName = exch.Locations.Name;
+                        sheduleItem.traitorStatus = 0;
+                        List<string> jobs = new List<string>();
+                        jobs.Add(exch.JobTitles.Name);
+                        sheduleItem.jobTitle = jobs;
+                        sheduleItem.duration = exch.Begin.ToString("HH:mm") + " " + exch.End.ToString("HH:mm");
+
+                        data.shedules[day] = sheduleItem;
+                    }
+
+                    exchangeData.Add(data);
+                }
+
+                
+            }
+
+            trackingChartData.ExchangeDataForCharts = exchangeData;
+
             trackingChartData.DataForCharts = mainData;
 
             List<JobTitle> jobTitles = dbSql.JobTitles.ToList();
@@ -553,7 +625,6 @@ namespace Portal.Controllers
 
             return new ObjectResult(result);
         }
-
         public IActionResult TimeTrackingCancalled(string json)
         {
             var result = new RKNet_Model.Result<string>();
@@ -603,6 +674,7 @@ namespace Portal.Controllers
             public class TrackingChartData
             {
                 public List<DataForCharts> DataForCharts { get; set; }
+                public List<DataForCharts> ExchangeDataForCharts { get; set; }
                 public List<Portal.Models.MSSQL.Location.Location> locations { get; set; }
                 public string selectedLocation { get; set; }
                 public string selectedDate { get; set; }

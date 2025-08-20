@@ -171,7 +171,7 @@
                                         <th class="newRowAlign">Сотрудник с биржи</th>
                                     } else
                                     {
-                                        <th class="newRowAlign">@item.Personalities?.Name</th>
+                                        <th class="newRowAlign" style="overflow: hidden;">@item.Personalities?.Name</th>
                                     }
 
                                     <th class="hidden">@item.JobTitles.Guid</th>
@@ -309,10 +309,6 @@
                                                             <img src="/pic/clock.png" id="1" alt="icon" /> Сотрудник назначен
                                                         </li>
 
-                                                        <li data-value="2">
-                                                            <img src="/pic/block.png" id="2" alt="icon" /> Смена отменена
-                                                        </li>
-
                                                         <li data-value="3">
                                                             <img src="/pic/close.png" id="3" alt="icon" /> Не выполнена
                                                         </li>
@@ -425,7 +421,7 @@
             {
                 select.children[1].style = "top: auto; bottom: 100%"
             } else {
-                select.children[1].style = "top: 100%; bottom: auto"
+                select.children[1].style = "bottom: auto"
             }
             
 
