@@ -55,7 +55,7 @@
             </tbody>
         </table>
     </div>
-    
+
     <div class="header_stock_wrapper">
         <div class="header_stock_item">
             <select id="trackingChart_select" class="form-control form-control-sm trackingChart_select">
@@ -135,7 +135,7 @@
 
                 <tbody>
 
-                    @foreach (var item in Model?.DataForCharts?.OrderBy(x => x.person.Location.Guid))
+                    @foreach(var item in Model?.DataForCharts?.OrderBy(x => x.person.Location.Guid))
                     {
 
                         <tr id="@item.person.Personalities.Guid">
@@ -179,7 +179,7 @@
                                     {
                                         <td align="center" id="@i" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location", this)'>
 
-                                            @if (item.shedules[i].duration.Length > 12)
+                                            @if (item.shedules[i].duration.Trim().Length > 15 && item.shedules[i].duration.Trim().Length < 24)
                                             {
                                                 <div class="trackingChart_td multiShedule">
                                                     <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
@@ -190,16 +190,33 @@
                                                         @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
                                                     </div>
                                                 </div>
-                                            } else {
+                                            }
+                                            else if (item.shedules[i].duration.Trim().Length > 24)
+                                            {
+                                                    <div class="trackingChart_td multiShedule">
+                                                        <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                            @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                        </div>
+
+                                                        <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                            @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                        </div>
+
+                                                        <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[2]?.Trim()]">
+                                                            @item.shedules[i].duration.Split(" ")[4] @item.shedules[i].duration.Split(" ")[5]
+                                                        </div>
+                                                    </div>
+                                                }
+                                            else {
                                                 <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
                                             }
-                                            
+
                                         </td>
                                     }
                                     else if (item.shedules[i].traitorStatus == 1 && helper == false)
                                     {
                                         <td id="@i" disabledfordelete="true" title="Сотрудник работал на @item.shedules[i].locationName" align="center" style="border: 2px solid blue; background-color: #ffff7f" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
-                                            @if (item.shedules[i].duration.Length > 12)
+                                            @if (item.shedules[i].duration.Trim().Length > 15 && item.shedules[i].duration.Trim().Length < 24)
                                             {
                                                 <div class="trackingChart_td multiShedule">
                                                     <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
@@ -208,6 +225,22 @@
 
                                                     <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
                                                         @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (item.shedules[i].duration.Trim().Length > 24)
+                                            {
+                                                <div class="trackingChart_td multiShedule">
+                                                    <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[2]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[4] @item.shedules[i].duration.Split(" ")[5]
                                                     </div>
                                                 </div>
                                             }
@@ -223,7 +256,7 @@
                                     else if (item.shedules[i].traitorStatus == 2 && helper == false)
                                     {
                                         <td id="@i" disabledfordelete="true" align="center" title="Сотрудник работал на этой ТТ, а так же на @item.shedules[i].locationName" style="border: 2px solid red;background-color: #d7e9ff" onclick='actionTypeSwitcher("@i", "@item.shedules[i].location")'>
-                                            @if (item.shedules[i].duration.Length > 12)
+                                            @if (item.shedules[i].duration.Trim().Length > 15 && item.shedules[i].duration.Trim().Length < 24)
                                             {
                                                 <div class="trackingChart_td multiShedule">
                                                     <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
@@ -232,6 +265,22 @@
 
                                                     <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
                                                         @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (item.shedules[i].duration.Trim().Length > 24)
+                                            {
+                                                <div class="trackingChart_td multiShedule">
+                                                    <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                    </div>
+
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[2]?.Trim()]">
+                                                        @item.shedules[i].duration.Split(" ")[4] @item.shedules[i].duration.Split(" ")[5]
                                                     </div>
                                                 </div>
                                             }
@@ -264,11 +313,79 @@
 
                     }
 
+                    @foreach(var item in Model?.ExchangeDataForCharts)
+                    {
+                        <tr id="@item.person?.Personalities?.Guid">
+
+                            <td class="fixed-column" style="background-color: #ffe9c7" title="Сотрудник c биржи">
+                                <div class="trackingChart_name">
+                                    @if (item.person != null)
+                                    {
+                                        @item.person.Personalities.Name
+                                    }
+                                    else
+                                    {
+                                        <np>Сотрудник с биржи</np>
+                                    }
+                                </div>
+                            </td>
+
+                            @for (var i = 0; i < item.shedules.Count; i++)
+                            {
+                                if (item.shedules[i].duration == "0" || item.shedules[i].duration == null)
+                                {
+                                    <td align="center" id="@i">
+                                        <div class='trackingChart_td'></div>
+                                    </td>
+                                }
+                                else
+                                {
+
+                                    <td align="center" id="@i">
+
+                                        @if (item.shedules[i].duration.Length > 12 && item.shedules[i].duration.Length < 15)
+                                        {
+                                            <div class="trackingChart_td multiShedule">
+                                                <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                    @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                </div>
+
+                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                    @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                </div>
+                                            </div>
+                                        }
+                                        else if (item.shedules[i].duration.Length > 14)
+                                        {
+                                            <div class="trackingChart_td multiShedule">
+                                                <div style="background-color: @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]">
+                                                    @item.shedules[i].duration.Split(" ")[0] @item.shedules[i].duration.Split(" ")[1]
+                                                </div>
+
+                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[1]?.Trim()]">
+                                                    @item.shedules[i].duration.Split(" ")[2] @item.shedules[i].duration.Split(" ")[3]
+                                                </div>
+
+                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[2]?.Trim()]">
+                                                    @item.shedules[i].duration.Split(" ")[4] @item.shedules[i].duration.Split(" ")[5]
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+                                        }
+
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    }
 
                 </tbody>
             </table>
         } else {
-            <p>Данных нет</p>
+            <div class="timeTracking_nodata">Данных нет</div>
         }
     </div>
 </div>
@@ -389,6 +506,11 @@
 
             element.parentElement.onclick = function(event) {
 
+                if(element.children.length > 2)
+                {
+                    return openModal("Быстрое добавление невозможно!", "Для добавления смены перейдите в карточку заполнения плана на день.")
+                }
+
                 if(element.parentElement.style.backgroundColor !== trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color)
                 {
                     const data = {}
@@ -431,15 +553,14 @@
 
                             if (result.ok) {
 
-                                console.log(result.data)
-
                                 if(element.textContent.trim().length == 0)
                                 {
-
+                                    console.log(0)
                                     element.innerHTML = `${beginTimeForChart} ${endTimeForChart}`
                                     element.style = `background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}`
 
-                                } else {
+                                } else if(element.textContent.trim().length > 5 && element.textContent.trim().length < 24) {
+                                    console.log(1)
 
                                     const oldTime = element.textContent;
                                     const color = element.style.backgroundColor;
@@ -455,7 +576,14 @@
                                     element.innerHTML += `<div style="background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}">
                                         ${beginTimeForChart} ${endTimeForChart}
                                     </div>`
+                                } else {
+                                    console.log(2)
+                                    element.innerHTML += `<div style="background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}">
+                                        ${beginTimeForChart} ${endTimeForChart}
+                                    </div>`
                                 }
+
+
                             } else {
                                 openModal('Ошибка', result); // Открываем модальное окно с ошибкой
                             }
@@ -704,7 +832,7 @@
         align-items: start;
         width: 100%;
         max-height: calc(100vh - 170px);
-        overflow-y: auto;
+        overflow-y: overlay;
     }
 
     .trackingChart_table thead th {
@@ -841,8 +969,21 @@
         padding: 0px;
     }
 
+    .multiShedule:hover {
+        scale: 1.6;
+        position: relative;
+        z-index: 1000;
+        transition: transform 0.2s ease;
+    }
+
     .multiShedule > div {
         padding: 2px 4px;
+    }
+
+    .multiShedule:has(:nth-child(3)) > div
+    {
+        font-size: 8px;
+        line-height: 7px;
     }
 
     .header_stock_wrapper {
@@ -933,5 +1074,15 @@
 
     .button_delete_active {
         box-shadow: inset 0px 0px 10px 0px #00000070;
+    }
+
+    .timeTracking_nodata {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 10px;
+        font-family: 'Akrobat-Regular';
+        font-size: 20px;
     }
 </style>

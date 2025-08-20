@@ -71,7 +71,6 @@
     font-weight: 400;
     font-size: 13px;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
     max-width: 230px;
 }
@@ -301,7 +300,8 @@
     background-color: #fff;
     z-index: 10;
     top: 100%; /* Чтобы выпадающий список был ниже селекта */
-    right: 0; /* Появляется слева от селекта */
+    right: -22px;
+    top: 46px;
 }
 
 .options-list li {
