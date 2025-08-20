@@ -449,6 +449,12 @@ namespace Portal.Controllers
 
         }
 
+        //Отчет 1С
+        [Authorize(Roles = "reports_1C")]
+        public IActionResult Report1C()
+        {
+            return PartialView();
+        }
 
         // Кассовые операции
         [Authorize(Roles = "reports_cashoperations")]

@@ -115,6 +115,10 @@
                                     {
                                         <li><a id="FranchiseeReports" href="#FranchiseeReports">Отчёты Франчайзи</a></li>
                                     }
+                                    @if (User.IsInRole("reports_1C"))
+                                    {
+                                        <li><a id="FranchiseeReports" href="#Reports1C">Отчёты 1С</a></li>
+                                    }
                                 </ul>
                             </li>
                         }
