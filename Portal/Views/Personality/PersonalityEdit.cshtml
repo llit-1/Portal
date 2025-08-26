@@ -249,6 +249,8 @@
                     <label class="label-light" style="padding-top: 12px">Email</label>
                     <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="@Model?.PersonalitiesVersions?.Personalities?.Email">
 
+                    @* <button class="buttonLMK" type="button" onclick="openModalLMK()" id="buttonLMK">ЛМК</button> *@
+
                     @if (Model.NewPerson == "1")
                     {
                         <div class="buttonAddPerson">
@@ -266,6 +268,16 @@
                     
                 </div>
             </form>
+
+            <div class="modalLMK-overlay hidden" id="modalLMK">
+                <div class="modalLMK-container">
+                    <div class="modalLMK-header"> Заполнение данных ЛМК </div>
+                    <div class="modalLMK-body"></div>
+                    <div class="modalLMK-footer">
+                        <button class="buttonLMK-close" id="buttonLMK-close" onclick="openModalLMK()" type="button">закрыть</button>
+                    </div>
+                </div>
+            </div>
         }
         else
         {
@@ -454,6 +466,13 @@
     //     }
         
     // })
+
+    function openModalLMK() {
+        // Создание модального окна для введения данных ЛМК
+        const modalLMK = document.getElementById("modalLMK")
+        modalLMK.classList.toggle("hidden")
+    }
+
 
     // Возврат к таблице
     const NewPerson = document.getElementById('NewPerson').value; // 1 - новый сотрудник, 0 и 2 - не новый

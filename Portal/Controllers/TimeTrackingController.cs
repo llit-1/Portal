@@ -112,6 +112,7 @@ namespace Portal.Controllers
             void AddHours(DateTime begin, DateTime end)
             {
                 TimeSpan duration = end - begin;
+                
                 if (duration < TimeSpan.Zero)
                 {
                     duration = TimeSpan.FromHours(24) - begin.TimeOfDay + end.TimeOfDay;
@@ -411,11 +412,20 @@ namespace Portal.Controllers
 
                 foreach (var timesheet in timesheets)
                 {
-                    var duration = (timesheet.End - timesheet.Begin).TotalHours;
+                    double duration;
+
+                    if(timesheet.End > timesheet.Begin)
+                    {
+                        duration = (timesheet.End - timesheet.Begin).TotalHours;
+                    } else
+                    {
+                        duration = (timesheet.Begin - timesheet.End).TotalHours;
+                    }
+                    
                     totalHours += duration;
 
                     sheduleItem sheduleItem = new();
-                    //sheduleItem.duration = duration;
+                    sheduleItem.jobTime = duration;
                     sheduleItem.duration = timesheet.Begin.ToString("HH:mm") + " " + timesheet.End.ToString("HH:mm");
                     sheduleItem.location = timesheet.Location.Guid.ToString();
                     sheduleItem.locationName = timesheet.Location.Name.ToString();
@@ -691,7 +701,7 @@ namespace Portal.Controllers
 
             public class sheduleItem
             {
-                //public double duration { get; set; }
+                public double jobTime { get; set; }
                 public string duration { get; set; }
                 public string location { get; set; }
                 public string locationName { get; set; }

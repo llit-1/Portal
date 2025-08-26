@@ -78,6 +78,7 @@ $(function () {
         if (hash == '#TrackingData') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingData');
         if (hash == '#TimesheetsFactory') loadContent(hash.replace('#', ''), '/TimesheetsFactory/TimesheetsMain');
         if (hash == '#TrackingChart') loadContent(hash.replace('#', ''), '/TimeTracking/TrackingChart');
+        if (hash == '#PersonalityFactory') loadTabMenu(hash.replace('#', ''), '/PersonalityFactory/TabMenu');
 
         
 

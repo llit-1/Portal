@@ -1,0 +1,192 @@
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12" style="display:inline-block">
+        <!--блок заголовка-->
+        <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+            <tbody>
+                <tr>
+                    <!--назад-->
+                    <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                        <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                        <label style="margin-left:10px; cursor:pointer">назад</label>
+                    </td>
+                    <!--заголовок-->
+                    <td>
+                        <h2 id="header" style="margin:0px; margin-left:5px; margin-right:20px; margin-bottom:6px"></h2>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--меню таблицы-->
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+            <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="AddItem()" style="margin-left:20px">добавить</a>
+        </div>
+
+        <!--меню добавления -->
+        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+        </div>        
+    </div>
+</div>
+
+<div class="panel panel-default" style="margin-bottom:0px">
+    <div class="panel-body">
+        <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table nowrap tablePersonalityFactory">
+                            <thead>
+                                <tr>
+                                    <th>Фамилия</th>
+                                    <th>Имя</th>
+                                    <th>Отчество</th>
+                                    <th>Дата рождения</th>
+                                    <th>ИНН</th>
+                                    <th>СНИЛС</th>
+                                    <th>Отдел</th>
+                                    <th>Цех</th>
+                                    <th>Должность</th>
+                                    <th>Гражданство</th>
+                                    <th>Юр. лицо</th>
+                                    <th>Тип документа</th>
+                                    <th>Номер телефона</th>
+                                    <th>Номер карты</th>
+                                    <th>Банк</th>
+                                    <th>Дата въезда</th>
+                                    <th>Дата выезда</th>
+                                    <th>Дата принятия</th>
+                                    <th>Дата увольнения</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < 170; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <p>Кургузов</p>
+                                        </td>
+                                        <td>
+                                            <p>Владислав</p>
+                                        </td>
+                                        <td>
+                                            <p>Сергеевич</p>
+                                        </td>
+                                        <td>
+                                            <p>12.02.2001</p>
+                                        </td>
+                                        <td>
+                                            <p>1123131231</p>
+                                        </td>
+                                        <td>
+                                            <p>12-12334-24 12</p>
+                                        </td>
+                                        <td>
+                                            <p>Главный</p>
+                                        </td>
+                                        <td>
+                                            <p>Кулинарный</p>
+                                        </td>
+                                        <td>
+                                            <p>Русский</p>
+                                        </td>
+                                        <td>
+                                            <p>ООО ЛюдиЛюбят</p>
+                                        </td>
+                                        <td>
+                                            <p>Паспорт</p>
+                                        </td>
+                                        <td>
+                                            <p>+79111744010</p>
+                                        </td>
+                                        <td>
+                                            <p>13</p>
+                                        </td>
+                                        <td>
+                                            <p>14</p>
+                                        </td>
+                                        <td>
+                                            <p>15</p>
+                                        </td>
+                                        <td>
+                                            <p>16</p>
+                                        </td>
+                                        <td>
+                                            <p>17</p>
+                                        </td>
+                                        <td>
+                                            <p>18</p>
+                                        </td>
+                                        <td>
+                                            <p>19</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="paginationContainer"></div>
+
+
+<!----------------------------------------------------------------------->
+<!--вычисление высоты таблицы-->
+<script>
+    var height = $('#global').height();
+
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+<script>
+    var table = $(".data-table").DataTable({
+        paging: true,
+        pageLength: 17, // Записей на странице
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        destroy: true,
+        bLengthChange: false,
+        info: false,
+        dom: 'tp',
+        responsive: !0,
+        autoWidth: false, // отключаем автоматические inline-ширины
+        columnDefs: [
+            { targets: "_all", width: "auto" } // все колонки авто
+        ],
+        deferRender: !0,
+        language: {
+            paginate: {
+                first: '«',
+                previous: '‹',
+                next: '›',
+                last: '»'
+            },
+        }
+    });
+
+    // переносим пагинацию один раз
+    var paginate = $(table.table().container()).find('.dataTables_paginate').detach();
+    $('#paginationContainer').append(paginate);
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
+</script>
+
+<script>
+    $("#PageHeader").text("Учет сотрудников (Завод)")
+    $('#back').unbind('click');
+    $('#back').click(function () { location.hash = "#staff" });
+</script>
