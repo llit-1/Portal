@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL;
+using Portal.Models.MSSQL.Factory;
 using static Portal.Controllers.StockController;
 
 namespace Portal.DB
@@ -9,8 +10,48 @@ namespace Portal.DB
         public MSSQLDBContext(DbContextOptions<MSSQLDBContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {            
-            base.OnModelCreating(modelBuilder);
+        {
+            modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
+        .HasKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId });
+
+            modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
+                .HasOne(x => x.FactoryDepartment)
+                .WithMany(d => d.DepartmentWorkshops)
+                .HasForeignKey(x => x.FactoryDepartmentId);
+
+            modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
+                .HasOne(x => x.FactoryWorkshop)
+                .WithMany(w => w.DepartmentWorkshops)
+                .HasForeignKey(x => x.FactoryWorkshopId);
+
+            // --- FactoryJobTitleFactoryWorkshop ---
+            modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
+                .HasKey(x => new { x.FactoryJobTitleId, x.FactoryWorkshopId });
+
+            modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
+                .HasOne(x => x.FactoryJobTitle)
+                .WithMany(j => j.JobTitleWorkshops)
+                .HasForeignKey(x => x.FactoryJobTitleId);
+
+            modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
+                .HasOne(x => x.FactoryWorkshop)
+                .WithMany(w => w.JobTitleWorkshops)
+                .HasForeignKey(x => x.FactoryWorkshopId);
+
+            // --- FactoryDepartmentWorkshopJobTitle ---
+            modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
+                .HasKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId, x.FactoryJobTitleId });
+
+            modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
+                .HasOne(x => x.DepartmentWorkshop)
+                .WithMany(dw => dw.DepartmentWorkshopJobTitles)
+                .HasForeignKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId });
+
+            modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
+                .HasOne(x => x.JobTitleWorkshop)
+                .WithMany(jw => jw.DepartmentWorkshopJobTitles)
+                .HasForeignKey(x => new { x.FactoryJobTitleId, x.FactoryWorkshopId });
+                base.OnModelCreating(modelBuilder);
         }
 
         public DbSet<Models.MSSQL.AIShocase> AIShocases { get; set; } // таблица с данными заполненности витрин
@@ -52,5 +93,18 @@ namespace Portal.DB
         public DbSet<WarehouseHolder> WarehouseHolders  { get; set;}
         public DbSet<BindingPersonalityToLocation> BindingPersonalityToLocation { get; set; }
         public DbSet<CalculatorCoefficientLog> CalculatorСoefficientLogs { get; set; } // изменение коф калькулятора
+
+        public DbSet<FactoryDepartment> FactoryDepartment { get; set; }
+        public DbSet<FactoryWorkshop> FactoryWorkshop { get; set; }
+        public DbSet<FactoryJobTitle> FactoryJobTitle { get; set; }
+        public DbSet<FactoryDepartmentFactoryWorkshop> FactoryDepartmentFactoryWorkshop { get; set; }
+        public DbSet<FactoryJobTitleFactoryWorkshop> FactoryJobTitleFactoryWorkshop { get; set; }
+        public DbSet<FactoryDepartmentWorkshopJobTitle> FactoryDepartmentWorkshopJobTitle { get; set; }
+        public DbSet<FactoryEntity> FactoryEntity { get; set; }
+        public DbSet<FactoryDocumentType> FactoryDocumentType { get; set; }
+        public DbSet<FactoryCitizenshipType> FactoryCitizenshipType { get; set; }
+        public DbSet<FactoryCitizenship> FactoryCitizenship { get; set; }
+        public DbSet<FactoryBanks> FactoryBanks { get; set; }
+        public DbSet<FactoryPerson> FactoryPerson { get; set; }
     }
 }
