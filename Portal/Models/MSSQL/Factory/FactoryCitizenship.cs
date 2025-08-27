@@ -5,16 +5,13 @@ namespace Portal.Models.MSSQL.Factory
 {
     public class FactoryCitizenship
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
-        [Required, MaxLength(50)]
         public string Name { get; set; } = string.Empty;
 
-        [ForeignKey(nameof(CitizenshipType))]
-        public int? CitizenshipTypeId { get; set; }
+        [Column("CitizenshipType")]
+        public int? CitizenshipTypeId { get; set; }   // column name in DB is "CitizenshipType"
 
-        public FactoryCitizenshipType? CitizenshipType { get; set; }
+        [ForeignKey(nameof(CitizenshipTypeId))]
+        public FactoryCitizenshipType? CitizenshipType{ get; set; }
     }
 }

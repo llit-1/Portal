@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Factory;
-using static Portal.Controllers.StockController;
 
 namespace Portal.DB
 {
@@ -11,48 +10,75 @@ namespace Portal.DB
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
-        .HasKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId });
 
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
+              .HasKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId });
+
+            modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
+                .HasKey(x => new { x.FactoryJobTitleId, x.FactoryWorkshopId });
+
+            modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
+                .HasKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId, x.FactoryJobTitleId });
+
+            // ---------- junction relations ----------
             modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
                 .HasOne(x => x.FactoryDepartment)
                 .WithMany(d => d.DepartmentWorkshops)
-                .HasForeignKey(x => x.FactoryDepartmentId);
+                .HasForeignKey(x => x.FactoryDepartmentId)
+                .HasPrincipalKey(d => d.Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FactoryDepartmentFactoryWorkshop>()
                 .HasOne(x => x.FactoryWorkshop)
                 .WithMany(w => w.DepartmentWorkshops)
-                .HasForeignKey(x => x.FactoryWorkshopId);
-
-            // --- FactoryJobTitleFactoryWorkshop ---
-            modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
-                .HasKey(x => new { x.FactoryJobTitleId, x.FactoryWorkshopId });
+                .HasForeignKey(x => x.FactoryWorkshopId)
+                .HasPrincipalKey(w => w.Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
                 .HasOne(x => x.FactoryJobTitle)
                 .WithMany(j => j.JobTitleWorkshops)
-                .HasForeignKey(x => x.FactoryJobTitleId);
+                .HasForeignKey(x => x.FactoryJobTitleId)
+                .HasPrincipalKey(j => j.Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FactoryJobTitleFactoryWorkshop>()
                 .HasOne(x => x.FactoryWorkshop)
                 .WithMany(w => w.JobTitleWorkshops)
-                .HasForeignKey(x => x.FactoryWorkshopId);
+                .HasForeignKey(x => x.FactoryWorkshopId)
+                .HasPrincipalKey(w => w.Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // --- FactoryDepartmentWorkshopJobTitle ---
-            modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
-                .HasKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId, x.FactoryJobTitleId });
-
+            // triple-junction: connect to the two junctions by their composite keys
             modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
                 .HasOne(x => x.DepartmentWorkshop)
                 .WithMany(dw => dw.DepartmentWorkshopJobTitles)
-                .HasForeignKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId });
+                .HasForeignKey(x => new { x.FactoryDepartmentId, x.FactoryWorkshopId })
+                .HasPrincipalKey(dw => new { dw.FactoryDepartmentId, dw.FactoryWorkshopId })
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FactoryDepartmentWorkshopJobTitle>()
                 .HasOne(x => x.JobTitleWorkshop)
                 .WithMany(jw => jw.DepartmentWorkshopJobTitles)
-                .HasForeignKey(x => new { x.FactoryJobTitleId, x.FactoryWorkshopId });
-                base.OnModelCreating(modelBuilder);
+                .HasForeignKey(x => new { x.FactoryJobTitleId, x.FactoryWorkshopId })
+                .HasPrincipalKey(jw => new { jw.FactoryJobTitleId, jw.FactoryWorkshopId })
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // --------- FactoryPerson -> triple-junction (composite FK) ----------
+            modelBuilder.Entity<FactoryPerson>()
+                .HasOne(p => p.DepartmentWorkshopJobTitle)
+                .WithMany()
+                .HasForeignKey(p => new { p.FactoryDepartment, p.FactoryWorkshop, p.FactoryJobTitle })
+                .HasPrincipalKey(t => new { t.FactoryDepartmentId, t.FactoryWorkshopId, t.FactoryJobTitleId })
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // NOTE: простые FK (Bank, Citizenship, Entity, DocumentType) мы оставляем через атрибуты [ForeignKey]
+            // — не нужно дублировать их в fluent API (чтобы не получить конфликт маппинга).
         }
+
+
+
 
         public DbSet<Models.MSSQL.AIShocase> AIShocases { get; set; } // таблица с данными заполненности витрин
         public DbSet<Models.MSSQL.SalesPrediction> SalesPredictions { get; set; } // таблица с данными прогноза продаж вручную вводимыми ТМ
@@ -90,7 +116,7 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.SettingsVariables> SettingsVariables { get; set; }
         public DbSet<Models.MSSQL.WorkingSlots> WorkingSlots { get; set; }
         public DbSet<WarehouseCategories> WarehouseCategories { get; set; } // Иерархия склада
-        public DbSet<WarehouseHolder> WarehouseHolders  { get; set;}
+        public DbSet<WarehouseHolder> WarehouseHolders { get; set; }
         public DbSet<BindingPersonalityToLocation> BindingPersonalityToLocation { get; set; }
         public DbSet<CalculatorCoefficientLog> CalculatorСoefficientLogs { get; set; } // изменение коф калькулятора
 
