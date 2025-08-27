@@ -1,3 +1,5 @@
+@model List<Portal.Models.MSSQL.Factory.FactoryPerson>
+
 <div id="headMenu" class="row" style="margin:0px">
     <div class="col-12" style="display:inline-block">
         <!--блок заголовка-->
@@ -55,70 +57,70 @@
                                     <th>Банк</th>
                                     <th>Дата въезда</th>
                                     <th>Дата выезда</th>
-                                    <th>Дата принятия</th>
+                                    <th>Дата приема на работу</th>
                                     <th>Дата увольнения</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for (var i = 0; i < 170; i++)
+                                @foreach(var item in Model)
                                 {
-                                    <tr>
+                                    <tr class="activeRow">
                                         <td>
-                                            <p>Кургузов</p>
+                                            <p>@item.Surname</p>
                                         </td>
                                         <td>
-                                            <p>Владислав</p>
+                                            <p>@item.Name</p>
                                         </td>
                                         <td>
-                                            <p>Сергеевич</p>
+                                            <p>@item.Patronymic</p>
                                         </td>
                                         <td>
-                                            <p>12.02.2001</p>
+                                            <p>@item.Birthdate</p>
                                         </td>
                                         <td>
-                                            <p>1123131231</p>
+                                            <p>@item.INN</p>
                                         </td>
                                         <td>
-                                            <p>12-12334-24 12</p>
+                                            <p>@item.SNILS</p>
                                         </td>
                                         <td>
-                                            <p>Главный</p>
+                                            <p>@item.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryDepartment.Name</p>
                                         </td>
                                         <td>
-                                            <p>Кулинарный</p>
+                                            <p>@item.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryWorkshop.Name</p>
                                         </td>
                                         <td>
-                                            <p>Русский</p>
+                                            <p>@item.DepartmentWorkshopJobTitle.JobTitleWorkshop.FactoryJobTitle.Name</p>
                                         </td>
                                         <td>
-                                            <p>ООО ЛюдиЛюбят</p>
+                                            <p>@item.Citizenship.Name</p>
                                         </td>
                                         <td>
-                                            <p>Паспорт</p>
+                                            <p>@item.Entity.Name</p>
                                         </td>
                                         <td>
-                                            <p>+79111744010</p>
+                                            <p>@item.DocumentType.Name</p>
                                         </td>
                                         <td>
-                                            <p>13</p>
+                                            <p>@item.Phone</p>
                                         </td>
                                         <td>
-                                            <p>14</p>
+                                            <p>@item.CardNumber</p>
                                         </td>
                                         <td>
-                                            <p>15</p>
+                                            <p>@item.Bank.Name</p>
                                         </td>
                                         <td>
-                                            <p>16</p>
+                                            <p>@item.HostelChekin</p>
                                         </td>
                                         <td>
-                                            <p>17</p>
+                                            <p>@item.HostelCheckOut</p>
                                         </td>
                                         <td>
-                                            <p>18</p>
+                                            <p>@item.HiringDate</p>
                                         </td>
                                         <td>
-                                            <p>19</p>
+                                            <p>@item.DismissedDate</p>
                                         </td>
                                     </tr>
                                 }
@@ -189,4 +191,17 @@
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#staff" });
+</script>
+
+<script>
+    $('.activeRow').click(function () {
+        var personGuid = this.id;
+
+        SpinnerShow();
+
+        $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryAdd`, function () {
+            SpinnerHide()
+        });
+
+    });
 </script>

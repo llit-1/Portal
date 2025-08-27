@@ -45,5 +45,11 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
+
+        [Authorize(Roles = "employee_control_factory")]
+        public IActionResult PersonalityFactoryAdd()
+        {
+            return PartialView();
+        }
     }
 }

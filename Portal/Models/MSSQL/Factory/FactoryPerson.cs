@@ -25,7 +25,7 @@ namespace Portal.Models.MSSQL.Factory
         [Required, MaxLength(12), Column("INN")]
         public string INN { get; set; } = string.Empty;
 
-        [Required, MaxLength(14), Column("SNILS")]
+        [Required, MaxLength(11), Column("SNILS")]
         public string SNILS { get; set; } = string.Empty;
 
         // имена свойств совпадают с именами колонок в БД
