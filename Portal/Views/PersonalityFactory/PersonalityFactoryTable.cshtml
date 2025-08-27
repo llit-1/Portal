@@ -64,7 +64,7 @@
                             <tbody>
                                 @foreach(var item in Model)
                                 {
-                                    <tr class="activeRow">
+                                    <tr class="activeRow" id="@item.Id">
                                         <td class="tdPersonTable">
                                             <p>@item.Surname</p>
                                         </td>
@@ -196,13 +196,13 @@
 
 <script>
     $('.activeRow').click(function () {
-        // var personGuid = this.id;
+        var personGuid = this.id;
 
-        // SpinnerShow();
+        SpinnerShow();
 
-        // $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryAdd`, function () {
-        //     SpinnerHide()
-        // });
+        $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryEdit?id=${personGuid}`, function () {
+            SpinnerHide()
+        });
 
     });
 </script>

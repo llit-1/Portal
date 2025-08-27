@@ -124,19 +124,27 @@ namespace Portal.Controllers
             return PartialView(personalityFactoryEditModel);
         }
 
-
         public IActionResult EditPerson([FromBody] FactoryPerson person)
         {
             if (person == null)
             {
                 return BadRequest(new { Message = "person is null" });
             }
+
             if (!dbSql.FactoryPerson.Any(x => x.Id == person.Id))
                 return BadRequest(new { Message = "invalid person id" });
+
+            if (dbSql.FactoryPerson.Any(x => x.INN == person.INN && x.Id != person.Id))
+                return BadRequest(new { Message = "ИНН уже зарегистрирован у другого человека" });
+
+            if (dbSql.FactoryPerson.Any(x => x.SNILS == person.SNILS && x.Id != person.Id))
+                return BadRequest(new { Message = "СНИЛС уже зарегистрирован у другого человека" });
+
             dbSql.Entry(person).State = EntityState.Modified;
             dbSql.SaveChanges();
             return Ok();
         }
+
 
 
 
