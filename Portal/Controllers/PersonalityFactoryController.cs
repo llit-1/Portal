@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL.Factory;
 using System.Collections.Generic;
 using System.Linq;
+using static Portal.Controllers.PersonalityFactoryController;
 
 
 namespace Portal.Controllers
@@ -95,6 +96,43 @@ namespace Portal.Controllers
             return Ok();
         }
 
+        public IActionResult PersonalityFactoryEdit(int id)
+        {
+
+            PersonalityFactoryEditModel personalityFactoryEditModel = new PersonalityFactoryEditModel();
+            personalityFactoryEditModel.FactoryPerson = dbSql.FactoryPerson.Include(x => x.Citizenship).FirstOrDefault(x => x.Id == id);
+            personalityFactoryEditModel.FactoryDepartments = dbSql.FactoryDepartment.ToList();
+            personalityFactoryEditModel.FactoryWorkshops = dbSql.FactoryDepartmentFactoryWorkshop
+                                                          .Include(x => x.FactoryWorkshop)
+                                                          .Where(x => x.FactoryDepartmentId == personalityFactoryEditModel.FactoryPerson.FactoryDepartment)
+                                                          .Select(x => x.FactoryWorkshop).ToList();
+            personalityFactoryEditModel.FactoryJobTitles = dbSql.FactoryDepartmentWorkshopJobTitle
+                                                           .Include(x => x.JobTitleWorkshop)
+                                                           .ThenInclude(a => a.FactoryJobTitle)
+                                                           .Where(x => x.FactoryDepartmentId == personalityFactoryEditModel.FactoryPerson.FactoryDepartment && x.FactoryWorkshopId == personalityFactoryEditModel.FactoryPerson.FactoryWorkshop)
+                                                           .Select(x => x.JobTitleWorkshop.FactoryJobTitle).ToList();
+            personalityFactoryEditModel.FactoryCitizenshipType = dbSql.FactoryCitizenshipType.FirstOrDefault(x => x.Id == personalityFactoryEditModel.FactoryPerson.Citizenship.CitizenshipTypeId);
+            personalityFactoryEditModel.FactoryCitizenships = dbSql.FactoryCitizenship.Where(x => x.CitizenshipTypeId == personalityFactoryEditModel.FactoryCitizenshipType.Id).ToList();
+            personalityFactoryEditModel.FactoryEntities = dbSql.FactoryEntity.ToList();
+            personalityFactoryEditModel.FactoryDocumentTypes = dbSql.FactoryDocumentType.ToList();
+            personalityFactoryEditModel.FactoryBanks = dbSql.FactoryBanks.ToList();
+            personalityFactoryEditModel.FactoryCitizenshipTypes = dbSql.FactoryCitizenshipType.ToList();          
+            return PartialView(personalityFactoryEditModel);
+        }
+
+
+        public IActionResult EditPerson([FromBody] FactoryPerson person)
+        {
+            if (person == null)
+            {
+                return BadRequest(new { Message = "person is null" });
+            }
+            if (!dbSql.FactoryPerson.Any(x => x.Id == person.Id))
+                return BadRequest(new { Message = "invalid person id" });
+            dbSql.Entry(person).State = EntityState.Modified;
+            dbSql.SaveChanges();
+            return Ok();
+        }
 
 
 
@@ -105,6 +143,21 @@ namespace Portal.Controllers
             public List<FactoryCitizenshipType> FactoryCitizenshipTypes { get; set; } = new List<FactoryCitizenshipType>();
             public List<FactoryDocumentType> FactoryDocumentTypes { get; set; } = new List<FactoryDocumentType>();
             public List<FactoryBanks> FactoryBanks { get; set; } = new List<FactoryBanks>();
+        }
+
+        public class PersonalityFactoryEditModel
+        {
+            public FactoryPerson FactoryPerson { get; set; }
+            public List<FactoryDepartment> FactoryDepartments { get; set; } = new List<FactoryDepartment>();
+            public List<FactoryWorkshop> FactoryWorkshops { get; set; }
+            public List<FactoryJobTitle> FactoryJobTitles { get; set; }
+            public List<FactoryCitizenshipType> FactoryCitizenshipTypes { get; set; }
+            public FactoryCitizenshipType FactoryCitizenshipType { get; set; }
+            public List<FactoryEntity> FactoryEntities { get; set; } = new List<FactoryEntity>();
+            public List<FactoryCitizenship> FactoryCitizenships { get; set; } = new List<FactoryCitizenship>();
+            public List<FactoryDocumentType> FactoryDocumentTypes { get; set; } = new List<FactoryDocumentType>();
+            public List<FactoryBanks> FactoryBanks { get; set; } = new List<FactoryBanks>();
+
         }
     }
 }
