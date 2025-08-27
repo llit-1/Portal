@@ -88,9 +88,13 @@ namespace Portal.Controllers
         public IActionResult SaveNewPerson([FromBody] FactoryPerson person)
         {
             if (person == null)
-            {
                 return BadRequest(new { Message = "person is null" });
-            }
+            
+
+            if (dbSql.FactoryPerson.Any(x => x.SNILS == person.SNILS || x.INN == person.INN))
+                return BadRequest(new { Message = "Пользователь с таким СНИЛС или ИНН уже зарегистрирован" });
+
+
             dbSql.FactoryPerson.Add(person);
             dbSql.SaveChanges();
             return Ok();

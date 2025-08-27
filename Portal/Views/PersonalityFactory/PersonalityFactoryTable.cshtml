@@ -22,7 +22,7 @@
         <!--меню таблицы-->
         <div id="tableMenu" class="col-md-12" style="padding:0px">
             <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="AddItem()" style="margin-left:20px">добавить</a>
+            <a href="#AddTT" class="btn btn-sm btn-success addTTButton" onclick="addPersonFactory()" style="margin-left:20px">добавить</a>
         </div>
 
         <!--меню добавления -->
@@ -44,82 +44,82 @@
                                     <th>Имя</th>
                                     <th>Отчество</th>
                                     <th>Дата рождения</th>
-                                    <th>ИНН</th>
-                                    <th>СНИЛС</th>
+                                    <th class="hidden">ИНН</th>
+                                    <th class="hidden">СНИЛС</th>
                                     <th>Отдел</th>
-                                    <th>Цех</th>
+                                    <th>Участок</th>
                                     <th>Должность</th>
                                     <th>Гражданство</th>
                                     <th>Юр. лицо</th>
                                     <th>Тип документа</th>
-                                    <th>Номер телефона</th>
-                                    <th>Номер карты</th>
-                                    <th>Банк</th>
-                                    <th>Дата въезда</th>
-                                    <th>Дата выезда</th>
-                                    <th>Дата приема на работу</th>
-                                    <th>Дата увольнения</th>
+                                    <th class="hidden">Номер телефона</th>
+                                    <th class="hidden">Номер банковской карты</th>
+                                    <th class="hidden">Банк</th>
+                                    <th class="hidden">Дата въезда</th>
+                                    <th class="hidden">Дата выезда</th>
+                                    <th class="hidden">Дата приема на работу</th>
+                                    <th class="hidden">Дата увольнения</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach(var item in Model)
                                 {
                                     <tr class="activeRow">
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.Surname</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.Patronymic</p>
                                         </td>
-                                        <td>
-                                            <p>@item.Birthdate</p>
+                                        <td class="tdPersonTable">
+                                            <p>@item.Birthdate.ToString("dd.MM.yyyy")</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.INN</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.SNILS</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryDepartment.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryWorkshop.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.DepartmentWorkshopJobTitle.JobTitleWorkshop.FactoryJobTitle.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.Citizenship.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.Entity.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable">
                                             <p>@item.DocumentType.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.Phone</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.CardNumber</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.Bank.Name</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.HostelChekin</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.HostelCheckOut</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.HiringDate</p>
                                         </td>
-                                        <td>
+                                        <td class="tdPersonTable hidden">
                                             <p>@item.DismissedDate</p>
                                         </td>
                                     </tr>
@@ -147,22 +147,20 @@
 
 <!--инициализация таблицы-->
 <script>
-    var table = $(".data-table").DataTable({
-        paging: true,
-        pageLength: 17, // Записей на странице
+     var table = $(".data-table").DataTable({
         "ordering": true,
+        paging: true,
+        pageLength: 17,
         "order": [0, 'asc'],
         searching: true,
-        destroy: true,
         bLengthChange: false,
+        destroy: true,
         info: false,
-        dom: 'tp',
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
         responsive: !0,
-        autoWidth: false, // отключаем автоматические inline-ширины
-        columnDefs: [
-            { targets: "_all", width: "auto" } // все колонки авто
-        ],
         deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0,
         language: {
             paginate: {
                 first: '«',
@@ -173,16 +171,19 @@
         }
     });
 
-    // переносим пагинацию один раз
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    //переносим пагинацию один раз
     var paginate = $(table.table().container()).find('.dataTables_paginate').detach();
     $('#paginationContainer').append(paginate);
 
-    // поиск по таблице
+    //поиск по таблице
     $("#searchDatatable").on("keyup", function (event) {
         table.search($(this).val()).draw();
     });
 
-    // скрываем сверху таблицы фильтры data-table
+    //скрываем сверху таблицы фильтры data-table
     $('.view-filter').hide();
 
 </script>
@@ -195,13 +196,21 @@
 
 <script>
     $('.activeRow').click(function () {
-        var personGuid = this.id;
+        // var personGuid = this.id;
 
-        SpinnerShow();
+        // SpinnerShow();
 
+        // $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryAdd`, function () {
+        //     SpinnerHide()
+        // });
+
+    });
+</script>
+
+<script>
+    function addPersonFactory() {
         $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryAdd`, function () {
             SpinnerHide()
         });
-
-    });
+    }
 </script>

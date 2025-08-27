@@ -1,3 +1,5 @@
+@model Portal.Controllers.PersonalityFactoryController.PersonalityFactoryAddModel
+
 <div id="headMenu" class="row" style="margin:0px">
     <div class="col-12" style="display:inline-block">
         <!--блок заголовка-->
@@ -19,8 +21,8 @@
     </div>
 </div>
 
-<div class="perosnalityFactoryAdd-wrapper"> 
-    <form class="perosnalityFactoryAdd-form">
+<div class="perosnalityFactoryAdd-wrapper">
+    <form class="perosnalityFactoryAdd-form" id="personalityForm" onsubmit="event.preventDefault(); AddFactoryPerson();">
 
         <div class="stage1-wrapper">
 
@@ -32,22 +34,22 @@
                     <label class="label-light">Имя</label>
                     <input required type="text" class="form-control" placeholder="Введите имя" id="nameFactory" value="">
                 </div>
-                
+
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Отчество</label>
-                    <input required type="text" class="form-control" placeholder="Введите отчество" id="lastnameFactory" value="">
+                    <input type="text" class="form-control" placeholder="Введите отчество" id="lastnameFactory" value="">
                 </div>
-                
+
             </div>
-            
-            
+
+
             <label class="label-light">Дата рождения</label>
             <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dateBirthFactory" value="">
 
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">ИНН</label>
-                    <input required type="text" class="form-control" maxlength="12" placeholder="Введите ИНН" id="" value="">
+                    <input required type="text" class="form-control" maxlength="12" placeholder="Введите ИНН" id="innFactory" value="">
                 </div>
 
                 <div class="fullwidthFactoryField">
@@ -59,27 +61,27 @@
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
                 <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
+                    <select required id="departmentFactory" class="form-control selectors" data-width="100%">
                         <option></option>
+                        @foreach (var item in Model.FactoryDepartments.OrderBy(x => x.Name))
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
                     </select>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="label-light" style="width:100%">Цех</label>
+                <label class="label-light" style="width:100%">Участок</label>
                 <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
-                        <option></option>
-                    </select>
+                    <select required id="workshopFactory" class="form-control selectors" data-width="100%" disabled></select>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Должность</label>
                 <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
-                        <option></option>
-                    </select>
+                    <select required id="positionFactory" class="form-control selectors" data-width="100%" disabled></select>
                 </div>
             </div>
 
@@ -87,20 +89,46 @@
 
         <div class="stage2-wrapper">
 
-            <div class="form-group">
-                <label class="label-light" style="width:100%">Гражданство</label>
-                <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
-                        <option></option>
-                    </select>
+            <div class="personalityFactory-smallFieldsWrapper">
+                <div class="fullwidthFactoryField">
+
+                    <div class="form-group">
+                        <label class="label-light" style="width:100%">Тип гражданства</label>
+                        <div style="width:100%; float:left;">
+                            <select required id="citizenshipTypeFactory" class="form-control selectors" data-width="100%">
+                                <option></option>
+                                @foreach (var item in Model.FactoryCitizenshipTypes.OrderBy(x => x.Name))
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="fullwidthFactoryField">
+
+                    <div class="form-group">
+                        <label class="label-light" style="width:100%">Гражданство</label>
+                        <div style="width:100%; float:left;">
+                            <select required id="citizenshipFactory" class="form-control selectors" data-width="100%" disabled></select>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+
+
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Юр. лицо</label>
                 <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
+                    <select required id="legalEntityFactory" class="form-control selectors" data-width="100%">
                         <option></option>
+                        @foreach (var item in Model.FactoryEntities.OrderBy(x => x.Name))
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -108,8 +136,12 @@
             <div class="form-group">
                 <label class="label-light" style="width:100%">Тип документа</label>
                 <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
+                    <select required id="documentTypeFactory" class="form-control selectors" data-width="100%">
                         <option></option>
+                        @foreach (var item in Model.FactoryDocumentTypes.OrderBy(x => x.Name))
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -117,19 +149,23 @@
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Номер телефона</label>
-                    <input required type="text" class="form-control" placeholder="9XXXXXXXXX" id="" value="">
+                    <input required type="text" class="form-control" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="">
                 </div>
                 <div class="fullwidthFactoryField">
-                    <label class="label-light">Номер карты</label>
-                    <input required type="text" class="form-control" placeholder="Введите номер карты" maxlength="16" id="" value="">
+                    <label class="label-light">Номер банковской карты</label>
+                    <input required type="text" class="form-control" placeholder="Введите номер банковской карты" maxlength="16" id="cardFactory" value="">
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Банк</label>
                 <div style="width:100%; float:left;">
-                    <select id="" class="form-control selectors" data-width="100%">
+                    <select required id="bankFactory" class="form-control selectors" data-width="100%">
                         <option></option>
+                        @foreach (var item in Model.FactoryBanks.OrderBy(x => x.Name))
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -137,27 +173,27 @@
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата въезда</label>
-                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="" value="">
+                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="entryDateFactory" value="">
                 </div>
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата выезда</label>
-                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="" value="">
+                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="exitDateFactory" value="">
                 </div>
             </div>
 
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата приема на работу</label>
-                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="" value="">
+                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="hireDateFactory" value="">
                 </div>
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата увольнения</label>
-                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="" value="">
+                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dismissalDateFactory" value="">
                 </div>
             </div>
 
-            
-            
+
+
         </div>
 
         <div class="lastStage-wrapper">
@@ -176,21 +212,40 @@
 
 
 <script>
+    // Объявление переменных со всеми полями
+    const surnameFactory = document.getElementById('surnameFactory');
+    const nameFactory = document.getElementById('nameFactory');
+    const lastnameFactory = document.getElementById('lastnameFactory');
+    const dateBirthFactory = document.getElementById('dateBirthFactory');
+    const innFactory = document.getElementById('innFactory');
+    const factorySnils = document.getElementById('factorySnils');
+    const departmentFactory = document.getElementById('departmentFactory');
+    const workshopFactory = document.getElementById('workshopFactory');
+    const positionFactory = document.getElementById('positionFactory');
+    const citizenshipTypeFactory = document.getElementById('citizenshipTypeFactory');
+    const citizenshipFactory = document.getElementById('citizenshipFactory');
+    const legalEntityFactory = document.getElementById('legalEntityFactory');
+    const documentTypeFactory = document.getElementById('documentTypeFactory');
+    const telFactory = document.getElementById('telFactory');
+    const cardFactory = document.getElementById('cardFactory');
+    const bankFactory = document.getElementById('bankFactory');
+    const entryDateFactory = document.getElementById('entryDateFactory');
+    const exitDateFactory = document.getElementById('exitDateFactory');
+    const hireDateFactory = document.getElementById('hireDateFactory');
+    const dismissalDateFactory = document.getElementById('dismissalDateFactory');
+
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
-    $('#back').click(function () { 
-
+    $('#back').click(function () {
         SpinnerShow();
         $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryTable`, function () {
             SpinnerHide()
-        }); 
+        });
     });
-</script>
 
 
-<script>
     // Валидация СНИЛСА
-    document.getElementById('factorySnils').addEventListener('input', function(e) {
+    factorySnils.addEventListener('input', function(e) {
         // 1. Удаляем все не-цифры (дефисы, пробелы и т.д.)
         let value = e.target.value.replace(/\D/g, '');
 
@@ -218,14 +273,164 @@
     }
 
     // Накидываем нужные обработчики на поля
-    $('#INNPerson').on('input', checkOnlyNumberInput);
-    $('#tel').on('input', checkOnlyNumberInput);
-    $('#surnamePerson').on('input', checkOnlyRussianTextInput);
-    $('#namePerson').on('input', checkOnlyRussianTextInput);
-    $('#patronymicPerson').on('input', checkOnlyRussianTextInput);
+    innFactory.addEventListener('input', checkOnlyNumberInput);
+    factorySnils.addEventListener('input', checkOnlyNumberInput);
+    cardFactory.addEventListener('input', checkOnlyNumberInput);
+    telFactory.addEventListener('input', checkOnlyNumberInput);
+    surnameFactory.addEventListener('input', checkOnlyRussianTextInput);
+    nameFactory.addEventListener('input', checkOnlyRussianTextInput);
+    lastnameFactory.addEventListener('input', checkOnlyRussianTextInput);
+
+    departmentFactory.addEventListener("change", getWorkshops);
+    workshopFactory.addEventListener("change", getJobTitles);
+    citizenshipTypeFactory.addEventListener("change", getCitizenship);
+
+    async function getJobTitles() {
+        const departmentId = departmentFactory.value;
+        const workshopId = workshopFactory.value;
+
+        if(!departmentId)
+        {
+            return alert("Выберите отдел!")
+        }
+
+        if(!workshopId)
+        {
+            return alert("Выберите участок!")
+        }
+
+        try {
+            SpinnerShow();
+            const req = await fetch("/PersonalityFactory/GetJobTitles?depertment=" + departmentId + "&workshop=" + workshopId)
+            const response = await req.json();
+
+            if(!response)
+            {
+                return alert("Должностей не найдено!")
+            }
+
+            positionFactory.innerHTML = "<option></option>"
+            positionFactory.disabled = false;
+
+            response.forEach(element => {
+                positionFactory.innerHTML += `<option value="${element.id}">${element.name}</option>`
+            })
+        } catch(e) {
+            alert(e)
+        } finally {
+            SpinnerHide();
+        }
+    }
+
+    async function getWorkshops() {
+        const id = departmentFactory.value;
+
+        if(!id)
+        {
+            return alert("Выберите отдел!")
+        }
+
+        try {
+            SpinnerShow();
+            const req = await fetch("/PersonalityFactory/GetWorkshops?depertment=" + id)
+            const response = await req.json();
+
+            if(!response)
+            {
+                return alert("Участков не найдено!")
+            }
+
+            workshopFactory.innerHTML = "<option></option>"
+            workshopFactory.disabled = false;
+            positionFactory.disabled = true
+            positionFactory.innerHTML = "<option></option>"
+
+            response.forEach(element => {
+                workshopFactory.innerHTML += `<option value="${element.id}">${element.name}</option>`
+            })
+        } catch(e) {
+            alert(e)
+        } finally {
+            SpinnerHide();
+        }
+    }
+
+    async function getCitizenship() {
+        const citizenshipTypeid = citizenshipTypeFactory.value;
+
+        if(!citizenshipTypeid)
+        {
+            return alert("Выберите тип гражданства!")
+        }
+
+        try {
+            SpinnerShow();
+            const req = await fetch("/PersonalityFactory/GetCitizenship?citizenshipType=" + citizenshipTypeid)
+            const response = await req.json();
+
+            if(!response)
+            {
+                return alert("Ничего не найдено!")
+            }
+
+            citizenshipFactory.innerHTML = "<option></option>"
+            citizenshipFactory.disabled = false;
+
+
+            response.forEach(element => {
+                citizenshipFactory.innerHTML += `<option value="${element.id}">${element.name}</option>`
+            })
+        } catch(e) {
+            alert(e)
+        } finally {
+            SpinnerHide();
+        }
+    }
+
+
+    async function AddFactoryPerson(e) {
+
+        const person = {
+            Surname: surnameFactory.value.trim(),
+            Name: nameFactory.value.trim(),
+            Patronymic: lastnameFactory.value.trim(),
+            Birthdate: dateBirthFactory.value.trim(),
+            INN: innFactory.value.trim(),
+            SNILS: factorySnils.value.replaceAll("-", "").replaceAll(" ","").trim(),
+            FactoryDepartment: parseInt(departmentFactory.value.trim()),
+            FactoryWorkshop: parseInt(workshopFactory.value.trim()),
+            FactoryJobTitle: parseInt(positionFactory.value.trim()),
+            FactoryCitizenship: parseInt(citizenshipFactory.value.trim()),
+            FactoryEntity: parseInt(legalEntityFactory.value.trim()),
+            FactoryDocumentType: parseInt(documentTypeFactory.value.trim()),
+            Phone: telFactory.value.trim(),
+            CardNumber: cardFactory.value.trim(),
+            FactoryBanks: parseInt(bankFactory.value.trim()),
+            HostelChekin: entryDateFactory.value.trim() || null,
+            HostelCheckOut: exitDateFactory.value.trim() || null,
+            HiringDate: hireDateFactory.value.trim(),
+            DismissedDate: dismissalDateFactory.value.trim() || null
+        };
+
+        SpinnerShow();
+
+        $.ajax({
+            type: "POST",
+            url: '/PersonalityFactory/SaveNewPerson',
+            contentType: "application/json",
+            data: JSON.stringify(person),
+            success: function (result) {
+                SpinnerHide();
+                $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryTable`)
+            },
+            error: function (error) {
+                SpinnerHide();
+                alert(error.responseText);
+            }
+        });
+    }
+
 </script>
-
-
 
 <style>
     .perosnalityFactoryAdd-wrapper {
