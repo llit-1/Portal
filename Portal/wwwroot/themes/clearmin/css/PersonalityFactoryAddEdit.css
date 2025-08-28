@@ -1,0 +1,178 @@
+﻿.perosnalityFactoryAdd-wrapper {
+    background: white;
+    width: 100%;
+    padding: 30px;
+    height: fit-content;
+    border: 1px solid #CCC;
+    border-radius: 2px;
+}
+
+.photo-wrapper {
+    border: 1px solid #CCC;
+    border-radius: 2px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    background-color: #f7f7f7;
+    flex-direction: column;
+}
+
+.perosnalityFactoryAdd-form {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.perosnalityFactoryAdd-form > div {
+    height: 100%;
+    gap: 3px;
+}
+
+.stage1-wrapper, .stage2-wrapper {
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+}
+
+.stage1-wrapper > label, .stage2-wrapper > label {
+    margin-bottom: 2px;
+    padding-left: 0
+}
+
+.stage1-wrapper input, .stage2-wrapper input {
+    height: 38px;
+}
+
+.stage1-wrapper select, .stage2-wrapper select {
+    height: 38px;
+}
+
+.stage1-wrapper > .form-group, .stage2-wrapper > .form-group {
+     margin-bottom: 0px;
+}
+
+.stage2-wrapper {
+    padding-left: 0px;
+}
+
+.lastStage-wrapper {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 22px;
+}
+
+.perosnalityFactoryAdd-form > .lastStage-wrapper {
+    height: -webkit-fill-available;
+    gap: 32px;
+}
+
+.photo-buttonAdd {
+    margin-top: 15px;
+    background-color: white;
+    border: 1px solid #CCC;
+    font-family: 'Akrobat-regular';
+    font-size: 16px;
+    padding: 5px 20px;
+    border-radius: 2px;
+    transition: all 0.15s linear;
+}
+
+.photo-buttonAdd:hover {
+    background-color: #e8e8e8;
+    border-color: #a8a8a8;
+}
+
+.personalityFactory-smallFieldsWrapper {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.fullwidthFactoryField {
+    width: 100%;
+}
+
+.btn-addPersonFactory {
+    font-family: 'Akrobat-Regular';
+    font-size: 12px;
+}
+
+
+@media screen and (max-width: 1457px) {
+    .perosnalityFactoryAdd-wrapper label {
+        font-size: 12px;
+    }
+}
+
+@media screen and (max-width: 1403px) {
+    .perosnalityFactoryAdd-wrapper label {
+        font-size: 10px;
+    }
+}
+
+@media screen and (max-width: 1237px) {
+
+    .photo-wrapper {
+        width: 80%;
+        height: 50%;
+    }
+
+    .lastStage-wrapper {
+        width: 20%;
+    }
+
+    .photo-buttonAdd {
+        padding: 5px 5px;
+    }
+
+    .stage2-wrapper {
+        width: 40%;
+    }
+}
+
+@media screen and (max-width: 1140px) {
+
+    .perosnalityFactoryAdd-form {
+        flex-direction: column;
+    }
+
+    .stage1-wrapper, .stage2-wrapper, .lastStage-wrapper {
+        width: 100%;
+    }
+
+    .photo-wrapper {
+        height: 210px;
+        width: 100%;
+    }
+
+}
+
+@media screen and (max-width: 404px) {
+    .fullwidthFactoryField > input[type="date"] {
+        width: 125px;
+    }
+
+    .fullwidthFactoryField {
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #bankFactory, #entryDateFactory, #exitDateFactory {
+        margin-bottom: 15px;
+    }
+
+}
+
+
+

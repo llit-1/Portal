@@ -150,14 +150,53 @@ namespace Portal.Controllers
 
         public IActionResult VKBOTStatistics(int days = 0)
         {
-            var promo = dbSql.ReceivedPromocodesVK.Include(x => x.PromocodesVK)
-                                                  .Where(x => x.Date > DateTime.Now.Date.AddDays(-days) && x.Date < DateTime.Now)
-                                                  .AsEnumerable()
-                                                  .GroupBy(x => x.PromocodesVK.CodeWord).ToList();
+            var targetDate = DateTime.Now.Date.AddDays(-days);
+
+            var receivedPromos = dbSql.ReceivedPromocodesVK
+                .Include(x => x.PromocodesVK)
+                .Where(x => x.Date >= targetDate && x.Date < DateTime.Now.Date.AddDays(1))
+                .ToList();
+
+            var promoStats = receivedPromos
+                .GroupBy(x => x.PromocodesVK.CodeWord)
+                .Select(g => new PromoStatViewModel
+                {
+                    CodeWord = g.Key,
+                    Count = g.Count(),
+                    Promocodes = g.First().PromocodesVK
+                })
+                .ToList();
+
+            var activePromos = dbSql.PromocodesVK
+                .Where(x => x.Active == 1)
+                .ToList();
+
+            var activeCodes = activePromos
+                .GroupBy(x => x.CodeWord)
+                .ToList();
 
             ViewBag.Days = days;
 
-            return PartialView(promo);
+            var data = new VKBOTStatisticsViewModel
+            {
+                PromoStats = promoStats,
+                ActiveCodes = activeCodes
+            };
+
+            return PartialView(data);
+        }
+
+        public class PromoStatViewModel
+        {
+            public string CodeWord { get; set; }
+            public int Count { get; set; }
+            public PromocodesVK Promocodes { get; set; }
+        }
+
+        public class VKBOTStatisticsViewModel
+        {
+            public List<PromoStatViewModel> PromoStats { get; set; }
+            public List<IGrouping<string, PromocodesVK>> ActiveCodes { get; set; }
         }
     }
 }

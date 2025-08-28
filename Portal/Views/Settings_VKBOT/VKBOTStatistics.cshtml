@@ -1,4 +1,4 @@
-@model List<System.Linq.IGrouping<string, Portal.Models.MSSQL.ReceivedPromocodesVK>>
+@model Portal.Controllers.Settings_VKBOTController.VKBOTStatisticsViewModel
 @{
     Layout = null;
 }
@@ -25,14 +25,26 @@
 
     <div class="info-panel_wrapper">
         <div class="info-panel">
-            <div style="display: flex; justify-content: space-between; align-items: center;"><strong>Общее количество активаций:</strong> <p style="margin: 0px">@Model.Sum(g => g.Count())</p></div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong>Общее количество активаций:</strong>
+                <p style="margin: 0px">@Model.PromoStats.Sum(g => g.Count)</p>
+            </div>
             <div class="info-panel_stats">
-                @foreach (var item in Model.OrderByDescending(x => x.Count()))
+                @foreach (var stat in Model.PromoStats)
                 {
-                    <div><strong>@item.First().PromocodesVK.CodeWord:</strong> @item.Count()</div>
+                    <div><strong>@stat.CodeWord:</strong> @stat.Count</div>
+                }
+            </div>
+            <div class="info-panel_stats">
+                <strong>Остаток активных промокодов:</strong>
+                @foreach (var group in Model.ActiveCodes.OrderByDescending(x => x.Count()))
+                {
+                    <div><strong>@group.Key:</strong> @group.Count() шт.</div>
                 }
             </div>
         </div>
+
+        
 
         <div class="vk_statistics">
 
@@ -50,14 +62,12 @@
     <script>
 
     const chartData = [
-        @foreach (var group in Model)
+        @foreach (var stat in Model.PromoStats)
         {
             <text>
                     {
-                        name: '@Html.Raw(group.Key)',
-                        codeWord: '@Html.Raw(group.First().PromocodesVK?.CodeWord)',
-                        count: @group.Count(),
-                        lastDate: '@group.Max(x => x.Date).ToString("yyyy-MM-ddTHH:mm:ss")'
+                        codeWord: '@Html.Raw(stat.CodeWord)',
+                        count: @stat.Count
                     },
             </text>
         }
