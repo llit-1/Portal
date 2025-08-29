@@ -273,6 +273,11 @@
                                     }
                                     <li><a id='TimesheetsFactory' href="#TimesheetsFactory">Табель рабочего времени (Завод)</a></li>
                                     <li><a id='Personality' href="#Personality">Учет сотрудников</a></li>
+
+                                    @if (User.IsInRole("employee_control_factory"))
+                                    {
+                                        <li><a id='PersonalityFactory' href="#PersonalityFactory">Учет сотрудников (Завод)</a></li>
+                                    }
                                 </ul>
                              </li>
                         }

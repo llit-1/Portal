@@ -45,9 +45,10 @@
     padding-left: 0
 }
 
-.stage1-wrapper input, .stage2-wrapper input {
-    height: 38px;
-}
+    .stage1-wrapper input, .stage2-wrapper input {
+        height: 38px;
+        width: 100%;
+    }
 
 .stage1-wrapper select, .stage2-wrapper select {
     height: 38px;
@@ -158,20 +159,38 @@
 
 @media screen and (max-width: 404px) {
     .fullwidthFactoryField > input[type="date"] {
-        width: 125px;
+        width: 140px;
     }
 
     .fullwidthFactoryField {
         justify-content: center;
         display: flex;
         flex-direction: column;
-        align-items: center;
     }
 
     #bankFactory, #entryDateFactory, #exitDateFactory {
         margin-bottom: 15px;
     }
 
+    .perosnalityFactoryAdd-wrapper label, .perosnalityFactoryAdd-wrapper div {
+        width: 100%;
+    }
+
+    .perosnalityFactoryAdd-wrapper label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0;
+        padding: 0;
+    }
+
+    .perosnalityFactoryAdd-form {
+        gap: 10px;
+    }
+
+    .form-group label {
+        margin-bottom: -5px;
+    }
 }
 
 
