@@ -531,7 +531,7 @@
             FactoryEntity: parseInt(legalEntityFactory.value.trim()),
             FactoryDocumentType: parseInt(documentTypeFactory.value.trim()),
             Phone: telFactory.value.trim(),
-            CardNumber: cardFactory.value.trim().value.replaceAll(" ", ""),
+            CardNumber: cardFactory.value.trim().replaceAll(" ", ""),
             FactoryBanks: parseInt(bankFactory.value.trim()),
             HostelChekin: entryDateFactory.value.trim() || null,
             HostelCheckOut: exitDateFactory.value.trim() || null,
