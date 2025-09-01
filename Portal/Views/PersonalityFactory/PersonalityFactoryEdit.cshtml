@@ -276,14 +276,35 @@
 
         <div class="lastStage-wrapper">
             <div class="photo-wrapper">
-                <img src="/svg/panels/help.svg" width="90px">
-
-                <button class="photo-buttonAdd" type="button">Добавить фото</button>
+                <img src="/svg/panels/help.svg" id="imgPhotoWrapper" class="imgForPhotoWrapper" width="90px">
+                <video id="videoPlayerFactory" class="hidden"></video>
             </div>
 
+            <div class="lastStage-secondWrapper">
+                <div class="buttonsForCameraWrapper">
+                    <div>
+                        <label class="label-light">Номер пропуска</label>
+                        <input type="text" class="form-control" minlength="12" maxlength="12" placeholder="000000000000" id="passNumberFactory" value="">
+                    </div>
 
-            <button class="btn btn-success btn-addPersonFactory" type="submit">Сохранить изменения</button>
+                    <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
+                </div>
 
+                <button class="btn btn-success btn-addPersonFactory" type="submit">Сохранить изменения</button>
+            </div>
+        </div>
+
+        <div id="cropModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1050; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 20px; border-radius: 2px; max-width: 90%; max-height: 90%; backdrop-filter: blur(2px);">
+                <div style="max-height: 70vh; overflow: hidden;">
+                    <img id="cropImage" src="" style="display: block; max-width: 100%;">
+                </div>
+                <div style="margin-top: 20px; text-align: center;display: flex;justify-content: space-between;font-family: 'Akrobat-Regular';">
+                    <button onclick="closeCropModal()" type="button" class="btn btn-secondary">Отмена</button>
+                    <button onclick="crop()" type="button" class="btn btn-success">Cохранить</button>
+
+                </div>
+            </div>
         </div>
     </form>
 </div>
@@ -555,6 +576,140 @@
                 alert(error.responseText);
             }
         });
+    }
+
+    const constraints = {
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: "user"
+      },
+      audio: false
+    };
+
+    async function getCameraAccess() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Теперь у нас есть поток (stream), который можно использовать
+        useStream(stream);
+      } catch (err) {
+        console.error("Ошибка при доступе к камере:", err);
+      }
+    }
+
+    let cropper;
+    let originalImageDataUrl; // Здесь будет храниться оригинальное фото
+
+    function useStream(stream) {
+        const img = document.getElementById("imgPhotoWrapper")
+        img.classList.add("hidden")
+
+        const video = document.getElementById("videoPlayerFactory")
+        video.classList.remove("hidden")
+
+        video.srcObject = stream;
+        video.play();
+
+        const addPhotoButton = document.getElementById("photo-buttonAdd")
+
+        // Добавляем кнопку "Снять фото" вместо старой, которая теперь только запускает камеру
+        // Лучше создать отдельную кнопку в разметке, но можно и так:
+        if (!document.getElementById('captureBtn')) {
+            const captureBtn = document.createElement('button');
+            captureBtn.textContent = 'Снять фото';
+            captureBtn.className = 'photo-buttonAdd';
+            captureBtn.id = 'captureBtn';
+            captureBtn.type = 'button';
+            captureBtn.onclick = captureAndCrop; // Новая функция
+
+            addPhotoButton.classList.add("hidden")
+
+            document.querySelector('.buttonsForCameraWrapper').appendChild(captureBtn);
+        }
+    }
+
+    // Функция для захвата кадра и открытия редактора
+    function captureAndCrop() {
+        const video = document.getElementById("videoPlayerFactory");
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        // Устанавливаем размеры canvas как у видео
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Рисуем текущий кадр видео на canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Получаем Data URL изображения
+        originalImageDataUrl = canvas.toDataURL('image/jpeg');
+
+        // Останавливаем камеру
+        stopCamera();
+
+        // Показываем модальное окно для обрезки
+        openCropModal(originalImageDataUrl);
+    }
+
+    function openCropModal(imageUrl) {
+        const modal = document.getElementById('cropModal');
+        const img = document.getElementById('cropImage');
+
+        modal.style.display = 'flex';
+        img.src = imageUrl;
+
+        // Инициализируем Cropper.js после загрузки изображения
+        img.onload = function() {
+            if (cropper) {
+                cropper.destroy(); // Уничтожаем предыдущий экземпляр
+            }
+            cropper = new Cropper(img, {
+                aspectRatio: 1, // Квадратное соотношение (как во многих аватарах)
+                viewMode: 1,
+                movable: true,
+                zoomable: true
+            });
+        };
+    }
+
+    function closeCropModal() {
+        const img = document.getElementById("imgPhotoWrapper");
+        img.classList.remove("hidden");
+
+        document.getElementById('cropModal').style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+        }
+    }
+
+    function crop() {
+        if (cropper) {
+            // Получаем обрезанное изображение в формате Data URL
+            const croppedCanvas = cropper.getCroppedCanvas();
+            const croppedImageDataUrl = croppedCanvas.toDataURL('image/jpeg');
+
+            // Обновляем imgPhotoWrapper и скрываем видео
+            const img = document.getElementById("imgPhotoWrapper");
+            img.src = croppedImageDataUrl;
+            img.classList.remove("hidden");
+
+            closeCropModal();
+        }
+    }
+
+    function stopCamera() {
+        const video = document.getElementById("videoPlayerFactory");
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+
+        const addPhotoButton = document.getElementById("photo-buttonAdd")
+
+        addPhotoButton.classList.remove("hidden");
+        video.classList.add("hidden");
+        const captureBtn = document.getElementById('captureBtn');
+        if (captureBtn) captureBtn.remove(); // Убираем кнопку "Снять фото"
     }
 
 </script>
