@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL.Factory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Portal.Controllers.PersonalityFactoryController;
@@ -94,12 +95,23 @@ namespace Portal.Controllers
             if (dbSql.FactoryPerson.Any(x => x.SNILS == person.SNILS || x.INN == person.INN))
                 return BadRequest(new { Message = "Пользователь с таким СНИЛС или ИНН уже зарегистрирован" });
 
+            if (!string.IsNullOrEmpty(person.Photo) && person.Photo.StartsWith("data:image"))
+            {
+                person.Photo = person.Photo;
+            }
 
             dbSql.FactoryPerson.Add(person);
             dbSql.SaveChanges();
             return Ok();
         }
 
+        public byte[] ConvertDataUrlToByteArray(string dataUrl)
+        {
+            var base64Data = dataUrl.Split(',')[1];
+            return Convert.FromBase64String(base64Data);
+        }
+
+        [Authorize(Roles = "employee_control_factory")]
         public IActionResult PersonalityFactoryEdit(int id)
         {
 
@@ -120,10 +132,12 @@ namespace Portal.Controllers
             personalityFactoryEditModel.FactoryEntities = dbSql.FactoryEntity.ToList();
             personalityFactoryEditModel.FactoryDocumentTypes = dbSql.FactoryDocumentType.ToList();
             personalityFactoryEditModel.FactoryBanks = dbSql.FactoryBanks.ToList();
-            personalityFactoryEditModel.FactoryCitizenshipTypes = dbSql.FactoryCitizenshipType.ToList();          
+            personalityFactoryEditModel.FactoryCitizenshipTypes = dbSql.FactoryCitizenshipType.ToList();
+            
             return PartialView(personalityFactoryEditModel);
         }
 
+        [Authorize(Roles = "employee_control_factory")]
         public IActionResult EditPerson([FromBody] FactoryPerson person)
         {
             if (person == null)

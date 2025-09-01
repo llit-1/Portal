@@ -120,6 +120,8 @@
 
 #videoPlayerFactory {
     width: -webkit-fill-available;
+    max-width: 320px;
+    max-height: 320px;
 }
 
 .imgForPhotoWrapper {

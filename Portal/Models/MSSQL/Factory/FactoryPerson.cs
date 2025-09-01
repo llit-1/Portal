@@ -68,6 +68,12 @@ namespace Portal.Models.MSSQL.Factory
         [Column("DismissedDate", TypeName = "date")]
         public DateTime? DismissedDate { get; set; }
 
+        [Column("Photo")]
+        public string? Photo { get; set; }
+
+        [Column("PassCardNumber"), MaxLength(10)]
+        public string? PassCardNumber { get; set; }
+
         // Навигации (простые) — через атрибуты чтобы EF использовал существующие колонки
         [ForeignKey(nameof(FactoryBanks))]
         public FactoryBanks? Bank { get; set; }

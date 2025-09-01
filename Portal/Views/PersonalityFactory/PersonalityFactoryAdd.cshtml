@@ -206,7 +206,7 @@
                 <div class="buttonsForCameraWrapper">
                     <div>
                         <label class="label-light">Номер пропуска</label>
-                        <input type="text" class="form-control" minlength="12" maxlength="12" placeholder="000000000000" id="passNumberFactory" value="">
+                        <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="0000000000" id="PassCardNumberFactory" value="">
                     </div>
                     
                     <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
@@ -255,6 +255,7 @@
     const exitDateFactory = document.getElementById('exitDateFactory');
     const hireDateFactory = document.getElementById('hireDateFactory');
     const dismissalDateFactory = document.getElementById('dismissalDateFactory');
+    const passcardnumberfactory = document.getElementById('PassCardNumberFactory');
 
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
@@ -452,6 +453,10 @@
             return alert('Некорректно заполнено поле "Номер банковской карты"');
         }
 
+        const imgElement = document.getElementById("imgPhotoWrapper");
+        const photoDataUrl = imgElement.src;
+        const isDefaultImage = photoDataUrl.includes('/svg/panels/help.svg');
+
         const person = {
             Surname: surnameFactory.value.trim().replace(/\s+/g, ' '),
             Name: nameFactory.value.trim().replace(/\s+/g, ' '),
@@ -471,7 +476,9 @@
             HostelChekin: entryDateFactory.value.trim() || null,
             HostelCheckOut: exitDateFactory.value.trim() || null,
             HiringDate: hireDateFactory.value.trim(),
-            DismissedDate: dismissalDateFactory.value.trim() || null
+            DismissedDate: dismissalDateFactory.value.trim() || null,
+            Photo: isDefaultImage ? null : photoDataUrl,
+            PassCardNumber: passcardnumberfactory.value.trim()
         };
 
         SpinnerShow();
@@ -594,6 +601,8 @@
         if (cropper) {
             cropper.destroy();
         }
+
+        stopCamera()
     }
 
     function crop() {

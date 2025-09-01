@@ -276,7 +276,13 @@
 
         <div class="lastStage-wrapper">
             <div class="photo-wrapper">
-                <img src="/svg/panels/help.svg" id="imgPhotoWrapper" class="imgForPhotoWrapper" width="90px">
+                @if(Model.FactoryPerson?.Photo != null)
+                {
+                    <img src="@Model.FactoryPerson?.Photo" id="imgPhotoWrapper" class="imgForPhotoWrapper" width="90px">
+                } else {
+                    <img src="/svg/panels/help.svg" id="imgPhotoWrapper" class="imgForPhotoWrapper" width="90px">
+                }
+                
                 <video id="videoPlayerFactory" class="hidden"></video>
             </div>
 
@@ -284,10 +290,19 @@
                 <div class="buttonsForCameraWrapper">
                     <div>
                         <label class="label-light">Номер пропуска</label>
-                        <input type="text" class="form-control" minlength="12" maxlength="12" placeholder="000000000000" id="passNumberFactory" value="">
+                        <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="0000000000" id="PassCardNumberFactory" value="@Model.FactoryPerson.PassCardNumber">
                     </div>
 
-                    <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
+                    @if (Model.FactoryPerson?.Photo != null)
+                    {
+                        <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Изменить фото</button>
+                    }
+                    else
+                    {
+                        <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
+                    }
+
+                    
                 </div>
 
                 <button class="btn btn-success btn-addPersonFactory" type="submit">Сохранить изменения</button>
@@ -332,6 +347,7 @@
     const exitDateFactory = document.getElementById('exitDateFactory');
     const hireDateFactory = document.getElementById('hireDateFactory');
     const dismissalDateFactory = document.getElementById('dismissalDateFactory');
+    const passcardnumberfactory = document.getElementById('PassCardNumberFactory');
 
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
@@ -537,6 +553,10 @@
             return alert('Некорректно заполнено поле "Номер банковской карты"');
         }
 
+        const imgElement = document.getElementById("imgPhotoWrapper");
+        const photoDataUrl = imgElement.src;
+        const isDefaultImage = photoDataUrl.includes('/svg/panels/help.svg');
+
         const person = {
             Id: "@Model.FactoryPerson.Id".trim(),
             Surname: surnameFactory.value.trim().replace(/\s+/g, ' '),
@@ -557,7 +577,9 @@
             HostelChekin: entryDateFactory.value.trim() || null,
             HostelCheckOut: exitDateFactory.value.trim() || null,
             HiringDate: hireDateFactory.value.trim(),
-            DismissedDate: dismissalDateFactory.value.trim() || null
+            DismissedDate: dismissalDateFactory.value.trim() || null,
+            Photo: isDefaultImage ? null : photoDataUrl,
+            PassCardNumber: passcardnumberfactory.value.trim()
         };
 
         SpinnerShow();
@@ -680,6 +702,8 @@
         if (cropper) {
             cropper.destroy();
         }
+
+        stopCamera()
     }
 
     function crop() {
