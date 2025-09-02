@@ -1,7 +1,11 @@
 @model PersonalityEditModel
 
+<div class="personalityVersionEditWrapper">
 <!--Блок добавления\редактирования работника-->
 <div class="panel panel-default panel-default-person modalPersonWidth"  id="personTable" style="margin-bottom:0px">
+
+
+
     <div class="titlePersontable">
 
         @*Изменение хедера на странице*@
@@ -120,16 +124,18 @@
                     <label class="label-light">ТТ</label>
                     @* Выбор ТТ *@
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto;display: flex;gap: 10px;">
-                        <select required id="TTPerson" style="width: 90%;" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Location.Name" placeholder="Выберите ТТ">
+                            <select required id="TTPerson" style="width: 90%;" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Location.Name" placeholder="Выберите ТТ">
+                                @foreach (var location in Model.Locations.OrderBy(g => g.Name))
+                                {
+                                    if (location.Guid == Model.PersonalitiesVersions.Location.Guid)
+                                    {
+                                        <option selected value="@Model.PersonalitiesVersions.Location.Guid">@Model.PersonalitiesVersions.Location.Name</option>
+                                    }
 
-                        <option value="@Model.PersonalitiesVersions.Location.Guid">@Model.PersonalitiesVersions.Location.Name</option>
-
-                            @foreach (var location in Model.Locations.OrderBy(g => g.Name))
-                            {
                                     <option value="@location.Guid">@location.Name</option>
-                            }
-                        </select>
+                                }
 
+                            </select>
                         <div class="ttmore" onclick="createModal()">@ViewBag.TTCount</div>
                     </div>
 
@@ -179,16 +185,23 @@
 
                     <label class="label-light">Юр. лицо разнесения затрат</label>
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
-                            @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.EntityCostGuid) != null)
-                            {
-                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.EntityCostGuid">@Model.Entity.FirstOrDefault(x => x.Guid == Model.PersonalitiesVersions.EntityCostGuid).Name</option>
-                            }
-                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
-                            {
-                                <option value="@entity.Guid">@entity.Name</option>
-                            }
-                        </select>
+                        @if (User.IsInRole("employee_control_ukvh"))
+                        {
+                            <select required id="EntityCostGUID" class="inputPersonData" data-width="100%" disabled>
+                                <option selected value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
+                            </select>
+                        } else {
+                             <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
+                                @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.EntityCostGuid) != null)
+                                {
+                                    <option selected="selected" disabled value="@Model.PersonalitiesVersions.EntityCostGuid">@Model.Entity.FirstOrDefault(x => x.Guid == Model.PersonalitiesVersions.EntityCostGuid).Name</option>
+                                }
+                                @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                                {
+                                    <option value="@entity.Guid">@entity.Name</option>
+                                }
+                             </select>
+                        }
                     </div>
                 </div>
 
@@ -382,12 +395,23 @@
 
                     <label class="label-light">Юр. лицо разнесения затрат</label>
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
-                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+
+                            @if (User.IsInRole("employee_control_ukvh"))
                             {
-                                <option selected="selected" value="@entity.Guid">@entity.Name</option>
+                                <select required id="EntityCostGUID" class="inputPersonData" data-width="100%" disabled>
+                                    <option selected value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
+                                </select>
                             }
-                        </select>
+                            else
+                            {
+                                <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
+                                @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                                {
+                                    <option selected="selected" value="@entity.Guid">@entity.Name</option>
+                                    
+                                }
+                                </select>
+                            }
                     </div>
                 </div>
 
@@ -437,6 +461,9 @@
             </form>
         }
     </div>
+    
+</div>
+
 </div>
 
 

@@ -220,16 +220,16 @@
                             </li>
                         }
 
-                        <!--Видеонаблюдение-->
-                        @if (User.IsInRole("video"))
-                        {
-                            <li class="cm-submenu">
-                                <a class="md-camera" id="video" onclick="selectSection('video')">Видеонаблюдение <span class="caret"></span></a>
-                                <ul>
-                                    <li><a id="photocam" href="#photocam">Фотоаналитика</a></li>
-                                </ul>
-                            </li>
-                        }
+                        @* <!--Видеонаблюдение--> *@
+                        @* @if (User.IsInRole("video")) *@
+                        @* { *@
+                        @*     <li class="cm-submenu"> *@
+                        @*         <a class="md-camera" id="video" onclick="selectSection('video')">Видеонаблюдение <span class="caret"></span></a> *@
+                        @*         <ul> *@
+                        @*             <li><a id="photocam" href="#photocam">Фотоаналитика</a></li> *@
+                        @*         </ul> *@
+                        @*     </li> *@
+                        @* } *@
 
                         <!--Калькуляторы розницы-->
                         @if (User.IsInRole("calculators"))
@@ -269,15 +269,15 @@
                             <li class="cm-submenu">
                                 <a class="md-tablet" id="person" onclick="selectSection('person')">Учет сотрудников<span class="caret"></span></a>
                                 <ul>
-                                    @if (User.IsInRole("HR"))
+                                    @if (User.IsInRole("HR") || User.IsInRole("employee_control_ukvh"))
                                     {
-                                        <li><a id="TrackingData" href="#TrackingData">Учет табеля рабочего времени</a></li>
+                                        <li><a id='Personality' href="#Personality">Учет сотрудников</a></li>
                                     }
-                                    <li><a id='TimesheetsFactory' href="#TimesheetsFactory">Табель рабочего времени (Завод)</a></li>
-                                    <li><a id='Personality' href="#Personality">Учет сотрудников</a></li>
+                                    <li><a id="TrackingData" href="#TrackingData">Учет табеля рабочего времени</a></li>
 
                                     @if (User.IsInRole("employee_control_factory"))
                                     {
+                                        <li><a id='TimesheetsFactory' href="#TimesheetsFactory">Табель рабочего времени (Завод)</a></li>
                                         <li><a id='PersonalityFactory' href="#PersonalityFactory">Учет сотрудников (Завод)</a></li>
                                     }
                                 </ul>

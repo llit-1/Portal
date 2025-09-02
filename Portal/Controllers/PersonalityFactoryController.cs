@@ -3,10 +3,13 @@ using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Portal.Models.MSSQL.Factory;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using static Portal.Controllers.PersonalityFactoryController;
 
 
@@ -22,6 +25,39 @@ namespace Portal.Controllers
             db = context;
             dbSql = dbSqlContext;
         }
+
+        //public async Task<string?> SavePhotoAsync(string dataUrl, string personPassNumber)
+        //{
+        //    if (string.IsNullOrEmpty(dataUrl) || dataUrl.Contains("/svg/panels/help.svg"))
+        //        return null;
+
+        //    try
+        //    {
+        //        // Извлекаем base64 данные
+        //        var base64Data = dataUrl.Split(',')[1];
+        //        var imageBytes = Convert.FromBase64String(base64Data);
+
+        //        // Генерируем уникальное имя файла
+        //        var fileName = $"{personPassNumber}.jpg";
+        //        var uploadsPath = "\\\\rknet-server\\C$\\FactoryGatePhoto";
+
+        //        // Создаем директорию если нет
+        //        if (!Directory.Exists(uploadsPath))
+        //            Directory.CreateDirectory(uploadsPath);
+
+        //        var fullPath = Path.Combine(uploadsPath, fileName);
+
+        //        // Сохраняем файл
+        //        await File.WriteAllBytesAsync(fullPath, imageBytes);
+
+        //        // Возвращаем относительный путь для БД
+        //        return $"\\\\rknet-server\\C$\\FactoryGatePhoto\\" + personPassNumber + ".jpg";
+        //    }
+        //    catch
+        //    {
+        //        return null;
+        //    }
+        //}
 
         [Authorize(Roles = "employee_control_factory")]
         public IActionResult PersonalityFactoryTable()
@@ -86,22 +122,25 @@ namespace Portal.Controllers
             return Ok(factoryCitizenships);
         }
 
-        public IActionResult SaveNewPerson([FromBody] FactoryPerson person)
+        [HttpPost("SaveNewPerson")]
+        public async Task<IActionResult> SaveNewPerson([FromBody] FactoryPerson person)
         {
             if (person == null)
                 return BadRequest(new { Message = "person is null" });
-            
 
             if (dbSql.FactoryPerson.Any(x => x.SNILS == person.SNILS || x.INN == person.INN))
                 return BadRequest(new { Message = "Пользователь с таким СНИЛС или ИНН уже зарегистрирован" });
 
-            if (!string.IsNullOrEmpty(person.Photo) && person.Photo.StartsWith("data:image"))
+            // Сохраняем фото если есть
+            if (string.IsNullOrEmpty(person.Photo))
             {
-                person.Photo = person.Photo;
+                //person.Photo = await SavePhotoAsync(person.Photo, person.PassCardNumber);
+                person.Photo = null;
             }
 
             dbSql.FactoryPerson.Add(person);
-            dbSql.SaveChanges();
+            await dbSql.SaveChangesAsync();
+
             return Ok();
         }
 

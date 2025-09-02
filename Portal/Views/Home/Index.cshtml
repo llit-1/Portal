@@ -386,67 +386,67 @@
     }
 
     <!--видеонаблюдение-->
-    @if (User.IsInRole("video"))
-    {
-        <div class="@classTails">
-            <a href="#video" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center tails-main" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/svg/panels/video.svg" width="20px">
-                    </span>
-                    <h4>Видеонаблюдение</h4>
-                    <small>анализ данных с камер видеонаблюдения</small>
-                </div>
-            </a>
-        </div>
-    }
-    else
-    {
-        <div class="@classTails">
-            <a class="panel panel-default thumbnail cm-thumbnail tails-disabled">
-                <div class="panel-body text-center tails-main" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/svg/panels/video.svg" width="20px">
-                    </span>
-                    <h4>видео-наблюдение</h4>
-                    <small>анализ данных с камер видеонаблюдения</small>
-                </div>
+    @* @if (User.IsInRole("video")) *@
+    @* { *@
+    @*     <div class="@classTails"> *@
+    @*         <a href="#video" class="panel panel-default thumbnail cm-thumbnail tails-panel"> *@
+    @*             <div class="panel-body text-center tails-main" style="min-height: 147px;"> *@
+    @*                 <span class="svg-48"> *@
+    @*                     <img src="~/svg/panels/video.svg" width="20px"> *@
+    @*                 </span> *@
+    @*                 <h4>Видеонаблюдение</h4> *@
+    @*                 <small>анализ данных с камер видеонаблюдения</small> *@
+    @*             </div> *@
+    @*         </a> *@
+    @*     </div> *@
+    @* } *@
+    @* else *@
+    @* { *@
+    @*     <div class="@classTails"> *@
+    @*         <a class="panel panel-default thumbnail cm-thumbnail tails-disabled"> *@
+    @*             <div class="panel-body text-center tails-main" style="min-height: 147px;"> *@
+    @*                 <span class="svg-48"> *@
+    @*                     <img src="~/svg/panels/video.svg" width="20px"> *@
+    @*                 </span> *@
+    @*                 <h4>видео-наблюдение</h4> *@
+    @*                 <small>анализ данных с камер видеонаблюдения</small> *@
+    @*             </div> *@
 
-                @{
-                    var role = "video";
-                    var req = Model.FirstOrDefault(r => r.RoleCode == role);
-                }
+    @*             @{ *@
+    @*                 var role = "video"; *@
+    @*                 var req = Model.FirstOrDefault(r => r.RoleCode == role); *@
+    @*             } *@
 
-                @if (req == null)
-                {
-                    <div class="tailsReq">
-                        <label class="fa fa-unlock-alt ico"></label>
-                        <p></p>
-                        <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button>
-                    </div>
-                }
-                else
-                {
-                    if (req.State != "denied")
-                    {
-                        <div class="tailsReq">
-                            <label class="fa fa-unlock-alt ico"></label>
-                            <p></p>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="tailsReq tailsWork">
-                            <label class="fa fa-lock ico"></label>
-                            <p>отказано</p>
-                        </div>
-                    }
-                }
+    @*             @if (req == null) *@
+    @*             { *@
+    @*                 <div class="tailsReq"> *@
+    @*                     <label class="fa fa-unlock-alt ico"></label> *@
+    @*                     <p></p> *@
+    @*                     <button type="button" class="btn btn-success btn-sm" onclick="UserRequest('@role')">запросить доступ</button> *@
+    @*                 </div> *@
+    @*             } *@
+    @*             else *@
+    @*             { *@
+    @*                 if (req.State != "denied") *@
+    @*                 { *@
+    @*                     <div class="tailsReq"> *@
+    @*                         <label class="fa fa-unlock-alt ico"></label> *@
+    @*                         <p></p> *@
+    @*                         <button type="button" class="btn btn-danger btn-sm" onclick="CancelRequest(@req.Id)">отменить запрос</button> *@
+    @*                     </div> *@
+    @*                 } *@
+    @*                 else *@
+    @*                 { *@
+    @*                     <div class="tailsReq tailsWork"> *@
+    @*                         <label class="fa fa-lock ico"></label> *@
+    @*                         <p>отказано</p> *@
+    @*                     </div> *@
+    @*                 } *@
+    @*             } *@
 
-            </a>
-        </div>
-    }
+    @*         </a> *@
+    @*     </div> *@
+    @* } *@
 
     <!--калькуляторы-->
     @if (User.IsInRole("calculators"))

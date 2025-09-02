@@ -34,7 +34,7 @@ namespace Portal.Controllers
             dbSql = dbSqlContext;
         }
 
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "HR, employee_control_ukvh")]
         public IActionResult Personality()
         {
             return PartialView();
@@ -93,107 +93,63 @@ namespace Portal.Controllers
         }
 
         /* Отображение таблицы с сотрудниками, принимает актуальность, номер страницы и\или отдельно взятого пользователя */
-        [Authorize(Roles = "HR")]
-        public IActionResult PersonalityTable(string showUnActual, string page, string searchItem)
+        [Authorize(Roles = "HR, employee_control_ukvh")]
+        public IActionResult PersonalityTable(int showUnActual = 1)
         {
-            if(int.Parse(page) == 1)
+            PersonalityModelNew model = new();
+
+            // Получаем ID всех личностей
+            var personalityIds = dbSql.Personalities.Select(p => p.Guid).ToList();
+
+            // Загружаем все версии для этих личностей одним запросом
+            var allVersions = dbSql.PersonalityVersions
+                .Include(x => x.Location)
+                .Include(x => x.Entity)
+                .Include(x => x.JobTitle)
+                .Include(x => x.Personalities)
+                .Where(x => personalityIds.Contains(x.Personalities.Guid))
+                .ToList();
+
+            if (showUnActual == 1)
             {
-                page = "1";
+                allVersions = allVersions.Where(x => x.Actual == 1).ToList();
             }
 
-            // Выбор нужных записей для страницы
-            List<PersonalityModel> models = new List<PersonalityModel> ();
-            List<Personality> personalities = new List<Personality>();
-            
-            /* Считаем кол-во уникальных сотрудников */
-            int countPage = dbSql.Personalities.Count();
-
-            /* Расчет необходимых данных для страницы */
-            if (searchItem == null)
-            { 
-                personalities = dbSql.Personalities.Skip((int.Parse(page) - 1) * 30).Take(30).OrderBy(x => x.Name).ToList();
-            }
-            else
-            {
-                List<PersonalityVersion> persons = new List<PersonalityVersion> ();
-                List<PersonalityVersion> personsLocation = new List<PersonalityVersion>();
-
-                persons = dbSql.PersonalityVersions.Include(x => x.Personalities)
-                                                   .AsEnumerable()
-                                                   .GroupBy(x => x.Personalities.Guid)
-                                                   .Select(g => g.OrderByDescending(x => x.VersionStartDate).First())
-                                                   .Where(x => (x.Surname + x.Name + x.Patronymic).ToLower().Contains(searchItem.ToLower()))
-                                                   .ToList();
-
-
-                personsLocation = dbSql.PersonalityVersions.Include(x => x.Personalities)
-                                                   .Include(x => x.Location)
-                                                   .AsEnumerable()
-                                                   .GroupBy(x => x.Personalities.Guid)
-                                                   .Select(g => g.OrderByDescending(x => x.VersionStartDate).First())
-                                                   .Where(x => x.Location.Name.ToLower().Contains(searchItem.ToLower()))
-                                                   .ToList();
-
-                persons.AddRange(personsLocation);
-
-                personalities = persons.Select(x => x.Personalities)
-                                       .GroupBy(p => p.Guid)
-                                       .Select(g => g.First())
-                                       .ToList();
-
-                if (personalities.Count != 0)
+            // Группируем по личности и выбираем нужную версию для каждой
+            List<PersonalityVersion> personalityVersions = allVersions
+                .GroupBy(x => x.Personalities.Guid)
+                .Select(g =>
                 {
-                    countPage = personalities.Count();
-                    var k = int.Parse(page) - 1;
-                    if(countPage < 30)
-                    {
-                        personalities = personalities.Skip((k - 1) * 30).Take(30).ToList();
-                    } else
-                    {
-                        personalities = personalities.Skip((int.Parse(page) - 1) * 30).Take(30).ToList();
-                    }
-                    
-                }
-                else
-                {
-                    countPage = 0;
-                }
-                
-            }
-            
-            // всего страниц
-            int maxPage = (int)Math.Ceiling((double)countPage / 30);
-            // сколько страниц осталось относительно текущей
-            int pageLeft = maxPage - int.Parse(page);
+                    // Сначала ищем актуальную версию
+                    var actualVersion = g.FirstOrDefault(x => x.Actual == 1);
+                    if (actualVersion != null)
+                        return actualVersion;
 
-            foreach (var person in personalities)
+                    // Если нет актуальной, берем последнюю по дате
+                    return g.OrderByDescending(x => x.VersionStartDate).FirstOrDefault();
+                })
+                .Where(x => x != null)
+                .ToList();
+
+            if(User.IsInRole("employee_control_ukvh"))
             {
-                PersonalityVersion personalityVersion;
-
-                // Выбор записей для активных \ не активных пользователей
-                personalityVersion = dbSql.PersonalityVersions.Include(c => c.JobTitle)
-                                                              .Include(c => c.Location)
-                                                              .Include(c => c.Personalities)
-                                                              .Include(c => c.Schedule)
-                                                              .Include(c => c.Entity)
-                                                              .Where(x => x.Personalities == person)
-                                                              .OrderByDescending(x => x.VersionStartDate)
-                                                              .FirstOrDefault();
-
-                PersonalityModel model = new PersonalityModel();
-                model.maxPage = maxPage;
-                model.currentPage = int.Parse(page);
-                model.StatusError = checkError(personalityVersion, person);
-                model.Personalities = person;
-                model.PersonalitiesVersions = personalityVersion;
-                model.Entity = dbSql.Entity.ToList();
-                models.Add(model);
+                personalityVersions = personalityVersions.Where(x => x.EntityCostGuid == Guid.Parse("27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F")).ToList();
             }
-            return PartialView(models.ToList());
+
+            model.personalityVersions = personalityVersions;
+            model.entity = dbSql.Entity.ToList();
+
+            return PartialView(model);
+        }
+
+        public class PersonalityModelNew
+        {
+            public List<PersonalityVersion> personalityVersions { get; set; }
+            public List<Entity> entity { get; set; }
         }
 
         /* Редактирование карточки сотрудника */
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "HR, employee_control_ukvh")]
         public IActionResult PersonalityEdit(string typeGuid, string newPerson)
         {
             PersonalityEditModel model = new();
@@ -260,7 +216,7 @@ namespace Portal.Controllers
         }
 
         /* Добавление сотрудника */
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "HR, employee_control_ukvh")]
         public IActionResult PersonalityAdd(string json)
         {
             var result = new Result<string>();
@@ -392,7 +348,7 @@ namespace Portal.Controllers
             }
         }
 
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "HR, employee_control_ukvh")]
         public IActionResult PersonalityPut(string json)
         {
             var result = new Result<string>();

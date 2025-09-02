@@ -23,15 +23,15 @@
         <div class="tableMenu" id="tableMenu">
             
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
-                <input class="form-control-sm" id="personality_search" oninput="debounce(setupSearchInputHandler, 500)()" placeholder="Поиск" id="searchDatatable">
+                <input class="form-control-sm" id="personality_search" placeholder="Поиск" id="searchDatatable">
                 <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
             </div>
 
 
-            <div class="userActive hidden">
-                <span class="textForCheckbox">Показать неактивных пользователей</span>
+            <div class="userActive">
+                <span class="textForCheckbox">Показывать только активных пользователей</span>
                 <label class="switch">
-                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()">
+                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()" checked>
                     <span class="switch__slider"></span>
                 </label>
             </div>
@@ -51,22 +51,15 @@
 <script>
 
     function loadPersonalityTable() {
-        try{
-            let closedPersonality = document.getElementById('closedPersonality').checked;
+        let closedPersonality = document.getElementById('closedPersonality').checked;
 
-            if (closedPersonality) {
-                SpinnerShow();
-                $('#page').load('/Personality/PersonalityTable?showUnActual=1&page=1', function () { SpinnerHide(); });
-            } else {
-                SpinnerShow();
-                $('#page').load('/Personality/PersonalityTable?showUnActual=0&page=1', function () { SpinnerHide(); });
-            }
-            
-        }   
-        catch{
-            return document.getElementById('page').innerHTML = '<div>Нет данных</div>'
+        if (closedPersonality) {
+            SpinnerShow();
+            $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
+        } else {
+            SpinnerShow();
+            $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
         }
-        
     }
 </script>
 
@@ -76,8 +69,6 @@
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#staff" });
         $('#tableMenu').show();
-        //$('#editMenu').hide();
-        //$('#addMenu').hide();
         $('#page').empty();
         loadPersonalityTable();
     }
@@ -90,17 +81,12 @@
 <!--загрузка формы добавления пользователя-->
 <script>
     function AddItem(typeGuid, newPerson) {
-        // Ссылка на страницу
         location.hash = "#AddPerson";
-        // Редактируем header
         if (newPerson == 1) {
             $('#header').text('Добавление пользователя');
         } else {
             $('#header').text('Добавление версии');
         }
-        // Скрываем все лишнее
-       //$('#tableMenu').hide();
-      // $('#editMenu').hide();
        $('#addMenu').show();
         SpinnerShow();
         $('#page').load(`/Personality/PersonalityEdit?typeGuid=${typeGuid}&newPerson=${newPerson}` , function () {
@@ -115,8 +101,6 @@
         location.hash = "#EditPerson";
         $('#header').text(itemName);
         $('#tableMenu').hide();
-        //$('#editMenu').show();
-        //$('#addMenu').hide();
         SpinnerShow();
         $('#page').load(`/Personality/PersonalityEdit?typeGuid=${typeGuid}&newPerson=${newPerson}`, function () {
             SpinnerHide()
@@ -143,64 +127,5 @@
         $('#page').load(`/Personality/PersonalityVersions?typeGuid=${typeGuid}&newPerson=${newPerson}`, function () {
             SpinnerHide()
         });
-    }
-</script>
-
-<script>
-
-    const debounceTimers = []; // Массив для хранения всех активных таймеров
-
-        // Храним последний AbortController для отмены запросов
-    let lastAbortController = null;
-
-    // Улучшенная версия debounce
-    function debounce(func, delay) {
-      let timeoutId;
-      return function(...args) {
-        // Отменяем предыдущий таймер
-        clearTimeout(timeoutId);
-
-        // Отменяем предыдущий запрос, если он еще выполняется
-        if (lastAbortController) {
-          lastAbortController.abort();
-        }
-
-        // Создаем новый контроллер для текущего запроса
-        lastAbortController = new AbortController();
-
-        timeoutId = setTimeout(() => {
-          func.apply(this, [...args, lastAbortController.signal]);
-        }, delay);
-      };
-    }
-
-    // Модифицированная функция поиска
-    function setupSearchInputHandler(signal) {
-      SpinnerShow();
-      const text = document.getElementById("personality_search").value;
-
-      fetch(`/Personality/PersonalityTable?showUnActual=1&page=1&searchItem=${encodeURIComponent(text)}`, {
-        method: "GET",
-        signal: signal // Передаем signal для возможной отмены
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.text();
-      })
-      .then(data => {
-        if (!signal.aborted) { // Проверяем не был ли запрос отменен
-          $('#page').html(data);
-        }
-      })
-      .catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error('Fetch error:', err);
-        }
-      })
-      .finally(() => {
-        if (!signal.aborted) {
-          SpinnerHide();
-        }
-      });
     }
 </script>
