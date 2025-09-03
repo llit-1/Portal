@@ -27,11 +27,18 @@
                 <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
             </div>
 
+            <div class="userActive" style="padding-right: 20px;">
+                <span class="textForCheckbox">Только записи с ошибками</span>
+                <label class="switch">
+                    <input type="checkbox" class="switch__input" id="errorsPick" onchange="loadPersonalityTable()">
+                    <span class="switch__slider"></span>
+                </label>
+            </div>
 
             <div class="userActive">
                 <span class="textForCheckbox">Показывать только активных пользователей</span>
                 <label class="switch">
-                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()" checked>
+                    <input type="checkbox" class="switch__input" id="closedPersonality" onchange="loadPersonalityTable()">
                     <span class="switch__slider"></span>
                 </label>
             </div>
@@ -51,15 +58,22 @@
 <script>
 
     function loadPersonalityTable() {
-        let closedPersonality = document.getElementById('closedPersonality').checked;
+        let error = document.getElementById('errorsPick').checked;
+        let actual = document.getElementById('closedPersonality').checked;
 
-        if (closedPersonality) {
-            SpinnerShow();
-            $('#page').load('/Personality/PersonalityTable?showUnActual=1', function () { SpinnerHide(); });
+        if(actual){
+            actual = 1;
         } else {
-            SpinnerShow();
-            $('#page').load('/Personality/PersonalityTable?showUnActual=0', function () { SpinnerHide(); });
+            actual = 0;
         }
+
+        if(error){
+            error = 1;
+        } else {
+            error = 0;
+        }
+
+         $('#page').load(`/Personality/PersonalityTable?showUnActual=${actual}&checkErrors=${error}`, function () { SpinnerHide(); });
     }
 </script>
 
@@ -112,6 +126,22 @@
 <script>
     function PersonalityVersions(typeGuid, newPerson) {
         location.hash = "#PersonalityVersions";
+        let closedPersonality = document.getElementById("closedPersonality").checked;
+        let errorsPick = document.getElementById("errorsPick").checked;
+        
+        if(errorsPick)
+        {
+            errorsPick = 1;
+        } else {
+            errorsPick = 0;
+        }
+
+        if(closedPersonality)
+        {
+            closedPersonality = 1;
+        } else {
+            closedPersonality = 0;
+        }
         $('#header').text('Выбор версии');
         $('#back').unbind('click');
         $('#back').click(function () {
@@ -124,7 +154,7 @@
         $('#editMenu').show();
         $('#addMenu').hide();
         SpinnerShow();
-        $('#page').load(`/Personality/PersonalityVersions?typeGuid=${typeGuid}&newPerson=${newPerson}`, function () {
+        $('#page').load(`/Personality/PersonalityVersions?typeGuid=${typeGuid}&newPerson=${newPerson}&actual=${closedPersonality}&errors=${errorsPick}`, function () {
             SpinnerHide()
         });
     }

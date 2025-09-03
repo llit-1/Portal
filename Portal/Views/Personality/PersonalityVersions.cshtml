@@ -152,7 +152,13 @@
                                                 <p class="text-muted ">@BirthDate</p>
                                             </td>
                                             <td class="tdPersonTable">
-                                                <p class="text-muted">@user.JobTitle.Name</p>
+                                                @if (user.JobTitle?.Name == null)
+                                                {
+                                                    <p class="text-muted">Парт-таймер</p>
+                                                } else {
+                                                    <p class="text-muted">@user.JobTitle.Name</p>
+                                                }
+                                                
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted">@user.Location.Name</p>
@@ -164,13 +170,13 @@
                                                 <p class="text-muted ">@DismissalsDate</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
-                                                <p class="text-muted ">@user.Schedule.Name</p>
+                                                <p class="text-muted ">@user.Schedule?.Name</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
                                                 <p class="text-muted ">@user.Entity?.Name</p>
                                             </td>
                                             <td class="tdPersonTable hidden">
-                                                <p class="text-muted ">@Model.Entity.FirstOrDefault(x => x.Guid == user.EntityCostGuid).Name</p>
+                                                <p class="text-muted ">@Model.Entity?.FirstOrDefault(x => x.Guid == user.EntityCostGuid).Name</p>
                                             </td>
                                             <td class="tdPersonTable">
                                                 <p class="text-muted ">@user.VersionStartDate.Value.ToString("dd.MM.yyyy")</p>
@@ -327,12 +333,13 @@
 @* Возврат пользователя на старницу с настраиваемым сотрудником *@
 <script>
     let currentPage = '@Model.CurrentPage';
-    let searchItem = '';
     
+
     $('#back').unbind('click');
     $('#back').click(function () {
+        $('.userActive').show();
         $('#header').text('Пользователи');
         $('#tableMenu').show();
-        $('#page').load(`/Personality/PersonalityTable?showUnActual=1&page=${currentPage}&searchItem=${searchItem}`, function () {});
+        $('#page').load(`/Personality/PersonalityTable?showUnActual=${@Model.actual}&checkErrors=${@Model.errors}`, function () {});
     });
 </script>

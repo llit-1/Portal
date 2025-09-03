@@ -41,107 +41,110 @@ namespace Portal.Controllers
         }
 
         /* Проверка дат на пересечение и прочие ошибки */
-        public List<int> checkError(PersonalityVersion personalityVersion, Personality person)
+        public bool HasErrors(List<PersonalityVersion> versions)
         {
-            List<int> StatusError = new();
-
-            var count = 0;
-
+            int count = 0;
             List<Guid> temp = new();
 
-            List<PersonalityVersion> checkVersionsForError = dbSql.PersonalityVersions.Include(c => c.Personalities)
-                                                                                      .Where(c => c.Personalities.Guid == person.Guid)
-                                                                                      .OrderBy(c => c.VersionStartDate)
-                                                                                      .ToList();
-
-            for (var i = 0; i < (checkVersionsForError.Count); i++)
+            for (int i = 0; i < versions.Count; i++)
             {
-                if (i != (checkVersionsForError.Count - 1))
+                if (i < versions.Count - 1)
                 {
+                    var current = versions[i];
+                    var next = versions[i + 1];
 
-                    if (checkVersionsForError[i].VersionEndDate != null)
+                    if (current.VersionEndDate != null)
                     {
-                        if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value.AddDays(1) != checkVersionsForError[i + 1].VersionStartDate)
+                        if (current.VersionEndDate.Value.AddDays(1) != next.VersionStartDate)
                         {
-                            temp.Add(checkVersionsForError[i].Guid);
+                            temp.Add(current.Guid);
                         }
-                        else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value >= checkVersionsForError[i + 1].VersionStartDate.Value)
+                        else if (current.VersionEndDate.Value >= next.VersionStartDate)
                         {
-                            temp.Add(checkVersionsForError[i].Guid);
+                            temp.Add(current.Guid);
                         }
-                        else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionStartDate.Value > checkVersionsForError[i].VersionEndDate.Value)
+                        else if (current.VersionStartDate > current.VersionEndDate)
                         {
-                            temp.Add(checkVersionsForError[i].Guid);
+                            temp.Add(current.Guid);
                         }
                     }
                 }
-                if (checkVersionsForError[i].Actual == 1 && checkVersionsForError[i].VersionEndDate == null)
+
+                if (versions[i].Actual == 1 && versions[i].VersionEndDate == null)
                 {
                     count++;
                 }
             }
-            if (temp.Count >= 1 || count > 1)
-            {
-                StatusError.Add(1);
-            }
-            else
-            {
-                StatusError.Add(0);
-            }
 
-            return StatusError;
+            return temp.Count > 0 || count > 1;
         }
 
-        /* Отображение таблицы с сотрудниками, принимает актуальность, номер страницы и\или отдельно взятого пользователя */
+
         [Authorize(Roles = "HR, employee_control_ukvh")]
-        public IActionResult PersonalityTable(int showUnActual = 1)
+        public IActionResult PersonalityTable(int showUnActual, int checkErrors)
         {
             PersonalityModelNew model = new();
 
-            // Получаем ID всех личностей
-            var personalityIds = dbSql.Personalities.Select(p => p.Guid).ToList();
-
-            // Загружаем все версии для этих личностей одним запросом
+            // Загружаем все версии всех личностей сразу
             var allVersions = dbSql.PersonalityVersions
                 .Include(x => x.Location)
                 .Include(x => x.Entity)
                 .Include(x => x.JobTitle)
                 .Include(x => x.Personalities)
-                .Where(x => personalityIds.Contains(x.Personalities.Guid))
                 .ToList();
 
-            if (showUnActual == 1)
-            {
-                allVersions = allVersions.Where(x => x.Actual == 1).ToList();
-            }
-
-            // Группируем по личности и выбираем нужную версию для каждой
-            List<PersonalityVersion> personalityVersions = allVersions
+            // Группируем ВСЕ версии по личностям
+            var versionsByPersonality = allVersions
                 .GroupBy(x => x.Personalities.Guid)
-                .Select(g =>
-                {
-                    // Сначала ищем актуальную версию
-                    var actualVersion = g.FirstOrDefault(x => x.Actual == 1);
-                    if (actualVersion != null)
-                        return actualVersion;
+                .ToDictionary(g => g.Key, g => g.OrderBy(x => x.VersionStartDate).ToList());
 
-                    // Если нет актуальной, берем последнюю по дате
-                    return g.OrderByDescending(x => x.VersionStartDate).FirstOrDefault();
+            // Получаем последние версии для отображения
+            var personalityVersions = versionsByPersonality
+                .Select(kv =>
+                {
+                    var versions = kv.Value;
+                    var actualVersion = versions.FirstOrDefault(x => x.Actual == 1);
+                    return actualVersion ?? versions.OrderByDescending(x => x.VersionStartDate).First();
                 })
                 .Where(x => x != null)
                 .ToList();
 
-            if(User.IsInRole("employee_control_ukvh"))
+            if (showUnActual == 1)
             {
-                personalityVersions = personalityVersions.Where(x => x.EntityCostGuid == Guid.Parse("27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F")).ToList();
+                personalityVersions = personalityVersions.Where(x => x.Actual == 1).ToList();
+            }
+
+            if (User.IsInRole("employee_control_ukvh"))
+            {
+                personalityVersions = personalityVersions
+                    .Where(x => x.EntityCostGuid == Guid.Parse("27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F"))
+                    .ToList();
             }
 
             model.personalityVersions = personalityVersions;
             model.entity = dbSql.Entity.ToList();
 
+            // Проверка ошибок — используем ВСЕ версии каждой личности
+            if (checkErrors == 1)
+            {
+                var errorGuids = new List<Guid>();
+
+                foreach (var kv in versionsByPersonality)
+                {
+                    if (HasErrors(kv.Value)) // ← Проверяем ВСЕ версии личности
+                    {
+                        errorGuids.Add(kv.Key);
+                    }
+                }
+
+                // Фильтруем только личности с ошибками
+                model.personalityVersions = personalityVersions
+                    .Where(x => errorGuids.Contains(x.Personalities.Guid))
+                    .ToList();
+            }
+
             return PartialView(model);
         }
-
         public class PersonalityModelNew
         {
             public List<PersonalityVersion> personalityVersions { get; set; }
@@ -413,7 +416,7 @@ namespace Portal.Controllers
         }
 
         /* Вывод версий сотрудника и проверка дат на пересечение */
-        public IActionResult PersonalityVersions(string typeGuid, string newPerson)
+        public IActionResult PersonalityVersions(string typeGuid, string newPerson, int actual, int errors)
         {
             PersonalityVersionModel personalityVersionModel = new();
 
@@ -476,6 +479,8 @@ namespace Portal.Controllers
             personalityVersionModel.Errors = ErrorsInDAtes;
             personalityVersionModel.Entity = dbSql.Entity.ToList();
             personalityVersionModel.CurrentPage = getUserPage(typeGuid);
+            personalityVersionModel.actual = actual;
+            personalityVersionModel.errors = errors;
 
             return PartialView(personalityVersionModel);
         }

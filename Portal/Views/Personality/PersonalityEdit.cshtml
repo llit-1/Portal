@@ -188,7 +188,7 @@
                         @if (User.IsInRole("employee_control_ukvh"))
                         {
                             <select required id="EntityCostGUID" class="inputPersonData" data-width="100%" disabled>
-                                <option selected value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
+                                    <option selected="selected" value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
                             </select>
                         } else {
                              <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
@@ -399,8 +399,9 @@
                             @if (User.IsInRole("employee_control_ukvh"))
                             {
                                 <select required id="EntityCostGUID" class="inputPersonData" data-width="100%" disabled>
-                                    <option selected value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
-                                </select>
+                                     <option selected value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
+                                </select> 
+
                             }
                             else
                             {
@@ -502,6 +503,7 @@
         modalLMK.classList.toggle("hidden")
     }
 
+    $("#tableMenu").hide();
 
     // Возврат к таблице
     const NewPerson = document.getElementById('NewPerson').value; // 1 - новый сотрудник, 0 и 2 - не новый
@@ -517,7 +519,13 @@
 
     function clearInputs() {
         // Получаем все элементы input на странице и очищаем их значение
-        document.querySelectorAll(".inputPersonData").forEach(input => input.value = "");
+        document.querySelectorAll(".inputPersonData").forEach(input => {
+            if(input.id != "EntityCostGUID")
+            {
+                input.value = ""
+            }
+            
+        });
     }
 
     // Валидация формы + отправка
