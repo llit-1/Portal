@@ -101,6 +101,8 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.TimeSheetsLogs> TimeSheetsLogs { get; set; }
         public DbSet<Models.MSSQL.Personality.Entity> Entity { get; set; } // ЮЛ
         public DbSet<Models.MSSQL.Personality.EntityCost> EntityCost { get; set; } // ЮЛ
+        public DbSet<PersonalityLMK> PersonalityLMK { get; set; }
+        public DbSet<PersonalityDocumentTypes> PersonalityDocumentTypes { get; set; }
         public DbSet<SaleObject> SaleObjects { get; set; }
         public DbSet<SaleObjectsAgregators> SaleObjectsAgregators { get; set; }
         public DbSet<LastUser> LastUser { get; set; }

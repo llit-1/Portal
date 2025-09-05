@@ -1,129 +1,127 @@
 @model PersonalityEditModel
 
 <div class="personalityVersionEditWrapper">
-<!--Блок добавления\редактирования работника-->
-<div class="panel panel-default panel-default-person modalPersonWidth"  id="personTable" style="margin-bottom:0px">
+    <!--Блок добавления\редактирования работника-->
+    <div class="panel panel-default panel-default-person modalPersonWidth"  id="personTable" style="margin-bottom:0px">
 
 
 
-    <div class="titlePersontable">
+        <div class="titlePersontable">
 
-        @*Изменение хедера на странице*@
-        @if(Model.NewPerson == "1")
-        {
-            <h3>Данные пользователя</h3>
-        }
-        else {
+            @*Изменение хедера на странице*@
+            @if(Model.NewPerson == "1")
+            {
+                <h3>Данные пользователя</h3>
+            }
+            else {
 
-            <h3>Данные версии пользователя</h3>
+                <h3>Данные версии пользователя</h3>
 
-        }
+            }
 
-        @if(@Model.NewPerson != null)
-        {
-            <input class="hidden" id="NewPerson" value="@Model.NewPerson"/>
-        }
+            @if(@Model.NewPerson != null)
+            {
+                <input class="hidden" id="NewPerson" value="@Model.NewPerson"/>
+            }
 
-        <!--Выпадающий список состояний работника-->
-        @if (Model?.PersonalitiesVersions == null || Model.PersonalitiesVersions?.Actual == 1)
-        {
-            <select class=" actual" id='actual'>
-                <option value="1" selected='selected' class="optionForColor">Активен</option>
-                <option value="2" class="optionForColor">Отстранен</option>
-                <option value="0" class="optionForColor">Уволен</option>
-            </select>
-        }
-        else if (Model.PersonalitiesVersions?.Actual == 2)
-        {
-            <select class=" actual" id='actual' >
-                <option value="1" class="optionForColor">Активен</option>
-                <option value="2" selected='selected' class="optionForColor">Отстранен</option>
-                <option value="0" class="optionForColor">Уволен</option>
-            </select>
-        }
-        else
-        {
-            <select class=" actual" id='actual' >
-                <option value="1" class="optionForColor">Активен</option>
-                <option value="2" class="optionForColor">Отстранен</option>
-                <option value="0" selected='selected' class="optionForColor">Уволен</option>
-            </select>
-        }
-    </div>
+            <!--Выпадающий список состояний работника-->
+            @if (Model?.PersonalitiesVersions == null || Model.PersonalitiesVersions?.Actual == 1)
+            {
+                <select class=" actual" id='actual'>
+                    <option value="1" selected='selected' class="optionForColor">Активен</option>
+                    <option value="2" class="optionForColor">Отстранен</option>
+                    <option value="0" class="optionForColor">Уволен</option>
+                </select>
+            }
+            else if (Model.PersonalitiesVersions?.Actual == 2)
+            {
+                <select class=" actual" id='actual' >
+                    <option value="1" class="optionForColor">Активен</option>
+                    <option value="2" selected='selected' class="optionForColor">Отстранен</option>
+                    <option value="0" class="optionForColor">Уволен</option>
+                </select>
+            }
+            else
+            {
+                <select class=" actual" id='actual' >
+                    <option value="1" class="optionForColor">Активен</option>
+                    <option value="2" class="optionForColor">Отстранен</option>
+                    <option value="0" selected='selected' class="optionForColor">Уволен</option>
+                </select>
+            }
+        </div>
 
-    <hr>
+        <hr>
 
-    <!--Наполнение данных, если они есть-->
-    <div class="personData">
-        <!--Первый столбец-->
-        @if(Model.PersonalitiesVersions?.Personalities != null)
-        {
-            <form id="user-form">
-                <div class="leftBlockPersonData">
-                    @* Добавление и заполнение данных *@
-                    <label class="label-light">Фамилия</label>
-                    <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.PersonalitiesVersions.Surname">
-                    <label class="label-light">Имя</label>
-                    <input required type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.PersonalitiesVersions.Name">
-                    <label class="label-light">Отчество</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.PersonalitiesVersions.Patronymic">
-                    <label class="label-light">Дата рождения</label>
-                    <input required type="date" min="1900-01-01" max="2010-01-01" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
+        <!--Наполнение данных, если они есть-->
+        <div class="personData">
+            <!--Первый столбец-->
+            @if (Model?.PersonalitiesVersions?.Personalities != null)
+            {
+                <form id="user-form">
+                    <div class="leftBlockPersonData">
+                        @* Добавление и заполнение данных *@
+                        <label class="label-light">Фамилия</label>
+                        <input required type="text" class="inputPersonData" placeholder="Введите фамилию" id="surnamePerson" value="@Model.PersonalitiesVersions.Surname">
+                        <label class="label-light">Имя</label>
+                        <input required type="text" class="inputPersonData" placeholder="Введите имя" id="namePerson" value="@Model.PersonalitiesVersions.Name">
+                        <label class="label-light">Отчество</label>
+                        <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.PersonalitiesVersions.Patronymic">
+                        <label class="label-light">Дата рождения</label>
+                        <input required type="date" min="1900-01-01" max="2010-01-01" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
 
-                    <label class="label-light">Парт-таймер</label>
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="partTimerId" class="inputPersonData" data-width="100%" value="">
-                            @if (Model.PersonalitiesVersions.PartTimer != null && Model.PersonalitiesVersions.PartTimer == 1)
+                        <label class="label-light">Парт-таймер</label>
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select required id="partTimerId" class="inputPersonData" data-width="100%" value="">
+                                @if (Model.PersonalitiesVersions.PartTimer != null && Model.PersonalitiesVersions.PartTimer == 1)
+                                {
+                                    <option selected value="1">Да</option>
+                                    <option value="0">Нет</option>
+                                } else {
+                                    <option value="1">Да</option>
+                                    <option selected value="0">Нет</option>
+                                }
+                            </select>
+                        </div>
+
+                        <label class="label-light">Должность</label>
+                        <input type="hidden" id="personGUID" value="@Model.PersonalitiesVersions.Personalities.Guid">
+                        <input type="hidden" id="personVersionGUID" value="@Model.PersonalitiesVersions.Guid">
+
+
+                        @{
+                            var disabled = false;
+                            if(Model.PersonalitiesVersions.PartTimer != null && Model.PersonalitiesVersions.PartTimer == 1)
                             {
-                                <option selected value="1">Да</option>
-                                <option value="0">Нет</option>
-                            } else {
-                                <option value="1">Да</option>
-                                <option selected value="0">Нет</option>
+                                disabled = true;
                             }
-
-
-                        </select>
-                    </div>
-
-                    <label class="label-light">Должность</label>
-                    <input type="hidden" id="personGUID" value="@Model.PersonalitiesVersions.Personalities.Guid">
-                    <input type="hidden" id="personVersionGUID" value="@Model.PersonalitiesVersions.Guid">
-
-
-                    @{
-                        var disabled = false;
-                        if(Model.PersonalitiesVersions.PartTimer != null && Model.PersonalitiesVersions.PartTimer == 1)
-                        {
-                            disabled = true;
                         }
-                    }
 
-                    @* Выбор должности *@
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select disabled="@disabled" required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.JobTitle?.Name">
-                            @if (Model.JobTitles.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.JobTitle?.Guid) != null)
-                            {
-                                <option value="@Model.PersonalitiesVersions.JobTitle.Guid" selected>@Model.PersonalitiesVersions.JobTitle.Name</option>
-                            } else {
-                                <option selected></option>
-                            }
-                            @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
-                            {
-                                <option value="@jobTitle.Guid">@jobTitle.Name</option>
-                            }
-                        </select>
+                        @* Выбор должности *@
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select disabled="@disabled" required id="jobTitlePerson" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.JobTitle?.Name">
+                                @if (Model.JobTitles.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.JobTitle?.Guid) != null)
+                                {
+                                    <option value="@Model.PersonalitiesVersions.JobTitle.Guid" selected>@Model.PersonalitiesVersions.JobTitle.Name</option>
+                                } else {
+                                    <option selected></option>
+                                }
+                                @foreach (var jobTitle in Model.JobTitles.OrderBy(g => g.Name))
+                                {
+                                    <option value="@jobTitle.Guid">@jobTitle.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <label class="label-light">ИНН</label>
+                        <input type="text" class="inputPersonData" maxlength="12" placeholder="Введите ИНН" id="INNPerson" value="@Model.PersonalitiesVersions.Personalities?.INN">
+
                     </div>
 
-                    <label class="label-light">ИНН</label>
-                    <input type="text" class="inputPersonData" maxlength="12" placeholder="Введите ИНН" id="INNPerson" value="@Model.PersonalitiesVersions.Personalities?.INN">
-
-                </div>
-                
-                <div class="rightBlockPersonData">
-                    <label class="label-light">ТТ</label>
-                    @* Выбор ТТ *@
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto;display: flex;gap: 10px;">
+                    <div class="rightBlockPersonData">
+                        <label class="label-light">ТТ</label>
+                        @* Выбор ТТ *@
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto;display: flex;gap: 10px;">
                             <select required id="TTPerson" style="width: 90%;" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Location.Name" placeholder="Выберите ТТ">
                                 @foreach (var location in Model.Locations.OrderBy(g => g.Name))
                                 {
@@ -136,157 +134,220 @@
                                 }
 
                             </select>
-                        <div class="ttmore" onclick="createModal()">@ViewBag.TTCount</div>
-                    </div>
+                            <div class="ttmore" onclick="createModal()">@ViewBag.TTCount</div>
+                        </div>
 
-                    <label class="label-light">Дата приема на работу</label>
-                    <input required type="date" class="inputPersonData" id="HireDate" min="1900-01-01" value="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")">
-                    <label class="label-light">Дата увольнения</label>
-                    <input type="date" class="inputPersonData dissDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
+                        <label class="label-light">Дата приема на работу</label>
+                        <input required type="date" class="inputPersonData" id="HireDate" min="1900-01-01" value="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")">
+                        <label class="label-light">Дата увольнения</label>
+                        <input type="date" class="inputPersonData dissDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="DismissalsDate" value="@Model.PersonalitiesVersions.DismissalsDate?.ToString("yyyy-MM-dd")">
 
-                    <label class="label-light">Время смены</label>
-                    @* Выбор смены *@
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select disabled="@disabled" required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Schedule?.Name">
-                            @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
-                            {
-                                if (schedule.BeginTime == Model.PersonalitiesVersions.Schedule?.BeginTime && schedule.EndTime == Model.PersonalitiesVersions.Schedule?.EndTime && schedule.Name == Model.PersonalitiesVersions.Schedule?.Name)
+                        <label class="label-light">Время смены</label>
+                        @* Выбор смены *@
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select disabled="@disabled" required id="ScheduleGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Schedule?.Name">
+                                @foreach (var schedule in Model.Schedules.OrderBy(g => g.Name))
                                 {
-                                    <option selected="selected" value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
-                                }
-                                else
-                                {
-                                    if (Model.PersonalitiesVersions.Schedule?.Name == schedule.Name)
+                                    if (schedule.BeginTime == Model.PersonalitiesVersions.Schedule?.BeginTime && schedule.EndTime == Model.PersonalitiesVersions.Schedule?.EndTime && schedule.Name == Model.PersonalitiesVersions.Schedule?.Name)
                                     {
-                                        <option value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
+                                        <option selected="selected" value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
+                                    }
+                                    else
+                                    {
+                                        if (Model.PersonalitiesVersions.Schedule?.Name == schedule.Name)
+                                        {
+                                            <option value="@schedule.Guid">@schedule.BeginTime - @schedule.EndTime</option>
+                                        }
                                     }
                                 }
-                            }
-                        </select>
-                    </div>
-
-                    @* Выбор Юр. лица *@
-                    <label class="label-light">Юр. лицо</label>
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        <select required id="EntityGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Entity?.Name">
-                            @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.Entity?.Guid) != null)
-                            {
-                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.Entity.Guid">@Model.PersonalitiesVersions.Entity.Name</option>
-                            }
-                            @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
-                            {
-                                <option value="@entity.Guid">@entity.Name</option>
-                            }
-                        </select>
-                    </div>
-
-                    <label class="label-light">СНИЛС</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите СНИЛС" id="SNILSPerson" value="@Model.PersonalitiesVersions.Personalities?.SNILS">
-
-                    <label class="label-light">Юр. лицо разнесения затрат</label>
-                    <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                        @if (User.IsInRole("employee_control_ukvh"))
-                        {
-                            <select required id="EntityCostGUID" class="inputPersonData" data-width="100%" disabled>
-                                    <option selected="selected" value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
                             </select>
-                        } else {
-                             <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
-                                @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.EntityCostGuid) != null)
+                        </div>
+
+                        @* Выбор Юр. лица *@
+                        <label class="label-light">Юр. лицо</label>
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select required id="EntityGUID" class="inputPersonData" data-width="100%" value="@Model.PersonalitiesVersions.Entity?.Name">
+                                @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.Entity?.Guid) != null)
                                 {
-                                    <option selected="selected" disabled value="@Model.PersonalitiesVersions.EntityCostGuid">@Model.Entity.FirstOrDefault(x => x.Guid == Model.PersonalitiesVersions.EntityCostGuid).Name</option>
+                                    <option selected="selected" disabled value="@Model.PersonalitiesVersions.Entity.Guid">@Model.PersonalitiesVersions.Entity.Name</option>
                                 }
                                 @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
                                 {
                                     <option value="@entity.Guid">@entity.Name</option>
                                 }
-                             </select>
-                        }
+                            </select>
+                        </div>
+
+                        <label class="label-light">СНИЛС</label>
+                        <input type="text" class="inputPersonData" placeholder="Введите СНИЛС" id="SNILSPerson" value="@Model.PersonalitiesVersions.Personalities?.SNILS">
+
+                        <label class="label-light">Юр. лицо разнесения затрат</label>
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            @if (User.IsInRole("employee_control_ukvh"))
+                            {
+                                <select required id="EntityCostGUID" class="inputPersonData" data-width="100%" disabled>
+                                    <option selected="selected" value="27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F">ООО «УК Вкусный Хлеб»</option>
+                                </select>
+                            } else {
+                                <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
+                                    @if (Model.Entity.FirstOrDefault(g => g.Guid == Model.PersonalitiesVersions.EntityCostGuid) != null)
+                                    {
+                                        <option selected="selected" disabled value="@Model.PersonalitiesVersions.EntityCostGuid">@Model.Entity.FirstOrDefault(x => x.Guid == Model.PersonalitiesVersions.EntityCostGuid).Name</option>
+                                    }
+                                    @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                                    {
+                                        <option value="@entity.Guid">@entity.Name</option>
+                                    }
+                                </select>
+                            }
+                        </div>
                     </div>
-                </div>
 
-                <div class='rightBlockPersonData'>
-                    @* Выбор Юр. лица разнесения затрат *@
-                    
+                    <div class='rightBlockPersonData'>
+                        @* Выбор Юр. лица разнесения затрат *@
 
-                    @if(Model.NewPerson == "1")
-                    {
-                        <label class="label-light hidden">Период действия версии</label>
-                        <div class='rightBlockPersonData__versions hidden'>
-                            <label class="label-light">С</label>
-                            <div>
-                                <input disable type="date" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")">
+
+                        @if(Model.NewPerson == "1")
+                        {
+                            <label class="label-light hidden">Период действия версии</label>
+                            <div class='rightBlockPersonData__versions hidden'>
+                                <label class="label-light">С</label>
+                                <div>
+                                    <input disable type="date" class="inputPersonData correctForData" id="VersionStartDate" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")">
+                                </div>
+                                <label class="label-light">По</label>
+                                <div>
+                                    <input disable type="date" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
+                                </div>
                             </div>
-                            <label class="label-light">По</label>
-                            <div>
-                                <input disable type="date" class="inputPersonData correctForData" id="VersionEndDate" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
+                        }
+                        else if(Model.NewPerson == "2")
+                        {
+                            <label class="label-light">Период действия версии</label>
+                            <input class='hidden' value='@Model.NewPerson' id='check_person'>
+                            <div class='rightBlockPersonData__versions'>
+                                <label class="label-light">С</label>
+                                <div>
+                                    <input required type="date" class="inputPersonData correctForData" id="VersionStartDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" max="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")">
+                                </div>
+                                <label class="label-light">По</label>
+                                <div>
+                                    <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
+                                </div>
                             </div>
+                        }
+                        else
+                        {
+                            <label class="label-light">Период действия версии</label>
+                            <input class='hidden' value='@Model.NewPerson' id='check_person'>
+                            <div class='rightBlockPersonData__versions'>
+                                <label class="label-light">С</label>
+                                <div>
+                                    <input required type="date" class="inputPersonData correctForData" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <label class="label-light">По</label>
+                                <div>
+                                    <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        }
+
+                        @{
+                            <label class="label-light" style="padding-top: 12px">Номер телефона</label>
+                            <input style="margin-bottom: 0;" type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
+                        }
+
+                        <label class="label-light" style="padding-top: 12px">Email</label>
+                        <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="@Model?.PersonalitiesVersions?.Personalities?.Email">
+
+                        <button class="buttonLMK" type="button" onclick="openModalLMK()" id="buttonLMK">ЛМК</button>
+
+                        @if (Model.NewPerson == "1")
+                        {
+                            <div class="buttonAddPerson">
+                                <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
+                                <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="buttonAddPerson">
+                                <button class="buttonAddPersonData" type="submit">СОХРАНИТЬ</button>
+                                <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
+                            </div>
+                        }
+
+                    </div>
+                </form>
+
+                <div class="modalLMK-overlay hidden" id="modalLMK">
+                    <div class="modalLMK-container">
+                        <div class="modalLMK-header"> Заполнение данных ЛМК </div>
+                        <div class="modalLMK-body">
+
+                            <div class="lmkLeftSideWrapper">
+
+                            <label class="label-light">Вид документа*</label>
+                            <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                                <select placeholder="Выберите вид документа" id="lmkDocumentType" class="inputPersonData lmkData" data-width="100%">
+
+                                    @foreach(var item in Model.DocumentTypes)
+                                    {
+                                        if(Model.PersonalityLMK != null && Model.PersonalityLMK.DocumentTypeId == item.ID)
+                                        {
+                                            <option selected value="@item.ID">@item.Name</option>
+                                        } else {
+                                            <option value="@item.ID">@item.Name</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+
+                            <label class="label-light">Дата прохождения мед. комиссии*</label>
+                            <input type="date" class="inputPersonData lmkData" id="MedComissionDate" value="@Model.PersonalityLMK?.MedComissionDate.Value.ToString("yyyy-MM-dd")">
+
+                            <label class="label-light">Дата прохождения ФЛГ*</label>
+                            <input type="date" class="inputPersonData lmkData" id="FLGDate" value="@Model.PersonalityLMK?.FLGDate.Value.ToString("yyyy-MM-dd")">
+
+                            <label class="label-light">Срок действия аттестации*</label>
+                            <input type="date" class="inputPersonData lmkData" id="ValidationDate" value="@Model.PersonalityLMK?.ValidationDate.Value.ToString("yyyy-MM-dd")">
+
+                            <label class="checkbox-item">
+                                @if(Model.PersonalityLMK?.VacZonne == 1)
+                                {
+                                    <input checked type="checkbox" id="VacZonne">
+                                } else {
+                                    <input type="checkbox" id="VacZonne">
+                                }
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Вакцинация от Дизентерии Зонне </span>
+                            </label>
+
+                            <label class="checkbox-item">
+                                @if(Model.PersonalityLMK?.VacGepatit == 1)
+                                {
+                                    <input checked type="checkbox" id="VacGepatit">
+                                } else {
+                                    <input type="checkbox" id="VacGepatit">
+                                }
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Вакцинация  от Гепатита А</span>
+                            </label>
+
+                            <label class="checkbox-item">
+                                @if(Model.PersonalityLMK?.VacReject == 1)
+                                {
+                                    <input checked type="checkbox" id="VacReject">
+                                } else {
+                                    <input type="checkbox" id="VacReject">
+                                }
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Отказ от вакцинации</span>
+                            </label>
+
                         </div>
-                    }
-                    else if(Model.NewPerson == "2")
-                    {
-                        <label class="label-light">Период действия версии</label>
-                        <input class='hidden' value='@Model.NewPerson' id='check_person'>
-                        <div class='rightBlockPersonData__versions'>
-                            <label class="label-light">С</label>
-                            <div>
-                                <input required type="date" class="inputPersonData correctForData" id="VersionStartDate" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" max="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")">
-                            </div>
-                            <label class="label-light">По</label>
-                            <div>
-                                <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@Model.PersonalitiesVersions.VersionStartDate?.ToString("yyyy-MM-dd")" value="@Model.PersonalitiesVersions.VersionEndDate?.ToString("yyyy-MM-dd")">
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <label class="label-light">Период действия версии</label>
-                        <input class='hidden' value='@Model.NewPerson' id='check_person'>
-                        <div class='rightBlockPersonData__versions'>
-                            <label class="label-light">С</label>
-                            <div>
-                                <input required type="date" class="inputPersonData correctForData" min="@Model.PersonalitiesVersions.HireDate.ToString("yyyy-MM-dd")" id="VersionStartDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
-                            </div>
-                            <label class="label-light">По</label>
-                            <div>
-                                <input type="date" class="inputPersonData correctForData" id="VersionEndDate" min="@DateTime.Now.ToString("yyyy-MM-dd")">
-                            </div>
-                        </div>
-                    }
 
-                    @{
-                        <label class="label-light" style="padding-top: 12px">Номер телефона</label>
-                        <input style="margin-bottom: 0;" type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
-                    }
-
-                    <label class="label-light" style="padding-top: 12px">Email</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="@Model?.PersonalitiesVersions?.Personalities?.Email">
-
-                    <button class="buttonLMK" type="button" onclick="openModalLMK()" id="buttonLMK">ЛМК</button>
-
-                    @if (Model.NewPerson == "1")
-                    {
-                        <div class="buttonAddPerson">
-                            <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
-                            <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="buttonAddPerson">
-                            <button class="buttonAddPersonData" type="submit">СОХРАНИТЬ</button>
-                            <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
-                        </div>
-                    }
-                    
-                </div>
-            </form>
-
-            <div class="modalLMK-overlay hidden" id="modalLMK">
-                <div class="modalLMK-container">
-                    <div class="modalLMK-header"> Заполнение данных ЛМК </div>
-                    <div class="modalLMK-body">
-                        
                     </div>
                     <div class="modalLMK-footer">
                         <button class="buttonLMK-close" id="buttonLMK-close" onclick="openModalLMK()" type="button">закрыть</button>
@@ -454,12 +515,68 @@
                     <label class="label-light" style="padding-top: 12px">Email</label>
                     <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="">
 
+                    <button class="buttonLMK" type="button" onclick="openModalLMK()" id="buttonLMK">ЛМК</button>
+
                     <div class="buttonAddPerson ">
                         <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
                         <button class="buttonAddPersonData buttonClearPersonData" onclick="clearInputs()">ОЧИСТИТЬ</button>
                     </div>
                 </div>
             </form>
+
+
+             <div class="modalLMK-overlay hidden" id="modalLMK">
+                <div class="modalLMK-container">
+                    <div class="modalLMK-header"> Заполнение данных ЛМК </div>
+                    <div class="modalLMK-body">
+                        
+                        <div class="lmkLeftSideWrapper">
+
+                            <label class="label-light">Вид документа*</label>
+                            <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                                <select placeholder="Выберите вид документа" id="lmkDocumentType" class="inputPersonData lmkData" data-width="100%">
+                                    @foreach(var item in Model.DocumentTypes)
+                                    {
+                                        <option value="@item.ID">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <label class="label-light">Дата прохождения мед. комиссии*</label>
+                            <input type="date" class="inputPersonData lmkData" id="MedComissionDate" value="">
+
+                            <label class="label-light">Дата прохождения ФЛГ*</label>
+                            <input type="date" class="inputPersonData lmkData" id="FLGDate" value="">
+
+                            <label class="label-light">Срок действия аттестации*</label>
+                            <input type="date" class="inputPersonData lmkData" id="ValidationDate" value="">
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="VacZonne">
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Вакцинация от Дизентерии Зонне </span>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="VacGepatit">
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Вакцинация  от Гепатита А</span>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="VacReject">
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Отказ от вакцинации</span>
+                            </label>
+
+                        </div>
+
+                    </div>
+                    <div class="modalLMK-footer">
+                        <button class="buttonLMK-close" id="buttonLMK-close" onclick="openModalLMK()" type="button">закрыть</button>
+                    </div>
+                </div>
+            </div>
         }
     </div>
     
@@ -680,6 +797,15 @@
 
 <script>
     function addUser() {
+
+        const LMK = validateLMK()
+
+        if(LMK === false)
+        {
+            alert("Вы не заполнили обязательные пола ЛМК")
+            return;
+        }
+
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
         Personality.Name = $('#namePerson').val().trim();
@@ -711,6 +837,7 @@
 
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
+        Personality.LMK = LMK;
 
         const json = JSON.stringify(Personality)
          $.ajax({
@@ -814,6 +941,16 @@
 @* Отправляем JSON (Редактирование пользователя) *@
 <script>
     function editUser() {
+
+        const LMK = validateLMK()
+
+
+        if(LMK === false)
+        {
+            alert("Вы не заполнили обязательные пола ЛМК")
+            return;
+        }
+
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
         const personVersionGUID = document.getElementById('personVersionGUID').value;
@@ -845,6 +982,7 @@
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
         Personality.PartTimer = $("#partTimerId").val().trim();
+        Personality.LMK = LMK;
 
         const json = JSON.stringify(Personality)
         $.ajax({
@@ -869,9 +1007,51 @@
             }
         });
     }
-
     
+    function validateLMK() {
+
+        const lmkDocumentType = document.getElementById("lmkDocumentType")
+        const MedComissionDate = document.getElementById("MedComissionDate")
+        const FLGDate = document.getElementById("FLGDate")
+        const ValidationDate = document.getElementById("ValidationDate")
+        let VacZonne = document.getElementById("VacZonne")
+        let VacGepatit = document.getElementById("VacGepatit")
+        let VacReject = document.getElementById("VacReject")
+
+        const lmkData = document.querySelectorAll(".lmkData")
+
+        if(VacZonne.checked) { VacZonne = 1 } else { VacZonne = 0 }
+        if(VacGepatit.checked) { VacGepatit = 1 } else { VacGepatit = 0 }
+        if(VacReject.checked) { VacReject = 1 } else { VacReject = 0 }
+
+
+
+        let result;
+
+        result = {
+            DocumentTypeId: lmkDocumentType.value,
+            MedComissionDate: MedComissionDate.value,
+            FLGDate: FLGDate.value,
+            ValidationDate: ValidationDate.value,
+            VacZonne: VacZonne,
+            VacGepatit: VacGepatit,
+            VacReject: VacReject
+        }
+
+        lmkData.forEach(element => {
+            if(!element.value)
+            {
+                result = false;
+            }
+        })
+
+        return result;
+
+    }
+
+
 </script>
+
 
 <style>
     .ttmore {

@@ -15,9 +15,10 @@ namespace Portal.Models.MSSQL.Personality
         public string? Email { get; set; }
         public string? Password { get; set; }
         public string? PhoneCode { get; set; }
-        public DateTime? LastPhoneCall {  get; set; }
+        public DateTime? LastPhoneCall { get; set; }
         public int? PhoneCallAttempts { get; set; }
         public string? INN { get; set; }
         public string? SNILS { get; set; }
+        public int? LMKID { get; set; }
     }
 }

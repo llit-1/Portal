@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using Microsoft.CodeAnalysis;
 using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
 using System.Collections.Generic;
@@ -16,5 +17,7 @@ namespace Portal.Models
         public List<Entity> Entity { get; set; }
         public string NewPerson { get; set; }
         public int CurrentPage { get; set; }
+        public List<MSSQL.PersonalityDocumentTypes> DocumentTypes { get; set; }
+        public MSSQL.PersonalityLMK? PersonalityLMK { get; set; }
     }
 }

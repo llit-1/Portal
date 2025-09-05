@@ -170,6 +170,12 @@ namespace Portal.Controllers
                 model.PersonalitiesVersions = personalityVersion;
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
 
+                if(personalityVersion.Personalities.LMKID != null)
+                {
+                    model.PersonalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.Personalities.LMKID);
+                }
+                
+
                 ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
             }
             else if(typeGuid != "0")
@@ -180,7 +186,8 @@ namespace Portal.Controllers
                                                               .Include(c => c.Personalities)
                                                               .Include(c => c.Entity)
                                                               .FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(typeGuid) && c.Actual == 1);
-                if(personalityVersion != null)
+                
+                if (personalityVersion != null)
                 {
                     model.PersonalitiesVersions = personalityVersion;
                 } else
@@ -191,10 +198,16 @@ namespace Portal.Controllers
                                                                   .Include(c => c.Personalities)
                                                                   .Include(c => c.Entity)
                                                                   .FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(typeGuid));
+
                     model.PersonalitiesVersions = personalityVersion;
                 }
                 
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
+
+                if (personalityVersion.Personalities.LMKID != null)
+                {
+                    model.PersonalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.Personalities.LMKID);
+                }
 
                 ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
             }
@@ -204,9 +217,9 @@ namespace Portal.Controllers
             model.Schedules = dbSql.Schedules.ToList();
             model.Locations = dbSql.Locations.ToList();
             model.JobTitles = dbSql.JobTitles.ToList();
+            model.DocumentTypes = dbSql.PersonalityDocumentTypes.ToList();
 
             model.Entity = dbSql.Entity.ToList();
-            //model.CurrentPage = getUserPage(model.PersonalitiesVersions.Personalities.Guid.ToString());
             return PartialView(model);
         }
 
@@ -228,8 +241,27 @@ namespace Portal.Controllers
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
                 if (personalityJson.NewPerson == "1")
                 {
-                    /* Добавление нового сотрудника и его первой версии */
                     Personality personality = new Personality();
+                    PersonalityLMK personalityLMK = new PersonalityLMK();
+                    if (personalityJson.LMK != null)
+                    {
+                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                        dbSql.PersonalityLMK.Add(personalityLMK);
+                        dbSql.SaveChanges();
+
+                        personality.LMKID = personalityLMK.Id;
+                    }
+                
+
+
+                    /* Добавление нового сотрудника и его первой версии */
                     personality.Name = personalityJson.Surname + " " + personalityJson.Name + " " + personalityJson.Patronymic;
                     personality.BirthDate = personalityJson.BirthDate;
                     personality.Phone = personalityJson.Tel;
@@ -298,6 +330,8 @@ namespace Portal.Controllers
                 }
                 else
                 {
+
+                    Personality personality = new Personality();
                     /* Добавление новой версии уже существующего пользователя */
                     DateTime now = DateTime.Now;
                     if(personalityJson?.VersionEndDate == null)
@@ -309,7 +343,39 @@ namespace Portal.Controllers
                         }
                     }
 
-                    Personality personality = new Personality();
+                    Personality person = dbSql.Personalities.FirstOrDefault(x => x.Guid == Guid.Parse(personalityJson.personGUID));
+                    if(person.LMKID != null)
+                    {
+                        PersonalityLMK personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == person.LMKID);
+                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                        dbSql.PersonalityLMK.Update(personalityLMK);
+                        dbSql.SaveChanges();
+                    } else
+                    {
+                        PersonalityLMK personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == person.LMKID);
+                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                        dbSql.PersonalityLMK.Add(personalityLMK);
+                        dbSql.SaveChanges();
+
+                        personality.LMKID = personalityLMK.Id;
+                    }
+
+
+                    
                     Guid newPersonalityGuid = personalityJson.Guid;
                     PersonalityVersion personalityVersion = new();
                     personalityVersion.Name = personalityJson.Name;
@@ -358,9 +424,44 @@ namespace Portal.Controllers
             try
             {
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
+                PersonalityLMK personalityLMK = new PersonalityLMK();
                 PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(p => p.JobTitle)
                                                                                  .Include(p => p.Schedule)
+                                                                                 .Include(p => p.Personalities)
                                                                                  .FirstOrDefault(c => c.Guid == personalityJson.Guid);
+
+                if (personalityJson.LMK != null)
+                {
+                    if (personalityVersion.Personalities.LMKID != null)
+                    {
+                        personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.Personalities.LMKID);
+                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                        dbSql.PersonalityLMK.Update(personalityLMK);
+                        dbSql.SaveChanges();
+                    }
+                    else
+                    {
+                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                        dbSql.PersonalityLMK.Add(personalityLMK);
+                        dbSql.SaveChanges();
+                        personalityVersion.Personalities.LMKID = personalityLMK.Id;
+                    }
+                }
+
                 personalityVersion.Name = personalityJson.Name;
                 personalityVersion.Surname = personalityJson.Surname;
                 personalityVersion.Patronymic = personalityJson.Patronymic;
