@@ -259,6 +259,34 @@
 
                         <label class="label-light" style="padding-top: 12px">Email</label>
                         <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="@Model?.PersonalitiesVersions?.Personalities?.Email">
+                        @if (!User.IsInRole("employee_control_ukvh"))
+                        {
+                            <label class="label-light">Юр. лицо разнесения затрат ДМС</label>
+                            <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            
+                                    <select id="EntityCostDMSGUID" class="inputPersonData" data-width="100%">
+
+                                        @if (Model.PersonalitiesVersions?.EntityCostDMSGuid == null)
+                                        {
+                                            <option selected value=""></option>
+                                        }
+
+                                        @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                                        {
+                                            @if (entity.Guid == Model.PersonalitiesVersions?.EntityCostDMSGuid)
+                                            {
+                                                <option selected="selected" disabled value="@Model.PersonalitiesVersions.EntityCostDMSGuid">@Model.Entity.FirstOrDefault(x => x.Guid == Model.PersonalitiesVersions.EntityCostDMSGuid).Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@entity.Guid">@entity.Name</option>
+                                            }
+
+
+                                        }
+                                    </select>
+                            </div>
+                        }
 
                         <button class="buttonLMK" type="button" onclick="openModalLMK()" id="buttonLMK">ЛМК</button>
 
@@ -289,7 +317,7 @@
 
                             <label class="label-light">Вид документа*</label>
                             <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                                <select placeholder="Выберите вид документа" id="lmkDocumentType" class="inputPersonData lmkData" data-width="100%">
+                                <select placeholder="Выберите вид документа" id="lmkDocumentType" onchange="checkSelectLMK()" class="inputPersonData lmkData" data-width="100%">
 
                                     @foreach(var item in Model.DocumentTypes)
                                     {
@@ -305,20 +333,20 @@
                             </div>
 
                             <label class="label-light">Дата прохождения мед. комиссии*</label>
-                            <input type="date" class="inputPersonData lmkData" id="MedComissionDate" value="@Model.PersonalityLMK?.MedComissionDate.Value.ToString("yyyy-MM-dd")">
+                            <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkToDisabled lmkData" id="MedComissionDate" value="@Model.PersonalityLMK?.MedComissionDate?.ToString("yyyy-MM-dd")">
 
                             <label class="label-light">Дата прохождения ФЛГ*</label>
-                            <input type="date" class="inputPersonData lmkData" id="FLGDate" value="@Model.PersonalityLMK?.FLGDate.Value.ToString("yyyy-MM-dd")">
+                            <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkToDisabled lmkData" id="FLGDate" value="@Model.PersonalityLMK?.FLGDate?.ToString("yyyy-MM-dd")">
 
                             <label class="label-light">Срок действия аттестации*</label>
-                            <input type="date" class="inputPersonData lmkData" id="ValidationDate" value="@Model.PersonalityLMK?.ValidationDate.Value.ToString("yyyy-MM-dd")">
+                            <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkToDisabled lmkData" id="ValidationDate" value="@Model.PersonalityLMK?.ValidationDate?.ToString("yyyy-MM-dd")">
 
                             <label class="checkbox-item">
                                 @if(Model.PersonalityLMK?.VacZonne == 1)
                                 {
-                                    <input checked type="checkbox" id="VacZonne">
+                                    <input checked type="checkbox" id="VacZonne" class="lmkToDisabled">
                                 } else {
-                                    <input type="checkbox" id="VacZonne">
+                                    <input type="checkbox" id="VacZonne" class="lmkToDisabled">
                                 }
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Вакцинация от Дизентерии Зонне </span>
@@ -327,9 +355,9 @@
                             <label class="checkbox-item">
                                 @if(Model.PersonalityLMK?.VacGepatit == 1)
                                 {
-                                    <input checked type="checkbox" id="VacGepatit">
+                                    <input checked type="checkbox" id="VacGepatit" class="lmkToDisabled">
                                 } else {
-                                    <input type="checkbox" id="VacGepatit">
+                                    <input type="checkbox" id="VacGepatit" class="lmkToDisabled">
                                 }
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Вакцинация  от Гепатита А</span>
@@ -338,9 +366,9 @@
                             <label class="checkbox-item">
                                 @if(Model.PersonalityLMK?.VacReject == 1)
                                 {
-                                    <input checked type="checkbox" id="VacReject">
+                                    <input checked type="checkbox" id="VacReject" class="lmkToDisabled">
                                 } else {
-                                    <input type="checkbox" id="VacReject">
+                                    <input type="checkbox" id="VacReject" class="lmkToDisabled">
                                 }
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Отказ от вакцинации</span>
@@ -467,9 +495,12 @@
                             else
                             {
                                 <select required id="EntityCostGUID" class="inputPersonData" data-width="100%">
+
+                                    <option selected value=""></option>
+
                                 @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
                                 {
-                                    <option selected="selected" value="@entity.Guid">@entity.Name</option>
+                                    <option value="@entity.Guid">@entity.Name</option>
                                     
                                 }
                                 </select>
@@ -515,7 +546,20 @@
                     <label class="label-light" style="padding-top: 12px">Email</label>
                     <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="">
 
+                    @if (!User.IsInRole("employee_control_ukvh"))
+                    {
+                        <label class="label-light">Юр. лицо разнесения затрат ДМС</label>
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select id="EntityCostDMSGUID" class="inputPersonData" data-width="100%">
+                                @foreach (var entity in Model.Entity.OrderBy(g => g.Name))
+                                {
+                                    <option value="@entity.Guid">@entity.Name</option>
+                                }
+                            </select>
+                        </div>
+                    }
                     <button class="buttonLMK" type="button" onclick="openModalLMK()" id="buttonLMK">ЛМК</button>
+                    
 
                     <div class="buttonAddPerson ">
                         <button class="buttonAddPersonData" type="submit">ДОБАВИТЬ</button>
@@ -534,7 +578,7 @@
 
                             <label class="label-light">Вид документа*</label>
                             <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                                <select placeholder="Выберите вид документа" id="lmkDocumentType" class="inputPersonData lmkData" data-width="100%">
+                                <select placeholder="Выберите вид документа" id="lmkDocumentType" onchange="checkSelectLMK()" class="inputPersonData lmkData" data-width="100%">
                                     @foreach(var item in Model.DocumentTypes)
                                     {
                                         <option value="@item.ID">@item.Name</option>
@@ -543,28 +587,28 @@
                             </div>
 
                             <label class="label-light">Дата прохождения мед. комиссии*</label>
-                            <input type="date" class="inputPersonData lmkData" id="MedComissionDate" value="">
+                            <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkData lmkToDisabled" required id="MedComissionDate" value="">
 
                             <label class="label-light">Дата прохождения ФЛГ*</label>
-                            <input type="date" class="inputPersonData lmkData" id="FLGDate" value="">
+                            <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkData lmkToDisabled" required id="FLGDate" value="">
 
                             <label class="label-light">Срок действия аттестации*</label>
-                            <input type="date" class="inputPersonData lmkData" id="ValidationDate" value="">
+                            <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkData lmkToDisabled" required id="ValidationDate" value="">
 
                             <label class="checkbox-item">
-                                <input type="checkbox" id="VacZonne">
+                                <input type="checkbox" class="lmkToDisabled" id="VacZonne">
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Вакцинация от Дизентерии Зонне </span>
                             </label>
 
                             <label class="checkbox-item">
-                                <input type="checkbox" id="VacGepatit">
+                                <input type="checkbox" class="lmkToDisabled" id="VacGepatit">
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Вакцинация  от Гепатита А</span>
                             </label>
 
                             <label class="checkbox-item">
-                                <input type="checkbox" id="VacReject">
+                                <input type="checkbox" class="lmkToDisabled" id="VacReject">
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Отказ от вакцинации</span>
                             </label>
@@ -577,6 +621,8 @@
                     </div>
                 </div>
             </div>
+
+           
         }
     </div>
     
@@ -586,33 +632,30 @@
 
 
 <script>
-    // Смена состояния сотрудника в зависимости от заполненности даты увольнения
-    // const actualPicker = document.querySelector('.actual');
-    // const valueDismissalsDate = document.querySelector('.dissDate');
 
-    // if (valueDismissalsDate.value) {
-    //     document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
-    //     document.getElementById('VersionStartDate').disabled = true;
-    // } else {
-    //     document.getElementById('VersionStartDate').disabled = false;
-    // }
+    function checkSelectLMK(){
 
-    // valueDismissalsDate.addEventListener('input', () => {
-    //     @* Изменение статуса сотрудника при изменении даты увольнения *@
-    //     if(valueDismissalsDate.value != '') {
-    //         actualPicker.innerHTML = "<option value='1'>Активен</option><option value='2' >Отстранен</option><option value='0' selected>Уволен</option>";       
-    //     } else {
-    //         actualPicker.innerHTML = "<option value='1' selected>Активен</option><option value='2' >Отстранен</option><option value='0' >Уволен</option>";
-    //     }
-    //     @* Изменение даты начала версии при изменении даты увольнения *@
-    //     if (valueDismissalsDate.value) {
-    //         document.getElementById('VersionStartDate').value = valueDismissalsDate.value;
-    //         document.getElementById('VersionStartDate').disabled = true;
-    //     } else {
-    //         document.getElementById('VersionStartDate').disabled = false;
-    //     }
-        
-    // })
+        const lmkDocumentType = document.getElementById("lmkDocumentType")
+        const lmkToDisabled = document.querySelectorAll(".lmkToDisabled")
+
+        if(lmkDocumentType.value == 3)
+        {
+            lmkToDisabled.forEach(x => 
+            {
+                x.disabled = true;
+                x.value = "";
+                x.checked = false;
+            })
+        } 
+        else {
+            lmkToDisabled.forEach(x =>
+            {
+                x.disabled = false
+            })
+        }
+    }
+
+    checkSelectLMK()
 
     function openModalLMK() {
         // Создание модального окна для введения данных ЛМК
@@ -829,6 +872,8 @@
         Personality.Tel = $('#tel').val().trim();
         Personality.Email = $("#email").val().trim();
         Personality.PartTimer = $("#partTimerId").val().trim();
+        Personality.EntityCostDMS = $("#EntityCostDMSGUID").val() ? $("#EntityCostDMSGUID").val() : null;
+        
 
         if(Personality.Email.length < 2)
         {
@@ -983,6 +1028,7 @@
         Personality.INN = $('#INNPerson').val().trim()
         Personality.PartTimer = $("#partTimerId").val().trim();
         Personality.LMK = LMK;
+        Personality.EntityCostDMS = $("#EntityCostDMSGUID").val() ? $("#EntityCostDMSGUID").val() : null
 
         const json = JSON.stringify(Personality)
         $.ajax({
@@ -1039,7 +1085,7 @@
         }
 
         lmkData.forEach(element => {
-            if(!element.value)
+            if(!element.value && element.disabled == false)
             {
                 result = false;
             }

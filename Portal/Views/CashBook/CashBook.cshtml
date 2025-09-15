@@ -1,0 +1,453 @@
+@model Portal.Controllers.CashBookController.CashBookJson;
+
+<table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
+    <tbody>
+        <tr>
+            <td id="back" style="text-align:left; width:100px; cursor:pointer">
+                <img src="/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24" style="cursor:pointer">
+                <label style="margin-left:10px; cursor:pointer">назад</label>
+            </td>
+
+            <td>
+
+                <select required id="cashBook_ttSelect" class="form-control selectors" data-width="100%">
+                    @foreach (var item in Model.TTs.OrderBy(x => x.Name))
+                    {
+                        if(Model.TTs.Count > 1)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        } else {
+                            <option selected disabled value="@item.Id">@item.Name</option>
+                        }
+                    }
+                </select>
+            </td>
+
+            <td>
+                <button type="button" class="btn btn-success cashBook_confirmButton">Применить</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="cahsBook_Wrapper">
+
+    <div class="cashBook_topPanel">
+        <div class="topPanel_entryBlock">
+            <div class="block_header">Отправка данных по списаниям</div>
+
+            <form class="entryBlock_form" onsubmit="sendData(event)">
+                <div>
+                    <label class="label-light" for="cash">Остаток</label>
+                    <input step="0.01" required type="number" class="form-control" placeholder="Введите сумму остатка" name="cash" id="cash" value="">
+                </div>
+
+                <div>
+                    <label class="label-light" for="incassCash">Инкассация</label>
+                    <input step="0.01" type="number" class="form-control" placeholder="Введите сумму инкассации" id="incassCash" value="">
+                </div>
+
+                <div>
+                    <label class="label-light" for="otherCash">Прочие списания</label>
+                    <input step="0.01" type="number" class="form-control" placeholder="Введите сумму прочих списаний" name="otherCash" id="otherCash" value="">
+                </div>
+
+                <div class="entryBlock_buttonWrapper">
+                    <button type="submit" class="btn btn-success">Отправить</button>
+                </div>
+
+            </form>
+
+        </div>
+
+        @if (!User.IsInRole("cashBook_history, cashBook_admin"))
+        {
+            <div class="topPanel_historyBlock">
+                <div class="block_header">История внесенных значений</div>
+
+                <div class="historyBlock_tableWrapper">
+                    <table class="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Ответственный</th>
+                                <th>ТТ</th>
+                                <th>Остаток</th>
+                                <th>Инассация</th>
+                                <th>Прочие списания</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var item in Model.cashBooks) 
+                             { 
+                                 <tr> 
+                                     <td>@item.User</td> 
+                                     <td>@Model.TTs.FirstOrDefault(x => x.Id == item.TT).Name</td> 
+                                     <td>@item.Cash</td> 
+                                     <td>@item.Incass</td> 
+                                     <td>@item.Other</td> 
+                                     <td>@item.Date</td> 
+                                 </tr> 
+                             }
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+        } else {
+            <div class="topPanel_historyBlock cashBook_blockedPanel">
+                <img src="/themes/clearmin/img/padlock.png" />
+            </div>
+        }
+
+    </div>
+
+    @if(!User.IsInRole("cashBook_admin"))
+    {
+        <div class="topPanel_historyBlock">
+            <div class="block_header juds">Расчет отклонений ЖУДС <button onclick="GetSumSales()">Запросить расчёт</button></div>
+
+            <div class="historyBlock_tableWrapper">
+                <table class="historyTable">
+                    <thead>
+                        <tr>
+                            <th>ТТ</th>
+                            <th>Дата</th>
+                            <th>Остаток на начало</th>
+                            <th>Приход</th>
+                            <th>Инкассация</th>
+                            <th>Прочие</th>
+                            <th>Остаток на конец</th>
+                            <th>Отклонения</th>
+                        </tr>
+                    </thead>
+                    <tbody id="CashBook_tBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+     } else { 
+         <div class="cashBook_bottomPanel cashBook_blockedPanel"> 
+             <img src="/themes/clearmin/img/padlock.png" /> 
+         </div> 
+     }
+
+</div>
+
+
+
+<script>
+   
+    async function sendData(e) {
+            e.preventDefault();
+            const cash = document.getElementById("cash")
+            const incassCash = document.getElementById("incassCash");
+            const otherCash = document.getElementById("otherCash");
+
+            const cashBook_ttSelect = document.getElementById("cashBook_ttSelect")
+            if(cashBook_ttSelect)
+            {
+                tt = cashBook_ttSelect.value;
+            }
+
+            SpinnerShow();
+
+            try {
+                const res = await fetch(`/CashBook/CashBookAdd?cash=${cash.value}&incass=${incassCash.value}&other=${otherCash.value}&tt=${tt}`);
+                
+                location.reload()
+
+            } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+            }
+
+            SpinnerHide();
+
+            incassCash.value = "";
+            otherCash.value = "";
+    }
+
+    async function GetSumSales()
+    {
+         const cashBook_ttSelect = document.getElementById("cashBook_ttSelect")
+            if(cashBook_ttSelect)
+            {
+                tt = cashBook_ttSelect.value;
+            }
+
+            SpinnerShow();
+
+            try {
+                const res = await fetch(`/CashBook/GetSumSales?tt=${tt}`);
+                const json = await res.json();
+
+                console.log(json);
+
+                buildTable(json)
+
+            } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+            }
+
+            SpinnerHide();
+
+            incassCash.value = "";
+            otherCash.value = "";
+    }
+
+    $("#PageHeader").text("ЖУДС")
+
+    $('#back').unbind('click');
+    $('#back').click(function () {
+        SpinnerShow();
+        location.hash = "#"
+    });
+
+
+    function buildTable(data) {
+
+        const tBody = document.getElementById("CashBook_tBody")
+        
+        tBody.innerHTML = ""
+
+        if(data.length == 0)
+        {
+            tBody.innerHTML += `
+                <tr>
+                    <td colSpan='8'> Ранее данных не было занесено! </td>
+                </tr>
+            `
+
+            return;
+        }
+
+        data.forEach(element => {
+            tBody.innerHTML += `
+                <tr>
+                    <td>${element.tt}</td>
+                    <td>${element.cashBooks.date.replace("T"," ").slice(0,19)}</td>
+                    <td>${element.cashBooks.cash}</td>
+                    <td>${element.sum}</td>
+                    <td>${element.cashBooks.incass}</td>
+                    <td>${element.cashBooks.other}</td>
+                    <td>214742.00</td>
+                    <td>${1238}</td>
+                </tr>
+            `
+        })
+
+        
+
+    }
+
+
+  </script>
+
+
+<style>
+    .entryBlock_form input[type="number"]::-webkit-outer-spin-button,
+    .entryBlock_form input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .cahsBook_Wrapper {
+        width: 100%;
+        height: calc(100% - 60px);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: start;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .cashBook_topPanel {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        align-items: start;
+        height: 50%;
+    }
+
+    .block_header {
+        min-height: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        border-bottom: 1px solid #CCC;
+        font-family: 'Akrobat-Regular';
+        font-size: 16px;
+        user-select: none;
+        font-weight: 600;
+    }
+
+    .cashBook_bottomPanel {
+        height: 100%;
+        width: fit-content;
+        background-color: white;
+        border: 1px solid #CCC;
+    }
+
+    .topPanel_entryBlock {
+        height: 100%;
+        width: 50%;
+        background-color: white;
+        padding-bottom: 10px;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        border: 1px solid #CCC;
+        flex-direction: column;
+    }
+
+        .topPanel_entryBlock label {
+            margin: 0px;
+            padding: 0;
+        }
+
+    .topPanel_historyBlock {
+        height: 50%;
+        width: 100%;
+        background-color: white;
+        border: 1px solid #CCC;
+    }
+
+    .cashBook_blockedPanel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: blur(10px);
+    }
+
+    .entryBlock_buttonWrapper {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        font-family: 'Akrobat-Regular';
+        align-items: center;
+        padding-top: 15px;
+    }
+
+    .entryBlock_form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+    }
+
+        .entryBlock_form > div {
+            width: 80%;
+        }
+
+        .entryBlock_form input, .entryBlock_form select {
+            height: 40px;
+        }
+
+    .cashBook_blockedPanel > img {
+        width: 50px;
+        height: 50px;
+    }
+
+
+    .historyTable {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+        table-layout: fixed;
+    }
+
+        .historyTable thead {
+            border: 1px solid #CCC;
+            height: 30px;
+            border-bottom: none;
+            border: 0;
+        }
+
+        .historyTable tbody {
+            display: block;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .historyTable thead tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-bottom: 1px solid #CCC;
+            font-family: "Akrobat-Regular";
+        }
+
+        .historyTable tbody tr:nth-child(odd) {
+            background-color: #cccccc40;
+        }
+
+        .historyTable tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .historyTable th,
+        .historyTable td {
+            text-align: center;
+            height: 40px;
+            padding: 8px;
+            width: 25%;
+        }
+
+    .topPanel_historyBlock {
+        height: 100%;
+        width: 100%;
+        background-color: white;
+        border: 1px solid #CCC;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .month-label {
+        font-size: 10px;
+        fill: #767676;
+    }
+
+    .day-label {
+        font-size: 10px;
+        fill: #767676;
+    }
+
+    .bottomPanel_calendarWrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: calc(100% - 40px);
+        padding: 20px;
+    }
+
+    .cashBook_confirmButton {
+        margin-left: 20px;
+        font-size: 14px;
+        font-family: 'Akrobat-Light';
+    }
+
+    .juds {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        padding: 0px 10px;
+    }
+
+    .juds > button {
+        font-weight: 400;
+    }
+
+</style>

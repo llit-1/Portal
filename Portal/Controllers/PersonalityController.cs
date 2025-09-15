@@ -170,9 +170,9 @@ namespace Portal.Controllers
                 model.PersonalitiesVersions = personalityVersion;
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
 
-                if(personalityVersion.Personalities.LMKID != null)
+                if(personalityVersion.LMKID != null)
                 {
-                    model.PersonalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.Personalities.LMKID);
+                    model.PersonalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.LMKID);
                 }
                 
 
@@ -204,9 +204,9 @@ namespace Portal.Controllers
                 
                 model.Personality = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
 
-                if (personalityVersion.Personalities.LMKID != null)
+                if (personalityVersion.LMKID != null)
                 {
-                    model.PersonalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.Personalities.LMKID);
+                    model.PersonalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.LMKID);
                 }
 
                 ViewBag.TTCount = dbSql.BindingPersonalityToLocation.Where(x => x.Personality == model.PersonalitiesVersions.Personalities.Guid)?.Count();
@@ -243,23 +243,6 @@ namespace Portal.Controllers
                 {
                     Personality personality = new Personality();
                     PersonalityLMK personalityLMK = new PersonalityLMK();
-                    if (personalityJson.LMK != null)
-                    {
-                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
-                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
-                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
-                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
-                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
-                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
-                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
-
-                        dbSql.PersonalityLMK.Add(personalityLMK);
-                        dbSql.SaveChanges();
-
-                        personality.LMKID = personalityLMK.Id;
-                    }
-                
-
 
                     /* Добавление нового сотрудника и его первой версии */
                     personality.Name = personalityJson.Surname + " " + personalityJson.Name + " " + personalityJson.Patronymic;
@@ -301,6 +284,21 @@ namespace Portal.Controllers
                     dbSql.SaveChanges();
                     Guid newPersonalityGuid = personality.Guid;
                     PersonalityVersion personalityVersion = new();
+
+                    personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                    personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                    personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                    personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                    personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                    personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                    personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                    dbSql.PersonalityLMK.Add(personalityLMK);
+                    dbSql.SaveChanges();
+
+                    personalityVersion.LMKID = personalityLMK.Id;
+                    
+
                     personalityVersion.Name = personalityJson.Name;
                     personalityVersion.Surname = personalityJson.Surname;
                     personalityVersion.Patronymic = personalityJson.Patronymic;
@@ -325,12 +323,14 @@ namespace Portal.Controllers
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                     personalityVersion.Personalities.Email = personalityJson.Email;
                     personalityVersion.PartTimer = personalityJson.PartTimer;
+                    personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
+
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
                 else
                 {
-
+                    PersonalityVersion personalityVersion = new();
                     Personality personality = new Personality();
                     /* Добавление новой версии уже существующего пользователя */
                     DateTime now = DateTime.Now;
@@ -343,41 +343,24 @@ namespace Portal.Controllers
                         }
                     }
 
-                    Personality person = dbSql.Personalities.FirstOrDefault(x => x.Guid == Guid.Parse(personalityJson.personGUID));
-                    if(person.LMKID != null)
-                    {
-                        PersonalityLMK personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == person.LMKID);
-                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
-                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
-                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
-                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
-                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
-                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
-                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+                    PersonalityVersion person = dbSql.PersonalityVersions.FirstOrDefault(x => x.Personalities.Guid == Guid.Parse(personalityJson.personGUID));
+                    PersonalityLMK personalityLMK = new();
+                    personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
+                    personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
+                    personalityLMK.VacReject = personalityJson.LMK.VacReject;
+                    personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
+                    personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
+                    personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
+                    personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
 
-                        dbSql.PersonalityLMK.Update(personalityLMK);
-                        dbSql.SaveChanges();
-                    } else
-                    {
-                        PersonalityLMK personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == person.LMKID);
-                        personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
-                        personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
-                        personalityLMK.VacReject = personalityJson.LMK.VacReject;
-                        personalityLMK.FLGDate = personalityJson.LMK.FLGDate;
-                        personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
-                        personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
-                        personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+                    dbSql.PersonalityLMK.Add(personalityLMK);
+                    dbSql.SaveChanges();
 
-                        dbSql.PersonalityLMK.Add(personalityLMK);
-                        dbSql.SaveChanges();
-
-                        personality.LMKID = personalityLMK.Id;
-                    }
+                    personalityVersion.LMKID = personalityLMK.Id;
 
 
-                    
                     Guid newPersonalityGuid = personalityJson.Guid;
-                    PersonalityVersion personalityVersion = new();
+                    
                     personalityVersion.Name = personalityJson.Name;
                     personalityVersion.Surname = personalityJson.Surname;
                     personalityVersion.Patronymic = personalityJson.Patronymic;
@@ -403,6 +386,7 @@ namespace Portal.Controllers
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                     personalityVersion.Personalities.Email = personalityJson.Email;
                     personalityVersion.PartTimer = personalityJson.PartTimer;
+                    personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
 
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
@@ -432,9 +416,9 @@ namespace Portal.Controllers
 
                 if (personalityJson.LMK != null)
                 {
-                    if (personalityVersion.Personalities.LMKID != null)
+                    if (personalityVersion.LMKID != null)
                     {
-                        personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.Personalities.LMKID);
+                        personalityLMK = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == personalityVersion.LMKID);
                         personalityLMK.DocumentTypeId = personalityJson.LMK.DocumentTypeId;
                         personalityLMK.VacGepatit = personalityJson.LMK.VacGepatit;
                         personalityLMK.VacReject = personalityJson.LMK.VacReject;
@@ -458,7 +442,7 @@ namespace Portal.Controllers
 
                         dbSql.PersonalityLMK.Add(personalityLMK);
                         dbSql.SaveChanges();
-                        personalityVersion.Personalities.LMKID = personalityLMK.Id;
+                        personalityVersion.LMKID = personalityLMK.Id;
                     }
                 }
 
@@ -486,6 +470,7 @@ namespace Portal.Controllers
                 personalityVersion.Personalities.INN = personalityJson.INN;
                 personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                 personalityVersion.PartTimer = personalityJson.PartTimer;
+                personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
 
                 List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                              .ToList();

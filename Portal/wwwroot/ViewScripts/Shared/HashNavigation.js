@@ -81,7 +81,7 @@ $(function () {
         if (hash == '#PersonalityFactory') loadTabMenu(hash.replace('#', ''), '/PersonalityFactory/TabMenu');
         if (hash == '#PersonalityFactoryAdd') loadContent(hash.replace('#', ''), '/PersonalityFactory/PersonalityFactoryAdd');
 
-        
+        if (hash == '#cashbook') loadContent(hash.replace('#', ''), '/CashBook/CashBook');
 
         if (hash == '#stock') loadTabMenu(hash.replace('#', ''), '/Stock/TabMenu');
         

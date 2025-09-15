@@ -30,6 +30,7 @@
             public string Email { get; set; }
             public int PartTimer { get; set; }
             public MSSQL.PersonalityLMK LMK { get; set; }
-        }
+            public Guid? EntityCostDMS { get; set; }
+    }
     }
 

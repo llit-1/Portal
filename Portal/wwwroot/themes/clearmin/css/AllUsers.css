@@ -729,3 +729,20 @@
         font-size: 16px;
     }
 }
+
+.checkbox-item:has(> input.lmkToDisabled:disabled) .checkmark {
+    opacity: 0.8;
+    cursor: not-allowed;
+    border-color: #9a9a9a;
+}
+
+.dmslmkbuttonsWrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.dmslmkbuttonsWrapper > button {
+    width: 100%;
+}

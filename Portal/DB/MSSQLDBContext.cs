@@ -134,5 +134,6 @@ namespace Portal.DB
         public DbSet<FactoryCitizenship> FactoryCitizenship { get; set; }
         public DbSet<FactoryBanks> FactoryBanks { get; set; }
         public DbSet<FactoryPerson> FactoryPerson { get; set; }
+        public DbSet<CashBook> CashBook { get; set; }
     }
 }

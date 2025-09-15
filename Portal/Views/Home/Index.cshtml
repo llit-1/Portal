@@ -619,6 +619,21 @@
         </div>
     }
 
+    @if (User.IsInRole("cash_book"))
+    {
+        <div class="@classTails">
+            <a href="#cashbook" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/themes/clearmin/img/cashbook.png" width="20px">
+                    </span>
+                    <h4>ЖУДС</h4>
+                    <small>журнал учета денежных средств</small>
+                </div>
+            </a>
+        </div>
+    }
+
     <!--настройки-->
     @if (User.IsInRole("vkbot"))
     {
