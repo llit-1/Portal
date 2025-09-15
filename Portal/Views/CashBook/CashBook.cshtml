@@ -10,21 +10,22 @@
 
             <td>
 
-                <select required id="cashBook_ttSelect" class="form-control selectors" data-width="100%">
-                    @foreach (var item in Model.TTs.OrderBy(x => x.Name))
+                <select required id="cashBook_ttSelect" class="form-control selectors" data-width="100%" onchange="CashBook()">
+                    @foreach (var item in Model.Locations.OrderBy(x => x.Name))
                     {
-                        if(Model.TTs.Count > 1)
+                        if(Model.Locations.Count > 1)
                         {
-                            <option value="@item.Id">@item.Name</option>
+                            if (Model?.selectedLocation == item.RKCode)
+                            {
+                                <option selected value="@item.RKCode">@item.Name</option>
+                            } else {
+                                <option value="@item.RKCode">@item.Name</option>
+                            }
                         } else {
-                            <option selected disabled value="@item.Id">@item.Name</option>
+                            <option selected disabled value="@item.Guid">@item.Name</option>
                         }
                     }
                 </select>
-            </td>
-
-            <td>
-                <button type="button" class="btn btn-success cashBook_confirmButton">Применить</button>
             </td>
         </tr>
     </tbody>
@@ -60,7 +61,7 @@
 
         </div>
 
-        @if (!User.IsInRole("cashBook_history, cashBook_admin"))
+        @if (User.IsInRole("cashBook_history, cashBook_admin"))
         {
             <div class="topPanel_historyBlock">
                 <div class="block_header">История внесенных значений</div>
@@ -81,12 +82,12 @@
                             @foreach(var item in Model.cashBooks) 
                              { 
                                  <tr> 
-                                     <td>@item.User</td> 
-                                     <td>@Model.TTs.FirstOrDefault(x => x.Id == item.TT).Name</td> 
-                                     <td>@item.Cash</td> 
-                                     <td>@item.Incass</td> 
-                                     <td>@item.Other</td> 
-                                     <td>@item.Date</td> 
+                                     <td>@item.User</td>
+                                     <td>@Model.Locations.FirstOrDefault(x => x.RKCode == item.RKCode).Name</td>
+                                    <td>@item.Cash.ToString("0.00")</td>
+                                    <td>@item.Incass.ToString("0.00")</td>
+                                    <td>@item.Other.ToString("0.00")</td>
+                                    <td>@item.Date</td> 
                                  </tr> 
                              }
                         </tbody>
@@ -103,10 +104,10 @@
 
     </div>
 
-    @if(!User.IsInRole("cashBook_admin"))
+    @if(User.IsInRole("cashBook_admin"))
     {
         <div class="topPanel_historyBlock">
-            <div class="block_header juds">Расчет отклонений ЖУДС <button onclick="GetSumSales()">Запросить расчёт</button></div>
+            <div class="block_header juds">Расчет отклонений ЖУДС <button onclick="GetSumSales()" class="btn btn-success">Запросить расчёт</button></div>
 
             <div class="historyBlock_tableWrapper">
                 <table class="historyTable">
@@ -114,11 +115,10 @@
                         <tr>
                             <th>ТТ</th>
                             <th>Дата</th>
-                            <th>Остаток на начало</th>
+                            <th>Факт</th>
                             <th>Приход</th>
                             <th>Инкассация</th>
                             <th>Прочие</th>
-                            <th>Остаток на конец</th>
                             <th>Отклонения</th>
                         </tr>
                     </thead>
@@ -146,6 +146,10 @@
             const incassCash = document.getElementById("incassCash");
             const otherCash = document.getElementById("otherCash");
 
+            if(cash.value == "") {cash.value = 0}
+            if(incassCash.value == "") {incassCash.value = 0}
+            if(otherCash.value == "") {otherCash.value = 0}
+
             const cashBook_ttSelect = document.getElementById("cashBook_ttSelect")
             if(cashBook_ttSelect)
             {
@@ -155,9 +159,9 @@
             SpinnerShow();
 
             try {
-                const res = await fetch(`/CashBook/CashBookAdd?cash=${cash.value}&incass=${incassCash.value}&other=${otherCash.value}&tt=${tt}`);
+                const res = await fetch(`/CashBook/CashBookAdd?cash=${cash.value}&incass=${incassCash.value}&other=${otherCash.value}&RKCode=${tt}`);
                 
-                location.reload()
+                $("#container-fluid").load("/CashBook/CashBook?tt=" + cashBook_ttSelect.value)
 
             } catch (error) {
                 alert('Ошибка сети: ' + error.message);
@@ -182,8 +186,6 @@
             try {
                 const res = await fetch(`/CashBook/GetSumSales?tt=${tt}`);
                 const json = await res.json();
-
-                console.log(json);
 
                 buildTable(json)
 
@@ -212,7 +214,7 @@
         
         tBody.innerHTML = ""
 
-        if(data.length == 0)
+        if(data.length == 0 || data.length == undefined)
         {
             tBody.innerHTML += `
                 <tr>
@@ -232,16 +234,16 @@
                     <td>${element.sum}</td>
                     <td>${element.cashBooks.incass}</td>
                     <td>${element.cashBooks.other}</td>
-                    <td>214742.00</td>
-                    <td>${1238}</td>
+                    <td>${element.deviation}</td>
                 </tr>
             `
         })
-
-        
-
     }
 
+    function CashBook() {
+        const cashBook_ttSelect = document.getElementById("cashBook_ttSelect");
+        $("#container-fluid").load("/CashBook/CashBook?tt=" + cashBook_ttSelect.value)
+    }
 
   </script>
 
@@ -255,7 +257,7 @@
 
     .cahsBook_Wrapper {
         width: 100%;
-        height: calc(100% - 60px);
+        height: calc(100% - 70px);
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -323,7 +325,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: blur(10px);
+        width: 100%;
     }
 
     .entryBlock_buttonWrapper {
@@ -376,7 +378,7 @@
 
         .historyTable tbody {
             display: block;
-            max-height: 300px;
+            max-height: 285px;
             overflow-y: auto;
         }
 
@@ -448,6 +450,9 @@
 
     .juds > button {
         font-weight: 400;
+        padding: 2px 2px;
+        margin: 0;
+        font-size: 12px;
     }
 
 </style>

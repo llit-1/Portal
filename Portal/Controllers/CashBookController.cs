@@ -1,5 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.EMMA;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -44,98 +46,119 @@ namespace Portal.Controllers
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
             var user = db.Users.Include(x => x.TTs).FirstOrDefault(x => x.Login == userLogin);
 
-            var TTs = user.TTs;
+            List<int> TTs = user.TTs.Select(x => x.Restaurant_Sifr).ToList();
 
-            cashBookJson.TTs = TTs;
+            List<Models.MSSQL.Location.Location> locations = dbSql.Locations.Where(x => TTs.Contains(x.RKCode.Value)).ToList();
+
+            cashBookJson.Locations = locations;
 
             var cashBooks = dbSql.CashBook
-                .OrderByDescending(x => x.Date)
-                .ToList();
+               .Where(x => x.Date >= DateTime.Now.AddDays(-7))
+               .Where(x => x.RKCode == tt)
+               .OrderByDescending(x => x.Date)
+               .ToList();
 
+            if (User.IsInRole("cashBook_admin"))
+            {
+                cashBooks = dbSql.CashBook
+               .Where(x => x.Date >= DateTime.Now.AddDays(-7))
+               .OrderByDescending(x => x.Date)
+               .ToList();
+            }
+
+            if(tt != null)
+            {
+                cashBookJson.selectedLocation = tt.Value;
+            }
+
+            
 
             cashBookJson.cashBooks = cashBooks;
-            //if (!User.IsInRole("cashBook_admin"))
-            //{
-            //    cashBookJson.cashBooks = dbSql.CashBook
-            //    .OrderByDescending(x => x.Date)
-            //    .ToList();
-            //    List<int> saleCurrenciesTypes = dbSql.CurrencyTypes.Where(c => c.Type == 0).Select(c => c.Rk7CurrencyType).ToList();
-            //    List<int> saleCurrencies = rk7Sql.Currencies.Where(c => saleCurrenciesTypes.Contains(c.Parent)).Select(c => c.Sifr).ToList();
-            //    var saleObjects = dbSql.SaleObjects.Where(c => (c.Restaurant == tt && c.Deleted == 0 && c.Date >= begin && c.Date < end && saleCurrencies.Contains(c.Currency))).ToList();
-            //}
-            //else if (User.IsInRole("cashBook_history"))
-            //{
-            //    var ttIds = TTs.Select(tt => tt.Id).ToList();
-            //    cashBookJson.cashBooks = dbSql.CashBook
-            //        .Where(x => x.TT != null && ttIds.Contains(x.TT.Value))
-            //        .OrderByDescending(x => x.Date)
-            //        .ToList();
-            //}
 
             return PartialView(cashBookJson);
         }
 
         public async Task<IActionResult> GetSumSales(int? tt)
         {
-            if (tt == null)
-                return BadRequest("TT is required");
-
-            // Получаем код ресторана
-            var ttCode = await db.TTs
-                .Where(x => x.Id == tt)
-                .FirstOrDefaultAsync();
-
-
-            // Получаем валюты для продаж
-            var saleCurrencyTypes = await dbSql.CurrencyTypes
-                .Where(c => c.Type == 0)
-                .Select(c => c.Rk7CurrencyType)
-                .ToListAsync(); // 102, 103
-
-            var saleCurrencies = await rk7Sql.Currencies
-                .Where(c => saleCurrencyTypes.Contains(c.Parent))
-                .AsNoTracking()
-                .Select(c => c.Sifr)
-                .ToListAsync();
-
             // Получаем cash books
             var cashBooks = await dbSql.CashBook
-                .Where(x => x.TT == tt)
-                .OrderByDescending(x => x.Date)
+                .Where(x => x.RKCode == tt)
+                .Where(x => x.Date >= DateTime.Now.AddDays(-7))
+                .OrderBy(x => x.Date)
                 .AsNoTracking()
                 .ToListAsync();
 
             if (!cashBooks.Any())
                 return Json(new CashBookJson());
 
+            CashBook? previousCashBook = dbSql.CashBook.Where(x => x.RKCode == tt && x.Date < cashBooks[0].Date)
+                                               .OrderByDescending(x => x.Date)
+                                               .FirstOrDefault();
+
+            DateTime? minDate = null;
+
+            if (previousCashBook == null)
+            {
+                minDate = cashBooks.FirstOrDefault().Date;
+            } else
+            {
+                minDate = previousCashBook.Date;
+            }
+
+            
             // Определяем диапазон дат для запроса
-            var minDate = cashBooks.Min(x => x.Date).Date;
-            var maxDate = cashBooks.Max(x => x.Date).Date.AddDays(1);
+            var maxDate = cashBooks.Max(x => x.Date);
 
             // Получаем продажи сразу сгруппированные
-            var salesByDate = await dbSql.SaleObjects
-                .Where(c => c.Restaurant == ttCode.Restaurant_Sifr
+            var salesByDate = dbSql.SaleObjects
+                .Where(c => c.Restaurant == tt
                          && c.Deleted == 0
                          && c.Date >= minDate
                          && c.Date < maxDate
-                         && saleCurrencies.Contains(c.Currency))
-                .GroupBy(s => s.Date.Date)
-                .Select(g => new { Date = g.Key, Sum = g.Sum(s => s.SumWithDiscount) })
-                .AsNoTracking()
-                .ToDictionaryAsync(x => x.Date, x => x.Sum);
+                         && c.Currency == 1)
+                .ToList();
 
             var data = new List<GetSumSalesJson>();
 
-            foreach (var item in cashBooks)
+            
+
+            for (var i = 0; i < cashBooks.Count; i++)
             {
-                var dateKey = item.Date.Date;
-                var sum = salesByDate.TryGetValue(dateKey, out var total) ? total : 0;
+                decimal sum = 0;
+                decimal deviation = 0;
+                List<SaleObject> prev = new List<SaleObject>();
+
+                if (i == 0)
+                {
+                    prev = salesByDate.Where(x => x.Date < cashBooks[i].Date).ToList();
+                }
+                else
+                {
+                    prev = salesByDate.Where(x => x.Date < cashBooks[i].Date && x.Date > cashBooks[i - 1].Date).ToList();
+                }
+
+                if (prev != null)
+                {
+                    sum = prev.Sum(x => x.SumWithDiscount);
+                }
+
+                if(previousCashBook != null && i == 0)
+                {
+                    deviation = cashBooks[i].Cash - (previousCashBook.Cash + sum - cashBooks[i].Incass - cashBooks[i].Other);
+                }
+
+                if (i != 0)
+                {
+                    deviation = cashBooks[i].Cash - (cashBooks[i - 1].Cash + sum - cashBooks[i].Incass - cashBooks[i].Other);
+                }
+
 
                 data.Add(new GetSumSalesJson
                 {
+                    deviation = deviation,
                     sum = sum,
-                    cashBooks = item,
-                    tt = ttCode.Name
+                    cashBooks = cashBooks[i],
+                    tt = dbSql.Locations.FirstOrDefault(x => x.RKCode == tt).Name
                 });
             }
 
@@ -144,6 +167,7 @@ namespace Portal.Controllers
 
         public class GetSumSalesJson
         {
+            public decimal deviation { get; set; }
             public decimal sum { get; set; }
             public CashBook cashBooks { get; set; }
             public string tt { get; set; }
@@ -151,32 +175,25 @@ namespace Portal.Controllers
 
         public class CashBookJson
         {
-            public List<RKNet_Model.TT.TT> TTs { get; set; }
+            public List<Models.MSSQL.Location.Location> Locations { get; set; }
             public List<CashBook>? cashBooks { get; set; }
+            public int? selectedLocation { get; set; }
         }
 
         [Authorize(Roles = "cash_book")]
-        public IActionResult CashBookAdd(double cash, double? incass, double? other, int tt)
+        public IActionResult CashBookAdd(decimal cash, decimal incass, decimal other, int RKCode)
         {
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
             var user = db.Users.Include(x => x.TTs).FirstOrDefault(x => x.Login == userLogin);
 
-            if (incass == null && other == null)
-            {
-                return BadRequest("Некорректные данные");
-            }
-
             Models.MSSQL.CashBook cashBook = new();
-
-            if(incass == null) { incass = 0; }
-            if(other == null) { other = 0; }
 
             cashBook.User = user.Login;
             cashBook.Cash = cash;
             cashBook.Incass = incass;
             cashBook.Other = other;
             cashBook.Date = DateTime.Now;
-            cashBook.TT = tt;
+            cashBook.RKCode = RKCode;
 
             dbSql.CashBook.Add(cashBook);
             dbSql.SaveChanges();
