@@ -290,7 +290,7 @@
                             <li><a id="userrequests" href="#stock" class="house_siding md-storage">Склад</a></li>
                         }
 
-                        @if (User.IsInRole("cash_book"))
+                        @if (User.IsInRole("cashBook_history") || User.IsInRole("cashBook_admin") || User.IsInRole("cash_book"))
                         {
                             <li><a id="userrequests" href="#cashbook" class="house_siding md-juts">ЖУДС</a></li>
                         }

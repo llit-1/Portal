@@ -619,7 +619,7 @@
         </div>
     }
 
-    @if (User.IsInRole("cash_book"))
+    @if (User.IsInRole("cashBook_history") || User.IsInRole("cashBook_admin") || User.IsInRole("cash_book"))
     {
         <div class="@classTails">
             <a href="#cashbook" class="panel panel-default thumbnail cm-thumbnail tails-panel">
