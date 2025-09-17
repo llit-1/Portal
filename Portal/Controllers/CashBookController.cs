@@ -126,6 +126,8 @@ namespace Portal.Controllers
             {
                 decimal sum = 0;
                 decimal deviation = 0;
+                decimal startMoney = 0;
+                decimal mustBeMoney = 0;
                 List<SaleObject> prev = new List<SaleObject>();
 
                 if (i == 0)
@@ -144,17 +146,22 @@ namespace Portal.Controllers
 
                 if(previousCashBook != null && i == 0)
                 {
-                    deviation = cashBooks[i].Cash - (previousCashBook.Cash + sum - cashBooks[i].Incass - cashBooks[i].Other);
+                    mustBeMoney = previousCashBook.Cash + sum - cashBooks[i].Incass - cashBooks[i].Other;
+                    deviation = cashBooks[i].Cash - mustBeMoney;
                 }
 
                 if (i != 0)
                 {
-                    deviation = cashBooks[i].Cash - (cashBooks[i - 1].Cash + sum - cashBooks[i].Incass - cashBooks[i].Other);
+                    mustBeMoney = cashBooks[i - 1].Cash + sum - cashBooks[i].Incass - cashBooks[i].Other;
+                    deviation = cashBooks[i].Cash - mustBeMoney;
+                    startMoney = cashBooks[i-1].Cash;
                 }
 
 
                 data.Add(new GetSumSalesJson
                 {
+                    mustBeMoney = mustBeMoney,
+                    startMoney = startMoney,
                     deviation = deviation,
                     sum = sum,
                     cashBooks = cashBooks[i],
@@ -167,6 +174,8 @@ namespace Portal.Controllers
 
         public class GetSumSalesJson
         {
+            public decimal mustBeMoney { get; set; }
+            public decimal startMoney { get; set; }
             public decimal deviation { get; set; }
             public decimal sum { get; set; }
             public CashBook cashBooks { get; set; }

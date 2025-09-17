@@ -17,6 +17,7 @@
     <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/icons.css">
     <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/Stock.css">
     <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/AllUsers.css">
+    <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/CashBook.css">
     <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/PersonalityFactoryAddEdit.css">
     <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/TimeSheetsFactory.css">
     <link rel="stylesheet" type='text/css' href="~/themes/clearmin/css/tabelModal.css">
@@ -284,9 +285,14 @@
                              </li>
                         }
 
-                        @if (User.IsInRole("settings"))
+                        @if (User.IsInRole("stock"))
                         {
                             <li><a id="userrequests" href="#stock" class="house_siding md-storage">Склад</a></li>
+                        }
+
+                        @if (User.IsInRole("cash_book"))
+                        {
+                            <li><a id="userrequests" href="#cashbook" class="house_siding md-juts">ЖУДС</a></li>
                         }
 
                         <!--Логи-->
