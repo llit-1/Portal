@@ -46,17 +46,9 @@
             <label class="label-light">Дата рождения</label>
             <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dateBirthFactory" value="@Model.FactoryPerson.Birthdate.ToString("yyyy-MM-dd")">
 
-            <div class="personalityFactory-smallFieldsWrapper">
-                <div class="fullwidthFactoryField">
-                    <label class="label-light">ИНН</label>
-                    <input required type="text" class="form-control" minlength="12" maxlength="12" placeholder="000000000000" id="innFactory" value="@Model.FactoryPerson.INN">
-                </div>
 
-                <div class="fullwidthFactoryField">
-                    <label class="label-light">СНИЛС</label>
-                    <input required type="text" class="form-control" placeholder="000-000-000 00" id="factorySnils" value="@Model.FactoryPerson.SNILS">
-                </div>
-            </div>
+            <label class="label-light">Паспорт</label>
+            <input required type="text" class="form-control" placeholder="Введите серию и номер паспорта" id="passportFactory" value="@Model.FactoryPerson.Passport">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
@@ -143,7 +135,6 @@
                                     {
                                         <option value="@item.Id">@item.Name</option>
                                     }
-
                                 }
                             </select>
                         </div>
@@ -220,18 +211,18 @@
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Номер телефона</label>
-                    <input required type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone">
+                    <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone">
                 </div>
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Номер банковской карты</label>
-                    <input required type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber">
+                    <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber">
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Банк</label>
                 <div style="width:100%; float:left;">
-                    <select required id="bankFactory" class="form-control selectors" data-width="100%">
+                    <select id="bankFactory" class="form-control selectors" data-width="100%">
                     @foreach (var item in Model.FactoryBanks.OrderBy(x => x.Name))
                     {
                         if (Model.FactoryPerson.FactoryBanks == item.Id)
@@ -331,8 +322,7 @@
     const nameFactory = document.getElementById('nameFactory');
     const lastnameFactory = document.getElementById('lastnameFactory');
     const dateBirthFactory = document.getElementById('dateBirthFactory');
-    const innFactory = document.getElementById('innFactory');
-    const factorySnils = document.getElementById('factorySnils');
+    const passportFactory = document.getElementById('passportFactory');
     const departmentFactory = document.getElementById('departmentFactory');
     const workshopFactory = document.getElementById('workshopFactory');
     const positionFactory = document.getElementById('positionFactory');
@@ -357,28 +347,6 @@
             SpinnerHide()
         });
     });
-
-
-    // Валидация СНИЛСА
-    factorySnils.addEventListener('input', function(e) {
-        validateSnils()
-    });
-
-    validateSnils()
-
-    function validateSnils()
-    {
-        // 1. Удаляем все не-цифры (дефисы, пробелы и т.д.)
-        let value = factorySnils.value.replace(/\D/g, '');
-
-        // 2. Добавляем дефисы и пробел
-        if (value.length > 3) value = value.slice(0, 3) + '-' + value.slice(3);
-        if (value.length > 7) value = value.slice(0, 7) + '-' + value.slice(7);
-        if (value.length > 11) value = value.slice(0, 11) + ' ' + value.slice(11);
-
-        // 3. Обрезаем лишнее (если больше 11 цифр)
-        factorySnils.value = value.slice(0, 14); // Максимум 14 символов (XXX-XXX-XXX XX)
-    }
 
     function formatCardNumber()
     {
@@ -418,15 +386,13 @@
     }
 
     // Накидываем нужные обработчики на поля
-    innFactory.addEventListener('input', checkOnlyNumberInput);
-    factorySnils.addEventListener('input', checkOnlyNumberInput);
     cardFactory.addEventListener('input', checkOnlyNumberInput);
     telFactory.addEventListener('input', checkOnlyNumberInput);
     surnameFactory.addEventListener('input', checkOnlyRussianTextInput);
     nameFactory.addEventListener('input', checkOnlyRussianTextInput);
     lastnameFactory.addEventListener('input', checkOnlyRussianTextInput);
     cardFactory.addEventListener('input', formatCardNumber);
-
+    passportFactory.addEventListener('input', checkOnlyNumberInput);
     departmentFactory.addEventListener("change", getWorkshops);
     workshopFactory.addEventListener("change", getJobTitles);
     citizenshipTypeFactory.addEventListener("change", getCitizenship);
@@ -543,12 +509,7 @@
 
     async function SaveFactoryPerson() {
 
-        if(factorySnils.value.replaceAll("-", "").replaceAll(" ","").trim().length != 11)
-        {
-            return alert('Некорректно заполнено поле "Снилс"');
-        }
-
-        if( cardFactory.value.trim().replaceAll(" ", "").length != 16)
+        if( cardFactory.value.trim().replaceAll(" ", "").length != 16 && cardFactory.value.trim().replaceAll(" ", "").length != 0)
         {
             return alert('Некорректно заполнено поле "Номер банковской карты"');
         }
@@ -560,26 +521,25 @@
         const person = {
             Id: "@Model.FactoryPerson.Id".trim(),
             Surname: surnameFactory.value.trim().replace(/\s+/g, ' '),
-            Name: nameFactory.value.trim().replace(/\s+/g, ' '),
+            Name: nameFactory.value.trim().replace(/\s+/g, ' ') || null,
             Patronymic: lastnameFactory.value.trim().replace(/\s+/g, ' ') || null,
             Birthdate: dateBirthFactory.value.trim(),
-            INN: innFactory.value.trim(),
-            SNILS: factorySnils.value.replaceAll("-", "").replaceAll(" ","").trim(),
+            Passport: passportFactory.value.trim(),
             FactoryDepartment: parseInt(departmentFactory.value.trim()),
             FactoryWorkshop: parseInt(workshopFactory.value.trim()),
             FactoryJobTitle: parseInt(positionFactory.value.trim()),
             FactoryCitizenship: parseInt(citizenshipFactory.value.trim()),
             FactoryEntity: parseInt(legalEntityFactory.value.trim()),
             FactoryDocumentType: parseInt(documentTypeFactory.value.trim()),
-            Phone: telFactory.value.trim(),
-            CardNumber: cardFactory.value.trim().replaceAll(" ", ""),
-            FactoryBanks: parseInt(bankFactory.value.trim()),
+            Phone: telFactory.value.trim() || null,
+            CardNumber: cardFactory.value.trim().replaceAll(" ", "") || null,
+            FactoryBanks: parseInt(bankFactory.value.trim()) || null,
             HostelChekin: entryDateFactory.value.trim() || null,
             HostelCheckOut: exitDateFactory.value.trim() || null,
             HiringDate: hireDateFactory.value.trim(),
             DismissedDate: dismissalDateFactory.value.trim() || null,
             Photo: isDefaultImage ? null : photoDataUrl,
-            PassCardNumber: passcardnumberfactory.value.trim()
+            PassCardNumber: passcardnumberfactory.value.trim() || null
         };
 
         SpinnerShow();

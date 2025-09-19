@@ -38,7 +38,7 @@ namespace Portal.Controllers
             rk7Sql = rK7DBContext;
         }
 
-        [Authorize(Roles = "cash_book")]
+        [Authorize(Roles = "cash_book,cashBook_history,cashBook_admin")]
         public async Task<IActionResult> CashBook(int? tt)
         {
             CashBookJson cashBookJson = new();
@@ -189,7 +189,7 @@ namespace Portal.Controllers
             public int? selectedLocation { get; set; }
         }
 
-        [Authorize(Roles = "cash_book")]
+        [Authorize(Roles = "cash_book,cashBook_history,cashBook_admin")]
         public IActionResult CashBookAdd(decimal cash, decimal incass, decimal other, int RKCode)
         {
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;

@@ -26,7 +26,6 @@ namespace Portal.Models.MSSQL.PersonalityVersions
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public int? PartTimer { get; set; }
-        public int? LMKID { get; set; }
         public Guid? EntityCostDMSGuid { get; set; }
     }
 }

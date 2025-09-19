@@ -10,8 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static Portal.Controllers.PersonalityFactoryController;
-
 
 namespace Portal.Controllers
 {
@@ -24,40 +22,7 @@ namespace Portal.Controllers
         {
             db = context;
             dbSql = dbSqlContext;
-        }
-
-        //public async Task<string?> SavePhotoAsync(string dataUrl, string personPassNumber)
-        //{
-        //    if (string.IsNullOrEmpty(dataUrl) || dataUrl.Contains("/svg/panels/help.svg"))
-        //        return null;
-
-        //    try
-        //    {
-        //        // Извлекаем base64 данные
-        //        var base64Data = dataUrl.Split(',')[1];
-        //        var imageBytes = Convert.FromBase64String(base64Data);
-
-        //        // Генерируем уникальное имя файла
-        //        var fileName = $"{personPassNumber}.jpg";
-        //        var uploadsPath = "\\\\rknet-server\\C$\\FactoryGatePhoto";
-
-        //        // Создаем директорию если нет
-        //        if (!Directory.Exists(uploadsPath))
-        //            Directory.CreateDirectory(uploadsPath);
-
-        //        var fullPath = Path.Combine(uploadsPath, fileName);
-
-        //        // Сохраняем файл
-        //        await File.WriteAllBytesAsync(fullPath, imageBytes);
-
-        //        // Возвращаем относительный путь для БД
-        //        return $"\\\\rknet-server\\C$\\FactoryGatePhoto\\" + personPassNumber + ".jpg";
-        //    }
-        //    catch
-        //    {
-        //        return null;
-        //    }
-        //}
+        }       
 
         [Authorize(Roles = "employee_control_factory")]
         public IActionResult PersonalityFactoryTable()
@@ -122,14 +87,14 @@ namespace Portal.Controllers
             return Ok(factoryCitizenships);
         }
 
-        [HttpPost("SaveNewPerson")]
+
         public async Task<IActionResult> SaveNewPerson([FromBody] FactoryPerson person)
         {
             if (person == null)
                 return BadRequest(new { Message = "person is null" });
 
-            if (dbSql.FactoryPerson.Any(x => x.SNILS == person.SNILS || x.INN == person.INN))
-                return BadRequest(new { Message = "Пользователь с таким СНИЛС или ИНН уже зарегистрирован" });
+            if (dbSql.FactoryPerson.Any(x => x.Passport == person.Passport))
+                return BadRequest(new { Message = "Пользователь с таким паспортом уже зарегистрирован" });
 
             // Сохраняем фото если есть
             if (string.IsNullOrEmpty(person.Photo))
@@ -187,11 +152,9 @@ namespace Portal.Controllers
             if (!dbSql.FactoryPerson.Any(x => x.Id == person.Id))
                 return BadRequest(new { Message = "invalid person id" });
 
-            if (dbSql.FactoryPerson.Any(x => x.INN == person.INN && x.Id != person.Id))
-                return BadRequest(new { Message = "ИНН уже зарегистрирован у другого человека" });
+            if (dbSql.FactoryPerson.Any(x => x.Passport == person.Passport && x.Id != person.Id))
+                return BadRequest(new { Message = "Паспорт уже зарегистрирован у другого человека" });
 
-            if (dbSql.FactoryPerson.Any(x => x.SNILS == person.SNILS && x.Id != person.Id))
-                return BadRequest(new { Message = "СНИЛС уже зарегистрирован у другого человека" });
 
             dbSql.Entry(person).State = EntityState.Modified;
             dbSql.SaveChanges();

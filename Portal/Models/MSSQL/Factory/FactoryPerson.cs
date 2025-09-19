@@ -7,6 +7,7 @@ namespace Portal.Models.MSSQL.Factory
     [Table("FactoryPerson")]
     public class FactoryPerson
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key, Column("Id")]
         public int Id { get; set; }
 
@@ -22,11 +23,8 @@ namespace Portal.Models.MSSQL.Factory
         [Required, Column("Birthdate", TypeName = "date")]
         public DateTime Birthdate { get; set; }
 
-        [Required, MaxLength(12), Column("INN")]
-        public string INN { get; set; } = string.Empty;
-
-        [Required, MaxLength(11), Column("SNILS")]
-        public string SNILS { get; set; } = string.Empty;
+        [Required, MaxLength(20), Column("Passport")]
+        public string Passport { get; set; }
 
         // имена свойств совпадают с именами колонок в БД
         [Column("FactoryDepartment")]

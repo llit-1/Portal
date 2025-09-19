@@ -44,8 +44,7 @@
                                     <th>Имя</th>
                                     <th>Отчество</th>
                                     <th>Дата рождения</th>
-                                    <th class="hidden">ИНН</th>
-                                    <th class="hidden">СНИЛС</th>
+                                    <th class="hidden">Паспорт</th>
                                     <th>Отдел</th>
                                     <th>Участок</th>
                                     <th>Должность</th>
@@ -78,10 +77,7 @@
                                             <p>@item.Birthdate.ToString("dd.MM.yyyy")</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p>@item.INN</p>
-                                        </td>
-                                        <td class="tdPersonTable hidden">
-                                            <p>@item.SNILS</p>
+                                            <p>@item.Passport</p>
                                         </td>
                                         <td class="tdPersonTable">
                                             <p>@item.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryDepartment.Name</p>

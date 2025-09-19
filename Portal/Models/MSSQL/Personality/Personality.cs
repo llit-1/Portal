@@ -19,5 +19,6 @@ namespace Portal.Models.MSSQL.Personality
         public int? PhoneCallAttempts { get; set; }
         public string? INN { get; set; }
         public string? SNILS { get; set; }
+        public int? LMKID { get; set; }
     }
 }
