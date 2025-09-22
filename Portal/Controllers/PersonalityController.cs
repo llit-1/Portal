@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
@@ -223,6 +224,23 @@ namespace Portal.Controllers
             return PartialView(model);
         }
 
+        public IActionResult GetFile(string guid)
+        {
+            var entity = dbSql.Personalities.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+
+            var lmk = dbSql.PersonalityLMK.FirstOrDefault(x => x.Id == entity.LMKID);
+
+            if (lmk == null || lmk.FileData == null || lmk.FileData.Length == 0)
+                return NotFound();
+
+            var fileBytes = lmk.FileData;
+
+            // можно определить MIME, либо ставить универсальный
+            var mimeType = "application/octet-stream";
+
+            return File(fileBytes, mimeType);
+        }
+
         /* Получение списка зависимостей Должностей\Тайм-слотов */
         [HttpPost]
         public IActionResult GetScheduleList(string jobTitleGuid)
@@ -233,11 +251,20 @@ namespace Portal.Controllers
 
         /* Добавление сотрудника */
         [Authorize(Roles = "HR, employee_control_ukvh")]
-        public IActionResult PersonalityAdd(string json)
+        public async Task<IActionResult> PersonalityAdd()
         {
             var result = new Result<string>();
             try
             {
+                // Получаем JSON из FormData
+                var json = Request.Form["json"].FirstOrDefault();
+                if (string.IsNullOrEmpty(json))
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Отсутствуют данные пользователя";
+                    return BadRequest("Отсутствуют данные пользователя");
+                }
+
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
                 if (personalityJson.NewPerson == "1")
                 {
@@ -256,6 +283,18 @@ namespace Portal.Controllers
                     personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
                     personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
                     personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                    // Обработка файла, если он есть
+                    var file = Request.Form.Files.FirstOrDefault();
+                    if (file != null && file.Length > 0)
+                    {
+                        // Сохраняем только данные файла
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await file.CopyToAsync(memoryStream);
+                            personalityLMK.FileData = memoryStream.ToArray();
+                        }
+                    }
 
                     dbSql.PersonalityLMK.Add(personalityLMK);
                     dbSql.SaveChanges();
@@ -362,6 +401,18 @@ namespace Portal.Controllers
                     personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
                     personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
 
+                    // Обработка файла, если он есть
+                    var file = Request.Form.Files.FirstOrDefault();
+                    if (file != null && file.Length > 0)
+                    {
+                        // Сохраняем только данные файла
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await file.CopyToAsync(memoryStream);
+                            personalityLMK.FileData = memoryStream.ToArray();
+                        }
+                    }
+
                     if (person.Personalities.LMKID == null)
                     {
                         dbSql.PersonalityLMK.Add(personalityLMK);
@@ -415,11 +466,20 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "HR, employee_control_ukvh")]
-        public IActionResult PersonalityPut(string json)
+        public IActionResult PersonalityPut()
         {
             var result = new Result<string>();
             try
             {
+                // Получаем JSON из FormData
+                var json = Request.Form["json"].FirstOrDefault();
+                if (string.IsNullOrEmpty(json))
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Отсутствуют данные пользователя";
+                    return BadRequest(result);
+                }
+
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
                 PersonalityLMK personalityLMK = new PersonalityLMK();
                 PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(p => p.JobTitle)
@@ -440,6 +500,19 @@ namespace Portal.Controllers
                         personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
                         personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
 
+
+                        // Обработка файла, если он есть
+                        var file = Request.Form.Files.FirstOrDefault();
+                        if (file != null && file.Length > 0)
+                        {
+                            // Сохраняем только данные файла
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                file.CopyTo(memoryStream);
+                                personalityLMK.FileData = memoryStream.ToArray();
+                            }
+                        }
+
                         dbSql.PersonalityLMK.Update(personalityLMK);
                         dbSql.SaveChanges();
                     }
@@ -452,6 +525,18 @@ namespace Portal.Controllers
                         personalityLMK.ValidationDate = personalityJson.LMK.ValidationDate;
                         personalityLMK.MedComissionDate = personalityJson.LMK.MedComissionDate;
                         personalityLMK.VacZonne = personalityJson.LMK.VacZonne;
+
+                        // Обработка файла, если он есть
+                        var file = Request.Form.Files.FirstOrDefault();
+                        if (file != null && file.Length > 0)
+                        {
+                            // Сохраняем только данные файла
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                file.CopyTo(memoryStream);
+                                personalityLMK.FileData = memoryStream.ToArray();
+                            }
+                        }
 
                         dbSql.PersonalityLMK.Add(personalityLMK);
                         dbSql.SaveChanges();

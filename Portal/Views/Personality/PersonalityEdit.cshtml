@@ -342,7 +342,7 @@
                             <input type="date" max="2100-01-01" min="1950-01-01" class="inputPersonData lmkToDisabled lmkData" id="ValidationDate" value="@Model.PersonalityLMK?.ValidationDate?.ToString("yyyy-MM-dd")">
 
                             <label class="checkbox-item">
-                                @if(Model.PersonalityLMK?.VacZonne == 1)
+                                @if(Model.PersonalityLMK != null && Model.PersonalityLMK?.VacZonne == 1)
                                 {
                                     <input checked type="checkbox" id="VacZonne" class="lmkToDisabled">
                                 } else {
@@ -353,7 +353,7 @@
                             </label>
 
                             <label class="checkbox-item">
-                                @if(Model.PersonalityLMK?.VacGepatit == 1)
+                                @if(Model.PersonalityLMK != null && Model.PersonalityLMK?.VacGepatit == 1)
                                 {
                                     <input checked type="checkbox" id="VacGepatit" class="lmkToDisabled">
                                 } else {
@@ -364,7 +364,7 @@
                             </label>
 
                             <label class="checkbox-item">
-                                @if(Model.PersonalityLMK?.VacReject == 1)
+                                @if(Model.PersonalityLMK != null && Model.PersonalityLMK?.VacReject == 1)
                                 {
                                     <input checked type="checkbox" id="VacReject" class="lmkToDisabled">
                                 } else {
@@ -373,6 +373,45 @@
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label">Отказ от вакцинации</span>
                             </label>
+
+                            <div class="fileUpload">
+                                <div>
+                                    <label class="file-input-label">Загрузка файла</label>
+                                    <div class="file-input-with-preview">
+                                        <input type="file" class="file-input-preview" id="fileUpload">
+                                        <div class="file-preview-area">
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="file-icon">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                            <span class="file-text">Загрузить</span>
+                                            <div class="file-info">
+                                                <span class="file-name"></span>
+                                                <div class="file-actions">
+                                                    <button type="button" class="remove-btn" style="display: none;">
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if(Model?.PersonalityLMK?.FileData != null)
+                                {
+                                    <div class="downloadButtonLMK" onclick="GetFile()">
+                                        <img src="./themes/clearmin/img/pdf.png"/>
+                                        <span>Скачать файл</span>
+                                    </div>
+                                }
+
+                             </div>
 
                         </div>
 
@@ -613,6 +652,32 @@
                                 <span class="checkbox-label">Отказ от вакцинации</span>
                             </label>
 
+                            <label class="file-input-label">Загрузка файла</label>
+                            <div class="file-input-with-preview">
+                                <input type="file" class="file-input-preview" id="fileUpload">
+                                <div class="file-preview-area">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="file-icon">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <span class="file-text">Загрузить</span>
+                                    <div class="file-info">
+                                        <span class="file-name"></span>
+                                        <div class="file-actions">
+                                            <button type="button" class="remove-btn" style="display: none;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
@@ -629,7 +694,6 @@
 </div>
 
 </div>
-
 
 <script>
 
@@ -849,6 +913,16 @@
             return;
         }
 
+        const fileInput = document.getElementById('fileUpload');
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+
+        // Добавляем файл, если он выбран
+        if (file) {
+            formData.append('file', file);
+        }
+
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
         Personality.Name = $('#namePerson').val().trim();
@@ -884,12 +958,16 @@
         Personality.INN = $('#INNPerson').val().trim()
         Personality.LMK = LMK;
 
+        // Добавляем JSON данные в FormData
+        formData.append('json', JSON.stringify(Personality));
+
         const json = JSON.stringify(Personality)
          $.ajax({
             type: "POST",
             url: '/Personality/PersonalityAdd',
-            data: { json: json },
-            datatype: "text",
+            data: formData,
+            processData: false, // Важно: не обрабатывать данные
+            contentType: false, // Важно: не устанавливать Content-Type
             success: function (result) {
                 $('#loading').hide();
                 if (result.ok) {
@@ -986,19 +1064,27 @@
 @* Отправляем JSON (Редактирование пользователя) *@
 <script>
     function editUser() {
-
-        const LMK = validateLMK()
-
-
-        if(LMK === false)
-        {
-            alert("Вы не заполнили обязательные пола ЛМК")
+        const LMK = validateLMK();
+        if (LMK === false) {
+            alert("Вы не заполнили обязательные поля ЛМК");
             return;
         }
 
+        const fileInput = document.getElementById('fileUpload');
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+
+        // Добавляем файл, если он выбран
+        if (file) {
+            formData.append('file', file);
+        }
+
+        // Создаем объект Personality
         const Personality = {};
         const personGUID = document.getElementById('personGUID').value;
         const personVersionGUID = document.getElementById('personVersionGUID').value;
+
         Personality.Guid = personVersionGUID;
         Personality.Name = $('#namePerson').val().trim();
         Personality.Surname = $('#surnamePerson').val().trim();
@@ -1020,22 +1106,27 @@
         Personality.personGUID = personGUID;
         Personality.Tel = $('#tel').val().trim();
         Personality.Email = $("#email").val().trim();
-        if(Personality.Email.length < 2)
-        {
+
+        if (Personality.Email.length < 2) {
             Personality.Email = null;
         }
-        Personality.SNILS = $('#SNILSPerson').val().trim()
-        Personality.INN = $('#INNPerson').val().trim()
+
+        Personality.SNILS = $('#SNILSPerson').val().trim();
+        Personality.INN = $('#INNPerson').val().trim();
         Personality.PartTimer = $("#partTimerId").val().trim();
         Personality.LMK = LMK;
-        Personality.EntityCostDMS = $("#EntityCostDMSGUID").val() ? $("#EntityCostDMSGUID").val() : null
+        Personality.EntityCostDMS = $("#EntityCostDMSGUID").val() ? $("#EntityCostDMSGUID").val() : null;
 
-        const json = JSON.stringify(Personality)
+        // Добавляем JSON данные в FormData
+        formData.append('json', JSON.stringify(Personality));
+
+        // Отправляем FormData
         $.ajax({
             type: "PUT",
             url: '/Personality/PersonalityPut',
-            data: { json: json },
-            datatype: "text",
+            data: formData,
+            processData: false, // Важно: не обрабатывать данные
+            contentType: false, // Важно: не устанавливать Content-Type
             success: function (result) {
                 if (result.ok) {
                     $('#page').load('/Personality/PersonalityTable?showUnActual=1&page=1', function () {
@@ -1043,8 +1134,7 @@
                             $('#tableMenu').show();
                         });
                     });
-                }
-                else {
+                } else {
                     openModalPerson('Ошибка', result.errorMessage);
                 }
             },
@@ -1333,5 +1423,96 @@
     $('#surnamePerson').on('input', checkOnlyRussianTextInput);
     $('#namePerson').on('input', checkOnlyRussianTextInput);
     $('#patronymicPerson').on('input', checkOnlyRussianTextInput);
+
+</script>
+
+<script>
+    const fileInput = document.getElementById('fileUpload');
+    const previewArea = document.querySelector('.file-preview-area');
+          const fileNameElement = document.querySelector('.file-name');
+          const fileText = document.querySelector('.file-text');
+          const removeBtn = document.querySelector('.remove-btn');
+
+          let currentFile = null;
+
+          fileInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+
+            if (file) {
+              currentFile = file;
+              fileNameElement.textContent = file.name;
+              fileNameElement.classList.add('show');
+              removeBtn.style.display = 'flex';
+              previewArea.classList.add('has-file');
+              fileText.style.display = 'none';
+            }
+          });
+
+          removeBtn.addEventListener('click', function() {
+            // Сбрасываем input
+            fileInput.value = '';
+            currentFile = null;
+            fileNameElement.classList.remove('show');
+            removeBtn.style.display = 'none';
+            previewArea.classList.remove('has-file');
+            fileText.style.display = 'block';
+          });
+
+          // Добавляем поддержку drag and drop
+          previewArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            previewArea.style.borderColor = '#3b82f6';
+            previewArea.style.background = '#eff6ff';
+          });
+
+          previewArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            if (!previewArea.classList.contains('has-file')) {
+              previewArea.style.borderColor = '#d1d5db';
+              previewArea.style.background = '#f9fafb';
+            }
+          });
+
+          previewArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              fileInput.files = files;
+              const event = new Event('change');
+              fileInput.dispatchEvent(event);
+            }
+          });
+
+
+    async function GetFile() {
+        const personGuid = $("#personGUID").val();
+
+        const response = await fetch("/Personality/GetFile?guid=" + personGuid);
+
+        if (!response.ok) {
+            alert("Ошибка при скачивании файла");
+            return;
+        }
+
+        // Получаем blob из ответа
+        const blob = await response.blob();
+
+        // Создаём временный URL
+        const url = window.URL.createObjectURL(blob);
+
+        // Создаём скрытую ссылку для скачивания
+        const a = document.createElement("a");
+        a.href = url;
+
+        // можно имя задать вручную, либо взять из заголовков
+        a.download = "downloaded_file.pdf";
+
+        document.body.appendChild(a);
+        a.click();
+
+        // очищаем
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    }
 
 </script>

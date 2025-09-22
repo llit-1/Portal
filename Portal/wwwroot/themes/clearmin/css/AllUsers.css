@@ -640,6 +640,11 @@
     display: flex;
     flex-direction: column;
     padding: 15px;
+    width: 90%;
+}
+
+.lmkLeftSideWrapper select, .lmkLeftSideWrapper input {
+    width: 100%;
 }
 
 
@@ -745,4 +750,175 @@
 
 .dmslmkbuttonsWrapper > button {
     width: 100%;
+}
+
+.file-input-label {
+    font-family: Akrobat-light;
+    color: #ABABAA;
+    letter-spacing: 2px;
+    font-size: 13px;
+    padding-left: 3px;
+}
+
+.file-input-with-preview {
+    position: relative;
+    margin-bottom: 10px;
+    max-width: 120px;
+    width: 120px;
+    height: 120px;
+}
+
+.file-input-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.file-preview-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0px 10px;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    background: #f9fafb;
+    text-align: center;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    width: 120px;
+    height: 120px;
+}
+
+
+.file-input-preview:hover + .file-preview-area,
+.file-preview-area:hover {
+    border-color: #F47920;
+    background: #f479202e;
+}
+
+.file-text {
+    font-family: 'Akrobat-Light';
+    font-size: 16px;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-name {
+    color: black;
+    font-weight: 400;
+    font-size: 11px;
+    display: none;
+    word-break: break-word;
+    text-align: center;
+    font-family: 'Akrobat-Regular';
+    overflow: clip;
+    max-width: 90px;
+    text-wrap-mode: nowrap;
+    text-overflow: ellipsis;
+}
+
+.file-name.show {
+    display: block;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+    align-items: center;
+}
+
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Akrobat-Light';
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.download-btn:hover {
+    background: #059669;
+}
+
+.remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.remove-btn:hover {
+    background: #dc2626;
+}
+
+.file-icon {
+    color: #F47920;
+}
+
+.file-preview-area.has-file .file-icon {
+    color: #F47920;
+}
+
+.file-preview-area.has-file .file-text {
+    display: none;
+}
+
+.fileUpload {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+}
+
+
+.downloadButtonLMK {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    font-family: 'Akrobat-Light';
+    font-size: 16px;
+    margin-top: 13px;
+    background: #f9fafb;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.downloadButtonLMK > img {
+    width: 40px;
+    height: 40px;
+}
+
+.downloadButtonLMK:hover {
+    border-color: #F47920;
+    background: #f479202e;
+    cursor: pointer;
+    user-select: none;
 }

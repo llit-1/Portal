@@ -15,6 +15,7 @@ namespace Portal.Models.MSSQL
         public int? VacZonne { get; set; }
         public int? VacGepatit { get; set; }
         public int? VacReject { get; set; }
+        public byte[]? FileData { get; set; }
     }
 
 }
