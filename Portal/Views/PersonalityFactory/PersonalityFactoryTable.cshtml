@@ -50,20 +50,20 @@
                                     <th>Должность</th>
                                     <th>Гражданство</th>
                                     <th>Юр. лицо</th>
-                                    <th>Тип документа</th>
+                                    <th class="hidden">Тип документа</th>
                                     <th class="hidden">Номер телефона</th>
                                     <th class="hidden">Номер банковской карты</th>
                                     <th class="hidden">Банк</th>
                                     <th class="hidden">Дата въезда</th>
                                     <th class="hidden">Дата выезда</th>
                                     <th class="hidden">Дата приема на работу</th>
-                                    <th class="">Дата увольнения</th>
+                                    <th class="hidden">Дата увольнения</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach(var item in Model)
                                 {
-                                    <tr class="activeRow" id="@item.Id">
+                                    <tr class="activeRow" id="@item.Id" onclick="PersonalityFactoryEdit('@item.Id')">
                                         <td class="tdPersonTable">
                                             <p>@item.Surname</p>
                                         </td>
@@ -71,7 +71,7 @@
                                             <p>@item.Name</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                            <p>@item.Patronymic</p>
+                                            <p>@item?.Patronymic</p>
                                         </td>
                                         <td class="tdPersonTable">
                                             <p>@item.Birthdate.ToString("dd.MM.yyyy")</p>
@@ -89,34 +89,34 @@
                                             <p>@item.DepartmentWorkshopJobTitle.JobTitleWorkshop.FactoryJobTitle.Name</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                            <p>@item.Citizenship.Name</p>
+                                            <p>@item?.Citizenship?.Name</p>
                                         </td>
                                         <td class="tdPersonTable">
-                                            <p>@item.Entity.Name</p>
-                                        </td>
-                                        <td class="tdPersonTable">
-                                            <p>@item.DocumentType.Name</p>
+                                            <p>@item?.Entity?.Name</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p>@item.Phone</p>
+                                            <p>@item?.DocumentType?.Name</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p>@item.CardNumber</p>
+                                            <p>@item?.Phone</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p>@item.Bank.Name</p>
+                                            <p>@item?.CardNumber</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p>@item.HostelChekin</p>
+                                            <p>@item?.Bank?.Name</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
-                                            <p>@item.HostelCheckOut</p>
+                                            <p>@item?.HostelChekin</p>
+                                        </td>
+                                        <td class="tdPersonTable hidden">
+                                            <p>@item?.HostelCheckOut</p>
                                         </td>
                                         <td class="tdPersonTable hidden">
                                             <p>@item.HiringDate</p>
                                         </td>
-                                        <td class="tdPersonTable">
-                                            <p>@item.DismissedDate</p>
+                                        <td class="tdPersonTable hidden">
+                                            <p>@item?.DismissedDate</p>
                                         </td>
                                     </tr>
                                 }
@@ -182,31 +182,22 @@
     //скрываем сверху таблицы фильтры data-table
     $('.view-filter').hide();
 
-</script>
 
-<script>
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#staff" });
-</script>
 
-<script>
-    $('.activeRow').click(function () {
-        var personGuid = this.id;
-
-        SpinnerShow();
-
-        $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryEdit?id=${personGuid}`, function () {
-            SpinnerHide()
-        });
-
-    });
-</script>
-
-<script>
     function addPersonFactory() {
         $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryAdd`, function () {
             SpinnerHide()
         });
+    }
+
+    function PersonalityFactoryEdit(personGuid) {
+        SpinnerShow();
+        $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryEdit?id=${personGuid}`, function () {
+            SpinnerHide()
+        });
+
     }
 </script>

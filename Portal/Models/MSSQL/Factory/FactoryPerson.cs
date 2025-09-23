@@ -23,7 +23,7 @@ namespace Portal.Models.MSSQL.Factory
         [Required, Column("Birthdate", TypeName = "date")]
         public DateTime Birthdate { get; set; }
 
-        [Required, MaxLength(20), Column("Passport")]
+        [Required, MaxLength(25), Column("Passport")]
         public string Passport { get; set; }
 
         // имена свойств совпадают с именами колонок в БД
