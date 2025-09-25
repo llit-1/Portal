@@ -26,6 +26,9 @@ namespace Portal.Models.MSSQL.Factory
         [Required, MaxLength(25), Column("Passport")]
         public string Passport { get; set; }
 
+        [Column("PassportDate")]
+        public DateTime? PassportDate { get; set; }
+
         // имена свойств совпадают с именами колонок в БД
         [Column("FactoryDepartment")]
         public int FactoryDepartment { get; set; }

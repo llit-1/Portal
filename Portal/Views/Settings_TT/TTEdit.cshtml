@@ -937,6 +937,16 @@
         tt.closeDate = $('#closeDate').val();
         tt.latitude = $('#latitude').val();
         tt.longitude = $('#longitude').val();
+
+        if(tt.latitude != "" && tt.latitude.includes(","))
+        {
+            tt.latitude = tt.latitude.replace(",", ".")
+        }
+
+        if(tt.longitude != "" && tt.longitude.includes(","))
+        {
+            tt.longitude = tt.longitude.replace(",", ".")
+        }
         
         var ttjsn = JSON.stringify(tt);
         ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -1074,6 +1084,16 @@
 
         tt.latitude = $('#latitude').val();
         tt.longitude = $('#longitude').val();
+
+        if(tt.latitude != "" && tt.latitude.includes(","))
+        {
+            tt.latitude = tt.latitude.replace(",", ".")
+        }
+
+        if(tt.longitude != "" && tt.longitude.includes(","))
+        {
+            tt.longitude = tt.longitude.replace(",", ".")
+        }
 
         tt.cashes = [];
         

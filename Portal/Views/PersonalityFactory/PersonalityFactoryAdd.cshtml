@@ -47,8 +47,16 @@
             <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dateBirthFactory" value="">
 
 
-            <label class="label-light">Паспорт</label>
-            <input required type="text" class="form-control" placeholder="Введите серию и номер паспорта" id="passportFactory" value="">
+            <div class="personalityFactory-smallFieldsWrapper">
+                <div class="fullwidthFactoryField">
+                    <label class="label-light">Паспорт</label>
+                    <input required type="text" class="form-control" placeholder="Введите серию и номер паспорта" id="passportFactory" value="">
+                </div>
+                <div class="fullwidthFactoryField">
+                    <label class="label-light">Дата выдачи паспорта</label>
+                    <input required type="date" class="form-control" id="passportDateFactory" value="">
+                </div>
+            </div>
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
@@ -231,6 +239,7 @@
     const lastnameFactory = document.getElementById('lastnameFactory');
     const dateBirthFactory = document.getElementById('dateBirthFactory');
     const passportFactory = document.getElementById('passportFactory');
+    const passportDateFactory = document.getElementById('passportDateFactory');
     const departmentFactory = document.getElementById('departmentFactory');
     const workshopFactory = document.getElementById('workshopFactory');
     const positionFactory = document.getElementById('positionFactory');
@@ -431,6 +440,7 @@
             Patronymic: lastnameFactory.value.trim().replace(/\s+/g, ' ') || null,
             Birthdate: dateBirthFactory.value.trim(),
             Passport: passportFactory.value.trim(),
+            PassportDate: passportDateFactory.value.trim(),
             FactoryDepartment: parseInt(departmentFactory.value.trim()),
             FactoryWorkshop: parseInt(workshopFactory.value.trim()),
             FactoryJobTitle: parseInt(positionFactory.value.trim()),

@@ -352,8 +352,8 @@ namespace Portal.Controllers
                 {
                     locationVersions.Location.Parent = null;
                 }
-                locationVersions.Location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
-                locationVersions.Location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Latitude = ttJsn.latitude;
+                locationVersions.Location.Longitude = ttJsn.longitude;
                 locationVersions.Location.Actual = 1;
 
 
@@ -421,8 +421,8 @@ namespace Portal.Controllers
                     location.Parent = null;
                 }
 
-                locationVersions.Location.Latitude = Double.Parse(ttJsn.latitude.Replace(",", "."), CultureInfo.InvariantCulture);
-                locationVersions.Location.Longitude = Double.Parse(ttJsn.longitude.Replace(",", "."), CultureInfo.InvariantCulture);
+                locationVersions.Location.Latitude = ttJsn.latitude;
+                locationVersions.Location.Longitude = ttJsn.longitude;
                 location.Actual = 1;
 
                 locationVersions.Location = location;
@@ -492,25 +492,24 @@ namespace Portal.Controllers
                     locationVersions.Location.Parent = null;
                 }
 
-                double latitude;
-                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out latitude))
+                if (ttJsn.latitude != null)
                 {
-                    locationVersions.Location.Latitude = latitude;
+                    locationVersions.Location.Latitude = ttJsn.latitude;
                 }
                 else
                 {
                     locationVersions.Location.Latitude = null;
                 }
 
-                double longitude;
-                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out longitude))
+                if (ttJsn.longitude != null)
                 {
-                    locationVersions.Location.Longitude = longitude;
+                    locationVersions.Location.Longitude = ttJsn.longitude;
                 }
                 else
                 {
                     locationVersions.Location.Longitude = null;
                 }
+
                 locationVersions.Location.Actual = 1;
 
 
@@ -588,22 +587,22 @@ namespace Portal.Controllers
                     location.Parent = null;
                 }
 
-                double latitude;
-                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out latitude))
+                if (ttJsn.latitude != null)
                 {
-                    location.Latitude = latitude; 
-                } else
+                    locationVersions.Location.Latitude = ttJsn.latitude;
+                }
+                else
                 {
-                    location.Latitude = null;
+                    locationVersions.Location.Latitude = null;
                 }
 
-                double longitude;
-                if (Double.TryParse(ttJsn.latitude.Replace(",", "."), out longitude))
+                if (ttJsn.longitude != null)
                 {
-                    location.Longitude = longitude;
-                } else
+                    locationVersions.Location.Longitude = ttJsn.longitude;
+                }
+                else
                 {
-                    location.Longitude = null;
+                    locationVersions.Location.Longitude = null;
                 }
 
                 location.Actual = 1;
@@ -697,11 +696,11 @@ namespace Portal.Controllers
                             }
 
                         case "latitude":
-                            ttNewBase.Location.Latitude =  Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                            ttNewBase.Location.Latitude = ttJsn.latitude;
                             break;
 
                         case "longitude":
-                            ttNewBase.Location.Longitude = Double.Parse(ttJsn.longitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                            ttNewBase.Location.Longitude = ttJsn.longitude;
                             break;
 
                         case "ttRestaurantSifr":
@@ -988,12 +987,12 @@ namespace Portal.Controllers
 
                         if(location.Latitude != null)
                         {
-                            location.Latitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                            location.Latitude = ttJsn.latitude;
                         }
 
                         if (location.Longitude != null)
                         {
-                            location.Longitude = Double.Parse(ttJsn.latitude.ToString().Replace(",", "."), CultureInfo.InvariantCulture);
+                            location.Longitude = ttJsn.longitude;
                         }
 
                         
