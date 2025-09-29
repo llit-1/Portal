@@ -113,10 +113,10 @@ namespace Portal.Controllers
 
                 // Все записи по указанной точке
                 List<TimeSheetsFactory> timesheets = dbSql.TimeSheetsFactory.Include(x => x.Location)
-                                                                            .Where(x => x.Location.Guid == locVer.Guid)
                                                                             .Include(x => x.Personality)
+                                                                            .Where(x => x.Location.Guid == locVer.Guid)
                                                                             .ToList();
-
+                    
                 // Уникальные сотрудники в записях
                 List<TimeSheetsFactory> uniquePersonFromTimeSheetsFactory = timesheets.GroupBy(ts => ts.Personality.Guid)
                                                                                       .Select(group => group.First())

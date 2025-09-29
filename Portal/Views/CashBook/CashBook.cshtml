@@ -22,7 +22,7 @@
                                 <option value="@item.RKCode">@item.Name</option>
                             }
                         } else {
-                            <option selected disabled value="@item.Guid">@item.Name</option>
+                            <option selected disabled value="@item.RKCode">@item.Name</option>
                         }
                     }
                 </select>
@@ -79,11 +79,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach(var item in Model.cashBooks) 
+                            @foreach(var item in Model.cashBooks)
                              { 
                                  <tr>
                                     <td class="hiddenForMobile">@item.User</td>
-                                    <td class="hiddenForMobile">@Model.Locations.FirstOrDefault(x => x.RKCode == item.RKCode).Name</td>
+                                    <td class="hiddenForMobile">@Model.Locations?.FirstOrDefault(x => x.RKCode == item.RKCode)?.Name</td>
                                     <td>@item.Cash.ToString("0.00")</td>
                                     <td>@item.Incass.ToString("0.00")</td>
                                     <td>@item.Other.ToString("0.00")</td>

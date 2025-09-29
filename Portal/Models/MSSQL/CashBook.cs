@@ -9,7 +9,7 @@ namespace Portal.Models.MSSQL
     {
         public int Id { get; set; }
         public string User { get; set; }
-        public int RKCode { get; set; }
+        public int? RKCode { get; set; }
         public decimal Cash { get; set; }
         public decimal Incass { get; set; }
         public decimal Other { get; set; }

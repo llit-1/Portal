@@ -81,6 +81,7 @@ namespace Portal.Controllers
         public async Task<IActionResult> GetSumSales(int? tt)
         {
             // Получаем cash books
+
             var cashBooks = await dbSql.CashBook
                 .Where(x => x.RKCode == tt)
                 .Where(x => x.Date >= DateTime.Now.AddDays(-7))
