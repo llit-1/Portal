@@ -589,20 +589,20 @@ namespace Portal.Controllers
 
                 if (ttJsn.latitude != null)
                 {
-                    locationVersions.Location.Latitude = ttJsn.latitude;
+                    location.Latitude = ttJsn.latitude;
                 }
                 else
                 {
-                    locationVersions.Location.Latitude = null;
+                    location.Latitude = null;
                 }
 
                 if (ttJsn.longitude != null)
                 {
-                    locationVersions.Location.Longitude = ttJsn.longitude;
+                    location.Longitude = ttJsn.longitude;
                 }
                 else
                 {
-                    locationVersions.Location.Longitude = null;
+                    location.Longitude = null;
                 }
 
                 location.Actual = 1;
