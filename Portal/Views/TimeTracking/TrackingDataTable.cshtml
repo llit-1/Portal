@@ -426,6 +426,8 @@
             obj.time = person.children[5].textContent.trim();
             personArr.push(obj)
         })
+
+        personArr.sort((a, b) => a.jobTitle.localeCompare(b.jobTitle));
     
         // Создаем элемент modalWindowTracking
         const modalWindowTracking = document.createElement('div');
@@ -583,6 +585,14 @@
             })
         })
 
+    }
+
+
+    const fastChangeday = document.querySelector(".fastChangeday")
+
+    if(fastChangeday != null && !fastChangeday?.classList.contains("hidden"))
+    {
+        fastChangeday.classList.add("hidden")
     }
 
 </script>

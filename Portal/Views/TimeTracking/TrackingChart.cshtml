@@ -36,7 +36,7 @@
 
 <!--шапка-->
 <div id="headMenu" class="row trackingChart_header" style="margin:0px">
-    <div class="col-12">
+    <div class="col-12 fastChangedayWrapper">
 
         <!--блок заголовка-->
         <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
@@ -54,6 +54,17 @@
                 </tr>
             </tbody>
         </table>
+
+        <div class="fastChangeday hidden">
+            <button id="backDay">
+                <label class="md-chevron-left ico"></label>
+                <span id="backDayDate"></span>
+            </button>
+            <button id="nextDay">
+                <span id="nextDayDate"></span>
+                <label class="md-chevron-right ico"></label>
+            </button>
+        </div>
     </div>
 
     <div class="header_stock_wrapper">
@@ -104,7 +115,7 @@
 </div>
 
 
-<div id="trackingChart">
+<div id="page" class="trackingChart">
     <div id="trackingChart_wrapper" class="trackingChart_wrapper">
 
         @if(Model.DataForCharts.Count != 0)
@@ -775,7 +786,7 @@
 
         console.log(date)
 
-        $("#trackingChart").load(`/TimeTracking/TrackingDataEdit?stringDate=${date}&locationGuid=${location}`, function () {
+        $("#page").load(`/TimeTracking/TrackingDataEdit?stringDate=${date}&locationGuid=${location}`, function () {
             $('#back').unbind('click');
             $('#back').click(function () {
                 $("#container-fluid").load('TimeTracking/TrackingChart?locationGuid=' + loc + "&date=" + dat)
@@ -820,6 +831,8 @@
             element.style = "background-color: none;"
         }
     }
+
+    document.querySelector(".fastChangedayWrapper").style = "width: fit-content;"
   
 </script>
 

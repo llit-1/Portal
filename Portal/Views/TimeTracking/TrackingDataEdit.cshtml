@@ -55,7 +55,7 @@
                 <th width="15%"></th>
             </tr>
         </table>
-        <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px">
+        <div class="col-4 panel panel-default height table1" style="margin-bottom: 10px;    overflow: auto;">
             <table class="table table-for-an">
                 @if (Model.TTData.Location.Guid == Guid.Parse("CBE656C5-7B5F-41A1-A0D8-84B75028C272"))
                 {
@@ -126,7 +126,7 @@
             </table>
 
             <!--sku в заказе-->
-            <div id="SkuInOrder" class="table1">
+            <div id="SkuInOrder" class="table1" style="overflow: auto;">
                 <table class="table">
                     <tbody id="personItemsTable">
                         @if (Model.TTData.DateDatas[0].TimeSheets.Count() + Model.TTData.DateDatas[0].WorkingSlots.Count() > 0)
@@ -919,6 +919,7 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
+                    openModal('Сохранение данных', 'Табель успешно сохранен!');
                     SpinnerShow(); // Показываем спиннер
                     $('#page').load('/TimeTracking/TrackingDataEdit?stringDate=' + sheduleData.Date.split(" ")[0].split("-").reverse().join("-") + "&locationGuid=" + sheduleData.Location, function () { SpinnerHide(); }); // Загружаем данные
                 } else {
@@ -1066,4 +1067,25 @@
 
         document.body.removeChild(trackingModalOverlay)
     }
+
+    const fastChangeday = document.querySelector(".fastChangeday")
+    fastChangeday.classList.remove("hidden")
+
+    const backDay = document.getElementById("backDay")
+    const nextDay = document.getElementById("nextDay")
+
+    console.log(backDay)
+
+    document.getElementById("backDayDate").textContent = "@Model.TTData.DateDatas[0].Date.AddDays(-1).ToString("dd.MM.yyyy")"
+    backDay.onclick = () => fastSwitchDays("@Model.TTData.DateDatas[0].Date.AddDays(-1).ToString("dd-MM-yyyy")")
+    document.getElementById("nextDayDate").textContent = "@Model.TTData.DateDatas[0].Date.AddDays(1).ToString("dd.MM.yyyy")"
+    nextDay.onclick = () => fastSwitchDays("@Model.TTData.DateDatas[0].Date.AddDays(1).ToString("dd-MM-yyyy")")
+    console.log(3)
+    function fastSwitchDays(date) {
+        const ttGuid = document.querySelector('.TTIdForHeader').textContent;
+        $('#page').load(`/TimeTracking/TrackingDataEdit?stringDate=${date}&locationGuid=${ttGuid}`, function () { SpinnerHide(); });
+    }
+
+    document.querySelector(".fastChangedayWrapper").style = "width: 100%;"
+
 </script>

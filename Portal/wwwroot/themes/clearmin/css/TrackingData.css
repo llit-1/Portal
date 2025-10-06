@@ -346,7 +346,7 @@
 
 
 @media print {
-    #trackingChart {
+    .trackingChart {
         zoom: 0.77;
     }
 
@@ -474,3 +474,30 @@
     border-radius: 3px;
 }
 
+.fastChangedayWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fastChangeday {
+    display: flex;
+    gap: 15px;
+    flex-direction: row;
+    padding-right: 10px;
+}
+
+#backDay, #nextDay {
+    font-family: 'Akrobat-Regular';
+    padding: 4px 10px;
+    font-size: 16px;
+    border: 1px solid black;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.fastChangeday label {
+    margin-bottom: 2px;
+}
