@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Portal.Models;
 using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Factory;
 
@@ -121,7 +122,6 @@ namespace Portal.DB
         public DbSet<WarehouseHolder> WarehouseHolders { get; set; }
         public DbSet<BindingPersonalityToLocation> BindingPersonalityToLocation { get; set; }
         public DbSet<CalculatorCoefficientLog> CalculatorСoefficientLogs { get; set; } // изменение коф калькулятора
-
         public DbSet<FactoryDepartment> FactoryDepartment { get; set; }
         public DbSet<FactoryWorkshop> FactoryWorkshop { get; set; }
         public DbSet<FactoryJobTitle> FactoryJobTitle { get; set; }
@@ -135,5 +135,7 @@ namespace Portal.DB
         public DbSet<FactoryBanks> FactoryBanks { get; set; }
         public DbSet<FactoryPerson> FactoryPerson { get; set; }
         public DbSet<CashBook> CashBook { get; set; }
+        public DbSet<FactorySKUDGroup> FactorySKUDGroup { get; set; }
+
     }
 }

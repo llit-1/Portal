@@ -45,7 +45,6 @@
 
             <label class="label-light">Дата рождения</label>
             <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dateBirthFactory" value="@Model.FactoryPerson.Birthdate.ToString("yyyy-MM-dd")">
-
             
 
             <div class="personalityFactory-smallFieldsWrapper">
@@ -58,6 +57,9 @@
                     <input type="date" class="form-control" id="passportDateFactory" value="@Model.FactoryPerson.PassportDate?.ToString("yyyy-MM-dd")">
                 </div>
             </div>
+
+            <label class="label-light">Номер телефона</label>
+            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
@@ -217,14 +219,26 @@
                 </div>
             </div>
 
-            <div class="personalityFactory-smallFieldsWrapper">
-                <div class="fullwidthFactoryField">
-                    <label class="label-light">Номер телефона</label>
-                    <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone">
-                </div>
-                <div class="fullwidthFactoryField">
-                    <label class="label-light">Номер банковской карты</label>
-                    <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber">
+            <label class="label-light">Номер банковской карты</label>
+            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber">
+
+            <div class="form-group">
+                <label class="label-light" style="width:100%">Схема доступа</label>
+                <div style="width:100%; float:left;">
+                    <select id="groupFactory" class="form-control selectors" data-width="100%">
+                        <option></option>
+                        @foreach (var item in Model.FactorySKUDGroups.OrderBy(x => x.Name))
+                        {
+                            if (Model.FactoryPerson.SKUDGroupId == item.Id)
+                            {
+                                <option selected value="@item.Id">@item.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        }
+                    </select>
                 </div>
             </div>
 
@@ -236,11 +250,11 @@
                     {
                         if (Model.FactoryPerson.FactoryBanks == item.Id)
                         {
-                                <option selected value="@item.Id">@item.Name</option>
+                            <option selected value="@item.Id">@item.Name</option>
                         }
                         else
                         {
-                                <option value="@item.Id">@item.Name</option>
+                            <option value="@item.Id">@item.Name</option>
                         }
 
                     }
@@ -348,7 +362,8 @@
     const hireDateFactory = document.getElementById('hireDateFactory');
     const dismissalDateFactory = document.getElementById('dismissalDateFactory');
     const passcardnumberfactory = document.getElementById('PassCardNumberFactory');
-    
+    const groupFactory = document.getElementById('groupFactory');
+
 
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
@@ -551,7 +566,8 @@
             HiringDate: hireDateFactory.value.trim(),
             DismissedDate: dismissalDateFactory.value.trim() || null,
             Photo: isDefaultImage ? null : photoDataUrl,
-            PassCardNumber: passcardnumberfactory.value.trim() || null
+            PassCardNumber: passcardnumberfactory.value.trim() || null,
+            SKUDGroupId: parseInt(groupFactory.value.trim()),
         };
 
         SpinnerShow();

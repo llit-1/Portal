@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Portal.Models;
 using Portal.Models.MSSQL.Factory;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using static Portal.Controllers.PersonalityFactoryController;
 
 namespace Portal.Controllers
 {
@@ -59,6 +61,7 @@ namespace Portal.Controllers
             personalityFactoryAddModel.FactoryCitizenshipTypes = dbSql.FactoryCitizenshipType.ToList();
             personalityFactoryAddModel.FactoryDocumentTypes = dbSql.FactoryDocumentType.ToList();
             personalityFactoryAddModel.FactoryBanks = dbSql.FactoryBanks.ToList();
+            personalityFactoryAddModel.FactorySKUDGroups = dbSql.FactorySKUDGroup.ToList();
             return PartialView(personalityFactoryAddModel);
         }
 
@@ -137,7 +140,9 @@ namespace Portal.Controllers
             personalityFactoryEditModel.FactoryDocumentTypes = dbSql.FactoryDocumentType.ToList();
             personalityFactoryEditModel.FactoryBanks = dbSql.FactoryBanks.ToList();
             personalityFactoryEditModel.FactoryCitizenshipTypes = dbSql.FactoryCitizenshipType.ToList();
-            
+
+            personalityFactoryEditModel.FactorySKUDGroups = dbSql.FactorySKUDGroup.ToList();
+
             return PartialView(personalityFactoryEditModel);
         }
 
@@ -171,6 +176,7 @@ namespace Portal.Controllers
             public List<FactoryCitizenshipType> FactoryCitizenshipTypes { get; set; } = new List<FactoryCitizenshipType>();
             public List<FactoryDocumentType> FactoryDocumentTypes { get; set; } = new List<FactoryDocumentType>();
             public List<FactoryBanks> FactoryBanks { get; set; } = new List<FactoryBanks>();
+            public List<FactorySKUDGroup> FactorySKUDGroups { get; set; } = new List<FactorySKUDGroup>();
         }
 
         public class PersonalityFactoryEditModel
@@ -185,6 +191,7 @@ namespace Portal.Controllers
             public List<FactoryCitizenship> FactoryCitizenships { get; set; } = new List<FactoryCitizenship>();
             public List<FactoryDocumentType> FactoryDocumentTypes { get; set; } = new List<FactoryDocumentType>();
             public List<FactoryBanks> FactoryBanks { get; set; } = new List<FactoryBanks>();
+            public List<FactorySKUDGroup> FactorySKUDGroups { get; set; } = new List<FactorySKUDGroup>();
 
         }
     }

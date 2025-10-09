@@ -90,5 +90,12 @@ namespace Portal.Models.MSSQL.Factory
 
         // Навигация на тройную таблицу (композитный FK) — настроим во Fluent API
         public FactoryDepartmentWorkshopJobTitle? DepartmentWorkshopJobTitle { get; set; }
+        [Column("SKUDGroup")]
+        public int? SKUDGroupId { get; set; }
+
+        // 🔹 Навигационное свойство к группе
+        [ForeignKey(nameof(SKUDGroupId))]
+        public virtual FactorySKUDGroup? SKUDGroup { get; set; }
+
     }
 }

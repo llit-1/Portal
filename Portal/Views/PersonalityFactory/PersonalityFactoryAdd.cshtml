@@ -58,6 +58,9 @@
                 </div>
             </div>
 
+            <label class="label-light">Номер телефона</label>
+            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="">
+
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
                 <div style="width:100%; float:left;">
@@ -146,14 +149,20 @@
                 </div>
             </div>
 
-            <div class="personalityFactory-smallFieldsWrapper">
-                <div class="fullwidthFactoryField">
-                    <label class="label-light">Номер телефона</label>
-                    <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="">
-                </div>
-                <div class="fullwidthFactoryField">
-                    <label class="label-light">Номер банковской карты</label>
-                    <input type="text" class="form-control" placeholder="0000 0000 0000 0000" minlength="19" maxlength="19" id="cardFactory" value="">
+
+            <label class="label-light">Номер банковской карты</label>
+            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" minlength="19" maxlength="19" id="cardFactory" value="">
+
+            <div class="form-group">
+                <label class="label-light" style="width:100%">Схема доступа</label>
+                <div style="width:100%; float:left;">
+                    <select id="groupFactory" class="form-control selectors" data-width="100%">
+                        <option></option>
+                        @foreach (var item in Model.FactorySKUDGroups.OrderBy(x => x.Name))
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
                 </div>
             </div>
 
@@ -255,6 +264,7 @@
     const hireDateFactory = document.getElementById('hireDateFactory');
     const dismissalDateFactory = document.getElementById('dismissalDateFactory');
     const passcardnumberfactory = document.getElementById('PassCardNumberFactory');
+    const groupFactory = document.getElementById('groupFactory');
 
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
@@ -455,7 +465,8 @@
             HiringDate: hireDateFactory.value.trim(),
             DismissedDate: dismissalDateFactory.value.trim() || null,
             Photo: isDefaultImage ? null : photoDataUrl,
-            PassCardNumber: passcardnumberfactory.value.trim() || null
+            PassCardNumber: passcardnumberfactory.value.trim() || null,
+            SKUDGroupId: parseInt(groupFactory.value.trim()),
         };
 
         SpinnerShow();
