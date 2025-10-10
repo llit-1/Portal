@@ -42,6 +42,7 @@ namespace Portal.Controllers
                                                                     .Include(c => c.DepartmentWorkshopJobTitle)
                                                                     .ThenInclude(a => a.DepartmentWorkshop)
                                                                     .ThenInclude(b => b.FactoryDepartment)
+                                                                    .Where(x => x.Fake == null)
                                                                     .ToList();
             return PartialView(Factorypersons);
         }

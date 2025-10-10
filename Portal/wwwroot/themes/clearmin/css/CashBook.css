@@ -25,6 +25,10 @@
     height: 50%;
 }
 
+.historyBlock_tableWrapper {
+    overflow: auto;
+}
+
 .block_header {
     min-height: 40px;
     height: 40px;
@@ -127,7 +131,7 @@
 
     .historyTable tbody {
         display: block;
-        max-height: 285px;
+        max-height: 235px;
         overflow-y: auto;
     }
 
@@ -222,5 +226,11 @@
 
     .hiddenForMobile {
         display: none;
+    }
+}
+
+@media screen and (max-width: 450px) {
+    .cahsBook_Wrapper {
+        gap: 10px;
     }
 }

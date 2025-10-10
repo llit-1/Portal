@@ -96,6 +96,7 @@ namespace Portal.Models.MSSQL.Factory
         // 🔹 Навигационное свойство к группе
         [ForeignKey(nameof(SKUDGroupId))]
         public virtual FactorySKUDGroup? SKUDGroup { get; set; }
+        public bool? Fake { get; set; }
 
     }
 }
