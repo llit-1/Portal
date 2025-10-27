@@ -102,7 +102,7 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> UploadFiles(CouponData data)
         {
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ПромокодыВК";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ПромокодыВК";
 
             try
             {
@@ -121,7 +121,7 @@ namespace Portal.Controllers
                     }
 
                     receivedPromocodesVK.Name = file.FileName.Split(".")[0];
-                    receivedPromocodesVK.Link = "\\\\fs1\\SHZWork\\Обмен2\\ПромокодыВК\\" + file.FileName;
+                    receivedPromocodesVK.Link = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ПромокодыВК\\" + file.FileName;
                     receivedPromocodesVK.CodeWord = data.CodeWord;
                     receivedPromocodesVK.StartDate = data.StartDate;
                     receivedPromocodesVK.EndDate = data.EndDate;

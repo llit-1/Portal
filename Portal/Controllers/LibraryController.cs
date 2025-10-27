@@ -399,7 +399,7 @@ namespace Portal.Controllers
         {
             try
             {
-                string path = "\\\\fs1.shzhleb.ru\\LLWork\\Отчеты\\Чеки РОзницы\\EmailChecks.xlsx";
+                string path = "\\\\shzhleb.ru\\ll\\LLWork\\Отчеты\\Чеки РОзницы\\EmailChecks.xlsx";
                 var fileInfo = new System.IO.FileInfo(path);
                 var file = System.IO.File.ReadAllBytes(path);
                 Response.Headers.Add("Access-Control-Allow-Origin", "*");

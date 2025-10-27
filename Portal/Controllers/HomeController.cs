@@ -104,8 +104,8 @@ namespace Portal.Controllers
 
             try
             {                
-                var path1 = @"\\fs1.shzhleb.ru\LLWork\Библиотека знаний";
-                var path2 = @"\\fs1.shzhleb.ru\SHZWork\Франшиза";
+                var path1 = @"\\shzhleb.ru\ll\LLWork\Библиотека знаний";
+                var path2 = @"\\shzhleb.ru\shz\SHZWork\Франшиза";
                 result.Data[0] = new DirectoryInfo(path1);
                 result.Data[1] = new DirectoryInfo(path2);
             }

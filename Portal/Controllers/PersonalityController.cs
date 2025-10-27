@@ -12,6 +12,7 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Portal.Models;
 using Portal.Models.JsonModels;
 using Portal.Models.MSSQL;
+using Portal.Models.MSSQL.Factory;
 using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
 using RKNet_Model;

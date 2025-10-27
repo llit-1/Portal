@@ -92,7 +92,7 @@ namespace Portal.Controllers
             // разэкранирование "плюс" и "пробел"
             var result = new RKNet_Model.Result<string>();
             result.Ok = false;
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
             string[] allfiles = Directory.GetFiles(path);
             foreach (string filename in allfiles)
             {
@@ -114,7 +114,7 @@ namespace Portal.Controllers
         public IActionResult GetAPK(string filename)
         {
             // разэкранирование "плюс" и "пробел"
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
             string filePath = path + "\\" + filename + ".apk";
             // Получение информации о файле
             var fileInfo = new FileInfo(filePath);
@@ -167,7 +167,7 @@ namespace Portal.Controllers
         {
             // разэкранирование "плюс" и "пробел"
             var result = new RKNet_Model.Result<string>();
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
                 List<VideoFileInfo> list = new List<VideoFileInfo>();
                 string[] allfiles = Directory.GetFiles(path);
                 foreach (string filename in allfiles)
@@ -288,7 +288,7 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> UploadVideo(IFormFile videoFile)
         {
-            string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
 
             if (videoFile == null || videoFile.Length == 0)
             {
@@ -331,6 +331,8 @@ namespace Portal.Controllers
             {
                 return BadRequest("URL parameter is missing");
             }
+
+            url = url.Replace(@"\\fs1", @"\\shzhleb.ru\shz");
 
             try
             {
@@ -508,7 +510,7 @@ namespace Portal.Controllers
             var result = new RKNet_Model.Result<string>();
             try
             {
-                string path = "\\\\fs1\\SHZWork\\Обмен2\\ВидеоТВ";
+                string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
                 VideoInfo videoInfo = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
                 if(videoInfo != null) 
                 {

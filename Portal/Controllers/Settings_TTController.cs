@@ -286,7 +286,7 @@ namespace Portal.Controllers
                                                                      .Include(x => x.Entity)
                                                                      .FirstOrDefault(x => x.Guid == Guid.Parse(guid));
 
-            List<Models.MSSQL.Location.Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Завод" || x.LocationType.Name == "Цех").ToList();
+            List<Models.MSSQL.Location.Location> locations = dbSql.Locations.Where(x => x.LocationType.Name == "Офис" || x.LocationType.Name == "Кабинет").ToList();
             List<Entity> entity = dbSql.Entity.ToList();
             List<LocationType> locationTypes = dbSql.LocationTypes.ToList();
             List<BindingLocationToUsers> bindingLocationToUsers = dbSql.BindingLocationToUsers.Where(x => x.LocationID == locationVersion.Guid).ToList();
@@ -1435,7 +1435,7 @@ namespace Portal.Controllers
                 .Where(c => !invalidChars.Contains(c))
                 .ToArray());
 
-            string folderPath = "\\\\fs1\\LLWork\\Розница. Документы\\" + sanitizedName;
+            string folderPath = "\\\\shzhleb.ru\\ll\\LLWork\\Розница. Документы\\" + sanitizedName;
 
             try
             {
@@ -1457,7 +1457,7 @@ namespace Portal.Controllers
                 .Where(c => !invalidChars.Contains(c))
                 .ToArray());
 
-            string folderPath = "\\\\fs1\\LLWork\\Розница. Документы\\" + sanitizedName;
+            string folderPath = "\\\\shzhleb.ru\\ll\\LLWork\\Розница. Документы\\" + sanitizedName;
 
             try
             {
@@ -1478,7 +1478,7 @@ namespace Portal.Controllers
                 .Where(c => !invalidChars.Contains(c))
                 .ToArray());
 
-            string folderPath = "\\\\fs1\\LLWork\\Розница. Документы\\" + sanitizedName;
+            string folderPath = "\\\\shzhleb.ru\\ll\\LLWork\\Розница. Документы\\" + sanitizedName;
 
             try
             {

@@ -1,3 +1,7 @@
 .userrequest-icon {
     background-image: url("../img/md/dark/notifications-on.svg")!important;
 }
+
+.ttVideo-icon {
+    background-image: url("../img/md/dark/video.png") !important;
+}

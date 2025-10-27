@@ -264,6 +264,12 @@
                             <li><a id="userrequests" href="#userrequests" class="userrequest-icon">Запросы пользователей</a></li>
                         }
 
+
+                        @if (User.IsInRole("video_tt"))
+                        {
+                            <li><a id="SettingsVideoDevices" href="#SettingsVideoDevices" class="ttVideo-icon">Видео на ТТ</a></li>
+                        }
+
                         <!--Учет пользователей-->
                         @if (User.IsInRole("employee_control"))
                         {
@@ -315,7 +321,6 @@
                                         <li><a id="SettingsVideo" href="#SettingsVideo">Видеонаблюдение</a></li>
                                         <li><a id="SettingsRk" href="#SettingsRk">R-Keeper 7</a></li>
                                         <li><a id="SettingsModules" href="#SettingsModules">Модули</a></li>
-                                        <li><a id="SettingsVideoDevices" href="#SettingsVideoDevices">Видео на ТТ</a></li>
                                     }
 
                                     @if (User.IsInRole("TTSettings"))

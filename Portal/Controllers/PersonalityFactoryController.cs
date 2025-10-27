@@ -72,7 +72,7 @@ namespace Portal.Controllers
            List<FactoryWorkshop> factoryWorkshops = dbSql.FactoryDepartmentFactoryWorkshop
                                                           .Include(x => x.FactoryWorkshop)
                                                           .Where(x => x.FactoryDepartmentId == depertment)
-                                                          .Select(x => x.FactoryWorkshop).ToList();
+                                                          .Select(x => x.FactoryWorkshop).OrderBy(x => x.Name).ToList();
             return Ok(factoryWorkshops);
         }
 
@@ -82,12 +82,12 @@ namespace Portal.Controllers
                                                            .Include(x => x.JobTitleWorkshop)
                                                            .ThenInclude(a => a.FactoryJobTitle)
                                                            .Where(x => x.FactoryDepartmentId == depertment && x.FactoryWorkshopId == workshop)
-                                                           .Select(x => x.JobTitleWorkshop.FactoryJobTitle).ToList();
+                                                           .Select(x => x.JobTitleWorkshop.FactoryJobTitle).OrderBy(x => x.Name).ToList();
             return Ok(factoryJobTitles);
         }
         public IActionResult GetCitizenship(int citizenshipType)
         {
-            List<FactoryCitizenship> factoryCitizenships = dbSql.FactoryCitizenship.Where(x => x.CitizenshipTypeId == citizenshipType).ToList();
+            List<FactoryCitizenship> factoryCitizenships = dbSql.FactoryCitizenship.Where(x => x.CitizenshipTypeId == citizenshipType).OrderBy(x => x.Name).ToList();
             return Ok(factoryCitizenships);
         }
 
