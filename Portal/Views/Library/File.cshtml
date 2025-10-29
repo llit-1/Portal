@@ -94,9 +94,9 @@
         }
         else {
             $('#docFrame').hide();
-            //$('#modal-body').append('<video id="docVideo" class="video-js vjs-theme-sea docVideo" controls preload="auto"><source  src="' + fileUrl + '"></source></video>');
-            $('#modal-body').append('<div id="playerjs"></div>');
-            var player = new Playerjs({ id: "playerjs", file: fileUrl });
+                $('#modal-body').append('<video id="docVideo" style="max-width: calc(100vw - 100px);max-height: calc(100vh - 200px);display: flex;" class="video-js vjs-theme-sea docVideo" controls preload="auto"><source  src="' + fileUrl + '"></source></video>');
+            // $('#modal-body').append('<div id="playerjs"></div>');
+            // var player = new Playerjs({ id: "playerjs", file: fileUrl });
         }
     }
 
