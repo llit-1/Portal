@@ -214,6 +214,35 @@ namespace Portal.Controllers
                         log.IpAdress = HttpContext.Session.GetString("ip");
                         log.Save();
 
+                        var OrdersItems = new List<FOrderXLS>();
+
+                        if(orderTypeId == 1)
+                        {
+                            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo(SettingsInternal.TTOrders.franchPath)))
+                            {
+                                ExcelWorksheet production = excelPackage.Workbook.Worksheets.FirstOrDefault(x => x.Name == SettingsInternal.TTOrders.franchList);
+                                var rowsCount = production.Dimension.End.Row;
+
+                                for (var x = 2; x <= rowsCount; x++)
+                                {
+                                    var forder = new FOrderXLS();
+
+                                    // фильтр по признаку собственное управление / партнерское управление
+                                    forder.Article = production.Cells[x, 1].Value.ToString();
+                                    var enabled = production.Cells[x, 8].Value.ToString();
+
+                                    // применение фильтров
+                                    if (enabled == "1")
+                                    {
+                                        OrdersItems.Add(forder);
+                                    }
+
+                                }
+                            }
+                            var onlyArticles = OrdersItems.Select(x => x.Article).ToList();
+                            fordresView.forders = items.Where(x => onlyArticles.Contains(x.Article)).ToList();
+                        }
+                        
                         break;
 
                     default:
