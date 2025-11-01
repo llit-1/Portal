@@ -257,8 +257,22 @@
                             <input style="margin-bottom: 0;" type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="@Model?.PersonalitiesVersions?.Personalities?.Phone">
                         }
 
-                        <label class="label-light" style="padding-top: 12px">Email</label>
-                        <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="@Model?.PersonalitiesVersions?.Personalities?.Email">
+                        <label class="label-light" style="padding-top: 12px">Гражданство</label>
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select placeholder="" id="citizenship" class="inputPersonData" data-width="100%">
+                                <option value=""></option>
+                                @foreach (var item in Model.PersonalityCitizenship)
+                                {
+                                    <option value="@item.ID">@item.Name</option>
+
+                                    if (Model.PersonalitiesVersions.Personalities.PersonalityCitizenship == item.ID)
+                                    {
+                                        <option selected value="@item.ID">@item.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
                         @if (!User.IsInRole("employee_control_ukvh"))
                         {
                             <label class="label-light">Юр. лицо разнесения затрат ДМС</label>
@@ -582,8 +596,16 @@
                     <label class="label-light">Номер телефона</label>
                     <input style="margin-bottom: 0;" type="text" class="inputPersonData" placeholder="Введите номер телефона" maxlength="10" id="tel" value="">
 
-                    <label class="label-light" style="padding-top: 12px">Email</label>
-                    <input type="text" class="inputPersonData" placeholder="Введите email" id="email" value="">
+                        <label class="label-light">Гражданство</label>
+                        <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
+                            <select placeholder="" id="citizenship" class="inputPersonData" data-width="100%">
+                                <option value=""></option>
+                                @foreach (var item in Model.PersonalityCitizenship)
+                                {
+                                    <option value="@item.ID">@item.Name</option>
+                                }
+                            </select>
+                        </div>
 
                     @if (!User.IsInRole("employee_control_ukvh"))
                     {
@@ -944,16 +966,9 @@
         Personality.VersionStartDate = $('#VersionStartDate').val();
         Personality.VersionEndDate = $('#VersionEndDate').val();
         Personality.Tel = $('#tel').val().trim();
-        Personality.Email = $("#email").val().trim();
+        Personality.PersonalityCitizenship = $("#citizenship").val() ? $('#citizenship').val() : null;
         Personality.PartTimer = $("#partTimerId").val().trim();
         Personality.EntityCostDMS = $("#EntityCostDMSGUID").val() ? $("#EntityCostDMSGUID").val() : null;
-        
-
-        if(Personality.Email.length < 2)
-        {
-            Personality.Email = null;
-        }
-
         Personality.SNILS = $('#SNILSPerson').val().trim()
         Personality.INN = $('#INNPerson').val().trim()
         Personality.LMK = LMK;
@@ -1105,12 +1120,7 @@
         Personality.NewPerson = $('#NewPerson').val();
         Personality.personGUID = personGUID;
         Personality.Tel = $('#tel').val().trim();
-        Personality.Email = $("#email").val().trim();
-
-        if (Personality.Email.length < 2) {
-            Personality.Email = null;
-        }
-
+        Personality.PersonalityCitizenship = $("#citizenship").val() ? $('#citizenship').val() : null;
         Personality.SNILS = $('#SNILSPerson').val().trim();
         Personality.INN = $('#INNPerson').val().trim();
         Personality.PartTimer = $("#partTimerId").val().trim();

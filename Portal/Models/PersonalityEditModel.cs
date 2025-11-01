@@ -19,5 +19,6 @@ namespace Portal.Models
         public int CurrentPage { get; set; }
         public List<MSSQL.PersonalityDocumentTypes> DocumentTypes { get; set; }
         public MSSQL.PersonalityLMK? PersonalityLMK { get; set; }
+        public List<MSSQL.PersonalityCitizenship>? PersonalityCitizenship { get; set; }
     }
 }

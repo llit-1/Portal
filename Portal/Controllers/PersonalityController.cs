@@ -82,7 +82,6 @@ namespace Portal.Controllers
             return temp.Count > 0 || count > 1;
         }
 
-
         [Authorize(Roles = "HR, employee_control_ukvh")]
         public IActionResult PersonalityTable(int showUnActual, int checkErrors)
         {
@@ -221,6 +220,7 @@ namespace Portal.Controllers
             model.Locations = dbSql.Locations.ToList();
             model.JobTitles = dbSql.JobTitles.ToList();
             model.DocumentTypes = dbSql.PersonalityDocumentTypes.ToList();
+            model.PersonalityCitizenship = dbSql.PersonalityCitizenship.ToList();
 
             model.Entity = dbSql.Entity.ToList();
             return PartialView(model);
@@ -327,13 +327,6 @@ namespace Portal.Controllers
                         return BadRequest("Указанный ИНН уже закреплен за " + personVersion.Surname + " " + personVersion.Name + " " + personVersion.Patronymic);
                     }
 
-                    if (personalityJson.Email != null && dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email) != null)
-                    {
-                        var person = dbSql.Personalities.FirstOrDefault(x => x.Email == personalityJson.Email);
-                        var personVersion = dbSql.PersonalityVersions.FirstOrDefault(x => x.Personalities == person);
-                        return BadRequest("Указанный Email уже закреплен за " + personVersion.Surname + " " + personVersion.Name + " " + personVersion.Patronymic);
-                    }
-
                     dbSql.Add(personality);
                     dbSql.SaveChanges();
                     Guid newPersonalityGuid = personality.Guid;
@@ -365,7 +358,7 @@ namespace Portal.Controllers
                     personalityVersion.ModifiedDate = DateTime.Now;
                     personalityVersion.Personalities.INN = personalityJson.INN;
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
-                    personalityVersion.Personalities.Email = personalityJson.Email;
+                    personalityVersion.Personalities.PersonalityCitizenship = personalityJson.PersonalityCitizenship;
                     personalityVersion.PartTimer = personalityJson.PartTimer;
                     personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
 
@@ -450,7 +443,7 @@ namespace Portal.Controllers
 
                     personalityVersion.Personalities.INN = personalityJson.INN;
                     personalityVersion.Personalities.SNILS = personalityJson.SNILS;
-                    personalityVersion.Personalities.Email = personalityJson.Email;
+                    personalityVersion.Personalities.PersonalityCitizenship = personalityJson.PersonalityCitizenship;
                     personalityVersion.PartTimer = personalityJson.PartTimer;
                     personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
 
@@ -566,7 +559,7 @@ namespace Portal.Controllers
                 personalityVersion.Personalities.BirthDate = personalityJson.BirthDate;
                 personalityVersion.ModifiedBy = User.Identity.Name;
                 personalityVersion.ModifiedDate = DateTime.Now;
-                personalityVersion.Personalities.Email = personalityJson.Email;
+                personalityVersion.Personalities.PersonalityCitizenship = personalityJson.PersonalityCitizenship;
                 personalityVersion.Personalities.INN = personalityJson.INN;
                 personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                 personalityVersion.PartTimer = personalityJson.PartTimer;

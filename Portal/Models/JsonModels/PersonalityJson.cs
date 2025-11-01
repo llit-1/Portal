@@ -27,7 +27,7 @@
             public string Tel { get; set; }
             public string SNILS { get; set; }
             public string INN { get; set; }
-            public string Email { get; set; }
+            public int? PersonalityCitizenship { get; set; }
             public int PartTimer { get; set; }
             public MSSQL.PersonalityLMK LMK { get; set; }
             public Guid? EntityCostDMS { get; set; }

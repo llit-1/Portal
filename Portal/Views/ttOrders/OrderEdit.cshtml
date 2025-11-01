@@ -59,40 +59,40 @@
                             <div class="scroll">
                                 <table class="table table-hover" id="groupTable">
                                     @if (Model.orderType.Id == 1)
-                            {
+                                    {
                                         @foreach (var dd in Model.Groups.GroupBy(d => d.DeliveryDate).OrderBy(k => k.Key))
-                                {
+                                        {
                                             <tr class="row-group-02" id="@dd.Key">
                                                 <td class="TableGroup"><input type="checkbox" class="hidden"><label>@dd.Key.Replace("_", " ")</label></td>
                                             </tr>
 
                                             @foreach (var group in dd.GroupBy(g => g.Name).OrderBy(k => k.Key))
-                                    {
-                                        var id = group.Key.Replace(" ", "") + dd.Key.Replace(" ", "");
-                                        id = id.Replace("+", "");
-                                        id = id.Replace(",", "");
-                                        id = id.Replace(".", "");
-                                        id = id.Replace("/", "");
+                                            {
+                                                var id = group.Key.Replace(" ", "") + dd.Key.Replace(" ", "");
+                                                id = id.Replace("+", "");
+                                                id = id.Replace(",", "");
+                                                id = id.Replace(".", "");
+                                                id = id.Replace("/", "");
 
                                                 <tr class="GroupTR items_@dd.Key hidden" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@dd.Key')"><td>@group.Key</td></tr>
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                            else
-                            {
+                                    else
+                                    {
                                         @foreach (var group in Model.Groups.GroupBy(g => g.Name).OrderBy(k => k.Key))
-                                {
-                                    var id = group.Key.Replace(" ", "");
-                                    id = id.Replace("+", "");
-                                    id = id.Replace(",", "");
-                                    id = id.Replace(".", "");
-                                    id = id.Replace("/", "");
+                                        {
+                                            var id = group.Key.Replace(" ", "");
+                                            id = id.Replace("+", "");
+                                            id = id.Replace(",", "");
+                                            id = id.Replace(".", "");
+                                            id = id.Replace("/", "");
 
                                             <tr class="GroupTR items_@id" id="@id" onclick="GroupSkuLoad('@group.Key', '@id', '@group.FirstOrDefault().DeliveryDate')">
                                                 <td>@group.Key</td>
                                             </tr>
-                                }
-                            }
+                                        }
+                                    }
                                 </table>
                             </div>
                         </div>
@@ -107,10 +107,10 @@
                                     <th width="40%" class="text-center">наименование</th>
                                     <th width="11%" class="text-center mobile-hide">мин. шт.</th>
                                     @if (Model.orderType.Id == 1)
-                            {
+                                    {
                                         <th width="11%" class="text-center mobile-hide">время</th>
                                         <th width="13%" class="text-center mobile-hide">доставка</th>
-                            }
+                                    }
                                     <th width="7%" class="text-center"></th>
                                 </tr>
                             </table>
@@ -139,16 +139,16 @@
                                         <select class="form-control form-control-sm" id="ttSelect">
                                             <option selected disabled>выберите точку</option>
                                             @foreach (var tt in Model.TTs)
-                                    {
-                                        if (Model.mode == "edit" & Model.orderEditNumber > 0 & tt.Code == order.TTCode)
-                                        {
+                                            {
+                                                if (Model.mode == "edit" & Model.orderEditNumber > 0 & tt.Code == order.TTCode)
+                                                {
                                                     <option selected value="@tt.Id">@tt.Name</option>
-                                        }
-                                        else
-                                        {
+                                                }
+                                                else
+                                                {
                                                     <option value="@tt.Id">@tt.Name</option>
-                                        }
-                                    }
+                                                }
+                                            }
                                         </select>
                                     </td>
                                     <td>
@@ -159,34 +159,34 @@
                                         <label for="orderDate">дата доставки</label>
 
                                         @if (Model.mode == "edit" & Model.orderEditNumber > 0)
-                                {
-                                    if(Model.orderType.Id == 1)
-                                    {
+                                        {
+                                            if(Model.orderType.Id == 1)
+                                            {
                                                 <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
-                                    }
-                                    else
-                                    {
+                                            }
+                                            else
+                                            {
                                                 <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" value="@order.DeliveryDate.ToString("yyyy-MM-dd")" />
-                                    }
-                                }
-                                else
-                                {
-                                    if (Model.orderType.Id == 1)
-                                    {
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (Model.orderType.Id == 1)
+                                            {
                                                 <input style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" min="@minDate" />
-                                    }
-                                    else
-                                    {
-                                        if (Model.orderType.Id == 2)
-                                        {
-                                                    <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@weekDelivery" />
+                                            }
+                                            else
+                                            {
+                                                if (Model.orderType.Id == 2)
+                                                {
+                                                            <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@weekDelivery" />
+                                                }
+                                                if (Model.orderType.Id == 3 || Model.orderType.Id == 4)
+                                                {
+                                                            <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@monthDelivery" />
+                                                }
+                                            }
                                         }
-                                        if (Model.orderType.Id == 3 || Model.orderType.Id == 4)
-                                        {
-                                                    <input disabled style="min-width:100px" class="form-control form-control-sm" id="orderDate" type="date" value="@monthDelivery" />
-                                        }
-                                    }
-                                }
                                     </td>
                                 </tr>
                             </table>
@@ -202,13 +202,12 @@
                             <!--sku  в заказе-->
                             <div class="scroll" id="SkuInOrder">
                                 <table class="table" id="FOrdersItemsTable">
-                                    <tr>
-                                    </tr>
+                                    <tr></tr>
                                     @if (Model.orderEditNumber > 0)
-                            {
-                                foreach (var item in Model.forders)
-                                {
-                                    var selid = "sel" + item.Article;
+                                    {
+                                        foreach (var item in Model.forders)
+                                        {
+                                            var selid = "sel" + item.Article;
 
                                             <tr id="@item.Article">
                                                 <td id="name_@item.Article" width="70%">@item.SKU</td>
@@ -219,15 +218,15 @@
                                                 <td width="10%"><label class="md-remove-circle-outline ico" onclick="RemoveItemsFOrder('@item.Article')"></label></td>
                                                 <td class="hidden"><input id="minCountInput_@item.Article" value="@item.minCount" /></td>
                                                 @if (Model.orderType.Id == 4)
-                                            {
+                                                {
                                                     <td class="hidden"><input id="maxCountInput_@item.Article" value="@Model.items.FirstOrDefault(c => c.Article == item.Article)?.MaxOrder" /></td>
-                                            }                                                                                 
+                                                }                                                                                 
                                                 <td id="hiddenCount_@item.Article" class="hidden">@item.Count</td>
                                                 <td class="hidden"><input id="formingTimeInput_@item.Article" value="до @item.maxTime" /></td>
                                                 <td class="hidden"><input id="delivery_@item.Article" value="@item.minDeliveryDate" /></td>
                                             </tr>
-                                }
-                            }
+                                        }
+                                    }
                                 </table>
                             </div>
 
