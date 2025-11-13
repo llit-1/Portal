@@ -1,5 +1,14 @@
 @model Portal.Controllers.PersonalityFactoryController.PersonalityFactoryEditModel
 
+@{
+    bool sesurity = false;
+
+    @if(User.IsInRole("factory_security"))
+    {
+        sesurity = true;
+    }
+}
+
 <div id="headMenu" class="row" style="margin:0px">
     <div class="col-12" style="display:inline-block">
         <!--блок заголовка-->
@@ -27,44 +36,44 @@
         <div class="stage1-wrapper">
 
             <label class="label-light">Фамилия</label>
-            <input required type="text" class="form-control" placeholder="Введите фамилию" id="surnameFactory" value="@Model.FactoryPerson.Surname">
+            <input required type="text" class="form-control" placeholder="Введите фамилию" id="surnameFactory" value="@Model.FactoryPerson.Surname" disabled="@sesurity">
 
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Имя</label>
-                    <input required type="text" class="form-control" placeholder="Введите имя" id="nameFactory" value="@Model.FactoryPerson.Name">
+                    <input required type="text" class="form-control" placeholder="Введите имя" id="nameFactory" value="@Model.FactoryPerson.Name" disabled="@sesurity">
                 </div>
 
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Отчество</label>
-                    <input type="text" class="form-control" placeholder="Введите отчество" id="lastnameFactory" value="@Model.FactoryPerson?.Patronymic">
+                    <input type="text" class="form-control" placeholder="Введите отчество" id="lastnameFactory" value="@Model.FactoryPerson?.Patronymic" disabled="@sesurity">
                 </div>
 
             </div>
 
 
             <label class="label-light">Дата рождения</label>
-            <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dateBirthFactory" value="@Model.FactoryPerson.Birthdate.ToString("yyyy-MM-dd")">
+            <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dateBirthFactory" value="@Model.FactoryPerson.Birthdate.ToString("yyyy-MM-dd")" disabled="@sesurity">
             
 
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Паспорт</label>
-                    <input required type="text" class="form-control" placeholder="Введите серию и номер паспорта" id="passportFactory" value="@Model.FactoryPerson.Passport">
+                    <input required type="text" class="form-control" placeholder="Введите серию и номер паспорта" id="passportFactory" value="@Model.FactoryPerson.Passport" disabled="@sesurity">
                 </div>
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата выдачи паспорта</label>
-                    <input type="date" class="form-control" id="passportDateFactory" value="@Model.FactoryPerson.PassportDate?.ToString("yyyy-MM-dd")">
+                    <input type="date" class="form-control" id="passportDateFactory" value="@Model.FactoryPerson.PassportDate?.ToString("yyyy-MM-dd")" disabled="@sesurity">
                 </div>
             </div>
 
             <label class="label-light">Номер телефона</label>
-            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone">
+            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone" disabled="@sesurity">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
                 <div style="width:100%; float:left;">
-                    <select required id="departmentFactory" class="form-control selectors" data-width="100%">
+                    <select required id="departmentFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                         
                         @foreach (var item in Model.FactoryDepartments.OrderBy(x => x.Name))
                         {
@@ -83,7 +92,7 @@
             <div class="form-group">
                 <label class="label-light" style="width:100%">Участок</label>
                 <div style="width:100%; float:left;">
-                    <select required id="workshopFactory" class="form-control selectors" data-width="100%">
+                    <select required id="workshopFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                         
                         @foreach (var item in Model.FactoryWorkshops.OrderBy(x => x.Name))
                         {
@@ -106,7 +115,7 @@
                 <label class="label-light" style="width:100%">Должность</label>
                 <div style="width:100%; float:left;">
 
-                    <select required id="positionFactory" class="form-control selectors" data-width="100%">
+                    <select required id="positionFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
 
                         @foreach (var item in Model.FactoryJobTitles.OrderBy(x => x.Name))
                         {
@@ -135,7 +144,7 @@
                     <div class="form-group">
                         <label class="label-light" style="width:100%">Тип гражданства</label>
                         <div style="width:100%; float:left;">
-                            <select required id="citizenshipTypeFactory" class="form-control selectors" data-width="100%">
+                            <select required id="citizenshipTypeFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                                 @foreach (var item in Model.FactoryCitizenshipTypes.OrderBy(x => x.Name))
                                 {
                                     if (Model.FactoryCitizenshipType.Id == item.Id)
@@ -157,7 +166,7 @@
                     <div class="form-group">
                         <label class="label-light" style="width:100%">Гражданство</label>
                         <div style="width:100%; float:left;">
-                            <select required id="citizenshipFactory" class="form-control selectors" data-width="100%">
+                            <select required id="citizenshipFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                                 @foreach (var item in Model.FactoryCitizenships.OrderBy(x => x.Name))
                                 {
                                     if (Model.FactoryPerson.FactoryCitizenship == item.Id)
@@ -182,7 +191,7 @@
             <div class="form-group">
                 <label class="label-light" style="width:100%">Юр. лицо</label>
                 <div style="width:100%; float:left;">
-                    <select required id="legalEntityFactory" class="form-control selectors" data-width="100%">
+                    <select required id="legalEntityFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                         @foreach (var item in Model.FactoryEntities.OrderBy(x => x.Name))
                         {
                             if (Model.FactoryPerson.FactoryEntity == item.Id)
@@ -202,7 +211,7 @@
             <div class="form-group">
                 <label class="label-light" style="width:100%">Тип документа</label>
                 <div style="width:100%; float:left;">
-                    <select required id="documentTypeFactory" class="form-control selectors" data-width="100%">
+                    <select required id="documentTypeFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                         @foreach (var item in Model.FactoryDocumentTypes.OrderBy(x => x.Name))
                         {
                             if (Model.FactoryPerson.DocumentType.Id == item.Id)
@@ -220,12 +229,12 @@
             </div>
 
             <label class="label-light">Номер банковской карты</label>
-            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber">
+            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber" disabled="@sesurity">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Схема доступа</label>
                 <div style="width:100%; float:left;">
-                    <select id="groupFactory" class="form-control selectors" data-width="100%">
+                    <select id="groupFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                         <option></option>
                         @foreach (var item in Model.FactorySKUDGroups.OrderBy(x => x.Name))
                         {
@@ -245,7 +254,7 @@
             <div class="form-group">
                 <label class="label-light" style="width:100%">Банк</label>
                 <div style="width:100%; float:left;">
-                    <select id="bankFactory" class="form-control selectors" data-width="100%">
+                    <select id="bankFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
                     @foreach (var item in Model.FactoryBanks.OrderBy(x => x.Name))
                     {
                         if (Model.FactoryPerson.FactoryBanks == item.Id)
@@ -265,22 +274,22 @@
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата въезда</label>
-                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="entryDateFactory" value="@Model.FactoryPerson?.HostelChekin?.ToString("yyyy-MM-dd")">
+                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="entryDateFactory" value="@Model.FactoryPerson?.HostelChekin?.ToString("yyyy-MM-dd")" disabled="@sesurity">
                 </div>
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата выезда</label>
-                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="exitDateFactory" value="@Model.FactoryPerson?.HostelCheckOut?.ToString("yyyy-MM-dd")">
+                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="exitDateFactory" value="@Model.FactoryPerson?.HostelCheckOut?.ToString("yyyy-MM-dd")" disabled="@sesurity">
                 </div>
             </div>
 
             <div class="personalityFactory-smallFieldsWrapper">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата приема на работу</label>
-                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="hireDateFactory" value="@Model.FactoryPerson.HiringDate.ToString("yyyy-MM-dd")">
+                    <input required type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="hireDateFactory" value="@Model.FactoryPerson.HiringDate.ToString("yyyy-MM-dd")" disabled="@sesurity">
                 </div>
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата увольнения</label>
-                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dismissalDateFactory" value="@Model.FactoryPerson?.DismissedDate?.ToString("yyyy-MM-dd")">
+                    <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="dismissalDateFactory" value="@Model.FactoryPerson?.DismissedDate?.ToString("yyyy-MM-dd")" disabled="@sesurity">
                 </div>
             </div>
 
@@ -301,23 +310,39 @@
             </div>
 
             <div class="lastStage-secondWrapper">
-                <div class="buttonsForCameraWrapper">
-                    <div>
-                        <label class="label-light">Номер пропуска</label>
-                        <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="0000000000" id="PassCardNumberFactory" value="@Model.FactoryPerson.PassCardNumber">
+
+                @if(!User.IsInRole("factory_security"))
+                {
+                    <div class="buttonsForCameraWrapper">
+                        <div>
+                            <label class="label-light">Номер пропуска</label>
+                            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="0000000000" id="PassCardNumberFactory" value="@Model.FactoryPerson.PassCardNumber">
+                        </div>
+
+                        @if (Model.FactoryPerson?.Photo != null)
+                        {
+                            <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Изменить фото</button>
+                        }
+                        else
+                        {
+                            <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
+                        }
+
+
+                    </div>
+                } else {
+                    <div class="buttonsForCameraWrapper hidden">
+                        <div>
+                            <label class="label-light">Номер пропуска</label>
+                            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="0000000000" id="PassCardNumberFactory" value="@Model.FactoryPerson.PassCardNumber">
+                        </div>
                     </div>
 
-                    @if (Model.FactoryPerson?.Photo != null)
-                    {
-                        <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Изменить фото</button>
-                    }
-                    else
-                    {
-                        <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
-                    }
-
-                    
-                </div>
+                    <div class="buttonsForCameraWrapper">
+                        <button class="photo-buttonAdd" onclick="getLastNxData()" id="photo-buttonAdd" type="button">Загрузить</button>
+                    </div>
+                }
+                
 
                 <button class="btn btn-success btn-addPersonFactory" type="submit">Сохранить изменения</button>
             </div>
@@ -331,7 +356,6 @@
                 <div style="margin-top: 20px; text-align: center;display: flex;justify-content: space-between;font-family: 'Akrobat-Regular';">
                     <button onclick="closeCropModal()" type="button" class="btn btn-secondary">Отмена</button>
                     <button onclick="crop()" type="button" class="btn btn-success">Cохранить</button>
-
                 </div>
             </div>
         </div>
@@ -373,6 +397,42 @@
             SpinnerHide()
         });
     });
+
+    async function getLastNxData() {
+        const resp = await fetch("/PersonalityFactory/GetLastNxData");
+        const arrayBuffer = await resp.arrayBuffer();
+
+        const blob = new Blob([arrayBuffer], { type: "image/jpeg" });
+
+        const img = new Image();
+        img.src = URL.createObjectURL(blob);
+
+        img.onload = () => {
+            const targetSize = 1080;
+
+            const canvas = document.createElement("canvas");
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.drawImage(
+                img,
+                0, 0, targetSize, targetSize,   // что берём из оригинала
+                0, 0, targetSize, targetSize    // куда рисуем
+            );
+
+            // ✨ ВАЖНО: вместо toBlob -> toDataURL
+            const dataUrl = canvas.toDataURL("image/jpeg");
+
+            // Можно освободить временный blob: URL исходного img
+            URL.revokeObjectURL(img.src);
+
+            const imgElement = document.getElementById("imgPhotoWrapper");
+            imgElement.src = dataUrl;
+        };
+    }
+
 
     function formatCardNumber()
     {
@@ -535,10 +595,10 @@
 
     async function SaveFactoryPerson() {
 
-        if( cardFactory.value.trim().replaceAll(" ", "").length != 16 && cardFactory.value.trim().replaceAll(" ", "").length != 0)
-        {
-            return alert('Некорректно заполнено поле "Номер банковской карты"');
-        }
+        // if( cardFactory.value.trim().replaceAll(" ", "").length != 16 && cardFactory.value.trim().replaceAll(" ", "").length != 0)
+        // {
+        //     return alert('Некорректно заполнено поле "Номер банковской карты"');
+        // }
 
         const imgElement = document.getElementById("imgPhotoWrapper");
         const photoDataUrl = imgElement.src;

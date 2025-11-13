@@ -1,9 +1,12 @@
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using module_NX;
+using Portal.HostedServices;
 using Portal.Models;
 using Portal.Models.MSSQL.Factory;
 using System;
@@ -109,9 +112,24 @@ namespace Portal.Controllers
 
             dbSql.FactoryPerson.Add(person);
             await dbSql.SaveChangesAsync();
-
             return Ok();
         }
+
+        public async Task<IActionResult> GetLastNxData()
+        {
+            string cameraId = "2da4a772-4c24-ed11-a888-9bd9c6760d9a";
+
+            NxApiService nx = new NxApiService();
+            var imageBytes = await nx.GetImageAsync(DateTime.Now, cameraId);
+
+            if (imageBytes == null)
+                return NotFound();
+
+            return File(imageBytes, "image/jpeg");
+        }
+
+
+
 
         public byte[] ConvertDataUrlToByteArray(string dataUrl)
         {

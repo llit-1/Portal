@@ -137,6 +137,8 @@ namespace Portal.DB
         public DbSet<FactoryPerson> FactoryPerson { get; set; }
         public DbSet<CashBook> CashBook { get; set; }
         public DbSet<FactorySKUDGroup> FactorySKUDGroup { get; set; }
-
+        public DbSet<FactorySKUDController> FactorySKUDController { get; set; }
+        public DbSet<FactorySKUDWorkLog> FactorySKUDWorkLog { get; set; }
+        public DbSet<FactorySKUDResultTypes> FactorySKUDResultTypes { get; set; }
     }
 }
