@@ -40,7 +40,146 @@ namespace Portal.Controllers
         [Authorize(Roles = "HR, employee_control_ukvh")]
         public IActionResult Personality()
         {
+            //MainA();
             return PartialView();
+        }
+
+        public void MainA()
+        {
+            string path = "Users.csv"; // путь к твоему CSV файлу
+
+            // Читаем все строки из файла
+            var lines = System.IO.File.ReadAllLines(path);
+
+            // Проверяем, что файл не пуст
+            if (lines.Length < 2)
+            {
+                Console.WriteLine("Файл не содержит данных.");
+                return;
+            }
+
+            // Получаем индексы столбцов из первой строки (заголовка)
+            string[] headers = lines[0].Split(',');
+            int numberIndex = System.Array.FindIndex(headers, h => h.Trim('\"') == "Number");
+            int cardDataIndex = -1;
+
+            // Ищем столбец, который содержит нужные данные (по примеру это 4-й столбец, индекс 3)
+            // Можно искать по содержимому или просто по индексу
+            for (int i = 0; i < headers.Length; i++)
+            {
+                if (i == 3)
+                {
+                    cardDataIndex = i;
+                    break;
+                }
+            }
+
+            if (numberIndex == -1)
+            {
+                Console.WriteLine("Столбец 'Number' не найден!");
+                return;
+            }
+
+            if (cardDataIndex == -1)
+            {
+                Console.WriteLine("Столбец с карточными данными не найден!");
+                return;
+            }
+
+            var numbers = new List<string>();
+
+            // Проходим все строки, начиная со второй (пропускаем заголовок)
+            for (int i = 1; i < lines.Length; i++)
+            {
+                // Разбиваем строку по запятой, учитывая кавычки
+                var values = SplitCsvLine(lines[i]);
+
+                if (values.Length > cardDataIndex)
+                {
+                    string cardData = values[cardDataIndex].Trim('\"');
+
+                    // Берем последние 6 символов
+                    if (cardData.Length >= 6)
+                    {
+                        string lastSix = cardData.Substring(cardData.Length - 6);
+                        numbers.Add(lastSix);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Строка слишком короткая: {cardData}");
+                        numbers.Add(cardData); // или обработать как-то иначе
+                    }
+                }
+            }
+
+            List<FactoryPerson> factoryPersonarr = new List<FactoryPerson>();
+
+            // Выводим результат
+            foreach (var num in numbers)
+            {
+                // Для нового формата данных не нужно конвертировать через ConvertEmNumber
+                string cardNumber = num;
+                string passport = num;
+
+                // Проверяем, существует ли уже такая запись в базе
+                bool exists = dbSql.FactoryPerson.Any(p => p.PassCardNumber == cardNumber || p.Passport == passport);
+
+                if (exists)
+                {
+                    Console.WriteLine($"Запись уже существует: CardNumber={cardNumber}, Passport={passport}");
+                    continue;
+                }
+
+                FactoryPerson factoryPerson = new FactoryPerson();
+                factoryPerson.Name = "Тестовое";
+                factoryPerson.Surname = "Тестовая";
+                factoryPerson.Birthdate = DateTime.Now;
+                factoryPerson.FactoryDepartment = 1;
+                factoryPerson.FactoryWorkshop = 1;
+                factoryPerson.FactoryJobTitle = 12;
+                factoryPerson.FactoryCitizenship = 1;
+                factoryPerson.FactoryEntity = 1;
+                factoryPerson.FactoryDocumentType = 1;
+                factoryPerson.HiringDate = DateTime.Now;
+                factoryPerson.SKUDGroupId = 1;
+                factoryPerson.CardNumber = cardNumber;
+                factoryPerson.Fake = true;
+                factoryPerson.PassCardNumber = cardNumber;
+                factoryPerson.Passport = passport;
+
+                factoryPersonarr.Add(factoryPerson);
+            }
+
+            dbSql.FactoryPerson.AddRange(factoryPersonarr);
+            dbSql.SaveChanges();
+        }
+
+        // Простая функция для корректного разделения CSV с кавычками
+        static string[] SplitCsvLine(string line)
+        {
+            var result = new List<string>();
+            bool inQuotes = false;
+            var current = "";
+
+            foreach (char c in line)
+            {
+                if (c == '\"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    result.Add(current);
+                    current = "";
+                }
+                else
+                {
+                    current += c;
+                }
+            }
+
+            result.Add(current); // добавляем последний элемент
+            return result.ToArray();
         }
 
         /* Проверка дат на пересечение и прочие ошибки */

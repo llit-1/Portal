@@ -327,31 +327,30 @@ namespace Portal.Controllers
         [HttpGet]
         public IActionResult GetVideoForTv(string url)
         {
-            if (string.IsNullOrEmpty(url))
+            if (string.IsNullOrWhiteSpace(url))
             {
                 return BadRequest("URL parameter is missing");
             }
 
+            // Меняем сервер
             url = url.Replace(@"\\fs1", @"\\shzhleb.ru\shz");
 
             try
             {
-                // Разэкранирование URL
-                string filePath = url.Replace("plustoreplace", "+").Replace("backspacetoreplace", " ");
+                // Разэкранируем свой формат
+                var filePath = url
+                    .Replace("plustoreplace", "+")
+                    .Replace("backspacetoreplace", " ");
 
-                // Получение информации о файле
                 var fileInfo = new FileInfo(filePath);
                 if (!fileInfo.Exists)
                 {
                     return NotFound("File not found");
                 }
 
-                // Чтение файла в байты
-                var fileBytes = System.IO.File.ReadAllBytes(filePath);
-                var fileExtension = fileInfo.Extension.ToLower();
+                var fileExtension = fileInfo.Extension.ToLowerInvariant();
 
-                // Определение MIME-типа файла
-                string mimeType = fileExtension switch
+                var mimeType = fileExtension switch
                 {
                     ".mp4" => "video/mp4",
                     ".avi" => "video/x-msvideo",
@@ -360,8 +359,15 @@ namespace Portal.Controllers
                     _ => "application/octet-stream"
                 };
 
-                // Возвращение файла в ответе
-                return File(fileBytes, mimeType, fileInfo.Name);
+                // Открываем поток к файлу
+                var stream = new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read
+                );
+
+                return File(stream, mimeType, fileInfo.Name, enableRangeProcessing: true);
             }
             catch (Exception ex)
             {
