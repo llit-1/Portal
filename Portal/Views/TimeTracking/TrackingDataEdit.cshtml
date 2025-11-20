@@ -403,11 +403,28 @@
 
     $('#header').text(date + '  (' + dayOfWeekRus + ') ' + tt);
 
-    // Убираем событие клика с кнопки "Назад" и определяем новое
-    $('#back').unbind('click');
-    $('#back').click(function () {
-        $('#page').load('/TimeTracking/TrackingData');
-    });
+    
+
+    const backButtonCharts = localStorage.getItem("backButtonCharts");
+
+    if(backButtonCharts && backButtonCharts == "Table")
+    {
+        $('#back').unbind('click');
+        $('#back').click(function () {
+            $('#page').load('/TimeTracking/TrackingData');
+        });
+    }
+
+    if(backButtonCharts && backButtonCharts == "Charts")
+    {
+        console.log(date)
+        console.log("@Model.TTData.Location.Guid")
+        // $('#back').unbind('click');
+        // $('#back').click(function () {
+        //     $("#container-fluid").load('TimeTracking/TrackingChart?locationGuid=' + loc + "&date=" + dat)
+        // });
+    }
+
 
     // Обрабатываем кастомные селекты
     document.querySelectorAll('.custom-select').forEach(select => {
@@ -1073,8 +1090,6 @@
 
     const backDay = document.getElementById("backDay")
     const nextDay = document.getElementById("nextDay")
-
-    console.log(backDay)
 
     document.getElementById("backDayDate").textContent = "@Model.TTData.DateDatas[0].Date.AddDays(-1).ToString("dd.MM.yyyy")"
     backDay.onclick = () => fastSwitchDays("@Model.TTData.DateDatas[0].Date.AddDays(-1).ToString("dd-MM-yyyy")")

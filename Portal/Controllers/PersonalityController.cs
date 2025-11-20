@@ -37,7 +37,7 @@ namespace Portal.Controllers
             dbSql = dbSqlContext;
         }
 
-        [Authorize(Roles = "HR, employee_control_ukvh")]
+        [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public IActionResult Personality()
         {
             //MainA();
@@ -221,7 +221,7 @@ namespace Portal.Controllers
             return temp.Count > 0 || count > 1;
         }
 
-        [Authorize(Roles = "HR, employee_control_ukvh")]
+        [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public IActionResult PersonalityTable(int showUnActual, int checkErrors)
         {
             PersonalityModelNew model = new();
@@ -293,7 +293,7 @@ namespace Portal.Controllers
         }
 
         /* Редактирование карточки сотрудника */
-        [Authorize(Roles = "HR, employee_control_ukvh")]
+        [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public IActionResult PersonalityEdit(string typeGuid, string newPerson)
         {
             PersonalityEditModel model = new();
@@ -391,7 +391,7 @@ namespace Portal.Controllers
         }
 
         /* Добавление сотрудника */
-        [Authorize(Roles = "HR, employee_control_ukvh")]
+        [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public async Task<IActionResult> PersonalityAdd()
         {
             var result = new Result<string>();
@@ -599,7 +599,7 @@ namespace Portal.Controllers
             }
         }
 
-        [Authorize(Roles = "HR, employee_control_ukvh")]
+        [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public IActionResult PersonalityPut()
         {
             var result = new Result<string>();

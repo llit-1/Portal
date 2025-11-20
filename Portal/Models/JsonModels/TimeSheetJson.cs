@@ -17,9 +17,10 @@ namespace Portal.Models.JsonModels
     {
         public Guid Personalities { get; set; }
         public Guid Location { get; set; }
-        public Guid JobTitle { get; set; }
+        public Guid? JobTitle { get; set; }
         public DateTime Begin { get; set; }
         public DateTime End { get; set; }
+        public int? Absence { get; set; }
     }
 
     public class WorkSlotJson

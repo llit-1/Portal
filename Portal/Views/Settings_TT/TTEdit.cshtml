@@ -286,7 +286,7 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">селектор пользователей</label>
             <div style="width:100%; float:left">
-                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple">
+                <select id="users" class="form-control selectors" data-width="100%" multiple="multiple" disabled>
 
                     @foreach (var user in Model?.Users)
                     {
@@ -1075,7 +1075,6 @@
         }
         tt.id = ttId;
 
-        tt.users = DataFromSelector($('#users'));
         tt.type = $('#ttType').select2('val');
         tt.organization = $('#ttOrganization').select2('val');        
 

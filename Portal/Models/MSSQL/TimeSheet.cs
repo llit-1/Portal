@@ -12,8 +12,9 @@ namespace Portal.Models.MSSQL
         public Guid Guid { get; set; } 
         public Personality.Personality Personalities { get; set; }
         public Location.Location Location { get; set; }
-        public Personality.JobTitle JobTitle { get; set; }
+        public Personality.JobTitle? JobTitle { get; set; }
         public DateTime Begin { get; set; }
         public DateTime End { get; set; }
+        public int? Absence { get; set; }
     }
 }

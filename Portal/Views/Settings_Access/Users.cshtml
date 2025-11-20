@@ -19,21 +19,28 @@
             </tbody>
         </table>
 
-        <!--меню таблицы-->
-        <div id="tableMenu" class="col-md-12" style="padding:0px">
-            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <a href="#AddUser" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
-        </div>
 
-        <!--меню редактора пользователя-->
-        <div id="editMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-            <a href="#DeleteUser" class="btn btn-sm btn-danger" onclick="DeleteItem()">удалить</a>
-        </div>
+        
+            <!--меню таблицы-->
+       <div id="tableMenu" class="col-md-12" style="padding:0px">
+       <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+           @if (!User.IsInRole("HR"))
+           {
+                <a href="#AddUser" class="btn btn-sm btn-success" onclick="AddItem()" style="margin-left:20px">добавить</a>
+           }
+       </div>
 
-        <!--меню добавления пользователя-->
-        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+        @if (!User.IsInRole("HR"))
+        {
 
-        </div>
+            <!--меню редактора пользователя-->
+            <div id="editMenu" class="col-md-12" style="margin-top:10px; padding:0px">
+                <a href="#DeleteUser" class="btn btn-sm btn-danger" onclick="DeleteItem()">удалить</a>
+            </div>
+
+            <!--меню добавления пользователя-->
+            <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px"></div>
+        }
 
     </div>
 </div>

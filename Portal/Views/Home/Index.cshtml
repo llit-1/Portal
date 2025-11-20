@@ -666,7 +666,7 @@
     }
 
     <!--настройки-->
-    @if (User.IsInRole("settings") || User.IsInRole("TTSettings"))
+    @if (User.IsInRole("settings") || User.IsInRole("TTSettings") || User.IsInRole("HR") )
     {
         <div class="@classTails">
             <a href="#settings" class="panel panel-default thumbnail cm-thumbnail tails-panel">

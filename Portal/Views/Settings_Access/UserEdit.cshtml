@@ -5,9 +5,12 @@
 
     var display = "";
     var disabled = "disabled";
+    var disabledHR = false;
+    var displayHR = "";
     var formClass = "userData input-group";
     var blockStyle = "style=padding:30px;padding-top:10px;padding-bottom:20px"; // стиль блоков
     var columnClass = "col-md-6 col-lg-3";
+
 
     if (Model.newUser)
     {
@@ -16,6 +19,12 @@
         formClass = "userData form-group";
     }
 
+
+    if (User.IsInRole("HR"))
+    {
+        disabledHR = true;
+        displayHR = "none";
+    }
     
 }
 
@@ -33,7 +42,7 @@
         <div class="pull-right" style="padding-bottom:10px">
             <label id="switchLabel" style="margin-right:15px"></label>
             <div class="material-switch pull-right">
-                <input class="slider" id="userEnabled" type="checkbox" checked="@Model.User.Enabled">
+                <input class="slider" id="userEnabled" type="checkbox" checked="@Model.User.Enabled" disabled="@disabledHR">
                 <label for="userEnabled" class="label-warning"></label>
             </div>
         </div>
@@ -45,7 +54,7 @@
         <div class="pull-right" style="margin-bottom:0px">
             <label id="switchLabel" style="margin-right:15px">пользователь AD</label>
             <div class="material-switch pull-right">
-                <input class="slider" id="userAd" type="checkbox" checked="@Model.User.AdUser">
+                <input class="slider" id="userAd" type="checkbox" checked="@Model.User.AdUser" disabled="@disabledHR">
                 <label for="userAd" class="label-warning"></label>
             </div>
         </div>
@@ -53,7 +62,7 @@
         <!--имя пользователя-->
         <label class="label-light" style="width:100%">имя пользователя</label>
         <div class="@formClass" style="margin-bottom:10px">
-            <input id="userName" type="text" class="form-control" value="@Model.User.Name" style="font-weight:bold" @disabled>
+            <input id="userName" type="text" class="form-control" value="@Model.User.Name" style="font-weight:bold" @disabled disabled="@disabledHR">
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -69,7 +78,7 @@
         <!--логин-->
         <label class="label-light">логин</label>
         <div class="@formClass" style="margin-bottom:10px">
-            <input id="userLogin" type="text" class="form-control" value="@Model.User.Login" style="font-weight:bold" @disabled>
+            <input id="userLogin" type="text" class="form-control" value="@Model.User.Login" style="font-weight:bold" @disabled disabled="@disabledHR">
             @if(Model.User.Login != "Admin")
             {
                 <span class="input-group-btn @display">
@@ -89,7 +98,7 @@
         <!--пароль-->
         <label class="label-light">пароль</label>
         <div class="userData input-group" style="margin-bottom:10px">
-            <input id="userPass" type="password" value="" class="form-control" style="font-weight:bold" @disabled>
+            <input id="userPass" type="password" value="" class="form-control" style="font-weight:bold" @disabled disabled="@disabledHR">
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -112,7 +121,7 @@
         <!--должность-->
         <label class="label-light">должность</label>
         <div class="@formClass" style="margin-bottom:10px">
-            <input id="userJob" type="text" class="form-control" value="@Model.User.JobTitle" style="font-weight:bold" @disabled>
+            <input id="userJob" type="text" class="form-control" value="@Model.User.JobTitle" style="font-weight:bold" @disabled disabled="@disabledHR">
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -128,7 +137,7 @@
         <!--почта-->
         <label class="label-light">e-mail</label>
         <div class="@formClass" style="margin-bottom:10px">
-            <input id="userMail" type="email" class="form-control" value="@Model.User.Mail" style="font-weight:bold" @disabled>
+            <input id="userMail" type="email" class="form-control" value="@Model.User.Mail" style="font-weight:bold" @disabled disabled="@disabledHR">
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -144,7 +153,7 @@
         <!--отчёт по выручке free-->
         <label class="label-light">выручка free</label>
         <div class="@formClass" style="margin-bottom:10px">
-            <input id="profitFree" type="text" class="form-control" value="@Model.User.Reports.ProfitFree" style="font-weight:bold" @disabled>
+            <input id="profitFree" type="text" class="form-control" value="@Model.User.Reports.ProfitFree" style="font-weight:bold" @disabled disabled="@disabledHR">
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -160,7 +169,7 @@
         <!--отчёт по выручке pro-->
         <label class="label-light">выручка pro</label>
         <div class="@formClass" style="margin-bottom:10px">
-            <input id="profitPro" type="text" class="form-control" value="@Model.User.Reports.ProfitPro" style="font-weight:bold" @disabled>
+            <input id="profitPro" type="text" class="form-control" value="@Model.User.Reports.ProfitPro" style="font-weight:bold" @disabled disabled="@disabledHR">
             <span class="input-group-btn @display">
                 <!--редактировать-->
                 <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
@@ -186,7 +195,7 @@
         <div class="form-group">
             <label class="label-light" style="width:100%">селектор групп</label>
             <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                <select id="groups" class="form-control selectors" data-width="100%" multiple="multiple">
+                <select id="groups" class="form-control selectors" data-width="100%" multiple="multiple" disabled="@disabledHR">
 
                     @foreach (var group in Model.Groups.OrderBy(g => g.Name))
                     {
@@ -226,7 +235,7 @@
         <div class="form-group">
             <label class="label-light" style="width:100%; max-height:500px; overflow-y:auto">селектор ролей</label>
             <div style="width:100%; float:left">
-                <select id="roles" class="form-control selectors" data-width="100%" multiple="multiple">
+                <select id="roles" class="form-control selectors" data-width="100%" multiple="multiple" disabled="@disabledHR">
 
                     @foreach (var role in Model.Roles.OrderBy(r => r.Name))
                     {
@@ -259,14 +268,18 @@
         <!--заголовок-->
         <h5 class="pull-left">Торговые точки</h5>
 
-        <!--все тт-->
-        <div class="pull-right" style="padding-top:16px">
-            <label id="switchLabel" style="margin-right:15px">все тт</label>
-            <div class="material-switch pull-right">
-                <input class="slider" id="allTT" type="checkbox" checked="@Model.User.AllTT">
-                <label for="allTT" class="label-warning"></label>
+        @if (displayHR == "")
+        {
+            <!--все тт-->
+            <div class="pull-right" style="padding-top:16px">
+                <label id="switchLabel" style="margin-right:15px">все тт</label>
+                <div class="material-switch pull-right">
+                    <input class="slider" id="allTT" type="checkbox" checked="@Model.User.AllTT" disabled="@disabledHR">
+                    <label for="allTT" class="label-warning"></label>
+                </div>
             </div>
-        </div>
+        }
+        
 
         <!--разделитель-->
         <hr style="width:100%" />

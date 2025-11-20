@@ -10,19 +10,22 @@
 
 <div class="row">
 
-    @if (User.IsInRole("settings"))
+    @if (User.IsInRole("settings") || User.IsInRole("HR"))
     {
-        <!--общие настройки-->
-        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-            <a href="#SettingsMain" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/themes/clearmin/img/sf/cogs.svg" width="20px">
-                    </span>
-                    <h4>Общие настройки</h4>
-                </div>
-            </a>
-        </div>
+        @if (!User.IsInRole("HR"))
+        {
+            <!--общие настройки-->
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#SettingsMain" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/themes/clearmin/img/sf/cogs.svg" width="20px">
+                        </span>
+                        <h4>Общие настройки</h4>
+                    </div>
+                </a>
+            </div>
+        }
 
         <!--права доступа-->
         <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
@@ -36,54 +39,63 @@
             </a>
         </div>
 
-        <!--торговые точки-->
-        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-            <a href="#SettingsTT" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/svg/color_panels/shop.svg" width="20px">
-                    </span>
-                    @* <h4>Справочник</h4> *@
-                    <h4>Торговые точки</h4>
-                </div>
-            </a>
-        </div>
+        @if (!User.IsInRole("HR"))
+        {
+            <!--торговые точки-->
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#SettingsTT" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/shop.svg" width="20px">
+                        </span>
+                        @* <h4>Справочник</h4> *@
+                        <h4>Торговые точки</h4>
+                    </div>
+                </a>
+            </div>
+        }
 
         <!--видеонаблюдение-->
-        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-            <a href="#SettingsVideo" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/themes/clearmin/img/sf/webcam.svg" width="20px">
-                    </span>
-                    <h4>Видео-наблюдение</h4>
-                </div>
-            </a>
-        </div>
+        @* <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2"> *@
+        @*     <a href="#SettingsVideo" class="panel panel-default thumbnail cm-thumbnail tails-panel"> *@
+        @*         <div class="panel-body text-center" style="min-height: 147px;"> *@
+        @*             <span class="svg-48"> *@
+        @*                 <img src="~/themes/clearmin/img/sf/webcam.svg" width="20px"> *@
+        @*             </span> *@
+        @*             <h4>Видео-наблюдение</h4> *@
+        @*         </div> *@
+        @*     </a> *@
+        @* </div> *@
 
-        <!--р-кипер-->
-        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-            <a href="#SettingsRk" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/svg/color_panels/rk.svg" width="20px">
-                    </span>
-                    <h4>R-Keeper</h4>
-                </div>
-            </a>
-        </div>
+        @if (!User.IsInRole("HR"))
+        {
+            <!--р-кипер-->
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#SettingsRk" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/svg/color_panels/rk.svg" width="20px">
+                        </span>
+                        <h4>R-Keeper</h4>
+                    </div>
+                </a>
+            </div>
+        }
 
-        <!--модули-->
-        <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
-            <a href="#SettingsModules" class="panel panel-default thumbnail cm-thumbnail tails-panel">
-                <div class="panel-body text-center" style="min-height: 147px;">
-                    <span class="svg-48">
-                        <img src="~/themes/clearmin/img/sf/carton.svg" width="20px">
-                    </span>
-                    <h4>Модули</h4>
-                </div>
-            </a>
-        </div>
+        @if (!User.IsInRole("HR"))
+        {
+            <!--модули-->
+            <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="#SettingsModules" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                    <div class="panel-body text-center" style="min-height: 147px;">
+                        <span class="svg-48">
+                            <img src="~/themes/clearmin/img/sf/carton.svg" width="20px">
+                        </span>
+                        <h4>Модули</h4>
+                    </div>
+                </a>
+            </div>
+        }
     }
 
     @if (User.IsInRole("TTSettings"))

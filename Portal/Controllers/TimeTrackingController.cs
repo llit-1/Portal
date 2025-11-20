@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -155,6 +156,7 @@ namespace Portal.Controllers
             dateData.TimeSheets = dbSql.TimeSheets.Include(c => c.Personalities)
                                                   .Include(c => c.JobTitle)
                                                   .Where(c => c.Begin.Date == date && c.Location.Guid == location.Guid)
+                                                  .Where(x => x.Absence == null)
                                                   .ToList();
             dateData.WorkingSlots = dbSql.WorkingSlots.Include(c => c.Personalities)
                                                   .Include(c => c.JobTitles)
@@ -187,6 +189,7 @@ namespace Portal.Controllers
                     TimeSheets.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == TimeSheet.JobTitle);
                     TimeSheets.Begin = TimeSheet.Begin;
                     TimeSheets.End = TimeSheet.End;
+                    TimeSheets.Absence = TimeSheet.Absence;
                     addedTimeSheets.Add(TimeSheets);
                 }
 
@@ -195,8 +198,9 @@ namespace Portal.Controllers
                 if (!editChart)
                 {
                     removedTimeSheets = dbSql.TimeSheets.Include(c => c.Location)
-                                                                    .Where(c => c.Location.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
-                                                                    .ToList();
+                                                        .Where(c => c.Location.Guid == timeSheetJsonModel.Location && c.Begin.Date == timeSheetJsonModel.Date)
+                                                        .Where(x => x.Absence == null)
+                                                        .ToList();
                 }
 
 
@@ -345,7 +349,7 @@ namespace Portal.Controllers
 
             var now = DateTime.Parse(date);
             var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
-            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1);
 
             // Добавляем тт, которые привзяаны к пользователю
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
@@ -402,7 +406,7 @@ namespace Portal.Controllers
                 {
                     person = person,
                     timesheets = timesheets,
-                    shedules = Enumerable.Range(0, lastDayOfMonth.Day)
+                    shedules = Enumerable.Range(0, lastDayOfMonth.AddDays(-1).Day)
                              .Select(_ => new sheduleItem())
                              .ToList()
                 };
@@ -425,6 +429,10 @@ namespace Portal.Controllers
                     totalHours += duration;
 
                     sheduleItem sheduleItem = new();
+                    if(timesheet.Absence != null)
+                    {
+                        sheduleItem.Absence = timesheet.Absence;
+                    }
                     sheduleItem.jobTime = duration;
                     sheduleItem.duration = timesheet.Begin.ToString("HH:mm") + " " + timesheet.End.ToString("HH:mm");
                     sheduleItem.location = timesheet.Location.Guid.ToString();
@@ -537,7 +545,7 @@ namespace Portal.Controllers
                     {
                         person = null,
                         timesheets = null,
-                        shedules = Enumerable.Range(0, lastDayOfMonth.Day)
+                        shedules = Enumerable.Range(0, lastDayOfMonth.AddDays(-1).Day)
                             .Select(_ => new sheduleItem())
                             .ToList()
                     };
@@ -565,7 +573,7 @@ namespace Portal.Controllers
                     {
                         person = person,
                         timesheets = null,
-                        shedules = Enumerable.Range(0, lastDayOfMonth.Day)
+                        shedules = Enumerable.Range(0, lastDayOfMonth.AddDays(-1).Day)
                             .Select(_ => new sheduleItem())
                             .ToList()
                     };
@@ -605,7 +613,23 @@ namespace Portal.Controllers
         }
         public List<Schedule> GetSheduleTime(string guid)
         {
-            List<Schedule> times = dbSql.Schedules.Where(x => x.JobTitleGuid == Guid.Parse(guid)).ToList();
+
+            List<Schedule> times = new();
+
+            if(Guid.TryParse(guid, out Guid parsed))
+            {
+                times = dbSql.Schedules
+                    .Where(x => x.JobTitleGuid == parsed)
+                    .ToList();
+            }
+            else 
+            {
+                Schedule schedule = new();
+                schedule.Guid = Guid.Empty;
+                schedule.BeginTime = TimeSpan.Parse("00:00:00");
+                schedule.EndTime = TimeSpan.Parse("00:00:00");
+                times.Add(schedule);
+            }
 
             return times;
         }
@@ -707,6 +731,7 @@ namespace Portal.Controllers
                 public string locationName { get; set; }
                 public int traitorStatus { get; set; }
                 public List<string>? jobTitle { get; set; }
-            }
+                public int? Absence { get; set; }
+        }
     }
 }

@@ -13,7 +13,7 @@ using RKNet_Model.Reports;
 
 namespace Portal.Controllers
 {
-    [Authorize(Roles = "settings")]
+    [Authorize(Roles = "settings, HR")]
     public class Settings_AccessController : Controller
     {
         private DB.SQLiteDBContext db;
@@ -53,9 +53,19 @@ namespace Portal.Controllers
             {
                 users = db.Users
                 .Include(u => u.TTs)
+                .Include(u => u.Groups)
                 .Include(u => u.Reports)
                 .Where(u => u.Login != "Admin")
                 .ToList();
+
+                
+
+                if(User.IsInRole("HR"))
+                {
+                    var group = db.Groups.FirstOrDefault(x => x.Id == 22);
+                    users = users.Where(x => x.Groups.Contains(group)).ToList(); 
+                }
+
             }
 
             return PartialView(users);

@@ -963,15 +963,6 @@ namespace Portal.Controllers
                             tt.Users.Add(db.Users.First(u => u.Id == item.id));
                         }
                     }
-                    else
-                    {
-                        ttFromOldBD.Users = new List<User>();
-                        foreach (var item in ttJsn.users)
-                        {
-                            User user = db.Users.FirstOrDefault(u => u.Id == item.id);
-                            ttFromOldBD.Users.Add(user);
-                        }
-                    }
                     
                     // тип новой тт
                     if (!string.IsNullOrEmpty(ttJsn.type))

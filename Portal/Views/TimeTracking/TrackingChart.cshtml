@@ -32,6 +32,25 @@
         { "Работник пекарни", "#ffbdc0" },
         { "Администратор", "#ffdd9e" },
     };
+
+    // Статусы для отсутствующих людей
+    // 1 - Болезнь (Б)
+    // 2 - Отпуск (ОТ)
+    // 3 - Отпуск за свой счёт (ДО)
+
+    var textColorAbsence = new Dictionary<int?, string>
+    {
+        { 1, "green" },
+        { 2, "#ffa100" },
+        { 3, "red" },
+    };
+
+    var markAbsence = new Dictionary<int?, string>
+    {
+        { 1, "Б" },
+        { 2, "ОТ" },
+        { 3, "ДО" },
+    };
 }
 
 <!--шапка-->
@@ -107,6 +126,9 @@
         @foreach(var item in Model.jobTitles) {
             <option value="@item.Guid" data-color="@colorFromJobTitle[item.Name.Trim()]">@item.Name.Trim()</option>
         }
+        <option value="1" data-color="green">Больничный</option>
+        <option value="2" data-color="#ffa100">Отпуск</option>
+        <option value="3" data-color="red">Отпуск за свой счёт</option>
     </select>
 
     <select id="trackingChart_selectTime" class="form-control form-control-sm trackingChart_select" disabled></select>
@@ -146,7 +168,7 @@
 
                 <tbody>
 
-                    @foreach(var item in Model?.DataForCharts?.OrderBy(x => x.person.Location.Guid))
+                    @foreach(var item in Model?.DataForCharts?.OrderByDescending(x => x.person.Location.Guid == Guid.Parse(Model.selectedLocation)))
                     {
 
                         <tr id="@item.person.Personalities.Guid">
@@ -219,7 +241,14 @@
                                                     </div>
                                                 }
                                             else {
-                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+
+                                                @if (item.shedules[i].Absence != null)
+                                                {
+                                                    <div style="font-size: 16px; font-weight: 600; color:  @textColorAbsence[item?.shedules[i]?.Absence]" class="trackingChart_td">@markAbsence[item?.shedules[i]?.Absence]</div>
+                                                } else {
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+                                                }
+                                                
                                             }
 
                                         </td>
@@ -297,7 +326,15 @@
                                             }
                                             else
                                             {
-                                                <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+                                                if (item.shedules[i].Absence != null)
+                                                {
+                                                    <div style="font-size: 16px; font-weight: 600; color:  @textColorAbsence[item?.shedules[i]?.Absence]" class="trackingChart_td">@markAbsence[item?.shedules[i]?.Absence]</div>
+                                                }
+                                                else
+                                                {
+                                                    <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
+                                                }
+
                                             }
                                         </td>
                                     }
@@ -316,11 +353,17 @@
                                             <div class='trackingChart_td'></div>
                                         </td>
                                     }
-
                                 }
                             }
 
-                            <td style="text-align: center; font-weight: 600;">@item.Hours ч.</td>
+                            @if(item.Hours.ToString().Length > 2)
+                            {
+                                <td style="text-align: center; font-weight: 600; font-size: 11px;">@item.Hours ч.</td>
+                            } 
+                            else{
+                                <td style="text-align: center; font-weight: 600;">@item.Hours ч.</td>
+                            }
+                            
 
                         </tr>
 
@@ -353,9 +396,7 @@
                                 }
                                 else
                                 {
-
                                     <td align="center" id="@i">
-
                                         @if (item.shedules[i].duration.Length > 12 && item.shedules[i].duration.Length < 15)
                                         {
                                             <div class="trackingChart_td multiShedule">
@@ -388,7 +429,6 @@
                                         {
                                             <div style="background-color:  @colorFromJobTitle[item.shedules[i].jobTitle[0]?.Trim()]" class="trackingChart_td">@item.shedules[i].duration</div>
                                         }
-
                                     </td>
                                 }
                             }
@@ -409,8 +449,19 @@
 </div>
 
 
+@* Помещаем в localStorage, что мы пришли со страницы с таблицей *@
+<script>
+    localStorage.setItem("backButtonCharts", "Charts");
+</script>
 
 <script>
+
+    const markAbsence = {
+        1: "Б",
+        2: "ОТ",
+        3: "ДО",
+    };
+
     /*
         actionType == 1 - прямой переход на страницу редактирования смены
         actionType == 2 - быстрое проставление смен
@@ -465,8 +516,6 @@
 
 
     function actionTypeSwitcher(day = "", guid = "", element1 = null) {
-        
-        console.log("ActionType при нажатии на плитку", actionType)
 
         const date = document.getElementById("trackingChart_input").value;
         const time = document.getElementById("trackingChart_selectTime");
@@ -529,6 +578,26 @@
                     return openModal("Быстрое добавление невозможно!", "Для добавления смены перейдите в карточку заполнения плана на день.")
                 }
 
+                if(trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length < 4 && element.textContent.length > 0)
+                {
+                    return openModal("Добавление невозможно!", "Для добавления смены перейдите в карточку заполнения плана на день.")
+                }
+
+                if(trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length < 4 && element.children.length > 0)
+                {
+                    return openModal("Добавление невозможно!", "Для добавления смены перейдите в карточку заполнения плана на день.")
+                }
+
+                if(trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length > 4 && (element.textContent.length > 0 && element.textContent.length < 4))
+                {
+                    return openModal("Добавление невозможно!", "Для добавления смены перейдите в карточку заполнения плана на день.")
+                }
+
+                console.log(element.textContent)
+                console.log(element.children.length)
+                console.log(trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length)
+
+
                 if(element.parentElement.style.backgroundColor !== trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color)
                 {
                     const data = {}
@@ -540,14 +609,16 @@
                     {
                         day = "0" + day;
                     }
+
                     const TimeSheetJson = [];
 
                     TimeSheetJson.push({
                         Personalities: element.parentElement.parentElement.id,
-                        JobTitle: trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value,
+                        JobTitle: trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length == 1 ? null : trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value,
                         Location: document.getElementById("trackingChart_select").value,
                         Begin: date + "-" + day + " " + time.options[time.selectedIndex].innerHTML.split("-")[0],
                         End: date + "-" + day + " " + time.options[time.selectedIndex].innerHTML.split("-")[1],
+                        Absence: trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length > 1 ? null : trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value,
                     });
 
                     data.Date = date + "-" + day + " 00:00:00";
@@ -573,12 +644,16 @@
 
                                 if(element.textContent.trim().length == 0)
                                 {
-                                    console.log(0)
-                                    element.innerHTML = `${beginTimeForChart} ${endTimeForChart}`
-                                    element.style = `background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}`
-
+                                    // Если guid должности 1,2 или 3, то это не смена, а отсутствие
+                                    if(trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value.length == 1)
+                                    {
+                                       element.innerHTML = markAbsence[trackingChart_selectd.options[trackingChart_selectd.selectedIndex].value]
+                                       element.style = `font-size: 16px; font-weight: 600; color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}`
+                                    } else {
+                                        element.innerHTML = `${beginTimeForChart} ${endTimeForChart}`
+                                        element.style = `background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}`
+                                    }
                                 } else if(element.textContent.trim().length > 5 && element.textContent.trim().length < 24) {
-                                    console.log(1)
 
                                     const oldTime = element.textContent;
                                     const color = element.style.backgroundColor;
@@ -595,7 +670,6 @@
                                         ${beginTimeForChart} ${endTimeForChart}
                                     </div>`
                                 } else {
-                                    console.log(2)
                                     element.innerHTML += `<div style="background-color: ${trackingChart_selectd.options[trackingChart_selectd.selectedIndex].dataset.color}">
                                         ${beginTimeForChart} ${endTimeForChart}
                                     </div>`
@@ -624,8 +698,8 @@
         stockStyle.innerHTML = `
             .trackingChart_table tbody > tr > td:not(:first-child):hover {
                 background-color: #CCC !important;
-                }
-            `;
+            }
+        `;
 
         document.head.appendChild(stockStyle);
 
@@ -661,7 +735,6 @@
             actionType = 1;
         }
 
-        console.log("ActionType при нажатии на чекбокс", actionType)
         actionTypeSwitcher()
     }
 
@@ -767,7 +840,6 @@
             return alert("У вас недостаточно прав, для просмотра этой смены.")
         }
 
-        console.log(day)
         day = +day + 1; 
 
         if(day.toString().length === 1)
@@ -784,7 +856,6 @@
         
         const dat = "01-" + document.getElementById("trackingChart_input").value.split("-").reverse().join("-");
 
-        console.log(date)
 
         $("#page").load(`/TimeTracking/TrackingDataEdit?stringDate=${date}&locationGuid=${location}`, function () {
             $('#back').unbind('click');
@@ -837,6 +908,10 @@
 </script>
 
 <style>
+    #select2-trackingChart_selectd-results {
+        max-height: 300px;
+    }
+
     .trackingChart_header {
         display: flex;
         margin: 0px;

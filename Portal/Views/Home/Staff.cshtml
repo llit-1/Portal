@@ -11,7 +11,7 @@
 <div class="row">
 
     
-    @if (User.IsInRole("HR") || User.IsInRole("employee_control_ukvh"))
+    @if (User.IsInRole("HR") || User.IsInRole("employee_control_ukvh") || User.IsInRole("settings"))
     {
         <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2">
             <a href="#Personality" class="panel panel-default thumbnail cm-thumbnail tails-panel">
