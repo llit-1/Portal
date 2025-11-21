@@ -80,6 +80,31 @@
         </div>
     }
 
+
+    <div class="col-sm-3" style="min-width: 300px">
+        <div class="panel panel-default" style="min-height: 190px;">
+            <div class="panel-heading">FactoryPerson</div>
+            <div class="panel-body" style="height: 148px; padding: 0;display: flex;justify-content: center;align-items: center;">
+
+                <form class="" style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 5px">
+
+                    <button id='buttonRefreshFactoryPerson' class="btn btn-success btn-sm" style="position: relative;width: 88px; height: 34px;" onclick="RefreshDataFactory(event)">
+
+                        <div id="loading3" style="width: 40px; height: 38px; display: none" class="lds-ring center-block">
+                            <div style="width: 24px; height: 24px;"></div>
+                            <div style="width: 24px; height: 24px;"></div>
+                            <div style="width: 24px; height: 24px;"></div>
+                            <div style="width: 24px; height: 24px;"></div>
+                        </div>
+
+                        <span id="textButtonFactory"> Обновить </span>
+
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </div>
     
 
 </div>
@@ -157,6 +182,46 @@
             button.disabled = false;
             button.style.backgroundColor = "#2ECC71"
             button.style.borderColor = "#29B765"
+            alert(e)
+        }
+    }
+
+    const buttonRefreshFactoryPerson = document.getElementById("buttonRefreshFactoryPerson")
+    const loading3 = document.getElementById('loading3')
+
+    async function RefreshDataFactory(event) {
+        event.preventDefault()
+        const url = '/Settings/UpdateFactoryPerson/'
+
+        try {
+            loading3.style.display = "block"
+            textButtonFactory.style.display = "none"
+            buttonRefreshFactoryPerson.disabled = true;
+            buttonRefreshFactoryPerson.style.backgroundColor = "transparent"
+            buttonRefreshFactoryPerson.style.borderColor = "transparent"
+
+            const response = await fetch(url)
+
+            const result = await response.text();
+
+            if(!response.ok) {
+                throw new Error(result)
+            }
+
+            alert(result)
+
+            loading3.style.display = "none"
+            textButtonFactory.style.display = "block"
+            buttonRefreshFactoryPerson.disabled = false;
+            buttonRefreshFactoryPerson.style.backgroundColor = "#2ECC71"
+            buttonRefreshFactoryPerson.style.borderColor = "#29B765"
+
+        } catch(e) {
+            loading3.style.display = "none"
+            textButtonFactory.style.display = "block"
+            buttonRefreshFactoryPerson.disabled = false;
+            buttonRefreshFactoryPerson.style.backgroundColor = "#2ECC71"
+            buttonRefreshFactoryPerson.style.borderColor = "#29B765"
             alert(e)
         }
     }

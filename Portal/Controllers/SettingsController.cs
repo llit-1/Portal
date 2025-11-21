@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using System.Text;
 using Portal.Models.MSSQL;
+using Portal.Models.MSSQL.Factory;
 
 namespace Portal.Controllers
 {
@@ -51,6 +52,148 @@ namespace Portal.Controllers
             return PartialView(portalSettings);
         }
 
+        public string UpdateFactoryPerson()
+        {
+            string path = "Users.csv"; // путь к твоему CSV файлу
+
+            // Читаем все строки из файла
+            var lines = System.IO.File.ReadAllLines(path);
+
+            // Проверяем, что файл не пуст
+            if (lines.Length < 2)
+            {
+                Console.WriteLine("Файл не содержит данных.");
+                return "Файл не содержит данных.";
+            }
+
+            // Получаем индексы столбцов из первой строки (заголовка)
+            string[] headers = lines[0].Split(',');
+            int numberIndex = System.Array.FindIndex(headers, h => h.Trim('\"') == "Number");
+            int cardDataIndex = -1;
+
+            // Ищем столбец, который содержит нужные данные (по примеру это 4-й столбец, индекс 3)
+            // Можно искать по содержимому или просто по индексу
+            for (int i = 0; i < headers.Length; i++)
+            {
+                if (i == 3)
+                {
+                    cardDataIndex = i;
+                    break;
+                }
+            }
+
+            if (numberIndex == -1)
+            {
+                Console.WriteLine("Столбец 'Number' не найден!");
+                return "Столбец 'Number' не найден!";
+            }
+
+            if (cardDataIndex == -1)
+            {
+                Console.WriteLine("Столбец с карточными данными не найден!");
+                return "Столбец с карточными данными не найден!";
+            }
+
+            var numbers = new List<string>();
+
+            // Проходим все строки, начиная со второй (пропускаем заголовок)
+            for (int i = 1; i < lines.Length; i++)
+            {
+                // Разбиваем строку по запятой, учитывая кавычки
+                var values = SplitCsvLine(lines[i]);
+
+                if (values.Length > cardDataIndex)
+                {
+                    string cardData = values[cardDataIndex].Trim('\"');
+
+                    // Берем последние 6 символов
+                    if (cardData.Length >= 6)
+                    {
+                        string lastSix = cardData.Substring(cardData.Length - 6);
+                        numbers.Add(lastSix);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Строка слишком короткая: {cardData}");
+                        numbers.Add(cardData); // или обработать как-то иначе
+                    }
+                }
+            }
+
+            List<FactoryPerson> factoryPersonarr = new List<FactoryPerson>();
+            int count = 0;
+
+            // Выводим результат
+            foreach (var num in numbers)
+            {
+                // Для нового формата данных не нужно конвертировать через ConvertEmNumber
+                string cardNumber = num;
+                string passport = num;
+
+                // Проверяем, существует ли уже такая запись в базе
+                bool exists = dbSql.FactoryPerson.Any(p => p.PassCardNumber == cardNumber || p.Passport == passport);
+
+                if (exists)
+                {
+                    Console.WriteLine($"Запись уже существует: CardNumber={cardNumber}, Passport={passport}");
+                    continue;
+                }
+
+                count++;
+                FactoryPerson factoryPerson = new FactoryPerson();
+                factoryPerson.Name = "Тестовое";
+                factoryPerson.Surname = "Тестовая";
+                factoryPerson.Birthdate = DateTime.Now;
+                factoryPerson.FactoryDepartment = 1;
+                factoryPerson.FactoryWorkshop = 1;
+                factoryPerson.FactoryJobTitle = 12;
+                factoryPerson.FactoryCitizenship = 1;
+                factoryPerson.FactoryEntity = 1;
+                factoryPerson.FactoryDocumentType = 1;
+                factoryPerson.HiringDate = DateTime.Now;
+                factoryPerson.SKUDGroupId = 1;
+                factoryPerson.CardNumber = cardNumber;
+                factoryPerson.Fake = true;
+                factoryPerson.PassCardNumber = cardNumber;
+                factoryPerson.Passport = passport;
+
+                factoryPersonarr.Add(factoryPerson);
+            }
+
+            dbSql.FactoryPerson.AddRange(factoryPersonarr);
+            dbSql.SaveChanges();
+
+            return $"Данные успешно обновлены, добавлено {count} записей";
+        }
+
+        // Простая функция для корректного разделения CSV с кавычками
+        static string[] SplitCsvLine(string line)
+        {
+            var result = new List<string>();
+            bool inQuotes = false;
+            var current = "";
+
+            foreach (char c in line)
+            {
+                if (c == '\"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    result.Add(current);
+                    current = "";
+                }
+                else
+                {
+                    current += c;
+                }
+            }
+
+            result.Add(current); // добавляем последний элемент
+            return result.ToArray();
+        }
+
         // сохранение общих настроек
         public IActionResult SaveSettings(string json)
         {
@@ -71,40 +214,6 @@ namespace Portal.Controllers
                 return new ObjectResult(e.ToString());
             }            
         }
-
-        //public async Task<IActionResult> UpdateSaleObjects(string daysAgo)
-        //{
-        //    try
-        //    {
-        //        DateTime today = DateTime.Now;
-        //        string morning = new DateTime(today.Year, today.Month, today.Day, 3, 0, 0).ToString("yyyy-dd-MM HH:mm");
-        //        string connectionString = dbSql.Database.GetDbConnection().ConnectionString;
-
-        //        if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
-        //        {
-        //            return BadRequest("Запрос уже выполняется другим пользователем, попробуйте позже");
-        //        }
-
-        //        using (var connection = new SqlConnection(connectionString))
-        //        {
-        //            await connection.OpenAsync();
-        //            using (var command = new SqlCommand($"EXEC RKNET.dbo.UpdateSaleobjects @now = '{morning}', @daysAgo = '-{daysAgo}' ", (SqlConnection)connection))
-        //            {
-        //                command.CommandTimeout = 1500;
-        //                int rowsAffected = await command.ExecuteNonQueryAsync();
-        //                return Ok(rowsAffected);
-        //            }
-        //        }
-        //    }
-        //    catch (SqlException sqlEx)
-        //    {
-        //        return StatusCode(500, $"SQL Error: {sqlEx.Message}");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
 
         public IActionResult UpdateSaleObjects(string daysAgo)
         {
