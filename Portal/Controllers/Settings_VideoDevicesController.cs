@@ -375,6 +375,122 @@ namespace Portal.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult GetAllMusic()
+        {
+            // Корневая папка с музыкой на файловом сервере
+            var musicRoot = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ";
+
+            if (!Directory.Exists(musicRoot))
+            {
+                return NotFound("Music folder not found");
+            }
+
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".mp3", ".wav", ".flac", ".aac", ".ogg"
+            };
+
+            var files = Directory
+                .EnumerateFiles(musicRoot, "*.*", SearchOption.AllDirectories)
+                .Where(path => allowedExtensions.Contains(Path.GetExtension(path)))
+                .ToList();
+
+            if (files.Count == 0)
+            {
+                return NotFound("No music files found");
+            }
+
+            var result = new List<MusicItemDto>();
+
+            foreach (var path in files)
+            {
+                // Кастомное экранирование, такое же как у тебя для видео
+                var encodedPath = path
+                    .Replace("+", "plustoreplace")
+                    .Replace(" ", "backspacetoreplace")
+                    .Replace(@"\\fs1", @"\\shzhleb.ru\shz"); // если вдруг попадётся старый путь
+
+                // Строим URL на метод, который отдаёт ОДИН аудиофайл
+                var fileUrl = Url.Action(
+                    action: nameof(GetMusicForTv),         // метод ниже
+                    controller: "Settings_VideoDevices",   // имя твоего контроллера
+                    values: new { url = encodedPath },
+                    protocol: Request.Scheme
+                );
+
+                result.Add(new MusicItemDto
+                {
+                    Name = Path.GetFileNameWithoutExtension(path),
+                    FileName = Path.GetFileName(path),
+                    Url = fileUrl
+                });
+            }
+
+            return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult GetMusicForTv(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return BadRequest("URL parameter is missing");
+            }
+
+            // Меняем сервер, если придёт старый путь
+            url = url.Replace(@"\\fs1", @"\\shzhleb.ru\shz");
+
+            try
+            {
+                var filePath = url
+                    .Replace("plustoreplace", "+")
+                    .Replace("backspacetoreplace", " ");
+
+                var fileInfo = new FileInfo(filePath);
+                if (!fileInfo.Exists)
+                {
+                    return NotFound("File not found");
+                }
+
+                var extension = fileInfo.Extension.ToLowerInvariant();
+
+                var mimeType = extension switch
+                {
+                    ".mp3" => "audio/mpeg",
+                    ".wav" => "audio/wav",
+                    ".flac" => "audio/flac",
+                    ".aac" => "audio/aac",
+                    ".ogg" => "audio/ogg",
+                    _ => "application/octet-stream"
+                };
+
+                var stream = new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read
+                );
+
+                // DownloadManager всё равно просто сохраняет байты, ему норм
+                return File(stream, mimeType, fileInfo.Name);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        public class MusicItemDto
+        {
+            public string Name { get; set; }
+            public string FileName { get; set; }
+            public string Url { get; set; }
+        }
+
         public IActionResult DeleteDevice(string guid)
         {
             var result = new RKNet_Model.Result<string>();
@@ -508,8 +624,6 @@ namespace Portal.Controllers
                                      .ToList();
             return list;
         }
-
-
 
         public async Task<IActionResult> DeleteVideo(string guid) 
         {
