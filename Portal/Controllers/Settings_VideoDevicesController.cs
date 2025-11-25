@@ -399,7 +399,7 @@ namespace Portal.Controllers
 
             if (files.Count == 0)
             {
-                return NotFound("No music files found");
+                return Ok(new List<MusicItemDto>());
             }
 
             var result = new List<MusicItemDto>();
