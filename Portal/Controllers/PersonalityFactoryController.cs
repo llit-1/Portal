@@ -106,10 +106,17 @@ namespace Portal.Controllers
             // Сохраняем фото если есть
             if (string.IsNullOrEmpty(person.Photo))
             {
-                //person.Photo = await SavePhotoAsync(person.Photo, person.PassCardNumber);
                 person.Photo = null;
             }
-
+            if (person.PassCardNumber != null)
+            {
+                if (person.PassCardNumber.Length != 8)
+                {
+                    return BadRequest(new { Message = "Неверный код карты" });
+                }
+                person.PassCardNumber = person.CardNumber.Substring(2, 6);
+            }
+          
             dbSql.FactoryPerson.Add(person);
             await dbSql.SaveChangesAsync();
             return Ok();
@@ -178,7 +185,14 @@ namespace Portal.Controllers
             if (dbSql.FactoryPerson.Any(x => x.Passport == person.Passport && x.Id != person.Id))
                 return BadRequest(new { Message = "Паспорт уже зарегистрирован у другого человека" });
 
-
+            if (person.PassCardNumber != null)
+            {
+                if (person.PassCardNumber.Length != 8)
+                {
+                    return BadRequest(new { Message = "Неверный код карты" });
+                }
+                person.PassCardNumber = person.CardNumber.Substring(2, 6);
+            }
             dbSql.Entry(person).State = EntityState.Modified;
             dbSql.SaveChanges();
             return Ok();
