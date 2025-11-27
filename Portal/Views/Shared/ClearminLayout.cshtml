@@ -271,7 +271,7 @@
                         }
 
                         <!--Учет пользователей-->
-                        @if (User.IsInRole("employee_control"))
+                        @if (User.IsInRole("employee_control") || User.IsInRole("employee_control_factory"))
                         {
                             <li class="cm-submenu">
                                 <a class="md-tablet" id="person" onclick="selectSection('person')">Учет сотрудников<span class="caret"></span></a>
@@ -280,8 +280,12 @@
                                     {
                                         <li><a id='Personality' href="#Personality">Учет сотрудников</a></li>
                                     }
-                                    <li><a id="TrackingData" href="#TrackingData">Учет табеля рабочего времени</a></li>
 
+                                    @if (User.IsInRole("employee_control"))
+                                    {
+                                        <li><a id="TrackingData" href="#TrackingData">Учет табеля рабочего времени</a></li>
+                                    }
+                                    
                                     @if (User.IsInRole("employee_control_factory"))
                                     {
                                         <li><a id='TimesheetsFactory' href="#TimesheetsFactory">Табель рабочего времени (Завод)</a></li>

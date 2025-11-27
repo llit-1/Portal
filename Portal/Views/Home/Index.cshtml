@@ -559,7 +559,7 @@
     }
 
     <!--Учет пользователей #staff--> 
-    @if (User.IsInRole("employee_control"))
+    @if (User.IsInRole("employee_control") || User.IsInRole("employee_control_factory"))
     {
         <div class="@classTails">
             <a href="#staff" class="panel panel-default thumbnail cm-thumbnail tails-panel">
