@@ -1,20 +1,13 @@
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using module_NX;
 using Portal.HostedServices;
 using Portal.Models;
 using Portal.Models.MSSQL.Factory;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static Portal.Controllers.PersonalityFactoryController;
 
 namespace Portal.Controllers
 {
@@ -27,18 +20,18 @@ namespace Portal.Controllers
         {
             db = context;
             dbSql = dbSqlContext;
-        }       
+        }
 
         [Authorize(Roles = "employee_control_factory")]
         public IActionResult PersonalityFactoryTable()
         {
-            List<FactoryPerson> Factorypersons = dbSql.FactoryPerson.Include(c=>c.Bank)
-                                                                    .Include(c=>c.Citizenship)
-                                                                    .Include(c=>c.Entity)
-                                                                    .Include(c=>c.DocumentType)
-                                                                    .Include(c=>c.DepartmentWorkshopJobTitle)
-                                                                    .ThenInclude(a=>a.JobTitleWorkshop)
-                                                                    .ThenInclude(b=>b.FactoryJobTitle)
+            List<FactoryPerson> Factorypersons = dbSql.FactoryPerson.Include(c => c.Bank)
+                                                                    .Include(c => c.Citizenship)
+                                                                    .Include(c => c.Entity)
+                                                                    .Include(c => c.DocumentType)
+                                                                    .Include(c => c.DepartmentWorkshopJobTitle)
+                                                                    .ThenInclude(a => a.JobTitleWorkshop)
+                                                                    .ThenInclude(b => b.FactoryJobTitle)
                                                                     .Include(c => c.DepartmentWorkshopJobTitle)
                                                                     .ThenInclude(a => a.JobTitleWorkshop)
                                                                     .ThenInclude(b => b.FactoryWorkshop)
@@ -72,10 +65,10 @@ namespace Portal.Controllers
         [Authorize(Roles = "employee_control_factory")]
         public IActionResult GetWorkshops(int depertment)
         {
-           List<FactoryWorkshop> factoryWorkshops = dbSql.FactoryDepartmentFactoryWorkshop
-                                                          .Include(x => x.FactoryWorkshop)
-                                                          .Where(x => x.FactoryDepartmentId == depertment)
-                                                          .Select(x => x.FactoryWorkshop).OrderBy(x => x.Name).ToList();
+            List<FactoryWorkshop> factoryWorkshops = dbSql.FactoryDepartmentFactoryWorkshop
+                                                           .Include(x => x.FactoryWorkshop)
+                                                           .Where(x => x.FactoryDepartmentId == depertment)
+                                                           .Select(x => x.FactoryWorkshop).OrderBy(x => x.Name).ToList();
             return Ok(factoryWorkshops);
         }
 
@@ -108,15 +101,11 @@ namespace Portal.Controllers
             {
                 person.Photo = null;
             }
-            if (person.PassCardNumber != null)
+            if (person.PassCardNumber != null && person.PassCardNumber.Length != 6)
             {
-                if (person.PassCardNumber.Length != 8)
-                {
-                    return BadRequest(new { Message = "Неверный код карты" });
-                }
-                person.PassCardNumber = person.CardNumber.Substring(2, 6);
+                return BadRequest(new { Message = "Неверный код карты" });
             }
-          
+
             dbSql.FactoryPerson.Add(person);
             await dbSql.SaveChangesAsync();
             return Ok();
@@ -185,13 +174,9 @@ namespace Portal.Controllers
             if (dbSql.FactoryPerson.Any(x => x.Passport == person.Passport && x.Id != person.Id))
                 return BadRequest(new { Message = "Паспорт уже зарегистрирован у другого человека" });
 
-            if (person.PassCardNumber != null)
+            if (person.PassCardNumber != null && person.PassCardNumber.Length != 6)
             {
-                if (person.PassCardNumber.Length != 8)
-                {
-                    return BadRequest(new { Message = "Неверный код карты" });
-                }
-                person.PassCardNumber = person.CardNumber.Substring(2, 6);
+                return BadRequest(new { Message = "Неверный код карты" });
             }
             dbSql.Entry(person).State = EntityState.Modified;
             dbSql.SaveChanges();
