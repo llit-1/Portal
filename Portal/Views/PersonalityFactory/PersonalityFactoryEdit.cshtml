@@ -334,7 +334,7 @@
                     <div class="buttonsForCameraWrapper hidden">
                         <div>
                             <label class="label-light">Номер пропуска</label>
-                            <input type="text" class="form-control" minlength="8" maxlength="8" placeholder="0000000000" id="PassCardNumberFactory" value="@Model.FactoryPerson.PassCardNumber">
+                            <input type="text" class="form-control" minlength="8" maxlength="8" placeholder="00000000" id="PassCardNumberFactory" value="@Model.FactoryPerson.PassCardNumber">
                         </div>
                     </div>
 
@@ -398,40 +398,63 @@
         });
     });
 
-    async function getLastNxData() {
-        const resp = await fetch("/PersonalityFactory/GetLastNxData");
-        const arrayBuffer = await resp.arrayBuffer();
+        async function getLastNxData() {
+        try {
+            const resp = await fetch("/PersonalityFactory/GetLastNxData");
 
-        const blob = new Blob([arrayBuffer], { type: "image/jpeg" });
+            if (!resp.ok) {
+                console.error("Ошибка при запросе GetLastNxData:", resp.status);
+                return;
+            }
 
-        const img = new Image();
-        img.src = URL.createObjectURL(blob);
+            // ⬇️ 1. Получаем JSON вместо arrayBuffer
+            const data = await resp.json();
 
-        img.onload = () => {
-            const targetSize = 1080;
+            const hexStr = data.hex;               // lastLog.HexStr
+            const base64 = data.imageBase64;       // Base64-картинка
 
-            const canvas = document.createElement("canvas");
-            canvas.width = targetSize;
-            canvas.height = targetSize;
+            // ⬇️ 2. Создаём картинку напрямую из Base64
+            const img = new Image();
+            img.src = "data:image/jpeg;base64," + base64;
 
-            const ctx = canvas.getContext("2d");
+            img.onload = () => {
+                const targetSize = 1080;
 
-            ctx.drawImage(
-                img,
-                0, 0, targetSize, targetSize,   // что берём из оригинала
-                0, 0, targetSize, targetSize    // куда рисуем
-            );
+                const canvas = document.createElement("canvas");
+                canvas.width = targetSize;
+                canvas.height = targetSize;
 
-            // ✨ ВАЖНО: вместо toBlob -> toDataURL
-            const dataUrl = canvas.toDataURL("image/jpeg");
+                const ctx = canvas.getContext("2d");
 
-            // Можно освободить временный blob: URL исходного img
-            URL.revokeObjectURL(img.src);
+                // Тут по-простому растягиваем на квадрат 1080x1080
+                ctx.drawImage(
+                    img,
+                    0, 0, targetSize, targetSize,   // что берём из оригинала
+                    0, 0, targetSize, targetSize    // куда рисуем
+                );
 
-            const imgElement = document.getElementById("imgPhotoWrapper");
-            imgElement.src = dataUrl;
-        };
+                const dataUrl = canvas.toDataURL("image/jpeg");
+
+                const imgElement = document.getElementById("imgPhotoWrapper");
+                if (imgElement) {
+                    imgElement.src = dataUrl;
+                }
+
+                // Если хочешь где-то показать hex — например, в элементе с id="hexWrapper"
+                const hexElement = document.getElementById("PassCardNumberFactory");
+                if (hexElement) {
+                    hexElement.value = hexStr;
+                }
+            };
+
+            img.onerror = (e) => {
+                console.error("Ошибка загрузки изображения из Base64", e);
+            };
+        } catch (err) {
+            console.error("Ошибка в getLastNxData:", err);
+        }
     }
+
 
 
     function formatCardNumber()
@@ -603,6 +626,12 @@
         const imgElement = document.getElementById("imgPhotoWrapper");
         const photoDataUrl = imgElement.src;
         const isDefaultImage = photoDataUrl.includes('/svg/panels/help.svg');
+
+        // Обрезаем карту, если длина 8 символов
+        if(passcardnumberfactory.value != null && passcardnumberfactory.value.length == 8)
+        {
+            passcardnumberfactory.value = passcardnumberfactory.value.slice(2);
+        }
 
         const person = {
             Id: "@Model.FactoryPerson.Id".trim(),

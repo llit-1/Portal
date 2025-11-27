@@ -215,7 +215,7 @@
                 <div class="buttonsForCameraWrapper">
                     <div>
                         <label class="label-light">Номер пропуска</label>
-                        <input type="text" class="form-control" minlength="8" maxlength="8" placeholder="0000000000" id="PassCardNumberFactory" value="">
+                        <input type="text" class="form-control" minlength="8" maxlength="8" placeholder="00000000" id="PassCardNumberFactory" value="">
                     </div>
                     
                     <button class="photo-buttonAdd" onclick="getCameraAccess()" id="photo-buttonAdd" type="button">Добавить фото</button>
@@ -443,6 +443,13 @@
         const imgElement = document.getElementById("imgPhotoWrapper");
         const photoDataUrl = imgElement.src;
         const isDefaultImage = photoDataUrl.includes('/svg/panels/help.svg');
+
+        // Обрезаем карту, если длина 8 символов
+        if(passcardnumberfactory.value != null && passcardnumberfactory.value.length == 8)
+        {
+            passcardnumberfactory.value = passcardnumberfactory.value.slice(2);
+        }
+
 
         const person = {
             Surname: surnameFactory.value.trim().replace(/\s+/g, ' '),

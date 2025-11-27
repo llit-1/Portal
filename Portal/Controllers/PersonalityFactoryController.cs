@@ -113,7 +113,10 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> GetLastNxData()
         {
-            FactorySKUDWorkLog lastLog = dbSql.FactorySKUDWorkLog.OrderByDescending(x => x.DateTime).First();
+            FactorySKUDWorkLog lastLog = dbSql.FactorySKUDWorkLog
+                .Where(x => x.ReaderId == 2)
+                .OrderByDescending(x => x.DateTime)
+                .First();
 
             string cameraId = "2da4a772-4c24-ed11-a888-9bd9c6760d9a";
 
@@ -123,7 +126,11 @@ namespace Portal.Controllers
             if (imageBytes == null)
                 return NotFound();
 
-            return File(imageBytes, "image/jpeg");
+            return Ok(new
+            {
+                hex = lastLog.HexStr,
+                imageBase64 = Convert.ToBase64String(imageBytes)
+            });
         }
 
         public byte[] ConvertDataUrlToByteArray(string dataUrl)
