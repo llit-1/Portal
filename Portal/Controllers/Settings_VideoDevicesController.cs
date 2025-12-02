@@ -35,6 +35,12 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
+        public IActionResult DevicesMainNew()
+        {
+            Portal.Models.JsonModels.DeviceMainJson deviceMainJson = new Models.JsonModels.DeviceMainJson();
+            deviceMainJson.videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).ToList(); ;
+            return PartialView(deviceMainJson);
+        }
 
         public IActionResult DevicesMain()
         {

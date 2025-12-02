@@ -666,8 +666,11 @@
         const jobTitleList = [];
         const jobTitleIdList = [];
         getJobTitleData.forEach((jobTitle) => {
-            jobTitleList.push(jobTitle.children[0].children[1].textContent);
-            jobTitleIdList.push(jobTitle.children[3].textContent);
+            if(jobTitle.children[0].children[1].textContent.trim() != "Парт-таймер")
+            {
+                jobTitleList.push(jobTitle.children[0].children[1].textContent);
+                jobTitleIdList.push(jobTitle.children[3].textContent);
+            }
         });
 
         // Создаем селект для выбора должности

@@ -85,7 +85,7 @@ namespace Portal.Controllers
             }
             catch
             {
-                return StatusCode(500, "Произошла ошибка при обработке запроса");
+                return StatusCode(500, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             }
         }
 
@@ -102,26 +102,26 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> UploadFiles(CouponData data)
         {
-            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ПромокодыВК";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\пїЅпїЅпїЅпїЅпїЅ2\\пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
 
             try
             {
                 if (data.Files == null || data.Files.Count == 0)
-                    return BadRequest("Нет загружаемых файлов.");
+                    return BadRequest("пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.");
 
                 foreach (var file in data.Files)
                 {
                     PromocodesVK receivedPromocodesVK = new PromocodesVK();
                     var filePath = Path.Combine(path, file.FileName);
 
-                    // Сохранение файла
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
 
                     receivedPromocodesVK.Name = file.FileName.Split(".")[0];
-                    receivedPromocodesVK.Link = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ПромокодыВК\\" + file.FileName;
+                    receivedPromocodesVK.Link = "\\\\shzhleb.ru\\shz\\SHZWork\\пїЅпїЅпїЅпїЅпїЅ2\\пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\\" + file.FileName;
                     receivedPromocodesVK.CodeWord = data.CodeWord;
                     receivedPromocodesVK.StartDate = data.StartDate;
                     receivedPromocodesVK.EndDate = data.EndDate;
@@ -133,19 +133,12 @@ namespace Portal.Controllers
                     dbSql.SaveChanges();
                 }
 
-                return Ok("Файлы успешно загружены.");
+                return Ok("пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Внутренняя ошибка сервера: {ex.Message}");
+                return StatusCode(500, $"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {ex.Message}");
             }
-        }
-
-        public IActionResult HistoryCoupon()
-        {
-            List<ReceivedPromocodesVK> receivedPromocodes = dbSql.ReceivedPromocodesVK.Include(x => x.PromocodesVK).ToList();
-             
-            return PartialView(receivedPromocodes);
         }
 
         public IActionResult VKBOTStatistics(int days = 0)
