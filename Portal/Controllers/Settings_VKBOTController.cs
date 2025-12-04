@@ -102,7 +102,7 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> UploadFiles(CouponData data)
         {
-            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\�����2\\�����������";
+            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ПромокодыВК";
 
             try
             {
