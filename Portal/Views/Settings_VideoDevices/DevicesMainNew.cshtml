@@ -24,7 +24,7 @@
 </div>
 
 <div class="devicesWrapper">
-    @foreach(var device in Model.videoDevices)
+    @foreach(var device in Model.videoDevices.OrderBy(x => x.Location.Name))
     {
         <div class="deviceCard" onclick="EditDevice('@device.Guid')">
 
@@ -93,10 +93,11 @@
 
     .devicesWrapper {
         width: 100%;
-        overflow: auto;
+        overflow: scroll;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 5px;
+        max-height: calc(100% - 90px);
     }
 
     .devicesWrapper::-webkit-scrollbar {
