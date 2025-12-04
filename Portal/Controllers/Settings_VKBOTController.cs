@@ -121,7 +121,7 @@ namespace Portal.Controllers
                     }
 
                     receivedPromocodesVK.Name = file.FileName.Split(".")[0];
-                    receivedPromocodesVK.Link = "\\\\shzhleb.ru\\shz\\Обмен2\\ПромокодыВК\\" + file.FileName;
+                    receivedPromocodesVK.Link = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ПромокодыВК\\" + file.FileName;
                     receivedPromocodesVK.CodeWord = data.CodeWord;
                     receivedPromocodesVK.StartDate = data.StartDate;
                     receivedPromocodesVK.EndDate = data.EndDate;
