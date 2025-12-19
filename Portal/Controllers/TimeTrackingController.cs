@@ -426,7 +426,11 @@ namespace Portal.Controllers
                         duration = (timesheet.Begin - timesheet.End).TotalHours;
                     }
                     
-                    totalHours += duration;
+                    if(timesheet.Location.Guid == Guid.Parse(locationGuid))
+                    {
+                        totalHours += duration;
+                    }
+                    
 
                     sheduleItem sheduleItem = new();
                     if(timesheet.Absence != null)

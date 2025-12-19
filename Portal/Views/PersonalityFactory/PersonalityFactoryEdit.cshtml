@@ -67,8 +67,8 @@
                 </div>
             </div>
 
-            <label class="label-light">Номер телефона</label>
-            <input type="text" class="form-control" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone" disabled="@sesurity">
+            <label class="label-light hidden">Номер телефона</label>
+            <input type="text" class="form-control hidden" minlength="10" maxlength="10" placeholder="9XXXXXXXXX" id="telFactory" value="@Model.FactoryPerson.Phone" disabled="@sesurity">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Отдел</label>
@@ -228,8 +228,8 @@
                 </div>
             </div>
 
-            <label class="label-light">Номер банковской карты</label>
-            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber" disabled="@sesurity">
+            <label class="label-light hidden">Номер банковской карты</label>
+            <input type="text" class="form-control hidden" placeholder="0000 0000 0000 0000" maxlength="19" minlength="19" id="cardFactory" value="@Model.FactoryPerson.CardNumber" disabled="@sesurity">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Схема доступа</label>
@@ -251,7 +251,7 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group hidden">
                 <label class="label-light" style="width:100%">Банк</label>
                 <div style="width:100%; float:left;">
                     <select id="bankFactory" class="form-control selectors" data-width="100%" disabled="@sesurity">
@@ -271,7 +271,7 @@
                 </div>
             </div>
 
-            <div class="personalityFactory-smallFieldsWrapper">
+            <div class="personalityFactory-smallFieldsWrapper hidden">
                 <div class="fullwidthFactoryField">
                     <label class="label-light">Дата въезда</label>
                     <input type="date" class="form-control" placeholder="ДД.ММ.ГГГГ" id="entryDateFactory" value="@Model.FactoryPerson?.HostelChekin?.ToString("yyyy-MM-dd")" disabled="@sesurity">
