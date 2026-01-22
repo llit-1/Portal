@@ -8,7 +8,7 @@ namespace Portal.Models
     public class SettingsInternal
     {
         // Версия
-        public static string portalVersion = "2.15.8.8";
+        public static string portalVersion = "2.15.8.9";
 
         // Текущая конфигурация приложения
         public static Microsoft.Extensions.Configuration.IConfiguration Configuration;

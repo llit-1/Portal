@@ -135,7 +135,11 @@
                             {
                                 <tr>
                                     <th class="hidden guidForError">@item.Personalities.Guid</th>
-                                    <th width="35%" style="text-align: start" class="newRowAlign">@item.Personalities.Name</th>
+                                    <th width="35%" style="text-align: start" class="newRowAlign">
+                                        @Model.PersonalityVersions.FirstOrDefault(x => x.Personalities.Guid == item.Personalities.Guid && x.Actual == 1).Surname
+                                        @Model.PersonalityVersions.FirstOrDefault(x => x.Personalities.Guid == item.Personalities.Guid && x.Actual == 1).Name
+                                        @Model.PersonalityVersions.FirstOrDefault(x => x.Personalities.Guid == item.Personalities.Guid && x.Actual == 1).Patronymic
+                                    </th>
                                     <th class="hidden">@item.JobTitle?.Guid</th>
                                     <th width="30%" class="newRowAlign">
                                         <select name="" id="selectJobTitle" class="selectJobTitle">
