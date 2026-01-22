@@ -138,21 +138,25 @@ namespace Portal.Controllers
 
                     for (var x = 2; x <= rowsCount; x++)
                     {
+                        if (IsRowEmpty(production, x))
+                            continue;
+
                         var group = new ViewModels.FranchOrdersView.Group();
+
                         switch (orderTypeId)
                         {
                             case 1:
                             case 2:
                             case 3:
-                                group.Name = production.Cells[x, 4].Value.ToString();
-                                group.DeliveryDate = production.Cells[x, 7].Value.ToString();
+                                group.Name = production.Cells[x, 4].Value?.ToString();
+                                group.DeliveryDate = production.Cells[x, 7].Value?.ToString();
                                 break;
+
                             case 4:
-                                group.Name = production.Cells[x, 2].Value.ToString();
+                                group.Name = production.Cells[x, 2].Value?.ToString();
                                 group.DeliveryDate = "В последний день месяца";
                                 break;
                         }
-
 
                         fordresView.Groups.Add(group);
                     }
@@ -225,6 +229,9 @@ namespace Portal.Controllers
 
                                 for (var x = 2; x <= rowsCount; x++)
                                 {
+                                    if (IsRowEmpty(production, x))
+                                        continue;
+
                                     var forder = new FOrderXLS();
 
                                     // фильтр по признаку собственное управление / партнерское управление
@@ -263,6 +270,10 @@ namespace Portal.Controllers
                         // фильтр по признаку собственное управление / партнерское управление
                         var typeFilter = "0";
                         var enabled = "0";
+
+                        if (IsRowEmpty(production, x))
+                            continue;
+
                         // фильтр отключенных позиций для всех
                         switch (orderTypeId)
                         {
@@ -298,6 +309,17 @@ namespace Portal.Controllers
                 return new ObjectResult(e.ToString());
             }
         }
+
+        public bool IsRowEmpty(ExcelWorksheet ws, int row)
+        {
+            for (int col = 1; col <= ws.Dimension.End.Column; col++)
+            {
+                if (ws.Cells[row, col].Value != null)
+                    return false;
+            }
+            return true;
+        }
+
 
         // Список позиций для заказа
         public IActionResult SkuList(string group, string delivery, int orderTypeId)
@@ -347,8 +369,11 @@ namespace Portal.Controllers
                     ExcelWorksheet production = excelPackage.Workbook.Worksheets.FirstOrDefault(x => x.Name == listName);
                     var rowsCount = production.Dimension.End.Row;
 
-                    for (var x = 2; x <= rowsCount; x++)
+                    for (int x = 2; x <= rowsCount; x++)
                     {
+                        if (IsRowEmpty(production, x))
+                            continue;
+
                         var forder = new FOrderXLS();
 
                         // фильтр по признаку собственное управление / партнерское управление
@@ -356,14 +381,13 @@ namespace Portal.Controllers
                         var enabled = "0";
                         // фильтр отключенных позиций для всех
 
-
                         switch (orderTypeId)
                         {
                             case 1:
                             case 2:
                             case 3:
                                 if (production.Cells[x, 1].Value != null)
-                                    forder.Article = production.Cells[x, 1].Value.ToString().Replace(" ", "").Trim();
+                                forder.Article = production.Cells[x, 1].Value.ToString().Replace(" ", "").Trim();
                                 forder.Sku = production.Cells[x, 2].Value.ToString();
                                 forder.MinOrder = production.Cells[x, 3].Value.ToString();
                                 forder.Group = production.Cells[x, 4].Value.ToString();
