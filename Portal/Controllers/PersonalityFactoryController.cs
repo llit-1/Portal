@@ -185,6 +185,12 @@ namespace Portal.Controllers
             {
                 return BadRequest(new { Message = "Неверный код карты" });
             }
+
+            if (person.DismissedDate != null)
+            {
+                person.PassCardNumber = null;
+            }
+
             dbSql.Entry(person).State = EntityState.Modified;
             dbSql.SaveChanges();
             return Ok();
