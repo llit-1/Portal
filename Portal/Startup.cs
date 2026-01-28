@@ -107,6 +107,7 @@ namespace Portal
             services.AddHostedService<HostedServices.CashMessagesService>();
             services.AddHostedService<HostedServices.SkuStopService>();
 
+            services.AddMemoryCache();
             services.AddResponseCaching();
             services.AddHttpClient();
             // ������ ���������� �����

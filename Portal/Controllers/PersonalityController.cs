@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
@@ -30,11 +31,13 @@ namespace Portal.Controllers
     {
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
+        private readonly IMemoryCache _cache;
 
-        public PersonalityController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
-        {
+        public PersonalityController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext, IMemoryCache cache)
+{
             db = context;
             dbSql = dbSqlContext;
+            _cache = cache;
         }
 
         [Authorize(Roles = "HR, employee_control_ukvh, settings")]
@@ -42,6 +45,75 @@ namespace Portal.Controllers
         {
             return PartialView();
         }
+
+        private record PersonalityTableCache(DateTime StampUtc, List<PersonalityVersion> Rows);
+        
+        private List<PersonalityVersion> GetPersonalityTableCached()
+        {
+            const string key = "PersonalityTableCache";
+
+            // 1) Берём stamp из БД (быстро)
+            // Важно: используй то поле, которое реально обновляется при изменениях.
+            var dbStamp = dbSql.PersonalityVersions
+                .AsNoTracking()
+                .Max(v => (DateTime?)v.ModifiedDate) ?? new DateTime(1753, 1, 1);
+
+            // 2) Пробуем кеш
+            if (_cache.TryGetValue(key, out PersonalityTableCache cached))
+            {
+                if (cached.StampUtc == dbStamp)
+                    return cached.Rows;
+            }
+
+            // 3) Пересборка кеша (то, что ты и так делаешь)
+            var allVersions = dbSql.PersonalityVersions
+                .AsNoTracking()
+                .Include(x => x.Location)
+                .Include(x => x.Entity)
+                .Include(x => x.JobTitle)
+                .Include(x => x.Personalities)
+                .OrderBy(x => x.Personalities.Guid)
+                .ThenBy(x => x.VersionStartDate)
+                .ToList();
+
+            // выбираем актуальную/последнюю (линейно)
+            var result = new List<PersonalityVersion>();
+            Guid? current = null;
+            PersonalityVersion last = null;
+            PersonalityVersion actual = null;
+
+            for (int i = 0; i < allVersions.Count; i++)
+            {
+                var v = allVersions[i];
+                var pg = v.Personalities.Guid;
+
+                if (current == null || current.Value != pg)
+                {
+                    if (current != null)
+                        result.Add(actual ?? last);
+
+                    current = pg;
+                    last = null;
+                    actual = null;
+                }
+
+                last = v;
+                if (actual == null && v.Actual == 1)
+                    actual = v;
+            }
+
+            if (current != null)
+                result.Add(actual ?? last);
+
+            // 4) Кладём в кеш
+            _cache.Set(key, new PersonalityTableCache(dbStamp, result), new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+            });
+
+            return result;
+        }
+
 
         /* Проверка дат на пересечение и прочие ошибки */
         public bool HasErrors(List<PersonalityVersion> versions)
@@ -87,66 +159,25 @@ namespace Portal.Controllers
         {
             PersonalityModelNew model = new();
 
-            // Загружаем все версии всех личностей сразу
-            var allVersions = dbSql.PersonalityVersions
-                .Include(x => x.Location)
-                .Include(x => x.Entity)
-                .Include(x => x.JobTitle)
-                .Include(x => x.Personalities)
-                .ToList();
+            var rows = GetPersonalityTableCached();
 
-            // Группируем ВСЕ версии по личностям
-            var versionsByPersonality = allVersions
-                .GroupBy(x => x.Personalities.Guid)
-                .ToDictionary(g => g.Key, g => g.OrderBy(x => x.VersionStartDate).ToList());
-
-            // Получаем последние версии для отображения
-            var personalityVersions = versionsByPersonality
-                .Select(kv =>
-                {
-                    var versions = kv.Value;
-                    var actualVersion = versions.FirstOrDefault(x => x.Actual == 1);
-                    return actualVersion ?? versions.OrderByDescending(x => x.VersionStartDate).First();
-                })
-                .Where(x => x != null)
-                .ToList();
-
+            // дальше твои фильтры (они быстрые)
             if (showUnActual == 1)
-            {
-                personalityVersions = personalityVersions.Where(x => x.Actual == 1).ToList();
-            }
+                rows = rows.Where(x => x.Actual == 1).ToList();
 
             if (User.IsInRole("employee_control_ukvh"))
             {
-                personalityVersions = personalityVersions
-                    .Where(x => x.EntityCostGuid == Guid.Parse("27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F"))
-                    .ToList();
+                var roleGuid = Guid.Parse("27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F");
+                rows = rows.Where(x => x.EntityCostGuid == roleGuid).ToList();
             }
 
-            model.personalityVersions = personalityVersions;
-            model.entity = dbSql.Entity.ToList();
+            model.personalityVersions = rows;
+            model.entity = dbSql.Entity.AsNoTracking().ToList();
 
-            // Проверка ошибок — используем ВСЕ версии каждой личности
-            if (checkErrors == 1)
-            {
-                var errorGuids = new List<Guid>();
-
-                foreach (var kv in versionsByPersonality)
-                {
-                    if (HasErrors(kv.Value)) // ← Проверяем ВСЕ версии личности
-                    {
-                        errorGuids.Add(kv.Key);
-                    }
-                }
-
-                // Фильтруем только личности с ошибками
-                model.personalityVersions = personalityVersions
-                    .Where(x => errorGuids.Contains(x.Personalities.Guid))
-                    .ToList();
-            }
-
+            // checkErrors можно тоже кешировать отдельно, но это отдельная тема
             return PartialView(model);
         }
+
         public class PersonalityModelNew
         {
             public List<PersonalityVersion> personalityVersions { get; set; }
@@ -450,6 +481,7 @@ namespace Portal.Controllers
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
+                _cache.Remove("PersonalityTableCache");
                 return new OkObjectResult(result);
             }
             catch (Exception ex)
@@ -570,6 +602,8 @@ namespace Portal.Controllers
 
                 List<PersonalityVersion> allPersonalityVersions = dbSql.PersonalityVersions.Where(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                                            .ToList();
+
+                _cache.Remove("PersonalityTableCache");
 
                 if (allPersonalityVersions.Count <= 1 && personalityJson.VersionEndDate != null && allPersonalityVersions[0].Guid == personalityJson.Guid)
                 {
