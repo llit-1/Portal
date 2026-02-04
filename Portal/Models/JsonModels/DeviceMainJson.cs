@@ -11,6 +11,7 @@ namespace Portal.Models.JsonModels
     {
         public List<VideoDevices> videoDevices { get; set; }
         public List<VideoOrientation> videoOrientation { get; set; }
+        public string Version { get; set; }
     }
 }
 

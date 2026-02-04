@@ -16,7 +16,7 @@
         <div class="searchMenu_device" style="padding:0">
             <div class="search_wrapper_device">
                 <img src="/themes/clearmin/img/search.png">
-                <input oninput="searchCard(this)" class="input_search_device" style=""/>
+                <input oninput="searchCard(this)" class="input_search_device" style="" />
             </div>
             <button class="btn btn-sm btn-success addTTButton" onclick="addDevice()" style="margin-left:10px; border-radius: 8px; border: none;">Добавить устройство</button>
         </div>
@@ -24,15 +24,53 @@
 </div>
 
 <div class="devicesWrapper">
-    @foreach(var device in Model.videoDevices.OrderBy(x => x.Location.Name))
+    @foreach (var device in Model.videoDevices.OrderBy(x => x.Location.Name))
     {
-        <div class="deviceCard" onclick="EditDevice('@device.Guid')">
+        <div class="deviceCard" id="card-@device.Guid" onclick="EditDevice('@device.Guid')">
 
             <div class="deviceCard_mainStats">
                 <span class="hidden deviceGuid">@device.Guid</span>
                 <span style="font-weight: 600" class="deviceName">@device.Location.Name</span>
                 <span class="check_connection">@device.Ip</span>
-                <span class="selectedVideo">@device.VideoList.Replace("[", "").Replace("]", "")</span>
+
+                <div class="bottomIcons">
+                    <span class="selectedVideo">@device.VideoList.Replace("[", "").Replace("]", "")</span>
+
+                    <span class="deviceCard_version" title="Версия устройства">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" class="deviceCard_loaderVersion">
+                            <g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2">
+                                <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z">
+                                    <animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" />
+                                </path>
+                                <path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12">
+                                    <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" />
+                                    <animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" />
+                                </path>
+                            </g>
+                        </svg>
+                    </span>
+
+                    @if(device.OnlyMusic == null)
+                    {
+                        <span style="width: 40px;height: 40px;">
+                            <svg viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M759.3 352h84.3c15.5 0 28.1 9.2 28.1 20.5v277.3c0 11.3-12.6 20.5-28.1 20.5h-70.3" fill="rgb(104, 186, 104)"></path><path d="M843.5 695h-70.2v-49.5h70.2c1.4 0 2.5-0.2 3.3-0.4v-268c-0.9-0.2-2-0.4-3.3-0.4h-84.2v-49.5h84.3c29.6 0 52.8 19.9 52.8 45.3v277.3c0 25.4-23.3 45.2-52.9 45.2z" fill="#333333"></path><path d="M203.5 258h531c13.7 0 24.7 11.1 24.7 24.7v457.8c0 13.7-11.1 24.7-24.7 24.7h-531c-13.7 0-24.7-11.1-24.7-24.7V282.7c-0.1-13.6 11-24.7 24.7-24.7z" fill="#EEEEEE"></path><path d="M734.5 790h-531c-27.3 0-49.5-22.2-49.5-49.5V282.7c0-27.3 22.2-49.5 49.5-49.5h531c27.3 0 49.5 22.2 49.5 49.5v457.8c0 27.3-22.2 49.5-49.5 49.5z m-531-507.3v457.8h531V282.7h-531z" fill="#333333"></path><path d="M595.8 521.2L407 656c-5.6 4-13.3 2.7-17.3-2.9-1.5-2.1-2.3-4.6-2.3-7.2V376.3c0-6.8 5.5-12.4 12.4-12.4 2.6 0 5.1 0.8 7.2 2.3L595.8 501c5.6 4 6.9 11.7 2.9 17.3-0.8 1.1-1.8 2.1-2.9 2.9z" fill="rgb(104, 186, 104)"></path><path d="M399.9 683c-2.1 0-4.1-0.2-6.2-0.5-9.8-1.6-18.4-7-24.1-15.1-4.5-6.3-6.9-13.8-6.9-21.6V376.3c0-20.5 16.6-37.1 37.1-37.1 7.8 0 15.2 2.4 21.6 6.9l188.8 134.8c8.1 5.8 13.4 14.3 15 24.1 1.6 9.8-0.6 19.6-6.4 27.7-2.4 3.4-5.3 6.3-8.7 8.7L421.3 676.2c-6.3 4.5-13.8 6.8-21.4 6.8z m12.2-282.6v221.5l155.1-110.7-155.1-110.8zM581.4 501s0 0.1 0 0z" fill="#333333"></path></g></svg>
+                        </span>
+                    }
+
+                    @if(device.OnlyMusic == 1)
+                    {
+                        <span style="width: 30px;height: 30px;">
+                            <svg fill="#000000" viewBox="0 0 24 24" id="music-1" data-name="Flat Line" xmlns="http://www.w3.org/2000/svg" class="icon flat-line"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><circle id="secondary" cx="9.5" cy="17.5" r="3.5" style="fill: rgb(157, 221, 166); stroke-width: 2;"></circle><path id="primary" d="M13,17.5V3a25.84,25.84,0,0,0,3.44,3c1.66,1.07,1.91,2.76,1.15,5" style="fill: none; stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></path><circle id="primary-2" data-name="primary" cx="9.5" cy="17.5" r="3.5" style="fill: none; stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></circle></g></svg>
+                        </span>
+                    }
+
+                    @if(device.OnlyMusic == 0)
+                    {
+                        <span style="height: 28px;padding: 4px 6px;border-radius: 8px;border: 0px;color: white;font-size: 12px;display: inline-flex;justify-content: center;align-items: center;min-width: 30px;background-color: rgb(104, 186, 104);">
+                            Все
+                        </span>
+                    }
+                </div>
             </div>
 
             <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" class="deviceCard_loader">
@@ -46,13 +84,14 @@
                     </path>
                 </g>
             </svg>
+
+            
+
         </div>
     }
 </div>
 
-
 <style>
-
     .input_search_device {
         background-color: transparent;
         width: 100%;
@@ -80,29 +119,28 @@
         align-items: center;
         border-radius: 8px;
         border: 2px solid transparent;
-        transition: border-color 0.55s 
-        linear, border-width 0.55s 
-        linear;
+        transition: border-color 0.55s linear, border-width 0.55s linear;
         padding-left: 6px;
     }
 
-    .search_wrapper_device > img {
-        width: 18px;
-        height: 18px;
-    }
+        .search_wrapper_device > img {
+            width: 18px;
+            height: 18px;
+        }
 
     .devicesWrapper {
         width: 100%;
         overflow: scroll;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 5px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 12px;
         max-height: calc(100% - 90px);
+        align-items: stretch;
     }
 
-    .devicesWrapper::-webkit-scrollbar {
-        display: none;
-    }
+        .devicesWrapper::-webkit-scrollbar {
+            display: none;
+        }
 
     .deviceCard {
         display: flex;
@@ -110,11 +148,12 @@
         padding: 10px;
         border-radius: 8px;
         background-color: white;
-        min-width: 220px;
+        min-width: 280px;
+        width: 100%;
         justify-content: space-between;
         transition: all 0.25s linear;
-        max-width: 220px;
         max-height: 100px;
+        box-sizing: border-box;
     }
 
     .deviceCard_mainStats {
@@ -131,20 +170,11 @@
         justify-content: space-between;
     }
 
-    .actionButtons > svg:hover {
-        cursor: pointer;
-        transform: scale(1.1)
-    }
-
-    .actionButtons > label:hover {
-        cursor: pointer;
-        transform: scale(1.1)
-    }
-
-    .deviceCard > label:hover {
-        cursor: pointer;
-        transform: scale(1.1)
-    }
+        .actionButtons > svg:hover,
+        .actionButtons > label:hover {
+            cursor: pointer;
+            transform: scale(1.1)
+        }
 
     .deviceCard:hover {
         cursor: pointer;
@@ -160,6 +190,66 @@
         font-size: 12px;
     }
 
+    .bottomIcons {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: center;
+        height: 28px;
+        gap: 5px;
+    }
+
+    .deviceCard_version {
+        height: 28px;
+        padding: 4px 6px;
+        border-radius: 8px;
+        border: 0px;
+        color: white;
+        font-size: 12px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 30px;
+    }
+
+    .checkboxesContainer {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 40px;
+        border-radius: 8px;
+        justify-content: space-around;
+        align-items: center;
+        background: #eeeeee;
+        margin-top: 15px;
+    }
+
+    .checkboxesContainer > div {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: 'Akrobat-Regular';
+        font-size: 16px;
+    }
+
+    .checkboxesContainer .active {
+        background: #F47920;
+        color: white;
+    }
+
+    .checkboxesContainer .onlyMusic {
+        border-top-right-radius: 7px;
+        border-bottom-right-radius: 7px;
+    }
+
+    .checkboxesContainer .onlyVideo {
+        border-top-left-radius: 7px;
+        border-bottom-left-radius: 7px;
+    }
 </style>
 
 <script>
@@ -167,166 +257,169 @@
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#" });
 
-    document.querySelectorAll(".deviceCard").forEach(card => {
+    const SERVER_VERSION = ("@Model.Version" || "").toString().trim();
 
-        const ip = card.querySelector(".check_connection").textContent.trim()
-        const deviceGuid = card.querySelector(".deviceGuid").textContent.trim()
+    function setVersionBadge(card, deviceVersion) {
+        const badge = card.querySelector(".deviceCard_version");
+        if (!badge) return;
 
-        try {
-            $.ajax({
-                type: "POST",
-                url: `/Settings_VideoDevices/TryToConnectDevice?ip=${ip}`,
-                dataType: "text",
-                success: function (result) {
-                    const ok = JSON.parse(result);
-                    if(ok.ok) 
-                    {
-                        card.style.backgroundColor = "#9ddda6"
+        // убираем крутилку, если была
+        badge.querySelector(".deviceCard_loaderVersion")?.remove();
 
-                        card.innerHTML += `<div class="actionButtons">
-                                            <svg xmlns="http://www.w3.org/2000/svg" onclick="event.stopPropagation();getScreenshot('${ip}')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
-                                                <path fill="currentColor" d="M21 21V3H3v18zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z" />
-                                            </svg>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="restartButton" onclick="event.stopPropagation();reloadDevice('${ip}')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
-                                                <path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" />
-                                            </svg>
-                                            <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="event.stopPropagation();deleteDevice('${deviceGuid}')" style="margin: 0;"></label>
-                                        </div>`
+        badge.style.backgroundColor = (deviceVersion.serverVersion == deviceVersion.versionFromDevice)
+            ? "rgb(104 186 104)"
+            : "rgb(175 72 72)";
 
-                    } else {
-                        card.style.backgroundColor = "#df8e8e";
-                        const cardId = card.id || `card-${Date.now()}`;
-                        if (!card.id) card.id = cardId;
-                        card.innerHTML += `<div class="actionButtons">
-                                                <label class="md-wifi-lock ico" onclick="event.stopPropagation();tryToConnect('${cardId}')" style="margin: 0;"></label>
-                                                <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="event.stopPropagation();deleteDevice('${deviceGuid}')" style="margin: 0;"></label>
-                                              </div>`;
-                    }
+        badge.innerHTML = deviceVersion.versionFromDevice;
+    }
 
-                    card.querySelector(".deviceCard_loader").remove();
-                },
-            });
-        } catch {
-            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
-        }
-    });
+    function clearActionButtons(card) {
+        card.querySelector(".actionButtons")?.remove();
+    }
 
-    function tryToConnect(elementId)
-    {
-        const element = document.getElementById(elementId);
-        
-        
-        if (!element) {
-            console.error("Элемент не найден");
-            return;
-        }
-        
-        const ip = element.querySelector(".check_connection").textContent.trim();
-        const deviceGuid = element.querySelector(".deviceGuid").textContent.trim()
+    function addButtonsOk(card, ip, deviceGuid) {
+        clearActionButtons(card);
+        card.insertAdjacentHTML("beforeend", `
+            <div class="actionButtons">
+                <svg xmlns="http://www.w3.org/2000/svg" onclick="event.stopPropagation();getScreenshot('${ip}')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M21 21V3H3v18zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z" />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="restartButton" onclick="event.stopPropagation();reloadDevice('${ip}')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" />
+                </svg>
+                <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="event.stopPropagation();deleteDevice('${deviceGuid}')" style="margin: 0;"></label>
+            </div>
+        `);
+    }
 
-        element.style.backgroundColor = "white"
-        
-        // Удаляем старые кнопки
-        const oldButtons = element.querySelector(".actionButtons");
-        if (oldButtons) oldButtons.remove();
-        
-        const oldIcon = element.querySelector(".md-wifi-lock");
-        if (oldIcon) oldIcon.remove();
-        
-        element.innerHTML += `<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" class="deviceCard_loader">
-                                <g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2">
-                                    <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z">
-                                        <animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" />
-                                    </path>
-                                    <path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12">
-                                        <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" />
-                                        <animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" />
-                                    </path>
-                                </g>
-                              </svg>`
+    function addButtonsFail(card, deviceGuid) {
+        clearActionButtons(card);
+        const cardId = card.id;
+        card.insertAdjacentHTML("beforeend", `
+            <div class="actionButtons">
+                <label class="md-wifi-lock ico" onclick="event.stopPropagation();tryToConnect('${cardId}')" style="margin: 0;"></label>
+                <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="event.stopPropagation();deleteDevice('${deviceGuid}')" style="margin: 0;"></label>
+            </div>
+        `);
+    }
 
-        try {
-            $.ajax({
-                type: "POST",
-                url: `/Settings_VideoDevices/TryToConnectDevice?ip=${ip}`,
-                dataType: "text",
-                success: function (result) {
-                    const ok = JSON.parse(result);
-                    const loader = element.querySelector(".deviceCard_loader");
-                    if (loader) loader.remove();
-                    
-                    if(ok.ok)
-                    {
-                        element.style.backgroundColor = "#9ddda6";
+    function removeBigLoader(card) {
+        card.querySelector(".deviceCard_loader")?.remove();
+    }
 
-                        element.innerHTML += `<div class="actionButtons">
-                                            <svg xmlns="http://www.w3.org/2000/svg" onclick="event.stopPropagation();getScreenshot('${ip}')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
-                                                <path fill="currentColor" d="M21 21V3H3v18zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z" />
-                                            </svg>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="restartButton" onclick="event.stopPropagation();reloadDevice('${ip}')" width="1.8em" height="1.8em" viewBox="0 0 24 24">
-                                                <path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" />
-                                            </svg>
-                                            <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="event.stopPropagation();deleteDevice('${deviceGuid}')" style="margin: 0;"></label>
-                                        </div>`;
+    function connectCard(card) {
+        const ip = card.querySelector(".check_connection")?.textContent?.trim() || "";
+        const deviceGuid = card.querySelector(".deviceGuid")?.textContent?.trim() || "";
 
-                    } else {
+        if (!ip) return;
 
-                        console.log(deviceGuid)
+        $.ajax({
+            type: "POST",
+            url: `/Settings_VideoDevices/TryToConnectDevice?ip=${encodeURIComponent(ip)}`,
+            dataType: "json",
+            success: function (res) {
+                if (res && res.ok) {
+                    // зелёная карточка
+                    card.style.backgroundColor = "#9ddda6";
 
-                        element.style.backgroundColor = "#df8e8e";
-                        element.innerHTML += `<div class="actionButtons">
-                                                <label class="md-wifi-lock ico" onclick="event.stopPropagation();tryToConnect('${elementId}')" style="margin: 0;"></label>
-                                                <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="event.stopPropagation();deleteDevice('${deviceGuid}')" style="margin: 0;"></label>
-                                              </div>`;
-                    }
+                    setVersionBadge(card, res.data);
+
+                    // кнопки
+                    addButtonsOk(card, ip, deviceGuid);
+                } else {
+                    card.style.backgroundColor = "#df8e8e";
+                    addButtonsFail(card, deviceGuid);
+                    // если сервер вернул текст ошибки — можно вывести в title
+                    const badge = card.querySelector(".deviceCard_version");
+                    if (badge) badge.title = (res?.errorMessage || "Ошибка подключения");
+                    badge?.querySelector(".deviceCard_loaderVersion")?.remove();
+                    if (badge) badge.textContent = "ERR";
+                    if (badge) badge.style.backgroundColor = "rgb(175 72 72)";
                 }
-            })
-        } catch {
-            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
+
+                removeBigLoader(card);
+            },
+            error: function () {
+                card.style.backgroundColor = "#df8e8e";
+                addButtonsFail(card, deviceGuid);
+                const badge = card.querySelector(".deviceCard_version");
+                badge?.querySelector(".deviceCard_loaderVersion")?.remove();
+                if (badge) badge.textContent = "ERR";
+                if (badge) badge.style.backgroundColor = "rgb(175 72 72)";
+                removeBigLoader(card);
+            }
+        });
+    }
+
+    // стартовая проверка всех карточек
+    document.querySelectorAll(".deviceCard").forEach(card => connectCard(card));
+
+    function tryToConnect(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        element.style.backgroundColor = "white";
+
+        // показать большой лоадер, если его нет
+        if (!element.querySelector(".deviceCard_loader")) {
+            element.insertAdjacentHTML("beforeend", `
+                <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" class="deviceCard_loader">
+                    <g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2">
+                        <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z">
+                            <animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0" />
+                        </path>
+                        <path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12">
+                            <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0" />
+                            <animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" />
+                        </path>
+                    </g>
+                </svg>
+            `);
         }
+
+        // очистим кнопки
+        clearActionButtons(element);
+
+        // и заново подключим
+        connectCard(element);
     }
 
     function getScreenshot(ip) {
         SpinnerShow();
-        
+
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `/Settings_VideoDevices/GetScreenshot?ip=${encodeURIComponent(ip)}`, true);
         xhr.responseType = 'blob';
-        
+
         xhr.onload = function () {
             SpinnerHide();
-            
             if (xhr.status === 200) {
                 showScreenshotModal(xhr.response);
             } else {
                 showError('Не удалось получить скриншот. Статус: ' + xhr.status);
             }
         };
-        
+
         xhr.onerror = function () {
             SpinnerHide();
             showError('Ошибка сети при получении скриншота');
         };
-        
+
         xhr.ontimeout = function () {
             SpinnerHide();
             showError('Таймаут при получении скриншота');
         };
-        
-        xhr.timeout = 30000; // 30 секунд таймаут
+
+        xhr.timeout = 30000;
         xhr.send();
     }
 
     function showScreenshotModal(blob) {
         const url = URL.createObjectURL(blob);
-        
-        // Удаляем существующее модальное окно, если есть
+
         const existingModal = document.getElementById('myModalVideo');
-        if (existingModal) {
-            existingModal.remove();
-        }
-        
-        // Создаем новое модальное окно
+        if (existingModal) existingModal.remove();
+
         const modalHTML = `
             <div id="myModalVideo" class="modalVideo">
                 <div class="modal-contentVideoDelete" style="width: fit-content; max-width: 40vw;border-radius: 8px;padding: 0;">
@@ -335,102 +428,81 @@
                         <span class="close-modal" style="cursor: pointer; font-size: 24px;">&times;</span>
                     </div>
                     <div id="modalDelete" class="modalDelete" style="padding: 10px;">
-                        <img style="max-width: 100%; max-height: 50vh; display: block;border-radius: 8px;" 
-                            id="screenshot" 
-                            src="${url}" 
-                            alt="Скриншот устройства" 
+                        <img style="max-width: 100%; max-height: 50vh; display: block;border-radius: 8px;"
+                            id="screenshot"
+                            src="${url}"
+                            alt="Скриншот устройства"
                             onload="URL.revokeObjectURL(this.src)" />
                     </div>
                 </div>
             </div>`;
-        
+
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
+
         const modal = document.getElementById('myModalVideo');
         const closeBtn = modal.querySelector('.close-modal');
-        
-        // Функция закрытия модального окна
+
         function closeModal() {
             const screenshot = document.getElementById('screenshot');
             if (screenshot && screenshot.src.startsWith('blob:')) {
                 URL.revokeObjectURL(screenshot.src);
             }
             modal.remove();
-            
-            // Удаляем обработчики событий
             modal.removeEventListener('click', handleOutsideClick);
             document.removeEventListener('keydown', handleEscapeKey);
         }
-        
-        // Закрытие по клику на крестик
+
         closeBtn.addEventListener('click', closeModal);
-        
-        // Закрытие по клику вне модального окна
+
         function handleOutsideClick(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
+            if (event.target === modal) closeModal();
         }
         modal.addEventListener('click', handleOutsideClick);
-        
-        // Закрытие по клавише Escape
+
         function handleEscapeKey(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
+            if (event.key === 'Escape') closeModal();
         }
         document.addEventListener('keydown', handleEscapeKey);
-        
-        // Отображаем модальное окно
-        setTimeout(() => {
-            modal.style.display = "block";
-        }, 10);
+
+        setTimeout(() => { modal.style.display = "block"; }, 10);
     }
 
     function showError(message) {
-        // Можно использовать существующую функцию openModal или создать простой alert
-        if (typeof openModal === 'function') {
-            openModal('Ошибка', message);
-        } else {
-            alert(message);
-        }
+        if (typeof openModal === 'function') openModal('Ошибка', message);
+        else alert(message);
     }
 
     function reloadDevice(ip) {
         SpinnerShow();
         $.ajax({
             type: 'GET',
-            url: `/Settings_VideoDevices/ReloadDevice?ip=${ip}`,
-            success: function (result) { console.log() }
+            url: `/Settings_VideoDevices/ReloadDevice?ip=${encodeURIComponent(ip)}`,
+            success: function () { }
         });
     }
 
     function deleteDevice(guid) {
         const global = document.getElementById('global');
         global.innerHTML += `
-                <div id="myModalVideo" class="modalVideo">
-                    <div class="modal-contentVideoDelete">
-                        <div id="modalDelete" class="modalDelete">
-                            <p>Удалить устройство из списка?</p>
-                            <div>
-                                <button class="buttonForDeleteRed" onClick='yesFn("${guid}")'>Да</button>
-                                <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
-                            </div>
+            <div id="myModalVideo" class="modalVideo">
+                <div class="modal-contentVideoDelete">
+                    <div id="modalDelete" class="modalDelete">
+                        <p>Удалить устройство из списка?</p>
+                        <div>
+                            <button class="buttonForDeleteRed" onClick='yesFn("${guid}")'>Да</button>
+                            <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
                         </div>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
 
         const myModalVideo = document.getElementById('myModalVideo');
         myModalVideo.style.display = "block";
-        window.onclick = function (event) {
-            if (event.target == myModalVideo) {
-            }
-        };
     }
 
     function noFn() {
         const myModalVideo = document.getElementById('myModalVideo');
-        myModalVideo.remove();
+        myModalVideo?.remove();
     }
 
     function yesFn(guid) {
@@ -440,7 +512,7 @@
             url: `/Settings_VideoDevices/DeleteDevice?guid=${guid}`,
             success: function (result) {
                 if (result.ok) {
-                    location.reload()
+                    location.reload();
                     $('#back').unbind('click');
                     $('#back').click(function () { location.hash = "#settings" });
                 }
@@ -450,23 +522,32 @@
 
     function searchCard(elem) {
         const search = elem.value;
-        const allCards = document.querySelectorAll(".deviceName")
+        const allCards = document.querySelectorAll(".deviceName");
 
-        if(search == "")
-        {
-            return allCards.forEach(el => el.parentElement.parentElement.classList.remove("hidden"))
+        if (search == "") {
+            return allCards.forEach(el => el.parentElement.parentElement.classList.remove("hidden"));
         }
 
         allCards.forEach(el => {
-
-            if(!el.textContent.includes(search))
-            {
-                el.parentElement.parentElement.classList.add("hidden")
+            if (!el.textContent.includes(search)) {
+                el.parentElement.parentElement.classList.add("hidden");
             } else {
-                el.parentElement.parentElement.classList.remove("hidden")
+                el.parentElement.parentElement.classList.remove("hidden");
             }
-        })
+        });
+    }
 
+    function switchVideoMode(mode) {
+        const onlyVideo = document.querySelector(".onlyVideo");
+        const onlyMusic = document.querySelector(".onlyMusic");
+
+        if (mode === null) {
+            onlyVideo.classList.add("active");
+            onlyMusic.classList.remove("active");
+        } else if (mode === 1) {
+            onlyMusic.classList.add("active");
+            onlyVideo.classList.remove("active");
+        }
     }
 
     function addDevice() {
@@ -488,6 +569,11 @@
                                         <select id="addressSelectVideo" name="address" required></select>
                                         <label for="ipInputVideo" class="label-light">Укажите IP:</label>
                                         <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required>
+
+                                        <div class="checkboxesContainer">
+                                            <div class="onlyVideo active" onClick=switchVideoMode(null)>Только видео</div>
+                                            <div class="onlyMusic" onClick=switchVideoMode(1)>Только музыка</div>
+                                        </div>
 
                                         <div class="containerForInputs">
                                             <label class="label-light" style="padding-left: 0; margin-left: 0; padding-bottom: 5px;">Изменить порядок видео</label>
@@ -527,10 +613,15 @@
                             }
                         })
                         const result = "[" + arrPosition.toString() + "]"
+
+                        const onlyMusic = document.querySelector(".onlyMusic").classList.contains("active");
+
+                        const contentType = onlyMusic ? 1 : null;
+
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
-                            url: `/Settings_VideoDevices/AddDevice?locationGuid=${address}&ip=${ip}&arr=${result}`,
+                            url: `/Settings_VideoDevices/AddDevice?locationGuid=${address}&ip=${ip}&arr=${result}&contentType=${contentType}`,
                             success: function (result) {
                                 if (result.ok) {
                                     location.reload()
@@ -607,6 +698,10 @@
                     result.item1.forEach(x => {
                         videoList += `<option>${x.name.trim()}</option>`.trim()
                     })
+
+                    const onlyMusicClass = result.item3.onlyMusic == 1 ? "onlyMusic active" : "onlyMusic";
+                    const onlyVideoClass = result.item3.onlyMusic == 1 ? "onlyVideo" : "onlyVideo  active";
+
                     global.innerHTML += `
                             <div id="myModalVideo" class="modalVideo">
                                 <div class="modal-contentVideo">
@@ -614,7 +709,12 @@
                                         <label for="addressSelectVideo" class="label-light">Выберите ТТ:</label>
                                         <select id="addressSelectVideo" name="address" required></select>
                                         <label for="ipInputVideo" class="label-light">Укажите IP:</label>
-                                        <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required value="${result.item3.ip}">
+                                        <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required value="${result.item3.ip.trim()}">
+
+                                        <div class="checkboxesContainer">
+                                            <div class="${onlyVideoClass}" onClick=switchVideoMode(null)>Только видео</div>
+                                            <div class="${onlyMusicClass}" onClick=switchVideoMode(1)>Только музыка</div>
+                                        </div>
 
                                         <div class="containerForInputs">
                                             <label class="label-light" style="padding-left: 0; margin-left: 0; padding-bottom: 5px;">Изменить порядок видео</label>
@@ -666,14 +766,19 @@
                             }
                         })
                         const result = "[" + arrPosition.toString() + "]"
+
+                        const onlyMusic = document.querySelector(".onlyMusic").classList.contains("active");
+                        const contentType = onlyMusic ? 1 : null;
+
                         closeModal()
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
-                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${address}&ip=${ip}&arr=${result}&guid=${guid}`,
+                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${address}&ip=${ip}&arr=${result}&guid=${guid}&contentType=${contentType}`,
                             success: function (result) {
                                 if (result.ok) {
                                     SpinnerHide();
+                                    location.reload()
                                     $('#back').unbind('click');
                                     $('#back').click(function () { location.hash = "#settings" });
                                 }
@@ -746,5 +851,4 @@
             e.stopPropagation();
         }
     });
-
 </script>

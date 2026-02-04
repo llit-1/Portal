@@ -259,7 +259,7 @@
 
                         <label class="label-light" style="padding-top: 12px">Гражданство</label>
                         <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                            <select placeholder="" id="citizenship" class="inputPersonData" data-width="100%">
+                            <select placeholder="" id="citizenship" class="inputPersonData" data-width="100%" required>
                                 <option value=""></option>
                                 @foreach (var item in Model.PersonalityCitizenship)
                                 {
@@ -598,7 +598,7 @@
 
                         <label class="label-light">Гражданство</label>
                         <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
-                            <select placeholder="" id="citizenship" class="inputPersonData" data-width="100%">
+                            <select placeholder="" id="citizenship" class="inputPersonData" data-width="100%" required>
                                 <option value=""></option>
                                 @foreach (var item in Model.PersonalityCitizenship)
                                 {

@@ -144,13 +144,13 @@
 .addPosition {
     border: 1px solid gray;
     padding: 5px;
-    border-radius: 10px;
+    border-radius: 8px;
     align-items: center;
     display: flex;
     justify-content: center;
     width: 20%;
-    margin: 10px 0;
     font-size: 25px;
+    margin-top: 10px;
     cursor: pointer;
 }
 
@@ -167,7 +167,8 @@
     .input-container > div > select {
         width: 70%;
         height: 50px;
-        border-radius: 15px;
+        padding: 0px 10px;
+        border-radius: 8px;
     }
 
 .containerForSelect {

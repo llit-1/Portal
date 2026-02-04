@@ -15,5 +15,7 @@ namespace Portal.Models.MSSQL
         public string VideoList { get; set; }
         public int? Status { get; set; }
         public VideoOrientation Orientation { get; set; }
+        public int? OnlyMusic { get; set; } // null=video, 1=music, 0=both
+        public string Version { get; set; }
     }
 }

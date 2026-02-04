@@ -59,36 +59,66 @@ namespace Portal.Controllers
             return Json(model);
         }
 
-        public async Task<IActionResult> TryToConnectDevice(string ip)
+        [HttpPost]
+        public async Task<IActionResult> TryToConnectDevice(string ip)  // Измененный метод
         {
-            var result = new RKNet_Model.Result<string>();
+            var result = new RKNet_Model.Result<object>();
+
             try
             {
-                ip = ip.Replace("%bkspc%", " ");
+                if (string.IsNullOrWhiteSpace(ip))
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "IP is empty";
+                    return new ObjectResult(result);
+                }
+
+                ip = ip.Replace("%bkspc%", " ").Trim();
+
                 var httpClient = _httpClientFactory.CreateClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(5);
+
                 string microserviceUrl = $"http://{ip}/?action=getIP";
                 HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
-                string currentVersion = GetActualVersion().Split(".apk")[0];
-                string responseString = await response.Content.ReadAsStringAsync();
 
-                if (responseString != currentVersion)
+                if (!response.IsSuccessStatusCode)
                 {
-                    string request = $"http://{ip}/?action=download&param1={currentVersion}";
-                    HttpResponseMessage res = await httpClient.GetAsync(request);
+                    result.Ok = false;
+                    result.ErrorMessage = $"Device not reachable: {response.StatusCode}";
+                    return new ObjectResult(result);
                 }
-                else
+
+                var deviceRow = dbSql.VideoDevices.FirstOrDefault(x => x.Ip.Trim() == ip.Trim());
+
+                string deviceVersionFromDB = deviceRow.Version; // версия из бд
+                string versionFromDevice = await response.Content.ReadAsStringAsync(); // что отдает приставка
+                string serverVersion = GetActualVersion(); // версия на серваке
+
+
+                if (deviceRow != null)
                 {
-                    result.Data = "Устройство в актуальной версии";
+                    if(deviceVersionFromDB != versionFromDevice)
+                    {
+                        dbSql.VideoDevices.FirstOrDefault(x => x.Ip.Trim() == ip.Trim()).Version = versionFromDevice;
+                        dbSql.SaveChanges();
+                    }
                 }
 
                 result.Ok = true;
+                result.Data = new
+                {
+                    serverVersion = serverVersion, // версия на сервере
+                    versionFromDevice = versionFromDevice
+                };
+
+                return new OkObjectResult(result);
             }
             catch (Exception ex)
             {
                 result.Ok = false;
                 result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
             }
-            return new ObjectResult(result);
         }
 
 
@@ -106,7 +136,7 @@ namespace Portal.Controllers
                 if (fileInfo.Name.EndsWith(".apk"))
                 {
                     result.Ok = true;
-                    return fileInfo.Name;
+                    return fileInfo.Name.Split(".apk")[0];
                 } else
                 {
                     continue;
@@ -143,7 +173,7 @@ namespace Portal.Controllers
         }
 
 
-        public IActionResult AddDevice(string locationGuid, string ip, string arr)
+        public IActionResult AddDevice(string locationGuid, string ip, string arr, string? contentType)
         {
             var result = new Result<string>();
             try
@@ -154,6 +184,7 @@ namespace Portal.Controllers
                 videoDevices.Ip = ip.Trim();
                 videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
                 videoDevices.VideoList = arr.Trim();
+                videoDevices.OnlyMusic = contentType != "null" ? int.Parse(contentType) : null;
                 dbSql.Add(videoDevices);
                 dbSql.SaveChanges();
                 result.Ok = true;
@@ -400,7 +431,7 @@ namespace Portal.Controllers
 
             var files = Directory
                 .EnumerateFiles(musicRoot, "*.*", SearchOption.AllDirectories)
-                .Where(path => allowedExtensions.Contains(Path.GetExtension(path)))
+                .Where(path => allowedExtensions.Contains(Path.GetExtension(path)) && path.StartsWith(musicRoot, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             if (files.Count == 0)
@@ -436,6 +467,63 @@ namespace Portal.Controllers
 
             return Ok(result);
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult GetAllMusicNEW()
+        {
+            // Корневая папка с музыкой на файловом сервере
+            var musicRoot = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ\Музыка";
+
+            if (!Directory.Exists(musicRoot))
+            {
+                return NotFound("Music folder not found");
+            }
+
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".mp3", ".wav", ".flac", ".aac", ".ogg"
+            };
+
+            var files = Directory
+                .EnumerateFiles(musicRoot, "*.*", SearchOption.AllDirectories)
+                .Where(path => allowedExtensions.Contains(Path.GetExtension(path)) && path.StartsWith(musicRoot, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (files.Count == 0)
+            {
+                return Ok(new List<MusicItemDto>());
+            }
+
+            var result = new List<MusicItemDto>();
+
+            foreach (var path in files)
+            {
+                // Кастомное экранирование, такое же как у тебя для видео
+                var encodedPath = path
+                    .Replace("+", "plustoreplace")
+                    .Replace(" ", "backspacetoreplace")
+                    .Replace(@"\\fs1", @"\\shzhleb.ru\shz"); // если вдруг попадётся старый путь
+
+                // Строим URL на метод, который отдаёт ОДИН аудиофайл
+                var fileUrl = Url.Action(
+                    action: nameof(GetMusicForTv),         // метод ниже
+                    controller: "Settings_VideoDevices",   // имя твоего контроллера
+                    values: new { url = encodedPath },
+                    protocol: Request.Scheme
+                );
+
+                result.Add(new MusicItemDto
+                {
+                    Name = Path.GetFileNameWithoutExtension(path),
+                    FileName = Path.GetFileName(path),
+                    Url = fileUrl
+                });
+            }
+
+            return Ok(result);
+        }
+
 
         [AllowAnonymous]
         [HttpGet]
@@ -775,7 +863,7 @@ namespace Portal.Controllers
             var model = Tuple.Create(videoInfos, locations, videoDevices);
             return Json(model);
         }
-        public IActionResult SaveDevice(string locationGuid, string ip, string arr, string guid)
+        public IActionResult SaveDevice(string locationGuid, string ip, string arr, string guid, string? contentType)
         {
             var result = new Result<string>();
             try
@@ -785,6 +873,7 @@ namespace Portal.Controllers
                 videoDevices.Status = 1;
                 videoDevices.Ip = ip.Trim();
                 videoDevices.VideoList = arr.Trim();
+                videoDevices.OnlyMusic = contentType != "null" ? int.Parse(contentType) : null;
                 dbSql.SaveChanges();
                 result.Ok = true;
                 return new OkObjectResult(result);
