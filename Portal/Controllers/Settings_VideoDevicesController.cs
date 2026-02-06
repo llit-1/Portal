@@ -323,6 +323,8 @@ namespace Portal.Controllers
             }
         }
 
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue, ValueLengthLimit = int.MaxValue)]
         public async Task<IActionResult> UploadVideo(IFormFile videoFile)
         {
             string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
@@ -351,7 +353,7 @@ namespace Portal.Controllers
                 info.Path = filePath;
                 dbSql.VideoInfo.Add(info);
                 dbSql.SaveChanges();
-                UpdateDataOnDevices();
+
                 return Json(new { message = "File uploaded successfully" });
             }
             catch (Exception ex)
@@ -620,7 +622,6 @@ namespace Portal.Controllers
                 var oldpos = dbSql.VideoInfo.FirstOrDefault(x => x.Position == newposition).Position = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position;
                 var npos = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position = newposition;
                 dbSql.SaveChanges();
-                await UpdateDataOnDevices();
                 result.Ok = true;
                 return new OkObjectResult(result);
             }
@@ -630,52 +631,6 @@ namespace Portal.Controllers
                 result.ErrorMessage = ex.Message;
                 return new ObjectResult(result);
             }
-        }
-
-        public async Task<IActionResult> UpdateDataOnDevices()
-        {
-            List<VideoDevices> devices = dbSql.VideoDevices.ToList();
-            var results = new List<string>();
-
-            foreach (var device in devices)
-            {
-                if (!string.IsNullOrEmpty(device.Ip))
-                {
-                    var result = await SendRequestToDeviceAsync(device.Ip.Trim());
-                    results.Add(result);
-                }
-            }
-
-            return Ok(results);
-        }
-
-        public async Task<string> SendRequestToDeviceAsync(string ip)
-        {
-            var result = new RKNet_Model.Result<string>();
-            try
-            {
-                ip = ip.Replace("%bkspc%", " ");
-                var httpClient = _httpClientFactory.CreateClient();
-                string microserviceUrl = "http://" + ip + "?action=update";
-                HttpResponseMessage response = await httpClient.GetAsync(microserviceUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Ok = true;
-                    result.Data = "Success: " + ip;
-                }
-                else
-                {
-                    result.Ok = false;
-                    result.ErrorMessage = $"Failed: {ip} - {response.StatusCode}";
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Ok = false;
-                result.ErrorMessage = $"Error: {ip} - {ex.Message}";
-            }
-            return result.Ok.ToString();
         }
 
         public IActionResult EditCustomVideoArray(string VideoName)
@@ -745,7 +700,6 @@ namespace Portal.Controllers
                     dbSql.SaveChanges();
 
                     EditCustomVideoArray(videoInfo.Name);
-                    await UpdateDataOnDevices();
 
                     result.Ok = true;
                     return new ObjectResult(result);
