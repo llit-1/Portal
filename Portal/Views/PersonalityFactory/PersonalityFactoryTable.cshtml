@@ -143,6 +143,9 @@
 
 <!--инициализация таблицы-->
 <script>
+    const factoryTablePageStorageKey = 'personalityFactoryTablePage';
+    const savedFactoryTablePage = parseInt(sessionStorage.getItem(factoryTablePageStorageKey), 10);
+
      var table = $(".data-table").DataTable({
         "ordering": true,
         paging: true,
@@ -170,6 +173,19 @@
     // сортируем по-умолчанию по первому столбцу
     table.order([0, 'asc']).draw();
 
+    if (!isNaN(savedFactoryTablePage) && savedFactoryTablePage >= 0) {
+        const pageInfo = table.page.info();
+        const maxPage = Math.max(pageInfo.pages - 1, 0);
+        const targetPage = Math.min(savedFactoryTablePage, maxPage);
+
+        table.page(targetPage).draw('page');
+        sessionStorage.removeItem(factoryTablePageStorageKey);
+    }
+
+    table.on('page.dt', function () {
+        sessionStorage.setItem(factoryTablePageStorageKey, table.page.info().page);
+    });
+
     //переносим пагинацию один раз
     var paginate = $(table.table().container()).find('.dataTables_paginate').detach();
     $('#paginationContainer').append(paginate);
@@ -194,6 +210,7 @@
     }
 
     function PersonalityFactoryEdit(personGuid) {
+        sessionStorage.setItem(factoryTablePageStorageKey, table.page.info().page);
         SpinnerShow();
         $('#container-fluid').load(`/PersonalityFactory/PersonalityFactoryEdit?id=${personGuid}`, function () {
             SpinnerHide()

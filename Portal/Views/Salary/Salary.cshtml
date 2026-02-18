@@ -1,0 +1,1136 @@
+﻿@model List<Portal.Models.MSSQL.Location.Location>
+<div class="salary_wrapper">
+    <div class="filter-block">
+
+        <div class="salary-back back-hover" id="back">
+            <label class="salary-back__label">Назад</label>
+        </div>
+        
+        <div class="salary-filters-panel">
+            <div class="salary-field">
+                <label class="salary-field__label">ТТ</label>
+                <div class="salary-select" id="locationSelect">
+                    <button type="button" class="salary-select__trigger">
+                        <span id="locationSelectValue">Выберите ТТ</span>
+                        <span class="salary-select__arrow">&#9662;</span>
+                    </button>
+                    <div class="salary-select__dropdown">
+                        <input type="text" class="salary-select__search" id="locationSearchInput" placeholder="Поиск ТТ..." autocomplete="off" />
+                        <ul class="salary-select__options" id="locationOptionsList">
+                            @foreach (var location in Model)
+                            {
+                                <li class="salary-select__option" data-value="@location.Guid">
+                                    @location.Name
+                                </li>
+                            }
+                        </ul>
+                        <div class="salary-select__empty" id="locationEmptyState">Ничего не найдено</div>
+                    </div>
+                    <input type="hidden" id="selectedLocationGuid" value="" />
+                </div>
+                <div id="locationRequiredError" class="salary-field__error">Выберите ТТ или Сотрудника</div>
+            </div>
+
+            <div class="salary-field">
+                <label class="salary-field__label">Сотрудник</label>
+                <div class="salary-autocomplete" id="personalityAutocomplete">
+                    <input type="text" id="personalitySearchInput" placeholder="Введите ФИО" autocomplete="off" />
+                    <div class="salary-autocomplete__dropdown" id="personalityDropdown"></div>
+                    <input type="hidden" id="selectedPersonalityVersionGuid" />
+                    <input type="hidden" id="selectedPersonalityGuid" />
+                </div>
+            </div>
+
+            <div class="salary-field salary-field--range">
+                <label class="salary-field__label">Период с/по</label>
+                <div class="salary-date-range">
+                    <input type="date" id="dateFromInput" />
+                    <input type="date" id="dateToInput" />
+                </div>
+            </div>
+
+            <div class="salary-field">
+                <label class="salary-field__label">Месяц</label>
+                <input type="month" id="monthInput" />
+            </div>
+
+            <button id="showSalaryButton">Показать</button>
+        </div>
+    </div>
+
+    <div class="result-block"></div>
+</div>
+
+<script>
+    (() => {
+        $("#PageHeader").text("Расчет заработной платы");
+
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#"; });
+
+        const salaryWrapper = document.querySelector('.salary_wrapper');
+        if (!salaryWrapper) {
+            return;
+        }
+
+        const locationSelect = salaryWrapper.querySelector('#locationSelect');
+        const locationTrigger = salaryWrapper.querySelector('.salary-select__trigger');
+        const locationValue = salaryWrapper.querySelector('#locationSelectValue');
+        const locationSearchInput = salaryWrapper.querySelector('#locationSearchInput');
+        const locationOptions = Array.from(salaryWrapper.querySelectorAll('.salary-select__option'));
+        const locationEmptyState = salaryWrapper.querySelector('#locationEmptyState');
+        const selectedLocationGuidInput = salaryWrapper.querySelector('#selectedLocationGuid');
+        const locationRequiredError = salaryWrapper.querySelector('#locationRequiredError');
+        const showSalaryButton = salaryWrapper.querySelector('#showSalaryButton');
+        const resultBlock = salaryWrapper.querySelector('.result-block');
+        const locationPlaceholderText = 'Выберите ТТ';
+        let timeSheetsRequest = null;
+
+        function setLocationRequiredError() {
+            locationSelect.classList.add('is-invalid');
+            if (locationRequiredError) {
+                locationRequiredError.classList.add('is-visible');
+            }
+        }
+
+        function clearLocationRequiredError() {
+            locationSelect.classList.remove('is-invalid');
+            if (locationRequiredError) {
+                locationRequiredError.classList.remove('is-visible');
+            }
+        }
+
+        function hasMainFilterValue() {
+            return !!(selectedLocationGuidInput.value || selectedPersonalityGuid.value);
+        }
+
+        function clearLocationSelection() {
+            locationOptions.forEach(x => x.classList.remove('is-selected'));
+            locationValue.textContent = locationPlaceholderText;
+            selectedLocationGuidInput.value = '';
+        }
+
+        function filterLocationOptions(query) {
+            const normalizedQuery = (query || '').trim().toLowerCase();
+            let visibleCount = 0;
+
+            locationOptions.forEach(option => {
+                const isVisible = option.textContent.toLowerCase().includes(normalizedQuery);
+                option.classList.toggle('hidden', !isVisible);
+                if (isVisible) {
+                    visibleCount += 1;
+                }
+            });
+
+            locationEmptyState.classList.toggle('is-visible', visibleCount === 0);
+        }
+
+        function closeLocationSelect() {
+            locationSelect.classList.remove('is-open');
+            locationSearchInput.value = '';
+            filterLocationOptions('');
+        }
+
+        if (locationTrigger) {
+            locationTrigger.addEventListener('click', function (event) {
+                event.stopPropagation();
+                locationSelect.classList.toggle('is-open');
+
+                if (locationSelect.classList.contains('is-open')) {
+                    locationSearchInput.focus();
+                } else {
+                    closeLocationSelect();
+                }
+            });
+        }
+
+        locationSearchInput.addEventListener('input', function (event) {
+            filterLocationOptions(event.target.value);
+        });
+
+        locationOptions.forEach(option => {
+            option.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const clickedValue = option.dataset.value || '';
+                const isAlreadySelected = selectedLocationGuidInput.value === clickedValue && option.classList.contains('is-selected');
+
+                if (isAlreadySelected) {
+                    clearLocationSelection();
+                    closeLocationSelect();
+                    return;
+                }
+
+                locationOptions.forEach(x => x.classList.remove('is-selected'));
+                option.classList.add('is-selected');
+
+                locationValue.textContent = option.textContent.trim();
+                selectedLocationGuidInput.value = clickedValue;
+                clearLocationRequiredError();
+
+                closeLocationSelect();
+            });
+        });
+
+        const personalityAutocomplete = salaryWrapper.querySelector('#personalityAutocomplete');
+        const personalitySearchInput = salaryWrapper.querySelector('#personalitySearchInput');
+        const personalityDropdown = salaryWrapper.querySelector('#personalityDropdown');
+        const selectedPersonalityVersionGuid = salaryWrapper.querySelector('#selectedPersonalityVersionGuid');
+        const selectedPersonalityGuid = salaryWrapper.querySelector('#selectedPersonalityGuid');
+        const personalityMinLength = 2;
+        let personalityDebounceTimer = null;
+        let personalityRequest = null;
+
+        function closePersonalityDropdown() {
+            personalityDropdown.classList.remove('is-open');
+        }
+
+        function showPersonalityMessage(message) {
+            personalityDropdown.innerHTML = '';
+            const state = document.createElement('div');
+            state.className = 'salary-autocomplete__state';
+            state.textContent = message;
+            personalityDropdown.appendChild(state);
+            personalityDropdown.classList.add('is-open');
+        }
+
+        function showPersonalityOptions(items) {
+            personalityDropdown.innerHTML = '';
+
+            if (!Array.isArray(items) || items.length === 0) {
+                showPersonalityMessage('Ничего не найдено');
+                return;
+            }
+
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'salary-autocomplete__item';
+                button.textContent = item.fio || '';
+                button.dataset.personalityVersionGuid = item.personalityVersionGuid || '';
+                button.dataset.personalityGuid = item.personalityGuid || '';
+
+                button.addEventListener('click', function () {
+                    personalitySearchInput.value = button.textContent;
+                    selectedPersonalityVersionGuid.value = button.dataset.personalityVersionGuid;
+                    selectedPersonalityGuid.value = button.dataset.personalityGuid;
+                    clearLocationRequiredError();
+                    closePersonalityDropdown();
+                });
+
+                personalityDropdown.appendChild(button);
+            });
+
+            personalityDropdown.classList.add('is-open');
+        }
+
+        function requestPersonalityList(query) {
+            if (personalityRequest) {
+                personalityRequest.abort();
+                personalityRequest = null;
+            }
+
+            personalityRequest = $.ajax({
+                url: '/Salary/GetPersonalityList',
+                type: 'GET',
+                data: { fio: query }
+            })
+                .done(function (data) {
+                    if (personalitySearchInput.value.trim() !== query) {
+                        return;
+                    }
+
+                    showPersonalityOptions(data);
+                })
+                .fail(function (_, textStatus) {
+                    if (textStatus !== 'abort') {
+                        showPersonalityMessage('Ошибка поиска');
+                    }
+                })
+                .always(function () {
+                    personalityRequest = null;
+                });
+        }
+
+        personalitySearchInput.addEventListener('input', function (event) {
+            const value = event.target.value.trim();
+
+            selectedPersonalityVersionGuid.value = '';
+            selectedPersonalityGuid.value = '';
+            clearTimeout(personalityDebounceTimer);
+
+            if (personalityRequest) {
+                personalityRequest.abort();
+                personalityRequest = null;
+            }
+
+            if (value.length < personalityMinLength) {
+                closePersonalityDropdown();
+                return;
+            }
+
+            personalityDebounceTimer = setTimeout(function () {
+                requestPersonalityList(value);
+            }, 400);
+        });
+
+        personalitySearchInput.addEventListener('focus', function () {
+            if (personalityDropdown.children.length > 0) {
+                personalityDropdown.classList.add('is-open');
+            }
+        });
+
+        const dateFromInput = salaryWrapper.querySelector('#dateFromInput');
+        const dateToInput = salaryWrapper.querySelector('#dateToInput');
+        const monthInput = salaryWrapper.querySelector('#monthInput');
+        const maxRangeDays = 93;
+        const msInDay = 24 * 60 * 60 * 1000;
+
+        function toDate(value) {
+            return value ? new Date(value + 'T00:00:00') : null;
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        function getToday() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return today;
+        }
+
+        function normalizeRange(changedControl) {
+            const today = getToday();
+            const todayString = formatDate(today);
+
+            if (dateFromInput.value) {
+                const fromDateValue = toDate(dateFromInput.value);
+                if (fromDateValue && fromDateValue > today) {
+                    dateFromInput.value = todayString;
+                }
+            }
+
+            if (dateToInput.value) {
+                const toDateValue = toDate(dateToInput.value);
+                if (toDateValue && toDateValue > today) {
+                    dateToInput.value = todayString;
+                }
+            }
+
+            let fromDate = toDate(dateFromInput.value);
+            let toDateValue = toDate(dateToInput.value);
+
+            if (fromDate && toDateValue && fromDate > toDateValue) {
+                if (changedControl === dateFromInput) {
+                    dateToInput.value = formatDate(fromDate);
+                } else {
+                    dateFromInput.value = formatDate(toDateValue);
+                }
+
+                fromDate = toDate(dateFromInput.value);
+                toDateValue = toDate(dateToInput.value);
+            }
+
+            if (fromDate && toDateValue) {
+                const daysDiff = Math.floor((toDateValue - fromDate) / msInDay);
+                if (daysDiff > maxRangeDays) {
+                    if (changedControl === dateToInput) {
+                        const adjustedFrom = new Date(toDateValue);
+                        adjustedFrom.setDate(adjustedFrom.getDate() - maxRangeDays);
+                        dateFromInput.value = formatDate(adjustedFrom);
+                    } else {
+                        const adjustedTo = new Date(fromDate);
+                        adjustedTo.setDate(adjustedTo.getDate() + maxRangeDays);
+                        dateToInput.value = formatDate(adjustedTo > today ? today : adjustedTo);
+                    }
+                }
+            }
+
+            toDateValue = toDate(dateToInput.value);
+            if (toDateValue && toDateValue > today) {
+                dateToInput.value = todayString;
+            }
+
+            fromDate = toDate(dateFromInput.value);
+            toDateValue = toDate(dateToInput.value);
+            if (fromDate && toDateValue && fromDate > toDateValue) {
+                dateFromInput.value = formatDate(toDateValue);
+            }
+        }
+
+        function syncDateLimits() {
+            const todayString = formatDate(getToday());
+            dateToInput.max = todayString;
+            dateFromInput.max = todayString;
+
+            if (dateFromInput.value) {
+                dateToInput.min = dateFromInput.value;
+            } else {
+                dateToInput.removeAttribute('min');
+            }
+
+            if (dateToInput.value) {
+                if (dateToInput.value < todayString) {
+                    dateFromInput.max = dateToInput.value;
+                }
+            }
+        }
+
+        function syncPeriodMode(changedControl) {
+            const hasRangeValue = !!(dateFromInput.value || dateToInput.value);
+
+            if (changedControl === monthInput && monthInput.value) {
+                dateFromInput.value = '';
+                dateToInput.value = '';
+            }
+
+            if ((changedControl === dateFromInput || changedControl === dateToInput) && hasRangeValue) {
+                monthInput.value = '';
+            }
+
+            if (changedControl === dateFromInput || changedControl === dateToInput) {
+                normalizeRange(changedControl);
+            }
+
+            syncDateLimits();
+        }
+
+        [dateFromInput, dateToInput, monthInput].forEach(control => {
+            control.addEventListener('change', function () {
+                syncPeriodMode(control);
+            });
+            control.addEventListener('input', function () {
+                syncPeriodMode(control);
+            });
+        });
+
+        function formatDateTime(value) {
+            if (!value) {
+                return '-';
+            }
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+
+            return date.toLocaleString('ru-RU');
+        }
+
+        function renderResult(contentHtml) {
+            if (!resultBlock) {
+                return;
+            }
+
+            resultBlock.innerHTML = contentHtml;
+        }
+
+        function getWorkedHours(begin, end) {
+            const beginDate = new Date(begin);
+            const endDate = new Date(end);
+
+            if (Number.isNaN(beginDate.getTime()) || Number.isNaN(endDate.getTime())) {
+                return 0;
+            }
+
+            const diffMs = endDate.getTime() - beginDate.getTime();
+            if (diffMs <= 0) {
+                return 0;
+            }
+
+            return diffMs / 3600000;
+        }
+
+        function formatHours(value) {
+            if (!Number.isFinite(value)) {
+                return '0';
+            }
+
+            return value % 1 === 0 ? String(value) : value.toFixed(2);
+        }
+
+        function renderTimeSheets(data) {
+            const rows = Array.isArray(data) ? data : [];
+            const baseRate = 240;
+
+            if (rows.length === 0) {
+                renderResult('<div class="salary-result__empty">По выбранным фильтрам данных нет</div>');
+                return;
+            }
+
+            const tableRowsHtml = rows.map(x => {
+                const workedHours = getWorkedHours(x.begin, x.end);
+                const total = Math.round(workedHours * baseRate);
+
+                return `
+                <tr>
+                    <td data-label="Начало">${formatDateTime(x.begin)}</td>
+                    <td data-label="Окончание">${formatDateTime(x.end)}</td>
+                    <td data-label="Сотрудник">${x.fio ?? '-'}</td>
+                    <td data-label="ТТ">${x.location ?? '-'}</td>
+                    <td data-label="Должность">${x.position ?? '-'}</td>
+                    <td data-label="Базовая ставка">${baseRate}</td>
+                    <td data-label="Отработано часов">${formatHours(workedHours)}</td>
+                    <td data-label="Итого">${total}</td>
+                </tr>
+            `;
+            }).join('');
+
+            renderResult(`
+                <div class="salary-result__meta">Найдено записей: ${rows.length}</div>
+                <div class="salary-result__table-wrap">
+                    <table class="salary-result__table">
+                        <thead>
+                            <tr>
+                                <th>Начало</th>
+                                <th>Окончание</th>
+                                <th>Сотрудник</th>
+                                <th>ТТ</th>
+                                <th>Должность</th>
+                                <th>Базовая ставка</th>
+                                <th>Отработано часов</th>
+                                <th>Итого</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRowsHtml}</tbody>
+                    </table>
+                </div>
+            `);
+        }
+
+        function buildTimeSheetsRequestData() {
+            const requestData = {
+                locations: selectedLocationGuidInput.value
+            };
+
+            if (selectedPersonalityGuid.value) {
+                requestData.Person = selectedPersonalityGuid.value;
+            }
+
+            if (monthInput.value) {
+                const monthParts = monthInput.value.split('-');
+                if (monthParts.length === 2) {
+                    requestData.Month = Number(monthParts[1]);
+                    requestData.Year = Number(monthParts[0]);
+                }
+
+                return requestData;
+            }
+
+            if (dateFromInput.value) {
+                requestData.Start = dateFromInput.value;
+            }
+
+            if (dateToInput.value) {
+                requestData.End = dateToInput.value;
+            }
+
+            return requestData;
+        }
+
+        function loadTimeSheets() {
+            if (!hasMainFilterValue()) {
+                setLocationRequiredError();
+                locationSelect.classList.add('is-open');
+                locationSearchInput.focus();
+                return;
+            }
+
+            if (timeSheetsRequest) {
+                timeSheetsRequest.abort();
+                timeSheetsRequest = null;
+            }
+
+            const requestData = buildTimeSheetsRequestData();
+            showSalaryButton.disabled = true;
+            renderResult('<div class="salary-result__loading">Загрузка...</div>');
+
+            timeSheetsRequest = $.ajax({
+                url: '/Salary/GetTimeSheets',
+                type: 'GET',
+                data: requestData
+            })
+                .done(function (data) {
+                    renderTimeSheets(data);
+                })
+                .fail(function (_, textStatus) {
+                    if (textStatus !== 'abort') {
+                        renderResult('<div class="salary-result__error">Ошибка загрузки данных</div>');
+                    }
+                })
+                .always(function () {
+                    showSalaryButton.disabled = false;
+                    timeSheetsRequest = null;
+                });
+        }
+
+        if (showSalaryButton) {
+            showSalaryButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                loadTimeSheets();
+            });
+        }
+
+        syncPeriodMode();
+
+        $(document).off('click.salaryFilters').on('click.salaryFilters', function (event) {
+            const target = event.target;
+
+            if (!locationSelect.contains(target)) {
+                closeLocationSelect();
+            }
+
+            if (!personalityAutocomplete.contains(target)) {
+                closePersonalityDropdown();
+            }
+        });
+    })();
+</script>
+
+<style>
+    .salary_wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-block {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 60px;
+        padding: 10px 0px;
+    }
+
+    .salary-back {
+        display: flex;
+        gap: 10px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        height: 60px;
+        align-items: center;
+    }
+
+    .salary-back__label {
+        margin-bottom: 0;
+        font-family: "Akrobat-Regular", sans-serif;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .salary-filters-panel {
+        display: flex;
+        gap: 10px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .salary-field {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .salary-field__label {
+        position: absolute;
+        top: -8px;
+        left: 7px;
+        margin: 0;
+        padding: 0 4px;
+        background-color: #fff;
+        color: #7f8792;
+        font-size: 12px;
+        line-height: 1;
+        font-family: "Akrobat-Regular", sans-serif;
+        pointer-events: none;
+        z-index: 2;
+        font-weight: 100;
+    }
+
+    .salary-field > input {
+        width: 180px;
+    }
+
+    .salary-field__error {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 2px;
+        z-index: 5;
+        width: max-content;
+        max-width: 340px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        background: #fff;
+        color: #d63031;
+        font-size: 11px;
+        font-family: "Akrobat-Regular", sans-serif;
+        line-height: 1.2;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-2px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    }
+
+    .salary-field__error.is-visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        top: 12px;
+        left: 10px;
+    }
+
+    .filter-block input {
+        height: 40px;
+        border-radius: 8px;
+        border: 2px solid #ccc;
+        padding: 0px 10px;
+    }
+
+    .filter-block input:focus {
+        border-color: #db5f07;
+        outline: none;
+    }
+
+    .salary-select {
+        position: relative;
+        width: 280px;
+    }
+
+    .salary-select__trigger {
+        width: 100%;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background: #fff;
+        padding: 0px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .salary-select.is-invalid .salary-select__trigger {
+        border-color: #d63031;
+        box-shadow: 0 0 0 1px rgba(214, 48, 49, 0.12);
+    }
+
+    .salary-select__arrow {
+        color: #777;
+        font-size: 16px;
+    }
+
+    .salary-select__dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 4px);
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.12);
+        z-index: 1000;
+        display: none;
+    }
+
+    .salary-select.is-open .salary-select__dropdown {
+        display: block;
+    }
+
+    .salary-select__search {
+        width: 100%;
+        margin-bottom: 8px;
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    .salary-select__options {
+        margin: 0;
+        padding: 0;
+        max-height: 220px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        list-style: none;
+    }
+
+    .salary-select__option {
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: "Akrobat-Regular", sans-serif;
+        font-size: 15px;
+    }
+
+    .salary-select__option:hover {
+        background: #f2f4f7;
+    }
+
+    .salary-select__option.is-selected {
+        background: #e7f0ff;
+    }
+
+    .salary-select__empty {
+        display: none;
+        padding: 8px 10px;
+        color: #888;
+    }
+
+    .salary-select__empty.is-visible {
+        display: block;
+    }
+
+    .salary-autocomplete {
+        position: relative;
+        width: 280px;
+    }
+
+    .salary-autocomplete > input {
+        width: 100%;
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    .salary-autocomplete__dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 4px);
+        display: none;
+        flex-direction: column;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.12);
+        max-height: 260px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 1000;
+        padding: 10px;
+        gap: 5px;
+    }
+
+    .salary-autocomplete__dropdown.is-open {
+        display: flex;
+    }
+
+    .salary-autocomplete__item {
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 9px 10px;
+        cursor: pointer;
+        font-size: 14px;
+        min-height: 40px;
+    }
+
+    .salary-autocomplete__item:hover {
+        background: #f2f4f7;
+    }
+
+    .salary-autocomplete__state {
+        padding: 10px;
+        color: #888;
+        font-size: 14px;
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    .salary-date-range {
+        display: flex;
+        gap: 8px;
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    .salary-date-range input {
+        width: 145px;
+    }
+
+    .salary-period-hint {
+        color: #6f7780;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .filter-block button {
+        height: 40px;
+        border-radius: 8px;
+        border: solid 2px #CCC;
+        background-color: #ffffff;
+        color: #000000;
+        padding: 0px 20px;
+        cursor: pointer;
+        font-family: "Akrobat-Regular", sans-serif;
+        transition: border-color 0.3s ease;
+        font-size: 14px;
+        font-weight: 400;
+    }
+
+    .filter-block button:hover {
+        border-color: #db5f07;
+    }
+
+    .salary-select__dropdown,
+    .salary-select__options,
+    .salary-autocomplete__dropdown {
+        scrollbar-width: thin;
+        scrollbar-color: #c5cbd3 transparent;
+    }
+
+    .salary-select__dropdown::-webkit-scrollbar,
+    .salary-select__options::-webkit-scrollbar,
+    .salary-autocomplete__dropdown::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .salary-select__dropdown::-webkit-scrollbar-track,
+    .salary-select__options::-webkit-scrollbar-track,
+    .salary-autocomplete__dropdown::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .salary-select__dropdown::-webkit-scrollbar-thumb,
+    .salary-select__options::-webkit-scrollbar-thumb,
+    .salary-autocomplete__dropdown::-webkit-scrollbar-thumb {
+        background: #c5cbd3;
+        border-radius: 20px;
+    }
+
+    .salary-select__dropdown::-webkit-scrollbar-thumb:hover,
+    .salary-select__options::-webkit-scrollbar-thumb:hover,
+    .salary-autocomplete__dropdown::-webkit-scrollbar-thumb:hover {
+        background: #aeb6c1;
+    }
+
+    #monthInput {
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    #showSalaryButton {
+        background-color: #f47920;
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    #showSalaryButton:hover {
+        background-color: #db5f07;
+    }
+
+    @@media (max-width: 980px) {
+        .filter-block {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            padding: 8px 0;
+            flex-wrap: nowrap;
+            height: 100%;
+        }
+
+        .salary-back {
+            width: 100%;
+            height: 48px;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .salary-filters-panel {
+            width: 100%;
+            gap: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .salary-field {
+            width: 100%;
+        }
+
+        .salary-select,
+        .salary-autocomplete,
+        .salary-field > input,
+        #showSalaryButton {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .salary-date-range {
+            width: 100%;
+        }
+
+        .salary-date-range input,
+        #monthInput {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .salary-field__error {
+            max-width: calc(100% - 20px);
+            white-space: normal;
+        }
+
+        .salary_wrapper .result-block {
+            padding: 10px;
+        }
+
+        .result-block .salary-result__meta {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+    }
+
+    @@media (max-width: 680px) {
+        .salary-filters-panel {
+            padding: 8px;
+            gap: 10px;
+        }
+
+        .salary-date-range {
+            flex-direction: column;
+        }
+
+        .salary-date-range input {
+            width: 100%;
+        }
+
+        #showSalaryButton {
+            min-height: 44px;
+        }
+
+        .salary-result__table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .result-block .salary-result__table-wrap {
+            overflow-x: visible;
+        }
+
+        .salary-result__table.salary-result__table {
+            min-width: 0;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .salary-result__table thead {
+            display: none;
+        }
+
+        .salary-result__table tr {
+            display: block;
+            border: 1px solid #ececec;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .salary-result__table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            border: none;
+            border-bottom: 1px dashed #efefef;
+            white-space: normal;
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+
+        .salary-result__table tbody td:last-child {
+            border-bottom: none;
+        }
+
+        .salary-result__table tbody td::before {
+            content: attr(data-label);
+            color: #6f7780;
+            font-weight: 600;
+            flex: 0 0 45%;
+        }
+    }
+
+    .result-block {
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        min-height: 180px;
+        padding: 12px;
+        overflow: auto;
+    }
+
+    .salary-result__loading,
+    .salary-result__empty,
+    .salary-result__error {
+        font-family: "Akrobat-Regular", sans-serif;
+        font-size: 15px;
+        color: #6f7780;
+    }
+
+    .salary-result__error {
+        color: #d63031;
+    }
+
+    .salary-result__meta {
+        font-family: "Akrobat-Regular", sans-serif;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .salary-result__table-wrap {
+        width: 100%;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+    }
+
+    .salary-result__table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: "Akrobat-Regular", sans-serif;
+        min-width: 560px;
+    }
+
+    .salary-result__table th,
+    .salary-result__table td {
+        border: 1px solid #ececec;
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .salary-result__table th {
+        background: #f47920;
+        font-weight: 600;
+        color: white;
+    }
+
+    #showSalaryButton:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+    .back-hover {
+        transition: all 0.3s ease;
+    }
+
+    .back-hover:hover {
+        background-color: #f47920 !important;
+        color: white;
+        cursor: pointer;
+    }
+    
+</style>

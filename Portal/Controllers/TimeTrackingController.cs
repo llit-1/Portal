@@ -23,6 +23,11 @@ namespace Portal.Controllers
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
 
+        private static DateTime NormalizeEndDateTime(DateTime begin, DateTime end)
+        {
+            return end <= begin ? end.AddDays(1) : end;
+        }
+
         public TimeTrackingController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
             db = context;
@@ -188,7 +193,7 @@ namespace Portal.Controllers
                     TimeSheets.Location = dbSql.Locations.FirstOrDefault(c => c.Guid == TimeSheet.Location);
                     TimeSheets.JobTitle = dbSql.JobTitles.FirstOrDefault(c => c.Guid == TimeSheet.JobTitle);
                     TimeSheets.Begin = TimeSheet.Begin;
-                    TimeSheets.End = TimeSheet.End;
+                    TimeSheets.End = NormalizeEndDateTime(TimeSheet.Begin, TimeSheet.End);
                     TimeSheets.Absence = TimeSheet.Absence;
                     addedTimeSheets.Add(TimeSheets);
                 }
@@ -239,6 +244,7 @@ namespace Portal.Controllers
                 List<int> ExistingSlots = new List<int>();
                 foreach (var WorkSlot in timeSheetJsonModel.WorkSlotsJson)
                 {
+                    var normalizedWorkSlotEnd = NormalizeEndDateTime(WorkSlot.Begin, WorkSlot.End);
                     // Если слот новый
                     if (WorkSlot.Id == 0)
                     {
@@ -246,7 +252,7 @@ namespace Portal.Controllers
                         newWorkSlots.Locations = dbSql.Locations.FirstOrDefault(c => c.Guid == timeSheetJsonModel.Location);
                         newWorkSlots.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
                         newWorkSlots.Begin = WorkSlot.Begin;
-                        newWorkSlots.End = WorkSlot.End;
+                        newWorkSlots.End = normalizedWorkSlotEnd;
                         newWorkSlots.Status = 0;
                         addedWorkingSlots.Add(newWorkSlots);
                         continue;
@@ -262,7 +268,7 @@ namespace Portal.Controllers
                     {
                         WorkSlotDB.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
                         WorkSlotDB.Begin = WorkSlot.Begin;
-                        WorkSlotDB.End = WorkSlot.End;
+                        WorkSlotDB.End = normalizedWorkSlotEnd;
                         WorkSlotDB.Status = WorkSlot.Status;
                         dbSql.WorkingSlots.Update(WorkSlotDB);
                         continue;
@@ -272,15 +278,15 @@ namespace Portal.Controllers
                     {
                         WorkSlotDB.JobTitles = dbSql.JobTitles.FirstOrDefault(c => c.Guid == WorkSlot.JobTitle);
                         WorkSlotDB.Begin = WorkSlot.Begin;
-                        WorkSlotDB.End = WorkSlot.End;
+                        WorkSlotDB.End = normalizedWorkSlotEnd;
                         dbSql.WorkingSlots.Update(WorkSlotDB);
                         continue;
                     }
                     //Если занят
-                    if (WorkSlotDB.Status == 1 && DateTime.Now > WorkSlot.End)
+                    if (WorkSlotDB.Status == 1 && DateTime.Now > normalizedWorkSlotEnd)
                     {
                         WorkSlotDB.Begin = WorkSlot.Begin;
-                        WorkSlotDB.End = WorkSlot.End;
+                        WorkSlotDB.End = normalizedWorkSlotEnd;
                         WorkSlotDB.Status = WorkSlot.Status;
                         dbSql.WorkingSlots.Update(WorkSlotDB);
                         continue;

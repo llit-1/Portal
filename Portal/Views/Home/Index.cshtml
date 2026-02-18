@@ -558,6 +558,22 @@
         </div>
     }
 
+    @if (User.IsInRole("salary"))
+    {
+        <div class="@classTails">
+            <a href="#salary" class="panel panel-default thumbnail cm-thumbnail tails-panel">
+                <div class="panel-body text-center tails-main" style="min-height: 147px;">
+                    <span class="svg-48">
+                        <img src="~/svg/panels/salary.png" width="20px">
+                    </span>
+                    <h4>Зарплата</h4>
+                    <small>расчет заработной платы</small>
+                </div>
+            </a>
+        </div>
+    }
+    
+
     <!--Учет пользователей #staff--> 
     @if (User.IsInRole("employee_control") || User.IsInRole("employee_control_factory"))
     {
