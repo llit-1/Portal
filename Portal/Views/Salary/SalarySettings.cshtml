@@ -44,7 +44,16 @@
                     <tbody>
                         @foreach(var rule in items)
                         {
-                            <tr class="salary-settings-row" data-rule-id="@rule.RuleId">
+                            <tr class="salary-settings-row"
+                                data-rule-id="@rule.RuleId"
+                                data-main-position="@(rule.MainJob?.Guid.ToString() ?? string.Empty)"
+                                data-timesheet-category="@(rule.RealJob?.Guid.ToString() ?? string.Empty)"
+                                data-base-rate="@(rule.BSM ?? string.Empty)"
+                                data-has-experience="@(rule.EXK == "1" ? "1" : "0")"
+                                data-has-location="@(rule.BAK == "1" ? "1" : "0")"
+                                data-has-output="@(rule.PartTimer ? "1" : "0")"
+                                data-period-from="@rule.Begin.ToString("yyyy-MM-dd")"
+                                data-period-to="@rule.End.ToString("yyyy-MM-dd")">
                                 <td data-label="Основная должность">@(rule.MainJob?.Name ?? "Парт-Таймер")</td>
                                 <td data-label="Категория из табеля">@(rule.RealJob?.Name ?? "-")</td>
                                 <td data-label="Ставка (без учета стажа и локации)">@(rule.BSM ?? "-")</td>
@@ -195,9 +204,6 @@
 
         let modalMode = 'create';
 
-        const mainPositions = ['Вечерник', 'Кассир', 'Повар', 'Администратор'];
-        const timesheetCategories = ['Вечерник', 'Универсал', 'Администратор'];
-
         function setActiveTab(tabName) {
             tabButtons.forEach(button => {
                 const isActive = button.dataset.tab === tabName;
@@ -210,52 +216,6 @@
                 panel.hidden = !isActive;
                 panel.classList.toggle('is-active', isActive);
             });
-        }
-
-        function setSelectOptions(select, values) {
-            if (!select) {
-                return;
-            }
-
-            select.innerHTML = '';
-
-            const emptyOption = document.createElement('option');
-            emptyOption.value = '';
-            emptyOption.textContent = 'Выберите...';
-            select.appendChild(emptyOption);
-
-            values.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                select.appendChild(option);
-            });
-        }
-
-        function parsePeriod(value) {
-            if (!value) {
-                return { from: '', to: '' };
-            }
-
-            const normalized = value.replace(/\s+/g, '');
-            const matches = normalized.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
-            if (!matches || matches.length < 3) {
-                return { from: '', to: '' };
-            }
-
-            const toIso = (ruDate) => {
-                const chunks = (ruDate || '').trim().split('.');
-                if (chunks.length !== 3) {
-                    return '';
-                }
-
-                return `${chunks[2]}-${chunks[1]}-${chunks[0]}`;
-            };
-
-            return {
-                from: toIso(matches[1]),
-                to: toIso(matches[2])
-            };
         }
 
         function shiftIsoDate(isoDate, days) {
@@ -372,51 +332,58 @@
             document.body.classList.remove('salary-modal-open');
         }
 
-        function getRowByRuleId(ruleId) {
-            if (!tableBody) {
-                return null;
-            }
+        function getRuleDataFromRow(row) {
+            const data = row ? row.dataset : {};
 
-            return Array.from(tableBody.querySelectorAll('tr[data-rule-id]'))
-                .find(row => row.dataset.ruleId === ruleId);
+            return {
+                ruleId: data.ruleId || '',
+                mainPosition: data.mainPosition || '',
+                timesheetCategory: data.timesheetCategory || '',
+                baseRate: (data.baseRate || '').replace(',', '.'),
+                hasExperience: data.hasExperience === '1',
+                hasLocation: data.hasLocation === '1',
+                hasOutput: data.hasOutput === '1',
+                periodFrom: data.periodFrom || '',
+                periodTo: data.periodTo || ''
+            };
         }
 
-        function fetchRuleForEditStub(ruleId) {
-            // Заглушка: здесь должен быть реальный запрос на API за актуальными данными правила.
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const row = getRowByRuleId(ruleId);
+        function removeRuleRow(ruleId) {
+            if (!tableBody || !ruleId) {
+                return;
+            }
 
-                    if (!row) {
-                        resolve({
-                            ruleId: ruleId,
-                            mainPosition: '',
-                            timesheetCategory: '',
-                            baseRate: '',
-                            hasExperience: false,
-                            hasLocation: false,
-                            hasOutput: false,
-                            periodFrom: '',
-                            periodTo: ''
-                        });
-                        return;
-                    }
+            const row = Array.from(tableBody.querySelectorAll('tr[data-rule-id]'))
+                .find(x => x.dataset.ruleId === String(ruleId));
 
-                    const period = parsePeriod(row.cells[6] ? row.cells[6].textContent.trim() : '');
+            if (row) {
+                row.remove();
+            }
+        }
 
-                    resolve({
-                        ruleId: ruleId,
-                        mainPosition: row.cells[0] ? row.cells[0].textContent.trim() : '',
-                        timesheetCategory: row.cells[1] ? row.cells[1].textContent.trim() : '',
-                        baseRate: row.cells[2] ? row.cells[2].textContent.trim() : '',
-                        hasExperience: !!row.querySelector('td:nth-child(4) .salary-flag.is-plus'),
-                        hasLocation: !!row.querySelector('td:nth-child(5) .salary-flag.is-plus'),
-                        hasOutput: !!row.querySelector('td:nth-child(6) .salary-flag.is-plus'),
-                        periodFrom: period.from,
-                        periodTo: period.to
-                    });
-                }, 450);
-            });
+        function buildBaseTableItemPayload() {
+            const mainJobName = mainPositionSelect.options[mainPositionSelect.selectedIndex]?.text || '';
+            const realJobName = timesheetCategorySelect.options[timesheetCategorySelect.selectedIndex]?.text || '';
+            const parsedRuleId = parseInt(ruleIdInput.value, 10);
+            const normalizedRuleId = Number.isFinite(parsedRuleId) ? parsedRuleId : null;
+
+            return {
+                RuleId: modalMode === 'edit' ? normalizedRuleId : null,
+                MainJob: mainPositionSelect.value ? {
+                    Guid: mainPositionSelect.value,
+                    Name: mainJobName
+                } : null,
+                RealJob: timesheetCategorySelect.value ? {
+                    Guid: timesheetCategorySelect.value,
+                    Name: realJobName
+                } : null,
+                BSM: (baseRateInput.value || '').toString(),
+                BAK: hasLocationCheckbox.checked ? '1' : '0',
+                EXK: hasExperienceCheckbox.checked ? '1' : '0',
+                Begin: periodFromInput.value,
+                End: periodToInput.value,
+                PartTimer: null
+            };
         }
 
         function openCreateModal() {
@@ -426,27 +393,18 @@
             openModal();
         }
 
-        function openEditModal(ruleId) {
+        function openEditModal(row) {
+            if (!row) {
+                return;
+            }
+
             setModalMode('edit');
             clearForm();
-            ruleIdInput.value = ruleId;
-            setFormLoading(true);
+            fillForm(getRuleDataFromRow(row));
             openModal();
-
-            fetchRuleForEditStub(ruleId)
-                .then(data => {
-                    fillForm(data);
-                })
-                .catch(() => {
-                    alert('Не удалось загрузить данные правила.');
-                })
-                .finally(() => {
-                    setFormLoading(false);
-                });
+            setFormLoading(false);
         }
 
-        setSelectOptions(mainPositionSelect, mainPositions);
-        setSelectOptions(timesheetCategorySelect, timesheetCategories);
         setActiveTab('rate-constructor');
 
         tabButtons.forEach(button => {
@@ -478,7 +436,7 @@
                     return;
                 }
 
-                openEditModal(row.dataset.ruleId || '');
+                openEditModal(row);
             });
         }
 
@@ -501,7 +459,7 @@
         }
 
         if (form) {
-            form.addEventListener('submit', function (event) {
+            form.addEventListener('submit', async function (event) {
                 event.preventDefault();
 
                 if (!isValidPeriod(periodFromInput.value, periodToInput.value)) {
@@ -509,26 +467,44 @@
                     return;
                 }
 
-                const payload = {
-                    ruleId: ruleIdInput.value || null,
-                    mainPosition: mainPositionSelect.value,
-                    timesheetCategory: timesheetCategorySelect.value,
-                    baseRate: baseRateInput.value,
-                    hasExperience: hasExperienceCheckbox.checked,
-                    hasLocation: hasLocationCheckbox.checked,
-                    hasOutput: hasOutputCheckbox.checked,
-                    periodFrom: periodFromInput.value,
-                    periodTo: periodToInput.value
-                };
+                const isEdit = modalMode === 'edit';
+                const requestUrl = isEdit
+                    ? 'http://rknet-server:1571/api/Edit/UpdateBaseTableItem'
+                    : 'http://rknet-server:1571/api/Edit/SetBaseTableItem';
+                const payload = buildBaseTableItemPayload();
 
-                // Заглушка: заменить на реальный запрос сохранения/создания правила.
-                console.log(modalMode === 'edit' ? 'save rule' : 'create rule', payload);
-                closeModal();
+                if (isEdit && payload.RuleId == null) {
+                    alert('Не найден RuleId для сохранения.');
+                    return;
+                }
+
+                try {
+                    setFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeModal();
+                } catch (error) {
+                    alert(isEdit ? 'Не удалось сохранить правило.' : 'Не удалось создать правило.');
+                    console.error('save rule failed', error);
+                } finally {
+                    setFormLoading(false);
+                }
             });
         }
 
         if (deleteButton) {
-            deleteButton.addEventListener('click', function () {
+            deleteButton.addEventListener('click', async function () {
                 if (modalMode !== 'edit') {
                     return;
                 }
@@ -537,9 +513,33 @@
                     return;
                 }
 
-                // Заглушка: заменить на реальный запрос удаления правила.
-                console.log('delete rule', ruleIdInput.value);
-                closeModal();
+                const ruleId = ruleIdInput.value;
+                if (!ruleId) {
+                    alert('Не найден id правила для удаления.');
+                    return;
+                }
+
+                const requestUrl = `http://rknet-server:1571/api/Edit/DeleteBaseTableItem?id=${encodeURIComponent(ruleId)}`;
+
+                try {
+                    setFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'GET'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    removeRuleRow(ruleId);
+                    closeModal();
+                } catch (error) {
+                    alert('Не удалось удалить правило.');
+                    console.error('delete rule failed', error);
+                } finally {
+                    setFormLoading(false);
+                }
             });
         }
 

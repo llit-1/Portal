@@ -244,7 +244,7 @@ namespace Portal.Controllers
 
         public class BaseTableItem
         {
-            public int RuleId { get; set; }
+            public int? RuleId { get; set; }
             public Models.MSSQL.Personality.JobTitle? MainJob { get; set; }
             public Models.MSSQL.Personality.JobTitle? RealJob { get; set; }
             public string BSM { get; set; }
