@@ -83,6 +83,7 @@ $(function () {
 
         // Расчет заработной платы
         if (hash == '#salary') loadContent(hash.replace('#', ''), '/Salary/Salary');
+        if (hash == '#salarysettings') loadContent(hash.replace('#', ''), '/Salary/SalarySettings');
 
         if (hash == '#cashbook') loadContent(hash.replace('#', ''), '/CashBook/CashBook');
 

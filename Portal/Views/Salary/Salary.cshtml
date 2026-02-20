@@ -6,55 +6,61 @@
             <label class="salary-back__label">Назад</label>
         </div>
         
-        <div class="salary-filters-panel">
-            <div class="salary-field">
-                <label class="salary-field__label">ТТ</label>
-                <div class="salary-select" id="locationSelect">
-                    <button type="button" class="salary-select__trigger">
-                        <span id="locationSelectValue">Выберите ТТ</span>
-                        <span class="salary-select__arrow">&#9662;</span>
-                    </button>
-                    <div class="salary-select__dropdown">
-                        <input type="text" class="salary-select__search" id="locationSearchInput" placeholder="Поиск ТТ..." autocomplete="off" />
-                        <ul class="salary-select__options" id="locationOptionsList">
-                            @foreach (var location in Model)
-                            {
-                                <li class="salary-select__option" data-value="@location.Guid">
-                                    @location.Name
-                                </li>
-                            }
-                        </ul>
-                        <div class="salary-select__empty" id="locationEmptyState">Ничего не найдено</div>
+        <div class="salary-filters-panel-wrapper">
+            <div class="salary-filters-panel">
+                <div class="salary-field">
+                    <label class="salary-field__label">ТТ</label>
+                    <div class="salary-select" id="locationSelect">
+                        <button type="button" class="salary-select__trigger">
+                            <span id="locationSelectValue">Выберите ТТ</span>
+                            <span class="salary-select__arrow">&#9662;</span>
+                        </button>
+                        <div class="salary-select__dropdown">
+                            <input type="text" class="salary-select__search" id="locationSearchInput" placeholder="Поиск ТТ..." autocomplete="off" />
+                            <ul class="salary-select__options" id="locationOptionsList">
+                                @foreach (var location in Model)
+                                {
+                                    <li class="salary-select__option" data-value="@location.Guid">
+                                        @location.Name
+                                    </li>
+                                }
+                            </ul>
+                            <div class="salary-select__empty" id="locationEmptyState">Ничего не найдено</div>
+                        </div>
+                        <input type="hidden" id="selectedLocationGuid" value="" />
                     </div>
-                    <input type="hidden" id="selectedLocationGuid" value="" />
+                    <div id="locationRequiredError" class="salary-field__error">Выберите ТТ или Сотрудника</div>
                 </div>
-                <div id="locationRequiredError" class="salary-field__error">Выберите ТТ или Сотрудника</div>
-            </div>
 
-            <div class="salary-field">
-                <label class="salary-field__label">Сотрудник</label>
-                <div class="salary-autocomplete" id="personalityAutocomplete">
-                    <input type="text" id="personalitySearchInput" placeholder="Введите ФИО" autocomplete="off" />
-                    <div class="salary-autocomplete__dropdown" id="personalityDropdown"></div>
-                    <input type="hidden" id="selectedPersonalityVersionGuid" />
-                    <input type="hidden" id="selectedPersonalityGuid" />
+                <div class="salary-field">
+                    <label class="salary-field__label">Сотрудник</label>
+                    <div class="salary-autocomplete" id="personalityAutocomplete">
+                        <input type="text" id="personalitySearchInput" placeholder="Введите ФИО" autocomplete="off" />
+                        <div class="salary-autocomplete__dropdown" id="personalityDropdown"></div>
+                        <input type="hidden" id="selectedPersonalityVersionGuid" />
+                        <input type="hidden" id="selectedPersonalityGuid" />
+                    </div>
                 </div>
-            </div>
 
-            <div class="salary-field salary-field--range">
-                <label class="salary-field__label">Период с/по</label>
-                <div class="salary-date-range">
-                    <input type="date" id="dateFromInput" />
-                    <input type="date" id="dateToInput" />
+                <div class="salary-field salary-field--range">
+                    <label class="salary-field__label">Период с/по</label>
+                    <div class="salary-date-range">
+                        <input type="date" id="dateFromInput" />
+                        <input type="date" id="dateToInput" />
+                    </div>
                 </div>
+
+                <div class="salary-field">
+                    <label class="salary-field__label">Месяц</label>
+                    <input type="month" id="monthInput" />
+                </div>
+
+                <button id="showSalaryButton">Показать</button>
             </div>
 
-            <div class="salary-field">
-                <label class="salary-field__label">Месяц</label>
-                <input type="month" id="monthInput" />
+            <div class="settings-wrapper" id="salary-settings">
+                <img src="/themes/clearmin/img/md/dark/settings.svg"/ class="setting-img">
             </div>
-
-            <button id="showSalaryButton">Показать</button>
         </div>
     </div>
 
@@ -67,6 +73,8 @@
 
         $('#back').unbind('click');
         $('#back').click(function () { location.hash = "#"; });
+
+        $('#salary-settings').click(function () { location.hash = "#salarysettings"; });
 
         const salaryWrapper = document.querySelector('.salary_wrapper');
         if (!salaryWrapper) {
@@ -85,6 +93,8 @@
         const resultBlock = salaryWrapper.querySelector('.result-block');
         const locationPlaceholderText = 'Выберите ТТ';
         let timeSheetsRequest = null;
+        let calculateSalariesRequest = null;
+        let currentTimeSheetGuids = [];
 
         function setLocationRequiredError() {
             locationSelect.classList.add('is-invalid');
@@ -282,7 +292,7 @@
         const dateFromInput = salaryWrapper.querySelector('#dateFromInput');
         const dateToInput = salaryWrapper.querySelector('#dateToInput');
         const monthInput = salaryWrapper.querySelector('#monthInput');
-        const maxRangeDays = 93;
+        const maxRangeDays = 155;
         const msInDay = 24 * 60 * 60 * 1000;
 
         function toDate(value) {
@@ -313,13 +323,6 @@
                 }
             }
 
-            if (dateToInput.value) {
-                const toDateValue = toDate(dateToInput.value);
-                if (toDateValue && toDateValue > today) {
-                    dateToInput.value = todayString;
-                }
-            }
-
             let fromDate = toDate(dateFromInput.value);
             let toDateValue = toDate(dateToInput.value);
 
@@ -344,14 +347,9 @@
                     } else {
                         const adjustedTo = new Date(fromDate);
                         adjustedTo.setDate(adjustedTo.getDate() + maxRangeDays);
-                        dateToInput.value = formatDate(adjustedTo > today ? today : adjustedTo);
+                        dateToInput.value = formatDate(adjustedTo);
                     }
                 }
-            }
-
-            toDateValue = toDate(dateToInput.value);
-            if (toDateValue && toDateValue > today) {
-                dateToInput.value = todayString;
             }
 
             fromDate = toDate(dateFromInput.value);
@@ -363,7 +361,7 @@
 
         function syncDateLimits() {
             const todayString = formatDate(getToday());
-            dateToInput.max = todayString;
+            dateToInput.removeAttribute('max');
             dateFromInput.max = todayString;
 
             if (dateFromInput.value) {
@@ -452,9 +450,206 @@
             return value % 1 === 0 ? String(value) : value.toFixed(2);
         }
 
+        function formatMoney(value) {
+            const amount = Number(value);
+            if (!Number.isFinite(amount)) {
+                return '-';
+            }
+
+            return amount.toLocaleString('ru-RU', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        const salaryCellLoaderHtml = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" class="deviceCard_loader">
+                <g fill="none" stroke="#f47920" stroke-linecap="round" stroke-width="2">
+                    <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity="0.3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z">
+                        <animate fill="freeze" attributeName="stroke-dashoffset" dur="2.6s" values="60;0"></animate>
+                    </path>
+                    <path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12">
+                        <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="15;0"></animate>
+                        <animateTransform attributeName="transform" dur="3s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"></animateTransform>
+                    </path>
+                </g>
+            </svg>
+        `;
+
+        function getSalaryCell(row, selector) {
+            return row ? row.querySelector(selector) : null;
+        }
+
+        function readSalaryValue(payload, key) {
+            if (!payload || typeof payload !== 'object') {
+                return undefined;
+            }
+
+            if (payload[key] !== undefined) {
+                return payload[key];
+            }
+
+            const pascalCaseKey = key.charAt(0).toUpperCase() + key.slice(1);
+            if (payload[pascalCaseKey] !== undefined) {
+                return payload[pascalCaseKey];
+            }
+
+            return undefined;
+        }
+
+        function shouldHighlightSalaryRow(baseRateValue) {
+            if (baseRateValue === null || baseRateValue === undefined || baseRateValue === '') {
+                return true;
+            }
+
+            const amount = Number(baseRateValue);
+            if (!Number.isFinite(amount)) {
+                return false;
+            }
+
+            return amount === 0;
+        }
+
+        function applySalaryRowHighlight(row, baseRateValue) {
+            if (!row) {
+                return;
+            }
+
+            row.classList.toggle('salary-result__row-warning', shouldHighlightSalaryRow(baseRateValue));
+        }
+
+        function getRowSalaryCells(row) {
+            return {
+                baseRate: getSalaryCell(row, '.salary-result__cell-base-rate'),
+                locationCashBonus: getSalaryCell(row, '.salary-result__cell-location-bonus'),
+                experienceCashBonus: getSalaryCell(row, '.salary-result__cell-experience-bonus'),
+                personalCashBonus: getSalaryCell(row, '.salary-result__cell-personal-bonus'),
+                workedHours: getSalaryCell(row, '.salary-result__cell-worked-hours'),
+                totalSalary: getSalaryCell(row, '.salary-result__cell-total-salary')
+            };
+        }
+
+        function showSalaryCellsLoader(row, cells) {
+            const previousContent = {};
+
+            Object.entries(cells).forEach(([key, cell]) => {
+                if (!cell) {
+                    return;
+                }
+
+                previousContent[key] = cell.innerHTML;
+                cell.classList.add('salary-result__cell-loading');
+                cell.innerHTML = salaryCellLoaderHtml;
+            });
+
+            return previousContent;
+        }
+
+        function clearSalaryCellsLoader(cells) {
+            Object.values(cells).forEach(cell => {
+                if (!cell) {
+                    return;
+                }
+
+                cell.classList.remove('salary-result__cell-loading');
+            });
+        }
+
+        function restoreSalaryCells(row, previousContent) {
+            const cells = getRowSalaryCells(row);
+
+            Object.entries(cells).forEach(([key, cell]) => {
+                if (!cell || previousContent[key] === undefined) {
+                    return;
+                }
+
+                cell.innerHTML = previousContent[key];
+            });
+
+            clearSalaryCellsLoader(cells);
+        }
+
+        function updateSalaryCellsFromPayload(row, payload) {
+            const cells = getRowSalaryCells(row);
+
+            const begin = readSalaryValue(payload, 'begin') ?? row.dataset.begin;
+            const end = readSalaryValue(payload, 'end') ?? row.dataset.end;
+            const baseRateFromPayload = readSalaryValue(payload, 'baseRate');
+            const effectiveBaseRate = baseRateFromPayload === undefined ? row.dataset.baseRate : baseRateFromPayload;
+
+            row.dataset.begin = begin || '';
+            row.dataset.end = end || '';
+            row.dataset.baseRate = effectiveBaseRate ?? '';
+            applySalaryRowHighlight(row, effectiveBaseRate);
+
+            if (cells.baseRate) {
+                cells.baseRate.textContent = formatMoney(effectiveBaseRate);
+            }
+
+            if (cells.locationCashBonus) {
+                cells.locationCashBonus.textContent = formatMoney(readSalaryValue(payload, 'locationCashBonus'));
+            }
+
+            if (cells.experienceCashBonus) {
+                cells.experienceCashBonus.textContent = formatMoney(readSalaryValue(payload, 'experienceCashBonus'));
+            }
+
+            if (cells.personalCashBonus) {
+                cells.personalCashBonus.textContent = formatMoney(readSalaryValue(payload, 'personalCashBonus'));
+            }
+
+            if (cells.workedHours) {
+                cells.workedHours.textContent = formatHours(getWorkedHours(begin, end));
+            }
+
+            if (cells.totalSalary) {
+                cells.totalSalary.textContent = formatMoney(readSalaryValue(payload, 'totalSalary'));
+            }
+
+            clearSalaryCellsLoader(cells);
+        }
+
+        function refreshTimeSheetSalaryRow(actionCell) {
+            if (!actionCell || actionCell.dataset.loading === '1') {
+                return;
+            }
+
+            const guid = (actionCell.dataset.guid || '').trim();
+            const row = actionCell.closest('tr');
+            if (!guid || !row) {
+                return;
+            }
+
+            actionCell.dataset.loading = '1';
+            actionCell.classList.add('is-loading');
+
+            const cells = getRowSalaryCells(row);
+            const previousContent = showSalaryCellsLoader(row, cells);
+
+            $.ajax({
+                url: '/Salary/GetSalaryDataForTimeSheet',
+                type: 'GET',
+                data: { guid: guid }
+            })
+                .done(function (payload) {
+                    updateSalaryCellsFromPayload(row, payload);
+                })
+                .fail(function (_, textStatus) {
+                    if (textStatus !== 'abort') {
+                        restoreSalaryCells(row, previousContent);
+                    }
+                })
+                .always(function () {
+                    actionCell.dataset.loading = '0';
+                    actionCell.classList.remove('is-loading');
+                });
+        }
+
         function renderTimeSheets(data) {
             const rows = Array.isArray(data) ? data : [];
-            const baseRate = 240;
+            currentTimeSheetGuids = rows
+                .map(x => x && x.guid ? String(x.guid).trim() : '')
+                .filter(x => x.length > 0);
 
             if (rows.length === 0) {
                 renderResult('<div class="salary-result__empty">По выбранным фильтрам данных нет</div>');
@@ -463,24 +658,40 @@
 
             const tableRowsHtml = rows.map(x => {
                 const workedHours = getWorkedHours(x.begin, x.end);
-                const total = Math.round(workedHours * baseRate);
 
                 return `
-                <tr>
+                <tr class="${shouldHighlightSalaryRow(x.baseRate) ? 'salary-result__row-warning' : ''}" data-guid="${x.guid ?? ''}" data-begin="${x.begin ?? ''}" data-end="${x.end ?? ''}" data-base-rate="${x.baseRate ?? ''}">
                     <td data-label="Начало">${formatDateTime(x.begin)}</td>
                     <td data-label="Окончание">${formatDateTime(x.end)}</td>
                     <td data-label="Сотрудник">${x.fio ?? '-'}</td>
                     <td data-label="ТТ">${x.location ?? '-'}</td>
                     <td data-label="Должность">${x.position ?? '-'}</td>
-                    <td data-label="Базовая ставка">${baseRate}</td>
-                    <td data-label="Отработано часов">${formatHours(workedHours)}</td>
-                    <td data-label="Итого">${total}</td>
+                    <td class="salary-result__cell-base-rate" data-label="Базовая ставка">${formatMoney(x.baseRate)}</td>
+                    <td class="salary-result__cell-location-bonus" data-label="Бонус ТТ">${formatMoney(x.locationCashBonus)}</td>
+                    <td class="salary-result__cell-experience-bonus" data-label="Бонус стажа">${formatMoney(x.experienceCashBonus)}</td>
+                    <td class="salary-result__cell-personal-bonus" data-label="Личный бонус">${formatMoney(x.personalCashBonus)}</td>
+                    <td class="salary-result__cell-worked-hours" data-label="Отработано часов">${formatHours(workedHours)}</td>
+                    <td class="salary-result__cell-total-salary" data-label="Итого">${formatMoney(x.totalSalary)}</td>
+                    <td class="salary-result__action-cell" data-guid="${x.guid ?? ''}" data-label="Обновить">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="reloadButton" width="1.8em" height="1.8em" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M6 12.05q0 .4.05.788t.175.762q.125.425-.025.813t-.525.562q-.4.2-.787.038t-.513-.588q-.2-.575-.288-1.175T4 12.05q0-3.35 2.325-5.7T12 4h.175l-.9-.9Q11 2.825 11 2.4t.275-.7t.7-.275t.7.275l2.6 2.6q.3.3.3.7t-.3.7l-2.6 2.6q-.275.275-.7.275t-.7-.275T11 7.6t.275-.7l.9-.9H12Q9.5 6 7.75 7.763T6 12.05m12-.1q0-.4-.05-.787t-.175-.763q-.125-.425.025-.812t.525-.563q.4-.2.787-.037t.513.587q.2.575.288 1.175t.087 1.2q0 3.35-2.325 5.7T12 20h-.175l.9.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.6-2.6q-.3-.3-.3-.7t.3-.7l2.6-2.6q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.9.9H12q2.5 0 4.25-1.762T18 11.95" />
+                        </svg>
+                    </td>
                 </tr>
             `;
             }).join('');
 
             renderResult(`
-                <div class="salary-result__meta">Найдено записей: ${rows.length}</div>
+                <div class="salary-result__meta">
+                    <div >
+                        Найдено записей: ${rows.length} 
+                    </div>
+
+                    <div>
+                        <button id="exportButton">Рассчитать</button>
+                    </div>
+
+                </div>
                 <div class="salary-result__table-wrap">
                     <table class="salary-result__table">
                         <thead>
@@ -491,14 +702,68 @@
                                 <th>ТТ</th>
                                 <th>Должность</th>
                                 <th>Базовая ставка</th>
+                                <th>Бонус ТТ</th>
+                                <th>Бонус стажа</th>
+                                <th>Личный бонус</th>
                                 <th>Отработано часов</th>
                                 <th>Итого</th>
+                                <th class="salary-result__action-cell">Обновить</th>
                             </tr>
                         </thead>
                         <tbody>${tableRowsHtml}</tbody>
                     </table>
                 </div>
             `);
+        }
+
+        function setCalculateButtonState(button, isLoading) {
+            if (!button) {
+                return;
+            }
+
+            if (isLoading) {
+                if (!button.dataset.originalText) {
+                    button.dataset.originalText = button.textContent;
+                }
+
+                button.disabled = true;
+                button.textContent = 'Расчет...';
+                return;
+            }
+
+            button.disabled = false;
+            button.textContent = button.dataset.originalText || 'Рассчитать';
+            delete button.dataset.originalText;
+        }
+
+        function calculateSalariesForLoadedTimeSheets(button) {
+            if (calculateSalariesRequest) {
+                return;
+            }
+
+            const guids = currentTimeSheetGuids
+                .map(x => (x || '').trim())
+                .filter(x => x.length > 0);
+
+            if (guids.length === 0) {
+                return;
+            }
+
+            setCalculateButtonState(button, true);
+
+            calculateSalariesRequest = $.ajax({
+                url: '/Salary/CalculateSalaries',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(guids)
+            })
+                .done(function () {
+                    loadTimeSheets();
+                })
+                .always(function () {
+                    calculateSalariesRequest = null;
+                    setCalculateButtonState(button, false);
+                });
         }
 
         function buildTimeSheetsRequestData() {
@@ -574,6 +839,27 @@
             });
         }
 
+        if (resultBlock) {
+            resultBlock.addEventListener('click', function (event) {
+                const calculateButton = event.target.closest('#exportButton');
+                if (calculateButton && resultBlock.contains(calculateButton)) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    calculateSalariesForLoadedTimeSheets(calculateButton);
+                    return;
+                }
+
+                const actionCell = event.target.closest('.salary-result__action-cell[data-guid]');
+                if (!actionCell || !resultBlock.contains(actionCell)) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                refreshTimeSheetSalaryRow(actionCell);
+            });
+        }
+
         syncPeriodMode();
 
         $(document).off('click.salaryFilters').on('click.salaryFilters', function (event) {
@@ -636,6 +922,7 @@
         align-items: flex-end;
         flex: 1;
         min-width: 0;
+        align-items: center;
     }
 
     .salary-field {
@@ -1016,6 +1303,8 @@
 
         .result-block .salary-result__table-wrap {
             overflow-x: visible;
+            border: none;
+            border-radius: 0;
         }
 
         .salary-result__table.salary-result__table {
@@ -1058,6 +1347,22 @@
             font-weight: 600;
             flex: 0 0 45%;
         }
+
+        .salary-result__table tbody td.salary-result__action-cell {
+            justify-content: center;
+        }
+
+        .salary-result__table tbody td.salary-result__action-cell::before {
+            display: none;
+        }
+
+        .salary-result__table tbody td.salary-result__cell-loading {
+            justify-content: center;
+        }
+
+        .salary-result__table tbody td.salary-result__cell-loading::before {
+            display: none;
+        }
     }
 
     .result-block {
@@ -1087,29 +1392,97 @@
         font-family: "Akrobat-Regular", sans-serif;
         font-size: 16px;
         margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .salary-result__meta button {
+        border: none;
+        border-radius: 8px;
+        padding: 6px 12px;
+        background: #60ba60;
+        color: white;
+        font-family: "Akrobat-Regular", sans-serif;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
 
     .salary-result__table-wrap {
         width: 100%;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
+        border: 1px solid #ececec;
         border-radius: 8px;
+        overflow: hidden;
     }
 
     .salary-result__table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         font-family: "Akrobat-Regular", sans-serif;
-        min-width: 560px;
+        min-width: 1100px;
     }
 
     .salary-result__table th,
     .salary-result__table td {
-        border: 1px solid #ececec;
+        border-right: 1px solid #ececec;
+        border-bottom: 1px solid #ececec;
         padding: 8px 10px;
         text-align: left;
         font-size: 14px;
         white-space: nowrap;
+    }
+
+    .salary-result__table th:last-child,
+    .salary-result__table td:last-child {
+        border-right: none;
+    }
+
+    .salary-result__table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .salary-result__table th.salary-result__action-cell,
+    .salary-result__table td.salary-result__action-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .salary-result__table td.salary-result__action-cell .reloadButton {
+        display: block;
+        margin: 0 auto;
+        
+    }
+
+    .salary-result__table td.salary-result__cell-loading {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+        .salary-result__table td.salary-result__cell-loading .deviceCard_loader {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .salary-result__table tr.salary-result__row-warning td {
+        background-color: #fff6cc;
+    }
+
+    td.salary-result__action-cell {
+        transition: background-color 0.3s ease;
+    }
+
+    td.salary-result__action-cell.is-loading {
+        cursor: wait;
+        pointer-events: none;
+    }
+
+    td.salary-result__action-cell:hover {
+        background-color: #f2f2f2;
+        cursor: pointer;
     }
 
     .salary-result__table th {
@@ -1132,5 +1505,35 @@
         color: white;
         cursor: pointer;
     }
+
+    .settings-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        padding-right: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .settings-wrapper:hover .setting-img {
+        cursor: pointer;
+        transform: rotate(120deg);
+    }
     
+    .setting-img {
+        width: 24px;
+        height: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .salary-filters-panel-wrapper {
+        display: flex;
+        background: #fff;
+        border-radius: 8px;
+        flex: 1;
+        align-items: center;
+    }
+
+
+
 </style>

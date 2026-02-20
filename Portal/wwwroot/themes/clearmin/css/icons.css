@@ -5,3 +5,7 @@
 .ttVideo-icon {
     background-image: url("../img/md/dark/video.png") !important;
 }
+
+.salary-icon {
+    background-image: url("../../../svg/panels/salary.png")
+}

@@ -16,5 +16,10 @@ namespace Portal.Models.MSSQL
         public DateTime Begin { get; set; }
         public DateTime End { get; set; }
         public int? Absence { get; set; }
+        public decimal? BaseRate { get; set; }
+        public decimal? LocationCashBonus { get; set; }
+        public decimal? ExperienceCashBonus { get; set; }
+        public decimal? PersonalCashBonus { get; set; }
+        public decimal? TotalSalary { get; set; }
     }
 }

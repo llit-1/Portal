@@ -55,15 +55,15 @@ namespace Portal.Controllers
                     var next = versions[i + 1];
                     if (current.VersionEndDate != null)
                     {
-                        if (current.VersionEndDate.Value.AddDays(1) != next.VersionStartDate)
+                        if (current.VersionEndDate.Value.AddDays(1) != next.VersionStartDate.Value.AddSeconds(86399))
                         {
                             temp.Add(current.Guid);
                         }
-                        else if (current.VersionEndDate.Value >= next.VersionStartDate)
+                        else if (current.VersionEndDate.Value >= next.VersionStartDate.Value.AddSeconds(86399))
                         {
                             temp.Add(current.Guid);
                         }
-                        else if (current.VersionStartDate > current.VersionEndDate)
+                        else if (current.VersionStartDate.Value.AddSeconds(86399) > current.VersionEndDate)
                         {
                             temp.Add(current.Guid);
                         }
@@ -492,7 +492,7 @@ namespace Portal.Controllers
                     {
                         if(dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null) != null)
                         {
-                            dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = personalityJson.VersionStartDate.Value.AddDays(-1);
+                            dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).VersionEndDate = personalityJson.VersionStartDate.Value.AddSeconds(-1);
                             dbSql.PersonalityVersions.FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null).Actual = 0;
                         }
                     }
@@ -678,6 +678,7 @@ namespace Portal.Controllers
                 {
                     personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
                     personalityVersion.VersionEndDate = personalityJson.VersionEndDate;
+                    personalityVersion.VersionEndDate.Value.AddSeconds(86399);
                     dbSql.SaveChanges();
                     return new OkObjectResult(result);
                 }
@@ -713,15 +714,15 @@ namespace Portal.Controllers
                 {
                     if(i < (checkVersionsForError.Count - 1))
                     {
-                        if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value.AddDays(1) != checkVersionsForError[i + 1].VersionStartDate)
+                        if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value.AddDays(1) != checkVersionsForError[i + 1].VersionStartDate.Value.AddSeconds(86399))
                         {
                             ErrorsInDAtes.Add(checkVersionsForError[i].Guid);
                         }
-                        else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value >= checkVersionsForError[i + 1].VersionStartDate.Value)
+                        else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionEndDate.Value >= checkVersionsForError[i + 1].VersionStartDate.Value.AddSeconds(86399))
                         {
                             ErrorsInDAtes.Add(checkVersionsForError[i].Guid);
                         }
-                        else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionStartDate.Value > checkVersionsForError[i].VersionEndDate.Value)
+                        else if (checkVersionsForError.Count > 1 && checkVersionsForError[i].VersionStartDate.Value.AddSeconds(86399) > checkVersionsForError[i].VersionEndDate.Value)
                         {
                             temp.Add(checkVersionsForError[i].Guid);
                         }

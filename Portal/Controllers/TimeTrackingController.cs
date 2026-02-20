@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
@@ -179,7 +180,7 @@ namespace Portal.Controllers
 
             return PartialView(trackingDataEditModel);
         }
-        public IActionResult TimeTrackingAdd(string json, bool editChart = false)
+        public async Task<IActionResult> TimeTrackingAdd(string json, bool editChart = false)
         {
             var result = new RKNet_Model.Result<string>();
             try
@@ -301,6 +302,19 @@ namespace Portal.Controllers
                 dbSql.WorkingSlots.RemoveRange(removedWorkingSlots);
                 dbSql.AddRange(addedWorkingSlots);
                 dbSql.SaveChanges();
+
+                // После сохранения вызываем массовый перерасчет зарплат по добавленным табелям.
+                if (addedTimeSheets.Any())
+                {
+                    List<Guid> guidTimesheets = addedTimeSheets
+                        .Select(x => x.Guid)
+                        .ToList();
+
+                    if (guidTimesheets.Any())
+                    {
+                        await Portal.Global.Functions.CalculateSalariesAsync(guidTimesheets);
+                    }
+                }
 
                 // Если есть добавленные слоты, возвращаем Guid первого
                 if (addedTimeSheets.Any())

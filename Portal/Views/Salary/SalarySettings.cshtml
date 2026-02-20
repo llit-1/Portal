@@ -1,0 +1,1111 @@
+﻿@model Portal.Controllers.SalaryController.SalarySettingsBaseTable
+
+@{
+    var items = Model?.Items ?? new System.Collections.Generic.List<Portal.Controllers.SalaryController.BaseTableItem>();
+    var jobTitles = Model?.jobTitles ?? new System.Collections.Generic.List<Portal.Models.MSSQL.Personality.JobTitle>();
+}
+
+<div class="salary_wrapper">
+    <div class="filter-block">
+
+        <div class="salary-back back-hover" id="back">
+            <label class="salary-back__label">Назад</label>
+        </div>
+        
+        <div class="salary-filters-panel-wrapper">
+            <div class="salary-filters-panel" role="tablist" aria-label="Вкладки настроек ставки">
+                <button type="button" class="salary-tab-button is-active" data-tab="rate-constructor" aria-selected="true">Конструктор ставки</button>
+                <button type="button" class="salary-tab-button" data-tab="special-locations" aria-selected="false">Особые локации</button>
+                <button type="button" class="salary-tab-button" disabled title="Доступно после отпуска">Стаж</button>
+                <button type="button" class="salary-tab-button" disabled title="Доступно после отпуска">Исключения</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-block">
+        <div class="salary-result-panel is-active" data-tab-panel="rate-constructor">
+            <div class="addButton-wrapper">
+                <button class="addButton">Добавить</button>
+            </div>
+
+            <div class="salary-result__table-wrap">
+                <table class="salary-result__table salary-rules-table">
+                    <thead>
+                        <tr>
+                            <th>Основная должность</th>
+                            <th>Категория из табеля</th>
+                            <th>Ставка (без учета стажа и локации)</th>
+                            <th>Стаж</th>
+                            <th>Локация</th>
+                            @* <th>Выработка</th> *@
+                            <th>Период</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var rule in items)
+                        {
+                            <tr class="salary-settings-row" data-rule-id="@rule.RuleId">
+                                <td data-label="Основная должность">@(rule.MainJob?.Name ?? "Парт-Таймер")</td>
+                                <td data-label="Категория из табеля">@(rule.RealJob?.Name ?? "-")</td>
+                                <td data-label="Ставка (без учета стажа и локации)">@(rule.BSM ?? "-")</td>
+                                <td style="text-align: center;" data-label="Стаж">
+                                    @if (rule.EXK == "1")
+                                    {
+                                        <span class="salary-flag is-plus" aria-label="Да">+</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="salary-flag is-minus" aria-label="Нет">-</span>
+                                    }
+                                </td>
+                                <td style="text-align: center;" data-label="Локация">
+                                    @if (rule.BAK == "1")
+                                    {
+                                        <span class="salary-flag is-plus" aria-label="Да">+</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="salary-flag is-minus" aria-label="Нет">-</span>
+                                    }
+                                </td>
+                                @* <td style="text-align: center;" data-label="Выработка"><span class="salary-flag is-plus" aria-label="Да">+</span></td> *@
+                                <td data-label="Период">@rule.Begin.ToString("dd.MM.yyyy") - @rule.End.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                       
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="salary-result-panel" data-tab-panel="special-locations" hidden>
+            <div class="salary-result__table-wrap">
+                <table class="salary-result__table">
+                    <thead>
+                        <tr>
+                            <th>ТТ</th>
+                            <th>Тариф</th>
+                            <th>Период</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-label="ТТ">ТТ-001</td>
+                            <td data-label="Тариф">300</td>
+                            <td data-label="Период">20.02.2026-20.03.2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="salary-modal-overlay" id="salaryRuleModal" hidden>
+    <div class="salary-modal" role="dialog" aria-modal="true" aria-labelledby="salaryRuleModalTitle">
+        <div class="salary-modal__header">
+            <h3 id="salaryRuleModalTitle" class="salary-modal__title">Добавление правила</h3>
+            <button type="button" id="salaryRuleModalClose" class="salary-modal__close" aria-label="Закрыть">×</button>
+        </div>
+
+        <form id="salaryRuleForm" class="salary-modal__body">
+            <input type="hidden" id="salaryRuleId" />
+
+            <div class="salary-modal__field">
+                <label for="salaryMainPosition">Основная должность</label>
+                <select id="salaryMainPosition" required>
+                    @foreach(var job in jobTitles)
+                    {
+                        <option value="@job.Guid">@job.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryTimesheetCategory">Категория из табеля</label>
+                <select id="salaryTimesheetCategory" required>
+                    @foreach (var job in jobTitles)
+                    {
+                        <option value="@job.Guid">@job.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryBaseRate">Ставка (без учета стажа и локации)</label>
+                <input id="salaryBaseRate" type="number" step="1" min="0" required />
+            </div>
+
+            <div class="salary-modal__checks">
+                <label><input id="salaryHasExperience" type="checkbox" /> Стаж</label>
+                <label><input id="salaryHasLocation" type="checkbox" /> Локация</label>
+                <label><input id="salaryHasOutput" type="checkbox" /> Выработка</label>
+            </div>
+
+            <div class="salary-modal__field">
+                <label>Период</label>
+                <div class="salary-modal__period">
+                    <input id="salaryPeriodFrom" type="date" required />
+                    <input id="salaryPeriodTo" type="date" required />
+                </div>
+            </div>
+
+            <div class="salary-modal__actions">
+                <button type="button" id="salaryRuleDeleteButton" class="salary-modal__btn salary-modal__btn--danger">Удалить</button>
+                <button type="submit" id="salaryRuleSubmitButton" class="salary-modal__btn salary-modal__btn--primary">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    (() => {
+        $("#PageHeader").text("Настройка правил расчета ставки");
+
+        $('#back').unbind('click');
+        $('#back').click(function () { location.hash = "#salary"; });
+
+        const salaryWrapper = document.querySelector('.salary_wrapper');
+        if (!salaryWrapper) {
+            return;
+        }
+
+        const tabButtons = Array.from(salaryWrapper.querySelectorAll('.salary-tab-button[data-tab]'));
+        const tabPanels = Array.from(salaryWrapper.querySelectorAll('.salary-result-panel[data-tab-panel]'));
+        const constructorPanel = salaryWrapper.querySelector('[data-tab-panel="rate-constructor"]');
+        const addButton = constructorPanel ? constructorPanel.querySelector('.addButton') : null;
+        const tableBody = constructorPanel ? constructorPanel.querySelector('.salary-rules-table tbody') : null;
+
+        const modal = document.getElementById('salaryRuleModal');
+        const modalTitle = document.getElementById('salaryRuleModalTitle');
+        const modalCloseButton = document.getElementById('salaryRuleModalClose');
+        const form = document.getElementById('salaryRuleForm');
+        const ruleIdInput = document.getElementById('salaryRuleId');
+        const mainPositionSelect = document.getElementById('salaryMainPosition');
+        const timesheetCategorySelect = document.getElementById('salaryTimesheetCategory');
+        const baseRateInput = document.getElementById('salaryBaseRate');
+        const hasExperienceCheckbox = document.getElementById('salaryHasExperience');
+        const hasLocationCheckbox = document.getElementById('salaryHasLocation');
+        const hasOutputCheckbox = document.getElementById('salaryHasOutput');
+        const periodFromInput = document.getElementById('salaryPeriodFrom');
+        const periodToInput = document.getElementById('salaryPeriodTo');
+        const submitButton = document.getElementById('salaryRuleSubmitButton');
+        const deleteButton = document.getElementById('salaryRuleDeleteButton');
+
+        let modalMode = 'create';
+
+        const mainPositions = ['Вечерник', 'Кассир', 'Повар', 'Администратор'];
+        const timesheetCategories = ['Вечерник', 'Универсал', 'Администратор'];
+
+        function setActiveTab(tabName) {
+            tabButtons.forEach(button => {
+                const isActive = button.dataset.tab === tabName;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            tabPanels.forEach(panel => {
+                const isActive = panel.dataset.tabPanel === tabName;
+                panel.hidden = !isActive;
+                panel.classList.toggle('is-active', isActive);
+            });
+        }
+
+        function setSelectOptions(select, values) {
+            if (!select) {
+                return;
+            }
+
+            select.innerHTML = '';
+
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Выберите...';
+            select.appendChild(emptyOption);
+
+            values.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
+            });
+        }
+
+        function parsePeriod(value) {
+            if (!value) {
+                return { from: '', to: '' };
+            }
+
+            const normalized = value.replace(/\s+/g, '');
+            const matches = normalized.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
+            if (!matches || matches.length < 3) {
+                return { from: '', to: '' };
+            }
+
+            const toIso = (ruDate) => {
+                const chunks = (ruDate || '').trim().split('.');
+                if (chunks.length !== 3) {
+                    return '';
+                }
+
+                return `${chunks[2]}-${chunks[1]}-${chunks[0]}`;
+            };
+
+            return {
+                from: toIso(matches[1]),
+                to: toIso(matches[2])
+            };
+        }
+
+        function shiftIsoDate(isoDate, days) {
+            if (!isoDate) {
+                return '';
+            }
+
+            const parts = isoDate.split('-').map(Number);
+            if (parts.length !== 3 || parts.some(Number.isNaN)) {
+                return '';
+            }
+
+            const date = new Date(parts[0], parts[1] - 1, parts[2]);
+            date.setDate(date.getDate() + days);
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
+
+        function isValidPeriod(from, to) {
+            return !!from && !!to && from < to;
+        }
+
+        function setPeriodLimits() {
+            periodToInput.min = periodFromInput.value ? shiftIsoDate(periodFromInput.value, 1) : '';
+            periodFromInput.max = periodToInput.value ? shiftIsoDate(periodToInput.value, -1) : '';
+        }
+
+        function normalizePeriodValues(changedInput) {
+            const from = periodFromInput.value;
+            const to = periodToInput.value;
+
+            if (from && to && from >= to) {
+                if (changedInput === periodFromInput) {
+                    periodToInput.value = shiftIsoDate(periodFromInput.value, 1);
+                } else if (changedInput === periodToInput) {
+                    periodFromInput.value = shiftIsoDate(periodToInput.value, -1);
+                } else {
+                    periodToInput.value = shiftIsoDate(periodFromInput.value, 1);
+                }
+            }
+
+            setPeriodLimits();
+        }
+
+        function setModalMode(mode) {
+            modalMode = mode;
+            const isEdit = mode === 'edit';
+
+            modalTitle.textContent = isEdit ? 'Редактирование правила' : 'Добавление правила';
+            submitButton.textContent = isEdit ? 'Сохранить' : 'Создать';
+            deleteButton.hidden = !isEdit;
+        }
+
+        function clearForm() {
+            ruleIdInput.value = '';
+            mainPositionSelect.value = '';
+            timesheetCategorySelect.value = '';
+            baseRateInput.value = '';
+            hasExperienceCheckbox.checked = false;
+            hasLocationCheckbox.checked = false;
+            hasOutputCheckbox.checked = false;
+            periodFromInput.value = '';
+            periodToInput.value = '';
+            setPeriodLimits();
+        }
+
+        function fillForm(data) {
+            ruleIdInput.value = data.ruleId || '';
+            mainPositionSelect.value = data.mainPosition || '';
+            timesheetCategorySelect.value = data.timesheetCategory || '';
+            baseRateInput.value = data.baseRate ?? '';
+            hasExperienceCheckbox.checked = !!data.hasExperience;
+            hasLocationCheckbox.checked = !!data.hasLocation;
+            hasOutputCheckbox.checked = !!data.hasOutput;
+            periodFromInput.value = data.periodFrom || '';
+            periodToInput.value = data.periodTo || '';
+            normalizePeriodValues();
+        }
+
+        function setFormLoading(isLoading) {
+            const fields = [
+                mainPositionSelect,
+                timesheetCategorySelect,
+                baseRateInput,
+                hasExperienceCheckbox,
+                hasLocationCheckbox,
+                hasOutputCheckbox,
+                periodFromInput,
+                periodToInput,
+                submitButton,
+                deleteButton
+            ];
+
+            fields.forEach(field => {
+                if (field) {
+                    field.disabled = isLoading;
+                }
+            });
+
+            form.classList.toggle('salary-modal__body--loading', isLoading);
+        }
+
+        function openModal() {
+            modal.hidden = false;
+            document.body.classList.add('salary-modal-open');
+        }
+
+        function closeModal() {
+            modal.hidden = true;
+            document.body.classList.remove('salary-modal-open');
+        }
+
+        function getRowByRuleId(ruleId) {
+            if (!tableBody) {
+                return null;
+            }
+
+            return Array.from(tableBody.querySelectorAll('tr[data-rule-id]'))
+                .find(row => row.dataset.ruleId === ruleId);
+        }
+
+        function fetchRuleForEditStub(ruleId) {
+            // Заглушка: здесь должен быть реальный запрос на API за актуальными данными правила.
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const row = getRowByRuleId(ruleId);
+
+                    if (!row) {
+                        resolve({
+                            ruleId: ruleId,
+                            mainPosition: '',
+                            timesheetCategory: '',
+                            baseRate: '',
+                            hasExperience: false,
+                            hasLocation: false,
+                            hasOutput: false,
+                            periodFrom: '',
+                            periodTo: ''
+                        });
+                        return;
+                    }
+
+                    const period = parsePeriod(row.cells[6] ? row.cells[6].textContent.trim() : '');
+
+                    resolve({
+                        ruleId: ruleId,
+                        mainPosition: row.cells[0] ? row.cells[0].textContent.trim() : '',
+                        timesheetCategory: row.cells[1] ? row.cells[1].textContent.trim() : '',
+                        baseRate: row.cells[2] ? row.cells[2].textContent.trim() : '',
+                        hasExperience: !!row.querySelector('td:nth-child(4) .salary-flag.is-plus'),
+                        hasLocation: !!row.querySelector('td:nth-child(5) .salary-flag.is-plus'),
+                        hasOutput: !!row.querySelector('td:nth-child(6) .salary-flag.is-plus'),
+                        periodFrom: period.from,
+                        periodTo: period.to
+                    });
+                }, 450);
+            });
+        }
+
+        function openCreateModal() {
+            setModalMode('create');
+            clearForm();
+            setFormLoading(false);
+            openModal();
+        }
+
+        function openEditModal(ruleId) {
+            setModalMode('edit');
+            clearForm();
+            ruleIdInput.value = ruleId;
+            setFormLoading(true);
+            openModal();
+
+            fetchRuleForEditStub(ruleId)
+                .then(data => {
+                    fillForm(data);
+                })
+                .catch(() => {
+                    alert('Не удалось загрузить данные правила.');
+                })
+                .finally(() => {
+                    setFormLoading(false);
+                });
+        }
+
+        setSelectOptions(mainPositionSelect, mainPositions);
+        setSelectOptions(timesheetCategorySelect, timesheetCategories);
+        setActiveTab('rate-constructor');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                if (button.disabled) {
+                    return;
+                }
+
+                const tabName = button.dataset.tab;
+                if (!tabName) {
+                    return;
+                }
+
+                setActiveTab(tabName);
+            });
+        });
+
+        if (addButton) {
+            addButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                openCreateModal();
+            });
+        }
+
+        if (tableBody) {
+            tableBody.addEventListener('click', function (event) {
+                const row = event.target.closest('tr[data-rule-id]');
+                if (!row || !tableBody.contains(row)) {
+                    return;
+                }
+
+                openEditModal(row.dataset.ruleId || '');
+            });
+        }
+
+        if (modalCloseButton) {
+            modalCloseButton.addEventListener('click', function () {
+                closeModal();
+            });
+        }
+
+        if (periodFromInput) {
+            periodFromInput.addEventListener('input', function () {
+                normalizePeriodValues(periodFromInput);
+            });
+        }
+
+        if (periodToInput) {
+            periodToInput.addEventListener('input', function () {
+                normalizePeriodValues(periodToInput);
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                if (!isValidPeriod(periodFromInput.value, periodToInput.value)) {
+                    alert('Период должен быть минимум 1 день: дата "По" должна быть позже даты "С".');
+                    return;
+                }
+
+                const payload = {
+                    ruleId: ruleIdInput.value || null,
+                    mainPosition: mainPositionSelect.value,
+                    timesheetCategory: timesheetCategorySelect.value,
+                    baseRate: baseRateInput.value,
+                    hasExperience: hasExperienceCheckbox.checked,
+                    hasLocation: hasLocationCheckbox.checked,
+                    hasOutput: hasOutputCheckbox.checked,
+                    periodFrom: periodFromInput.value,
+                    periodTo: periodToInput.value
+                };
+
+                // Заглушка: заменить на реальный запрос сохранения/создания правила.
+                console.log(modalMode === 'edit' ? 'save rule' : 'create rule', payload);
+                closeModal();
+            });
+        }
+
+        if (deleteButton) {
+            deleteButton.addEventListener('click', function () {
+                if (modalMode !== 'edit') {
+                    return;
+                }
+
+                if (!window.confirm('Точно удалить правило?')) {
+                    return;
+                }
+
+                // Заглушка: заменить на реальный запрос удаления правила.
+                console.log('delete rule', ruleIdInput.value);
+                closeModal();
+            });
+        }
+
+    })();
+</script>
+
+<style>
+    .salary_wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-block {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 60px;
+        padding: 10px 0px;
+    }
+
+    .salary-back {
+        display: flex;
+        gap: 10px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        height: 60px;
+        align-items: center;
+    }
+
+    .salary-back__label {
+        margin-bottom: 0;
+        font-family: "Akrobat-Regular", sans-serif;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .salary-filters-panel {
+        display: flex;
+        gap: 10px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+    }
+
+    .filter-block button {
+        height: 40px;
+        border-radius: 8px;
+        background-color: #ebaa7c;
+        padding: 0px 20px;
+        cursor: pointer;
+        font-family: "Akrobat-Regular", sans-serif;
+        transition: border-color 0.3s ease;
+        font-size: 14px;
+        font-weight: 400;
+        color: white;
+    }
+
+    .filter-block button:hover {
+        border-color: #db5f07;
+    }
+
+    .salary-tab-button {
+        background-color: #ebaa7c;
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .salary-tab-button.is-active {
+        background-color: #f47920;
+    }
+
+    .salary-tab-button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        background-color: #ccc;
+    }
+
+    .salary-tab-button:not(:disabled):hover {
+        border-color: #db5f07;
+    }
+
+    .salary-filters-panel-wrapper {
+        display: flex;
+        background: #fff;
+        border-radius: 8px;
+        flex: 1;
+        align-items: center;
+    }
+
+    .result-block {
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        min-height: 180px;
+        padding: 12px;
+        overflow: auto;
+    }
+
+    .salary-result-panel {
+        width: 100%;
+        height: 100%;
+    }
+
+    .salary-result-panel[hidden] {
+        display: none !important;
+    }
+
+    .salary-result__table-wrap {
+        width: 100%;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid #ececec;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .salary-result__table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: "Akrobat-Regular", sans-serif;
+        min-width: 100%;
+    }
+
+    .salary-rules-table {
+        min-width: 980px;
+    }
+
+    .salary-result__table th,
+    .salary-result__table td {
+        border-right: 1px solid #ececec;
+        border-bottom: 1px solid #ececec;
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .salary-result__table th:last-child,
+    .salary-result__table td:last-child {
+        border-right: none;
+    }
+
+    .salary-result__table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .salary-result__table th {
+        background: #f47920;
+        font-weight: 600;
+        color: white;
+    }
+
+    .salary-flag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        font-size: 22px;
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .salary-flag.is-plus {
+        color: #2e7d32;
+    }
+
+    .salary-flag.is-minus {
+        color: #c62828;
+    }
+
+    .salary-rules-table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .salary-rules-table tbody tr:hover {
+        background: #f2f2f2;
+        cursor: pointer;
+    }
+
+    .salary-modal-open {
+        overflow: hidden;
+    }
+
+    .salary-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 1000;
+    }
+
+    .salary-modal-overlay[hidden] {
+        display: none !important;
+    }
+
+    .salary-modal {
+        width: 100%;
+        max-width: 640px;
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    .salary-modal__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid #ececec;
+    }
+
+    .salary-modal__title {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+    }
+
+    .salary-modal__close {
+        border: none;
+        background: transparent;
+        color: #222;
+        width: 32px;
+        height: 32px;
+        line-height: 1;
+        font-size: 28px;
+        cursor: pointer;
+        padding-bottom: 2px;
+        border-radius: 6px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .salary-modal__close:hover {
+        background: #f3f3f3;
+        color: #000;
+    }
+
+    .salary-modal__body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .salary-modal__body--loading {
+        opacity: 0.7;
+    }
+
+    .salary-modal__field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .salary-modal__field label {
+        margin: 0;
+        color: #222;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .salary-modal__field input,
+    .salary-modal__field select,
+    .salary-modal__period input {
+        border: 1px solid #d9d9d9;
+        border-radius: 8px;
+        min-height: 40px;
+        font-size: 16px;
+        padding: 8px 10px;
+        outline: none;
+        transition: border-color 0.2s ease;
+        background: #fff;
+    }
+
+    .salary-modal__field input:focus,
+    .salary-modal__field select:focus,
+    .salary-modal__period input:focus {
+        border-color: #f47920;
+    }
+
+    .salary-modal__checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .salary-modal__checks label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+    }
+
+    .salary-modal__checks input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        margin: 0;
+        border: 2px solid #f1a86f;
+        border-radius: 5px;
+        background: #fff7f0;
+        display: inline-grid;
+        place-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .salary-modal__checks input[type="checkbox"]::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        transform: scale(0);
+        transition: transform 0.15s ease-in-out;
+        box-shadow: inset 1em 1em #f47920;
+        clip-path: polygon(14% 44%, 0 59%, 43% 100%, 100% 21%, 84% 6%, 41% 70%);
+    }
+
+    .salary-modal__checks input[type="checkbox"]:checked {
+        border-color: #f47920;
+        background: #fff;
+    }
+
+    .salary-modal__checks input[type="checkbox"]:checked::before {
+        transform: scale(1);
+    }
+
+    .salary-modal__checks input[type="checkbox"]:hover {
+        border-color: #db5f07;
+        background: #fff2e6;
+    }
+
+    .salary-modal__checks input[type="checkbox"]:focus-visible {
+        outline: 2px solid rgba(244, 121, 32, 0.25);
+        outline-offset: 2px;
+    }
+
+    .salary-modal__period {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .salary-modal__actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .salary-modal__btn {
+        border: none;
+        border-radius: 8px;
+        min-height: 40px;
+        padding: 0 14px;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        transition: opacity 0.2s ease, background-color 0.2s ease;
+    }
+
+    .salary-modal__btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+    .salary-modal__btn--primary {
+        background: #f47920;
+    }
+
+    .salary-modal__btn--primary:hover:not(:disabled) {
+        background: #db5f07;
+    }
+
+    .salary-modal__btn--danger {
+        margin-right: auto;
+        background: #d9534f;
+    }
+
+    .salary-modal__btn--danger:hover:not(:disabled) {
+        background: #c43b37;
+    }
+
+    @@media (max-width: 980px) {
+        .filter-block {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            padding: 8px 0;
+            flex-wrap: nowrap;
+            height: 100%;
+        }
+
+        .salary-back {
+            width: 100%;
+            height: 48px;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .salary-filters-panel {
+            width: 100%;
+            gap: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .salary-tab-button {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .salary_wrapper .result-block {
+            padding: 10px;
+        }
+    }
+
+    @@media (max-width: 680px) {
+        .salary-filters-panel {
+            padding: 8px;
+            gap: 10px;
+        }
+
+        .salary-tab-button {
+            min-height: 44px;
+        }
+
+        .salary-result__table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .result-block .salary-result__table-wrap {
+            overflow-x: visible;
+            border: none;
+            border-radius: 0;
+        }
+
+        .salary-result__table.salary-result__table {
+            min-width: 0;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .salary-result__table thead {
+            display: none;
+        }
+
+        .salary-result__table tr {
+            display: block;
+            border: 1px solid #ececec;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .salary-result__table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            border: none;
+            border-bottom: 1px dashed #efefef;
+            white-space: normal;
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+
+        .salary-result__table tbody td:last-child {
+            border-bottom: none;
+        }
+
+        .salary-result__table tbody td::before {
+            content: attr(data-label);
+            color: #6f7780;
+            font-weight: 600;
+            flex: 0 0 45%;
+        }
+
+        .salary-modal-overlay {
+            align-items: flex-end;
+            padding: 10px;
+        }
+
+        .salary-modal {
+            max-width: 100%;
+            max-height: calc(100vh - 20px);
+        }
+
+        .salary-modal__title {
+            font-size: 20px;
+        }
+
+        .salary-modal__period {
+            grid-template-columns: 1fr;
+        }
+
+        .salary-modal__actions {
+            flex-wrap: wrap;
+        }
+
+        .salary-modal__btn {
+            width: 100%;
+        }
+
+        .salary-modal__btn--danger {
+            margin-right: 0;
+        }
+    }
+
+    .back-hover {
+        transition: all 0.3s ease;
+    }
+
+    .back-hover:hover {
+        background-color: #f47920 !important;
+        color: white;
+        cursor: pointer;
+    }
+
+    .addButton-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        padding-bottom: 10px;
+    }
+
+    .addButton {
+        border: none;
+        border-radius: 8px;
+        padding: 6px 12px;
+        background: #60ba60;
+        color: white;
+        font-family: "Akrobat-Regular", sans-serif;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .addButton:hover {
+        background: #2e7d32;
+    }
+
+</style>

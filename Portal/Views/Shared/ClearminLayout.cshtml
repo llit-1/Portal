@@ -270,6 +270,11 @@
                             <li><a id="SettingsVideoDevices" href="#SettingsVideoDevices" class="ttVideo-icon">Видео на ТТ</a></li>
                         }
 
+                        @if (User.IsInRole("salary"))
+                        {
+                            <li><a id="salary" href="#salary" class="salary-icon">Зарплата</a></li>
+                        }
+
                         <!--Учет пользователей-->
                         @if (User.IsInRole("employee_control") || User.IsInRole("employee_control_factory"))
                         {

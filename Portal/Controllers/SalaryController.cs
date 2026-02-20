@@ -1,9 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Portal.Models.MSSQL;
+using Portal.Models.MSSQL.Personality;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace Portal.Controllers
@@ -13,11 +17,13 @@ namespace Portal.Controllers
     {
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
+        private readonly IHttpClientFactory httpClientFactory;
 
-        public SalaryController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
+        public SalaryController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext, IHttpClientFactory httpClientFactoryConnect)
         {
             db = context;
             dbSql = dbSqlContext;
+            httpClientFactory = httpClientFactoryConnect;
         }
 
         public IActionResult Salary()
@@ -32,7 +38,7 @@ namespace Portal.Controllers
             if(Start == null && End == null && Month == null)
             {
                 End = DateTime.Now;
-                Start = DateTime.Now.AddDays(-93);
+                Start = DateTime.Now.AddDays(-155);
             }
 
 
@@ -74,7 +80,7 @@ namespace Portal.Controllers
             }
 
             var timeSheets = await query
-                .OrderBy(x => x.Begin)
+                .OrderByDescending(x => x.Begin)
                 .Select(x => new
                 {
                     guid = x.Guid,
@@ -88,7 +94,12 @@ namespace Portal.Controllers
                     locationGuid = x.Location != null ? (Guid?)x.Location.Guid : null,
                     begin = x.Begin,
                     end = x.End,
-                    absence = x.Absence
+                    absence = x.Absence,
+                    baseRate = x.BaseRate,
+                    locationCashBonus = x.LocationCashBonus,
+                    experienceCashBonus = x.ExperienceCashBonus,
+                    personalCashBonus = x.PersonalCashBonus,
+                    totalSalary = x.TotalSalary
                 })
                 .ToListAsync();
 
@@ -120,6 +131,128 @@ namespace Portal.Controllers
                 .ToListAsync();
 
             return Json(personalities);
+        }
+
+        public async Task<IActionResult> GetSalaryDataForTimeSheet(Guid guid)
+        {
+            string requestUrl = $"http://rknet-server:1571/api/CalculateSalary/settimesheetsalary?guid={Uri.EscapeDataString(guid.ToString())}";
+
+            try
+            {
+                using HttpClient httpClient = httpClientFactory.CreateClient();
+                using HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        message = "Не удалось пересчитать зарплату для табеля"
+                    });
+                }
+            }
+            catch
+            {
+                return StatusCode(502, new
+                {
+                    message = "Ошибка обращения к сервису расчета зарплаты"
+                });
+            }
+
+            var timeSheet = await dbSql.TimeSheets
+                .AsNoTracking()
+                .Where(x => x.Guid == guid)
+                .Select(x => new
+                {
+                    guid = x.Guid,
+                    begin = x.Begin,
+                    end = x.End,
+                    baseRate = x.BaseRate,
+                    locationCashBonus = x.LocationCashBonus,
+                    experienceCashBonus = x.ExperienceCashBonus,
+                    personalCashBonus = x.PersonalCashBonus,
+                    totalSalary = x.TotalSalary
+                })
+                .FirstOrDefaultAsync();
+
+            if (timeSheet == null)
+            {
+                return NotFound();
+            }
+
+            return Json(timeSheet);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CalculateSalaries([FromBody] List<Guid> guids)
+        {
+            var calculateResult = await Portal.Global.Functions.CalculateSalariesAsync(guids);
+
+            if (!calculateResult.IsSuccess)
+            {
+                return StatusCode(calculateResult.StatusCode, new
+                {
+                    message = calculateResult.Message
+                });
+            }
+
+            return Ok(new
+            {
+                calculated = calculateResult.Calculated
+            });
+        }
+
+        public async Task<IActionResult> SalarySettings()
+        {
+            const string requestUrl = "http://rknet-server:1571/api/Edit/GetBaseTable";
+            List<BaseTableItem> baseTableItems = new List<BaseTableItem>();
+            SalarySettingsBaseTable salarySettingsBaseTable = new SalarySettingsBaseTable
+            {
+                Items = new List<BaseTableItem>(),
+                jobTitles = new List<JobTitle>()
+            };
+
+            try
+            {
+                using HttpClient httpClient = httpClientFactory.CreateClient();
+                using HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.BaseTableLoadError = $"Не удалось загрузить таблицу ставок (HTTP {(int)response.StatusCode})";
+                    salarySettingsBaseTable.jobTitles = dbSql.JobTitles.AsNoTracking().ToList();
+                    return PartialView(salarySettingsBaseTable);
+                }
+
+                baseTableItems = await response.Content.ReadFromJsonAsync<List<BaseTableItem>>() ?? new List<BaseTableItem>();
+                salarySettingsBaseTable.Items = baseTableItems;
+            }
+            catch
+            {
+                ViewBag.BaseTableLoadError = "Ошибка обращения к сервису таблицы ставок";
+            }
+
+            salarySettingsBaseTable.jobTitles = dbSql.JobTitles.AsNoTracking().ToList();
+
+            return PartialView(salarySettingsBaseTable);
+        }
+
+        public class SalarySettingsBaseTable 
+        {
+            public List<BaseTableItem> Items { get; set; }
+            public List<JobTitle> jobTitles { get; set; }
+        }
+
+        public class BaseTableItem
+        {
+            public int RuleId { get; set; }
+            public Models.MSSQL.Personality.JobTitle? MainJob { get; set; }
+            public Models.MSSQL.Personality.JobTitle? RealJob { get; set; }
+            public string BSM { get; set; }
+            public string BAK { get; set; }
+            public string EXK { get; set; }
+            public DateTime Begin { get; set; }
+            public DateTime End { get; set; }
+            public bool PartTimer { get; set; }
         }
     }
 }

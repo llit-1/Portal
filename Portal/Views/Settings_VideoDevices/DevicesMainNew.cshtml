@@ -529,7 +529,7 @@
         }
 
         allCards.forEach(el => {
-            if (!el.textContent.includes(search)) {
+            if (!el.textContent.toLowerCase().includes(search.toLowerCase())) {
                 el.parentElement.parentElement.classList.add("hidden");
             } else {
                 el.parentElement.parentElement.classList.remove("hidden");
