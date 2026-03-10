@@ -365,10 +365,10 @@
             const mainJobName = mainPositionSelect.options[mainPositionSelect.selectedIndex]?.text || '';
             const realJobName = timesheetCategorySelect.options[timesheetCategorySelect.selectedIndex]?.text || '';
             const parsedRuleId = parseInt(ruleIdInput.value, 10);
-            const normalizedRuleId = Number.isFinite(parsedRuleId) ? parsedRuleId : null;
+            const normalizedRuleId = Number.isFinite(parsedRuleId) ? parsedRuleId : 0;
 
             return {
-                RuleId: modalMode === 'edit' ? normalizedRuleId : null,
+                RuleId: modalMode === 'edit' ? normalizedRuleId : 0,
                 MainJob: mainPositionSelect.value ? {
                     Guid: mainPositionSelect.value,
                     Name: mainJobName
@@ -382,7 +382,7 @@
                 EXK: hasExperienceCheckbox.checked ? '1' : '0',
                 Begin: periodFromInput.value,
                 End: periodToInput.value,
-                PartTimer: null
+                PartTimer: hasOutputCheckbox.checked
             };
         }
 
@@ -481,10 +481,10 @@
                 try {
                     setFormLoading(true);
 
-                    const response = await fetch(requestUrl, {
+                   const response = await fetch(requestUrl, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(payload)
                     });
@@ -786,10 +786,10 @@
         width: 32px;
         height: 32px;
         line-height: 1;
-        font-size: 28px;
+        font-size: 24px;
         cursor: pointer;
         padding-bottom: 2px;
-        border-radius: 6px;
+        border-radius: 8px;
         transition: background-color 0.2s ease, color 0.2s ease;
     }
 

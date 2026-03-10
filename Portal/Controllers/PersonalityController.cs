@@ -677,8 +677,14 @@ namespace Portal.Controllers
                 else
                 {
                     personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
+
                     personalityVersion.VersionEndDate = personalityJson.VersionEndDate;
-                    personalityVersion.VersionEndDate.Value.AddSeconds(86399);
+
+                    if (personalityVersion.VersionEndDate != null)
+                    {
+                        personalityVersion.VersionEndDate = personalityJson.VersionEndDate.Value.AddSeconds(86399);
+                    }
+
                     dbSql.SaveChanges();
                     return new OkObjectResult(result);
                 }
