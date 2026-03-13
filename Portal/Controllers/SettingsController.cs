@@ -20,6 +20,8 @@ using Microsoft.Data.SqlClient;
 using System.Text;
 using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Factory;
+using Portal.ViewModels.Settings_Access.json;
+using System.Data;
 
 namespace Portal.Controllers
 {
@@ -49,6 +51,8 @@ namespace Portal.Controllers
         public IActionResult Main()
         {
             var portalSettings = db.PortalSettings.FirstOrDefault();
+            ViewBag.TTs = db.TTs.ToList();
+
             return PartialView(portalSettings);
         }
 
@@ -227,6 +231,63 @@ namespace Portal.Controllers
                 Task.Run(() => ExecuteUpdateSaleObjectsAsync(daysAgo));
 
                 return Ok("Запрос на обновление данных отправлен");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateSaleObjectsManually([FromBody] List<int> tts)
+        {
+            try
+            {
+                if (dbSql.SettingsVariables.FirstOrDefault(x => x.Name == "UpdateSaleobjectsActive").Value == 1)
+                {
+                    return Ok("Запрос уже выполняется другим пользователем, попробуйте позже");
+                }
+
+                if (tts == null || tts.Count == 0)
+                {
+                    return BadRequest("Не выбраны ТТ для обновления");
+                }
+
+                var filteredTts = tts
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .ToList();
+
+                if (filteredTts.Count == 0)
+                {
+                    return BadRequest("Передан некорректный список ТТ");
+                }
+
+                var ttJson = JsonConvert.SerializeObject(filteredTts);
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@now", SqlDbType.DateTime) { Value = DateTime.Now },
+                    new SqlParameter("@daysAgo", SqlDbType.Int) { Value = -2 },
+                    new SqlParameter("@TTJson", SqlDbType.NVarChar, -1) { Value = ttJson }
+                };
+
+                var previousTimeout = dbSql.Database.GetCommandTimeout();
+
+                try
+                {
+                    dbSql.Database.SetCommandTimeout(TimeSpan.FromMinutes(15));
+
+                    await dbSql.Database.ExecuteSqlRawAsync(
+                        "EXEC dbo.UpdateSaleobjects_Filtered @now, @daysAgo, @TTJson",
+                        parameters);
+                }
+                finally
+                {
+                    dbSql.Database.SetCommandTimeout(previousTimeout);
+                }
+
+                return Ok("Запрос на обновление выполнен");
             }
             catch (Exception ex)
             {

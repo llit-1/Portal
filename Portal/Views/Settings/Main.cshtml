@@ -63,7 +63,7 @@
 
                         <button disabled id='buttonRefreshData' class="btn btn-success btn-sm" style="position: relative;margin-top: 10px;width: 88px; height: 34px; border-color: transparent; background-color: transparent" onclick="RefreshData(event)">
 
-                            <div id="loading2" style="width: 40px; height: 38px" class="lds-ring center-block">
+                            <div style="width: 40px; height: 38px" class="lds-ring center-block update-sale-objects__loader">
                                 <div style="width: 24px; height: 24px;"></div>
                                 <div style="width: 24px; height: 24px;"></div>
                                 <div style="width: 24px; height: 24px;"></div>
@@ -78,40 +78,76 @@
                 </div>
             </div>
         </div>
-    }
 
+        <div class="col-sm-3" style="min-width: 300px">
+            <div class="panel panel-default" style=" min-height: 190px;">
+                <div class="panel-heading">обновление данных</div>
+                <div class="panel-body" style="padding: 10px 10px">
 
-    <div class="col-sm-3" style="min-width: 300px">
-        <div class="panel panel-default" style="min-height: 190px;">
-            <div class="panel-heading">FactoryPerson</div>
-            <div class="panel-body" style="height: 148px; padding: 0;display: flex;justify-content: center;align-items: center;">
+                    <div class="text-danger" asp-validation-summary="All"></div>
 
-                <form class="" style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 5px">
+                    <form class="" style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 5px">
 
-                    <button id='buttonRefreshFactoryPerson' class="btn btn-success btn-sm" style="position: relative;width: 88px; height: 34px;" onclick="RefreshDataFactory(event)">
+                        <label style="padding-left: 0px; margin-bottom: 0px" class="col-sm-12 control-label" for="refreshData_days"> Выберите ТТ </label>
 
-                        <div id="loading3" style="width: 40px; height: 38px; display: none" class="lds-ring center-block">
-                            <div style="width: 24px; height: 24px;"></div>
-                            <div style="width: 24px; height: 24px;"></div>
-                            <div style="width: 24px; height: 24px;"></div>
-                            <div style="width: 24px; height: 24px;"></div>
+                        <div class="updateSelectedTT">
+                            <div class="settings-tt-select" id="factoryPersonTTSelect">
+                                <button type="button" class="settings-tt-select__trigger">
+                                    <span id="factoryPersonTTSelectValue">Выберите ТТ</span>
+                                    <span class="settings-tt-select__arrow">&#9662;</span>
+                                </button>
+                                <div class="settings-tt-select__dropdown">
+                                    <input type="text"
+                                           class="settings-tt-select__search"
+                                           id="factoryPersonTTSearchInput"
+                                           placeholder="Поиск ТТ..."
+                                           autocomplete="off" />
+                                    <ul class="settings-tt-select__options" id="factoryPersonTTOptionsList">
+                                        @foreach (var tt in ViewBag?.TTs)
+                                        {
+                                            <li class="settings-tt-select__option" data-value="@tt.Restaurant_Sifr">
+                                                <span class="settings-tt-select__check"></span>
+                                                <span class="settings-tt-select__text">@tt.Name</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                    <div class="settings-tt-select__empty" id="factoryPersonTTEmptyState">Ничего не найдено</div>
+                                </div>
+                                <select class="form-control settings-tt-select__native" id="factoryPersonTTs" multiple>
+                                    @foreach (var tt in ViewBag?.TTs)
+                                    {
+                                        <option value="@tt.Restaurant_Sifr">@tt.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <button id='buttonRefreshFactoryPerson' class="btn btn-success btn-sm" style="position: relative;width: fit-content; height: 34px;" onclick="RefreshDataFactory(event)">
+
+                                <div style="width: 40px; height: 38px; display: none" class="lds-ring center-block update-sale-objects__loader">
+                                    <div style="width: 24px; height: 24px;"></div>
+                                    <div style="width: 24px; height: 24px;"></div>
+                                    <div style="width: 24px; height: 24px;"></div>
+                                    <div style="width: 24px; height: 24px;"></div>
+                                </div>
+
+                                <span id="textButtonFactory"> Обновить выбранные ТТ</span>
+
+                            </button>
                         </div>
 
-                        <span id="textButtonFactory"> Обновить </span>
-
-                    </button>
-
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-    
-
+    }
 </div>
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 <!--сохранить-->
 <script>
+
+
+
     function Save() {
 
         var settings = {};
@@ -149,22 +185,157 @@
 </script>
 
 <script>
-    const loading = document.getElementById('loading2')
-    const textButton = document.getElementById('textButton')
+    (() => {
+        const selectRoot = document.getElementById('factoryPersonTTSelect');
+        if (!selectRoot) {
+            return;
+        }
+
+        const nativeSelect = document.getElementById('factoryPersonTTs');
+        const trigger = selectRoot.querySelector('.settings-tt-select__trigger');
+        const valueNode = document.getElementById('factoryPersonTTSelectValue');
+        const searchInput = document.getElementById('factoryPersonTTSearchInput');
+        const options = Array.from(selectRoot.querySelectorAll('.settings-tt-select__option'));
+        const emptyState = document.getElementById('factoryPersonTTEmptyState');
+        const placeholder = 'Выберите ТТ';
+
+        function getSelectedValues() {
+            return Array.from(nativeSelect.selectedOptions).map(option => option.value);
+        }
+
+        function syncValueLabel() {
+            const selectedOptions = Array.from(nativeSelect.selectedOptions);
+
+            if (selectedOptions.length === 0) {
+                valueNode.textContent = placeholder;
+                return;
+            }
+
+            if (selectedOptions.length === 1) {
+                valueNode.textContent = selectedOptions[0].textContent.trim();
+                return;
+            }
+
+            valueNode.textContent = `Выбрано: ${selectedOptions.length}`;
+        }
+
+        function syncSelectedState() {
+            const selectedValues = new Set(getSelectedValues());
+
+            options.forEach(option => {
+                option.classList.toggle('is-selected', selectedValues.has(option.dataset.value || ''));
+            });
+
+            syncValueLabel();
+        }
+
+        function filterOptions(query) {
+            const normalizedQuery = (query || '').trim().toLowerCase();
+            let visibleCount = 0;
+
+            options.forEach(option => {
+                const optionText = option.textContent.toLowerCase();
+                const isVisible = optionText.includes(normalizedQuery);
+                option.classList.toggle('hidden', !isVisible);
+
+                if (isVisible) {
+                    visibleCount += 1;
+                }
+            });
+
+            emptyState.classList.toggle('is-visible', visibleCount === 0);
+        }
+
+        function closeDropdown() {
+            selectRoot.classList.remove('is-open');
+            searchInput.value = '';
+            filterOptions('');
+        }
+
+        trigger.addEventListener('click', function (event) {
+            event.stopPropagation();
+            selectRoot.classList.toggle('is-open');
+
+            if (selectRoot.classList.contains('is-open')) {
+                searchInput.focus();
+            } else {
+                closeDropdown();
+            }
+        });
+
+        searchInput.addEventListener('input', function (event) {
+            filterOptions(event.target.value);
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const optionValue = option.dataset.value || '';
+                const nativeOption = Array.from(nativeSelect.options).find(x => x.value === optionValue);
+
+                if (!nativeOption) {
+                    return;
+                }
+
+                nativeOption.selected = !nativeOption.selected;
+                syncSelectedState();
+                nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        nativeSelect.addEventListener('change', syncSelectedState);
+
+        document.addEventListener('click', function (event) {
+            if (!selectRoot.contains(event.target)) {
+                closeDropdown();
+            }
+        });
+
+        syncSelectedState();
+        filterOptions('');
+    })();
+</script>
+
+<script>
     const button = document.getElementById('buttonRefreshData')
+    const buttonRefreshFactoryPerson = document.getElementById("buttonRefreshFactoryPerson")
+    const loading2 = button?.querySelector('.update-sale-objects__loader')
+    const loading3 = buttonRefreshFactoryPerson?.querySelector('.update-sale-objects__loader')
+    const textButton = document.getElementById('textButton')
+    const textButtonFactory = document.getElementById('textButtonFactory')
+    const hasUpdateSaleObjectsControls = !!(loading2 && loading3 && textButton && button && buttonRefreshFactoryPerson && textButtonFactory)
+
+    function setUpdateSaleObjectsLoadingState(isLoading) {
+        if (!hasUpdateSaleObjectsControls) {
+            return
+        }
+
+        loading2.style.display = isLoading ? "block" : "none"
+        loading3.style.display = isLoading ? "block" : "none"
+        textButton.style.display = isLoading ? "none" : "block"
+        textButtonFactory.style.display = isLoading ? "none" : "block"
+
+        button.disabled = isLoading
+        button.style.backgroundColor = isLoading ? "transparent" : "#2ECC71"
+        button.style.borderColor = isLoading ? "transparent" : "#29B765"
+
+        buttonRefreshFactoryPerson.disabled = isLoading
+        buttonRefreshFactoryPerson.style.backgroundColor = isLoading ? "transparent" : "#2ECC71"
+        buttonRefreshFactoryPerson.style.borderColor = isLoading ? "transparent" : "#29B765"
+    }
 
     async function RefreshData(event) {
+        if (!hasUpdateSaleObjectsControls) {
+            return
+        }
+
         event.preventDefault()
         
         const days = document.getElementById('refreshData_days').value;
         const url = '/Settings/UpdateSaleObjects?daysAgo=' + days
 
         try {
-            loading2.style.display = "block"
-            textButton.style.display = "none"
-            button.disabled = true;
-            button.style.backgroundColor = "transparent"
-            button.style.borderColor = "transparent"
+            setUpdateSaleObjectsLoadingState(true)
 
             const response = await fetch(url)
 
@@ -177,30 +348,37 @@
             alert(result)
 
         } catch(e) {
-            loading2.style.display = "none"
-            textButton.style.display = "block"
-            button.disabled = false;
-            button.style.backgroundColor = "#2ECC71"
-            button.style.borderColor = "#29B765"
+            setUpdateSaleObjectsLoadingState(false)
             alert(e)
         }
     }
 
-    const buttonRefreshFactoryPerson = document.getElementById("buttonRefreshFactoryPerson")
-    const loading3 = document.getElementById('loading3')
-
     async function RefreshDataFactory(event) {
+        if (!hasUpdateSaleObjectsControls) {
+            return
+        }
+
         event.preventDefault()
-        const url = '/Settings/UpdateFactoryPerson/'
+        const url = '/Settings/UpdateSaleObjectsManually'
+        const selectedTTs = Array.from(document.getElementById('factoryPersonTTs').selectedOptions)
+            .map(option => Number(option.value))
+            .filter(Number.isInteger)
+
+        if (selectedTTs.length === 0) {
+            alert('Выберите хотя бы одну ТТ')
+            return
+        }
 
         try {
-            loading3.style.display = "block"
-            textButtonFactory.style.display = "none"
-            buttonRefreshFactoryPerson.disabled = true;
-            buttonRefreshFactoryPerson.style.backgroundColor = "transparent"
-            buttonRefreshFactoryPerson.style.borderColor = "transparent"
+            setUpdateSaleObjectsLoadingState(true)
 
-            const response = await fetch(url)
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(selectedTTs)
+            })
 
             const result = await response.text();
 
@@ -210,23 +388,18 @@
 
             alert(result)
 
-            loading3.style.display = "none"
-            textButtonFactory.style.display = "block"
-            buttonRefreshFactoryPerson.disabled = false;
-            buttonRefreshFactoryPerson.style.backgroundColor = "#2ECC71"
-            buttonRefreshFactoryPerson.style.borderColor = "#29B765"
+            setUpdateSaleObjectsLoadingState(false)
 
         } catch(e) {
-            loading3.style.display = "none"
-            textButtonFactory.style.display = "block"
-            buttonRefreshFactoryPerson.disabled = false;
-            buttonRefreshFactoryPerson.style.backgroundColor = "#2ECC71"
-            buttonRefreshFactoryPerson.style.borderColor = "#29B765"
+            setUpdateSaleObjectsLoadingState(false)
             alert(e)
         }
     }
 
     async function CheckActiveUpdateSaleObjects() {
+        if (!hasUpdateSaleObjectsControls) {
+            return
+        }
 
         const url = '/Settings/CheckStatusFromUpdateSaleObjects'
 
@@ -238,17 +411,161 @@
                 throw new Error(result)
             }
 
-            loading2.style.display = "none"
-            textButton.style.display = "block"
-            button.disabled = false;
-            button.style.backgroundColor = "#2ECC71"
-            button.style.borderColor = "#29B765"
+            setUpdateSaleObjectsLoadingState(false)
 
         }
         catch(e) {
+            setUpdateSaleObjectsLoadingState(true)
             setTimeout(() => CheckActiveUpdateSaleObjects(), 60000)
         }
     }
 
     CheckActiveUpdateSaleObjects() 
 </script>
+
+<style>
+    .updateSelectedTT {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .settings-tt-select {
+        position: relative;
+        width: 100%;
+    }
+
+    .settings-tt-select__trigger {
+        width: 100%;
+        min-height: 34px;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        border-radius: 2px;
+        border: 1px solid #ccc;
+        background: #fff;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .settings-tt-select__trigger:hover {
+        border-color: #db5f07;
+    }
+
+    .settings-tt-select__arrow {
+        color: #777;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .settings-tt-select__dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 4px);
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        padding: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        z-index: 1000;
+        display: none;
+    }
+
+    .settings-tt-select.is-open .settings-tt-select__dropdown {
+        display: block;
+    }
+
+    .settings-tt-select__search {
+        width: 100%;
+        height: 34px;
+        border-radius: 2px;
+        border: 1px solid #ccc;
+        padding: 0 10px;
+        margin-bottom: 8px;
+    }
+
+    .settings-tt-select__search:focus {
+        border-color: #db5f07;
+        outline: none;
+    }
+
+    .settings-tt-select__options {
+        margin: 0;
+        padding: 0;
+        max-height: 220px;
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    .settings-tt-select__option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .settings-tt-select__option:hover {
+        background: #f2f4f7;
+    }
+
+    .settings-tt-select__option.is-selected {
+        background: #e7f0ff;
+    }
+
+    .settings-tt-select__option.hidden {
+        display: none;
+    }
+
+    .settings-tt-select__check {
+        width: 16px;
+        height: 16px;
+        border: 1px solid #b9c0c8;
+        border-radius: 4px;
+        background: #fff;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .settings-tt-select__option.is-selected .settings-tt-select__check {
+        background: #f47920;
+        border-color: #f47920;
+    }
+
+    .settings-tt-select__option.is-selected .settings-tt-select__check::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 1px;
+        width: 4px;
+        height: 8px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    .settings-tt-select__text {
+        min-width: 0;
+    }
+
+    .settings-tt-select__empty {
+        display: none;
+        padding: 8px 10px;
+        color: #888;
+    }
+
+    .settings-tt-select__empty.is-visible {
+        display: block;
+    }
+
+    .settings-tt-select__native {
+        display: none;
+    }
+</style>

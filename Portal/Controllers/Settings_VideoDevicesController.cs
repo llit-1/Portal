@@ -38,14 +38,22 @@ namespace Portal.Controllers
         public IActionResult DevicesMainNew()
         {
             Portal.Models.JsonModels.DeviceMainJson deviceMainJson = new Models.JsonModels.DeviceMainJson();
-            deviceMainJson.videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).ToList(); ;
+            deviceMainJson.videoDevices = dbSql.VideoDevices
+                .Include(x => x.Location)
+                .ThenInclude(x => x.LocationType)
+                .Include(x => x.Orientation)
+                .ToList();
             return PartialView(deviceMainJson);
         }
 
         public IActionResult DevicesMain()
         {
             Portal.Models.JsonModels.DeviceMainJson deviceMainJson = new Models.JsonModels.DeviceMainJson();
-            deviceMainJson.videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).ToList(); ;
+            deviceMainJson.videoDevices = dbSql.VideoDevices
+                .Include(x => x.Location)
+                .ThenInclude(x => x.LocationType)
+                .Include(x => x.Orientation)
+                .ToList();
             deviceMainJson.videoOrientation = dbSql.VideoOrientation.ToList();
             return PartialView(deviceMainJson);
         }
@@ -511,6 +519,60 @@ namespace Portal.Controllers
                 var fileUrl = Url.Action(
                     action: nameof(GetMusicForTv),         // метод ниже
                     controller: "Settings_VideoDevices",   // имя твоего контроллера
+                    values: new { url = encodedPath },
+                    protocol: Request.Scheme
+                );
+
+                result.Add(new MusicItemDto
+                {
+                    Name = Path.GetFileNameWithoutExtension(path),
+                    FileName = Path.GetFileName(path),
+                    Url = fileUrl
+                });
+            }
+
+            return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult GetAllAdsNEW()
+        {
+            // Корневая папка с рекламой на файловом сервере
+            var adsRoot = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ\Реклама";
+
+            if (!Directory.Exists(adsRoot))
+            {
+                return NotFound("Ads folder not found");
+            }
+
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".mp3", ".wav", ".flac", ".aac", ".ogg"
+            };
+
+            var files = Directory
+                .EnumerateFiles(adsRoot, "*.*", SearchOption.AllDirectories)
+                .Where(path => allowedExtensions.Contains(Path.GetExtension(path)) && path.StartsWith(adsRoot, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (files.Count == 0)
+            {
+                return Ok(new List<MusicItemDto>());
+            }
+
+            var result = new List<MusicItemDto>();
+
+            foreach (var path in files)
+            {
+                var encodedPath = path
+                    .Replace("+", "plustoreplace")
+                    .Replace(" ", "backspacetoreplace")
+                    .Replace(@"\\fs1", @"\\shzhleb.ru\shz"); // если вдруг попадётся старый путь
+
+                var fileUrl = Url.Action(
+                    action: nameof(GetMusicForTv),
+                    controller: "Settings_VideoDevices",
                     values: new { url = encodedPath },
                     protocol: Request.Scheme
                 );

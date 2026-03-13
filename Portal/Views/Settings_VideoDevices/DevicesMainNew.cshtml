@@ -20,13 +20,26 @@
             </div>
             <button class="btn btn-sm btn-success addTTButton" onclick="addDevice()" style="margin-left:10px; border-radius: 8px; border: none;">Добавить устройство</button>
         </div>
+
+        <div class="deviceFilterBar">
+            <button type="button" class="deviceFilterButton is-active" data-filter="video">Видео</button>
+            <button type="button" class="deviceFilterButton is-active" data-filter="music">Музыка</button>
+            <button type="button" class="deviceFilterButton is-active" data-filter="test">Не розница\Тестовые</button>
+        </div>
     </div>
 </div>
+
+
 
 <div class="devicesWrapper">
     @foreach (var device in Model.videoDevices.OrderBy(x => x.Location.Name))
     {
-        <div class="deviceCard" id="card-@device.Guid" onclick="EditDevice('@device.Guid')">
+        <div class="deviceCard"
+             id="card-@device.Guid"
+             data-has-video="@((device.OnlyMusic == null || device.OnlyMusic == 0) ? "1" : "0")"
+             data-has-music="@((device.OnlyMusic == 1 || device.OnlyMusic == 0) ? "1" : "0")"
+             data-is-test-location="@((device.Location?.LocationType?.Guid.ToString().ToUpper() == "3810B715-2164-4524-F182-08DBF1A777FF" || device.Location?.LocationType?.Guid.ToString().ToUpper() == "3DC24D14-FAE6-4993-A403-C4142755409A" || device.Location?.LocationType?.Guid.ToString().ToUpper() == "8FE12BFC-1860-4B79-8763-81C984E2A643") ? "1" : "0")"
+             onclick="EditDevice('@device.Guid')">
 
             <div class="deviceCard_mainStats">
                 <span class="hidden deviceGuid">@device.Guid</span>
@@ -107,10 +120,12 @@
         display: flex;
         flex-direction: row;
         gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
     .search_wrapper_device {
-        width: 180px;
+        width: 220px;
         height: 35px;
         background-color: white;
         display: flex;
@@ -118,14 +133,16 @@
         justify-content: start;
         align-items: center;
         border-radius: 8px;
-        border: 2px solid transparent;
-        transition: border-color 0.55s linear, border-width 0.55s linear;
-        padding-left: 6px;
+        border: 1px solid #e6dfd8;
+        transition: border-color 0.2s linear, box-shadow 0.2s linear, transform 0.2s linear;
+        padding: 0 10px;
+        box-shadow: 0 10px 25px rgba(53, 46, 38, 0.06);
     }
 
         .search_wrapper_device > img {
             width: 18px;
             height: 18px;
+            opacity: 0.65;
         }
 
     .devicesWrapper {
@@ -136,6 +153,71 @@
         gap: 12px;
         max-height: calc(100% - 90px);
         align-items: stretch;
+    }
+
+    .deviceFilterBar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 8px;
+        width: fit-content;
+        max-width: 100%;
+        border-radius: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+        .deviceFilterBar::-webkit-scrollbar {
+            display: none;
+        }
+
+    .deviceFilterButton {
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.4);
+        color: #6f6256;
+        border-radius: 8px;
+        padding: 10px 16px;
+        height: 35px;
+        min-height: 35px;
+        min-width: 112px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        line-height: 1;
+        transition: background-color 0.2s linear, color 0.2s linear, border-color 0.2s linear, box-shadow 0.2s linear, transform 0.2s linear;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .deviceFilterButton.is-active {
+        background: linear-gradient(135deg, #f47920, #ff9a4d);
+        color: white;
+        border-color: #F47920;
+    }
+
+    .deviceFilterButton:hover {
+        cursor: pointer;
+        transform: translateY(-1px);
+    }
+
+    .deviceFilterButton:not(.is-active):hover {
+        border-color: rgba(244, 121, 32, 0.35);
+        color: #4f4338;
+    }
+
+    .search_wrapper_device:focus-within {
+        border-color: rgba(244, 121, 32, 0.55);
+        box-shadow: 0 12px 28px rgba(244, 121, 32, 0.16);
+        transform: translateY(-1px);
+    }
+
+    .searchMenu_device .addTTButton {
+        height: 35px;
+        border-radius: 8px !important;
+        padding: 0 16px;
+        box-shadow: 0 10px 24px rgba(67, 134, 54, 0.18);
     }
 
         .devicesWrapper::-webkit-scrollbar {
@@ -250,6 +332,61 @@
         border-top-left-radius: 7px;
         border-bottom-left-radius: 7px;
     }
+
+    @@media (max-width: 768px) {
+        #headMenu .col-12 {
+            flex-wrap: wrap;
+            align-items: stretch !important;
+            gap: 10px;
+        }
+
+        .searchMenu_device {
+            width: 100%;
+            gap: 8px;
+        }
+
+        .search_wrapper_device {
+            width: 100%;
+            flex: 1 1 100%;
+        }
+
+        .searchMenu_device .addTTButton {
+            width: 100%;
+            margin-left: 0 !important;
+            justify-content: center;
+        }
+
+        .deviceFilterBar {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .deviceFilterButton {
+            width: 100%;
+            min-width: 0;
+            height: 35px;
+            min-height: 35px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+
+        .deviceFilterButton[data-filter="test"] {
+            grid-column: 1 / -1;
+        }
+
+        .devicesWrapper {
+            grid-template-columns: 1fr;
+            max-height: none;
+        }
+
+        .deviceCard {
+            min-width: 0;
+        }
+    }
 </style>
 
 <script>
@@ -258,6 +395,105 @@
     $('#back').click(function () { location.hash = "#" });
 
     const SERVER_VERSION = ("@Model.Version" || "").toString().trim();
+    const DEVICE_FILTERS_STORAGE_KEY = "settings_video_devices_filters";
+
+    function saveDeviceFilterState(filterState) {
+        try {
+            localStorage.setItem(DEVICE_FILTERS_STORAGE_KEY, JSON.stringify(filterState));
+        } catch (error) {
+            console.warn("device filters were not saved", error);
+        }
+    }
+
+    function loadDeviceFilterState() {
+        try {
+            const rawState = localStorage.getItem(DEVICE_FILTERS_STORAGE_KEY);
+            if (!rawState) {
+                return null;
+            }
+
+            const parsedState = JSON.parse(rawState);
+            return {
+                video: parsedState.video !== false,
+                music: parsedState.music !== false,
+                test: parsedState.test !== false
+            };
+        } catch (error) {
+            console.warn("device filters were not restored", error);
+            return null;
+        }
+    }
+
+    function applyStoredDeviceFilterState() {
+        const storedState = loadDeviceFilterState();
+        if (!storedState) {
+            return;
+        }
+
+        document.querySelectorAll('.deviceFilterButton').forEach(button => {
+            const filterName = button.dataset.filter;
+            if (!filterName || typeof storedState[filterName] === 'undefined') {
+                return;
+            }
+
+            button.classList.toggle('is-active', !!storedState[filterName]);
+        });
+    }
+
+    function updateDeviceFilterButtonLabels() {
+        const allCards = Array.from(document.querySelectorAll(".deviceCard"));
+        const counts = {
+            video: allCards.filter(card => card.dataset.hasVideo === "1").length,
+            music: allCards.filter(card => card.dataset.hasMusic === "1").length,
+            test: allCards.filter(card => card.dataset.isTestLocation === "1").length
+        };
+
+        document.querySelectorAll('.deviceFilterButton').forEach(button => {
+            const filterName = button.dataset.filter;
+            if (!button.dataset.label) {
+                button.dataset.label = (button.textContent || "").trim();
+            }
+
+            const label = button.dataset.label;
+            const count = counts[filterName];
+
+            if (typeof count === 'undefined') {
+                return;
+            }
+
+            button.textContent = `${label} (${count})`;
+        });
+    }
+
+    function getDeviceFilterState() {
+        return {
+            video: document.querySelector('[data-filter="video"]')?.classList.contains('is-active') ?? true,
+            music: document.querySelector('[data-filter="music"]')?.classList.contains('is-active') ?? true,
+            test: document.querySelector('[data-filter="test"]')?.classList.contains('is-active') ?? true
+        };
+    }
+
+    function applyDeviceFilters() {
+        const searchInput = document.querySelector('.input_search_device');
+        const search = (searchInput?.value || "").trim().toLowerCase();
+        const filterState = getDeviceFilterState();
+        const allCards = document.querySelectorAll(".deviceCard");
+
+        allCards.forEach(card => {
+            const locationName = card.querySelector(".deviceName")?.textContent?.toLowerCase() || "";
+            const ip = card.querySelector(".check_connection")?.textContent?.toLowerCase() || "";
+            const matchesSearch = !search || locationName.includes(search) || ip.includes(search);
+            const hasVideo = card.dataset.hasVideo === "1";
+            const hasMusic = card.dataset.hasMusic === "1";
+            const isTestLocation = card.dataset.isTestLocation === "1";
+            const matchesType = (filterState.video && hasVideo) || (filterState.music && hasMusic);
+            const matchesFilters = filterState.test
+                ? isTestLocation
+                : (!isTestLocation && matchesType);
+
+            card.classList.toggle("hidden", !(matchesSearch && matchesFilters));
+        });
+    }
 
     function setVersionBadge(card, deviceVersion) {
         const badge = card.querySelector(".deviceCard_version");
@@ -521,21 +757,20 @@
     }
 
     function searchCard(elem) {
-        const search = elem.value;
-        const allCards = document.querySelectorAll(".deviceName");
-
-        if (search == "") {
-            return allCards.forEach(el => el.parentElement.parentElement.classList.remove("hidden"));
-        }
-
-        allCards.forEach(el => {
-            if (!el.textContent.toLowerCase().includes(search.toLowerCase())) {
-                el.parentElement.parentElement.classList.add("hidden");
-            } else {
-                el.parentElement.parentElement.classList.remove("hidden");
-            }
-        });
+        applyDeviceFilters();
     }
+
+    document.querySelectorAll('.deviceFilterButton').forEach(button => {
+        button.addEventListener('click', function () {
+            button.classList.toggle('is-active');
+            saveDeviceFilterState(getDeviceFilterState());
+            applyDeviceFilters();
+        });
+    });
+
+    updateDeviceFilterButtonLabels();
+    applyStoredDeviceFilterState();
+    applyDeviceFilters();
 
     function switchVideoMode(mode) {
         const onlyVideo = document.querySelector(".onlyVideo");

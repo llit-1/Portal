@@ -1,4 +1,4 @@
-﻿@model Portal.Controllers.SalaryController.SalarySettingsBaseTable
+@model Portal.Controllers.SalaryController.SalarySettingsBaseTable
 
 @{
     var items = Model?.Items ?? new System.Collections.Generic.List<Portal.Controllers.SalaryController.BaseTableItem>();
@@ -51,7 +51,8 @@
                                 data-base-rate="@(rule.BSM ?? string.Empty)"
                                 data-has-experience="@(rule.EXK == "1" ? "1" : "0")"
                                 data-has-location="@(rule.BAK == "1" ? "1" : "0")"
-                                data-has-output="@(rule.PartTimer ? "1" : "0")"
+                                data-part-timer="@(rule.PartTimer ? "1" : "0")"
+                                data-has-output="0"
                                 data-period-from="@rule.Begin.ToString("yyyy-MM-dd")"
                                 data-period-to="@rule.End.ToString("yyyy-MM-dd")">
                                 <td data-label="Основная должность">@(rule.MainJob?.Name ?? "Парт-Таймер")</td>
@@ -122,7 +123,8 @@
 
             <div class="salary-modal__field">
                 <label for="salaryMainPosition">Основная должность</label>
-                <select id="salaryMainPosition" required>
+                <select id="salaryMainPosition">
+                    <option value=""></option>
                     @foreach(var job in jobTitles)
                     {
                         <option value="@job.Guid">@job.Name</option>
@@ -132,7 +134,8 @@
 
             <div class="salary-modal__field">
                 <label for="salaryTimesheetCategory">Категория из табеля</label>
-                <select id="salaryTimesheetCategory" required>
+                <select id="salaryTimesheetCategory">
+                    <option value=""></option>
                     @foreach (var job in jobTitles)
                     {
                         <option value="@job.Guid">@job.Name</option>
@@ -149,6 +152,7 @@
                 <label><input id="salaryHasExperience" type="checkbox" /> Стаж</label>
                 <label><input id="salaryHasLocation" type="checkbox" /> Локация</label>
                 <label><input id="salaryHasOutput" type="checkbox" /> Выработка</label>
+                <label><input id="salaryPartTimer" type="checkbox" /> Парт-таймер</label>
             </div>
 
             <div class="salary-modal__field">
@@ -197,12 +201,14 @@
         const hasExperienceCheckbox = document.getElementById('salaryHasExperience');
         const hasLocationCheckbox = document.getElementById('salaryHasLocation');
         const hasOutputCheckbox = document.getElementById('salaryHasOutput');
+        const partTimerCheckbox = document.getElementById('salaryPartTimer');
         const periodFromInput = document.getElementById('salaryPeriodFrom');
         const periodToInput = document.getElementById('salaryPeriodTo');
         const submitButton = document.getElementById('salaryRuleSubmitButton');
         const deleteButton = document.getElementById('salaryRuleDeleteButton');
 
         let modalMode = 'create';
+        let isFormLoading = false;
 
         function setActiveTab(tabName) {
             tabButtons.forEach(button => {
@@ -281,8 +287,10 @@
             hasExperienceCheckbox.checked = false;
             hasLocationCheckbox.checked = false;
             hasOutputCheckbox.checked = false;
+            partTimerCheckbox.checked = false;
             periodFromInput.value = '';
             periodToInput.value = '';
+            syncPartTimerState();
             setPeriodLimits();
         }
 
@@ -294,19 +302,34 @@
             hasExperienceCheckbox.checked = !!data.hasExperience;
             hasLocationCheckbox.checked = !!data.hasLocation;
             hasOutputCheckbox.checked = !!data.hasOutput;
+            partTimerCheckbox.checked = !!data.partTimer;
             periodFromInput.value = data.periodFrom || '';
             periodToInput.value = data.periodTo || '';
+            syncPartTimerState();
             normalizePeriodValues();
         }
 
+        function syncPartTimerState() {
+            const isPartTimer = !!partTimerCheckbox.checked;
+
+            if (isPartTimer) {
+                mainPositionSelect.value = '';
+                timesheetCategorySelect.value = '';
+            }
+
+            mainPositionSelect.disabled = isFormLoading || isPartTimer;
+            timesheetCategorySelect.disabled = isFormLoading || isPartTimer;
+        }
+
         function setFormLoading(isLoading) {
+            isFormLoading = isLoading;
+
             const fields = [
-                mainPositionSelect,
-                timesheetCategorySelect,
                 baseRateInput,
                 hasExperienceCheckbox,
                 hasLocationCheckbox,
                 hasOutputCheckbox,
+                partTimerCheckbox,
                 periodFromInput,
                 periodToInput,
                 submitButton,
@@ -319,6 +342,7 @@
                 }
             });
 
+            syncPartTimerState();
             form.classList.toggle('salary-modal__body--loading', isLoading);
         }
 
@@ -343,6 +367,7 @@
                 hasExperience: data.hasExperience === '1',
                 hasLocation: data.hasLocation === '1',
                 hasOutput: data.hasOutput === '1',
+                partTimer: data.partTimer === '1',
                 periodFrom: data.periodFrom || '',
                 periodTo: data.periodTo || ''
             };
@@ -361,6 +386,20 @@
             }
         }
 
+        function reloadSalarySettings() {
+            if (typeof loadContent === 'function') {
+                loadContent('salarysettings', '/Salary/SalarySettings');
+                return;
+            }
+
+            if (typeof contentContainer !== 'undefined') {
+                $(contentContainer).load('/Salary/SalarySettings');
+                return;
+            }
+
+            $('#container-fluid').load('/Salary/SalarySettings');
+        }
+
         function buildBaseTableItemPayload() {
             const mainJobName = mainPositionSelect.options[mainPositionSelect.selectedIndex]?.text || '';
             const realJobName = timesheetCategorySelect.options[timesheetCategorySelect.selectedIndex]?.text || '';
@@ -369,11 +408,11 @@
 
             return {
                 RuleId: modalMode === 'edit' ? normalizedRuleId : 0,
-                MainJob: mainPositionSelect.value ? {
+                MainJob: !partTimerCheckbox.checked && mainPositionSelect.value ? {
                     Guid: mainPositionSelect.value,
                     Name: mainJobName
                 } : null,
-                RealJob: timesheetCategorySelect.value ? {
+                RealJob: !partTimerCheckbox.checked && timesheetCategorySelect.value ? {
                     Guid: timesheetCategorySelect.value,
                     Name: realJobName
                 } : null,
@@ -382,7 +421,7 @@
                 EXK: hasExperienceCheckbox.checked ? '1' : '0',
                 Begin: periodFromInput.value,
                 End: periodToInput.value,
-                PartTimer: hasOutputCheckbox.checked
+                PartTimer: partTimerCheckbox.checked,
             };
         }
 
@@ -458,6 +497,12 @@
             });
         }
 
+        if (partTimerCheckbox) {
+            partTimerCheckbox.addEventListener('change', function () {
+                syncPartTimerState();
+            });
+        }
+
         if (form) {
             form.addEventListener('submit', async function (event) {
                 event.preventDefault();
@@ -469,9 +514,14 @@
 
                 const isEdit = modalMode === 'edit';
                 const requestUrl = isEdit
-                    ? 'http://rknet-server:1571/api/Edit/UpdateBaseTableItem'
-                    : 'http://rknet-server:1571/api/Edit/SetBaseTableItem';
+                    ? '@Url.Action("UpdateBaseTableItem", "Salary")'
+                    : '@Url.Action("SetBaseTableItem", "Salary")';
                 const payload = buildBaseTableItemPayload();
+
+                if (!payload.PartTimer && (!payload.MainJob || !payload.RealJob)) {
+                    alert('Для обычного правила выбери основную должность и категорию из табеля.');
+                    return;
+                }
 
                 if (isEdit && payload.RuleId == null) {
                     alert('Не найден RuleId для сохранения.');
@@ -494,6 +544,7 @@
                     }
 
                     closeModal();
+                    reloadSalarySettings();
                 } catch (error) {
                     alert(isEdit ? 'Не удалось сохранить правило.' : 'Не удалось создать правило.');
                     console.error('save rule failed', error);
@@ -519,21 +570,21 @@
                     return;
                 }
 
-                const requestUrl = `http://rknet-server:1571/api/Edit/DeleteBaseTableItem?id=${encodeURIComponent(ruleId)}`;
+                const requestUrl = `@Url.Action("DeleteBaseTableItem", "Salary")?id=${encodeURIComponent(ruleId)}`;
 
                 try {
                     setFormLoading(true);
 
                     const response = await fetch(requestUrl, {
-                        method: 'GET'
+                        method: 'DELETE'
                     });
 
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
 
-                    removeRuleRow(ruleId);
                     closeModal();
+                    reloadSalarySettings();
                 } catch (error) {
                     alert('Не удалось удалить правило.');
                     console.error('delete rule failed', error);
@@ -1045,8 +1096,18 @@
             flex: 0 0 45%;
         }
 
+        .salary-filters-panel-wrapper {
+            align-items: start;
+            height: fit-content;
+        }
+
+        .filter-block {
+            height: fit-content;
+            margin-bottom: 85px;
+        }
+
         .salary-modal-overlay {
-            align-items: flex-end;
+            align-items: center;
             padding: 10px;
         }
 

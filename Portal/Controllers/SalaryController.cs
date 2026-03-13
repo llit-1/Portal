@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL;
@@ -236,6 +236,61 @@ namespace Portal.Controllers
             return PartialView(salarySettingsBaseTable);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SetBaseTableItem([FromBody] BaseTableItem baseTableItem)
+        {
+            if (baseTableItem == null)
+            {
+                return BadRequest(new { message = "empty baseTableItem" });
+            }
+
+            return await ProxyBaseTablePostAsync("http://rknet-server:1571/api/Edit/SetBaseTableItem", baseTableItem);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateBaseTableItem([FromBody] BaseTableItem baseTableItem)
+        {
+            if (baseTableItem == null)
+            {
+                return BadRequest(new { message = "empty baseTableItem" });
+            }
+
+            return await ProxyBaseTablePostAsync("http://rknet-server:1571/api/Edit/UpdateBaseTableItem", baseTableItem);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteBaseTableItem(int id)
+        {
+            using HttpClient httpClient = httpClientFactory.CreateClient();
+            using HttpResponseMessage response = await httpClient.DeleteAsync($"http://rknet-server:1571/api/Edit/DeleteBaseTableItem?id={id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Ok();
+            }
+
+            return StatusCode((int)response.StatusCode, new
+            {
+                message = await response.Content.ReadAsStringAsync()
+            });
+        }
+
+        private async Task<IActionResult> ProxyBaseTablePostAsync(string requestUrl, BaseTableItem baseTableItem)
+        {
+            using HttpClient httpClient = httpClientFactory.CreateClient();
+            using HttpResponseMessage response = await httpClient.PostAsJsonAsync(requestUrl, baseTableItem);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Ok();
+            }
+
+            return StatusCode((int)response.StatusCode, new
+            {
+                message = await response.Content.ReadAsStringAsync()
+            });
+        }
+
         public class SalarySettingsBaseTable 
         {
             public List<BaseTableItem> Items { get; set; }
@@ -256,3 +311,4 @@ namespace Portal.Controllers
         }
     }
 }
+
