@@ -1,0 +1,53 @@
+@model List<Portal.Controllers.SalaryController.ExperienceTableItem>
+
+@{
+    var items = Model ?? new List<Portal.Controllers.SalaryController.ExperienceTableItem>();
+    var loadError = ViewBag.SalarySettingsTabLoadError as string;
+}
+
+<div class="addButton-wrapper">
+    <button type="button" class="addButton salary-panel-add-button" data-tab-target="experience-locations">Добавить</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(loadError))
+{
+    <div class="salary-result-panel__state salary-result-panel__state--error">@loadError</div>
+}
+else if (items.Count == 0)
+{
+    <div class="salary-result-panel__state">Данные не найдены.</div>
+}
+else
+{
+    <div class="salary-result__table-wrap">
+        <table class="salary-result__table salary-editable-table">
+            <thead>
+                <tr>
+                    <th>Стаж</th>
+                    <th>Доплата</th>
+                    <th>Период</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    var experienceLabel = item.EXPmax.HasValue
+                        ? $"от {item.EXPmin?.ToString() ?? "0"} до {item.EXPmax.Value}"
+                        : $"от {item.EXPmin?.ToString() ?? "0"}";
+
+                    <tr class="salary-experience-row"
+                        data-rule-id="@item.RuleId"
+                        data-exp-min="@(item.EXPmin?.ToString() ?? string.Empty)"
+                        data-exp-max="@(item.EXPmax?.ToString() ?? string.Empty)"
+                        data-bonus="@item.EXM"
+                        data-period-from="@item.Begin.ToString("yyyy-MM-dd")"
+                        data-period-to="@item.End.ToString("yyyy-MM-dd")">
+                        <td data-label="Стаж">@experienceLabel</td>
+                        <td data-label="Доплата">@item.EXM</td>
+                        <td data-label="Период">@item.Begin.ToString("dd.MM.yyyy") - @item.End.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

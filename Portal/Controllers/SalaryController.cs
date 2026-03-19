@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portal.Models.MSSQL;
@@ -208,7 +208,8 @@ namespace Portal.Controllers
             SalarySettingsBaseTable salarySettingsBaseTable = new SalarySettingsBaseTable
             {
                 Items = new List<BaseTableItem>(),
-                jobTitles = new List<JobTitle>()
+                jobTitles = new List<JobTitle>(),
+                Locations = new List<Portal.Models.MSSQL.Location.Location>()
             };
 
             try
@@ -216,24 +217,100 @@ namespace Portal.Controllers
                 using HttpClient httpClient = httpClientFactory.CreateClient();
                 using HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
 
+                var factoryTypeGuid = Guid.Parse("94AD659C-AF5B-4CA0-50AD-08DBDF6ABE84");
+                var officeTypeGuid = Guid.Parse("B0E427F9-8996-4C03-33C1-08DBDF713401");
+
                 if (!response.IsSuccessStatusCode)
                 {
                     ViewBag.BaseTableLoadError = $"Не удалось загрузить таблицу ставок (HTTP {(int)response.StatusCode})";
-                    salarySettingsBaseTable.jobTitles = dbSql.JobTitles.AsNoTracking().ToList();
                     return PartialView(salarySettingsBaseTable);
                 }
 
                 baseTableItems = await response.Content.ReadFromJsonAsync<List<BaseTableItem>>() ?? new List<BaseTableItem>();
                 salarySettingsBaseTable.Items = baseTableItems;
+                salarySettingsBaseTable.jobTitles = dbSql.JobTitles.AsNoTracking().ToList();
+                salarySettingsBaseTable.Locations = dbSql.Locations.Include(X => X.LocationType)
+                    .Where(x => x.LocationType != null &&
+                                (x.LocationType.Guid == factoryTypeGuid ||
+                                 x.LocationType.Guid == officeTypeGuid))
+                    .OrderBy(x => x.Name)
+                    .ToList();
             }
             catch
             {
                 ViewBag.BaseTableLoadError = "Ошибка обращения к сервису таблицы ставок";
             }
 
-            salarySettingsBaseTable.jobTitles = dbSql.JobTitles.AsNoTracking().ToList();
-
             return PartialView(salarySettingsBaseTable);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SalarySettingsSpecialLocations()
+        {
+            const string requestUrl = "http://rknet-server:1571/api/Edit/GetLocationTable";
+            var items = await LoadSalarySettingsItemsAsync<LocationTableItem>(requestUrl);
+
+            return PartialView("_SalarySettingsSpecialLocations", items);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetLocationItem([FromBody] LocationTableItem LocationItem)
+        {
+            if (LocationItem == null)
+            {
+                return BadRequest(new { message = "empty LocationItem" });
+            }
+
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/SetLocationTableItem", LocationItem);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateLocationItem([FromBody] LocationTableItem locationItem)
+        {
+            if (locationItem == null)
+            {
+                return BadRequest(new { message = "empty locationItem" });
+            }
+
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/UpdateLocationTableItem", locationItem);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SalarySettingsExperienceLocations()
+        {
+            const string requestUrl = "http://rknet-server:1571/api/Edit/GetExperienceTable";
+            var items = await LoadSalarySettingsItemsAsync<ExperienceTableItem>(requestUrl);
+
+            return PartialView("_SalarySettingsExperienceLocations", items);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetExperienceItem([FromBody] ExperienceTableItem ExperienceItem)
+        {
+            if (ExperienceItem == null)
+            {
+                return BadRequest(new { message = "empty ExperienceItem" });
+            }
+
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/SetExperienceTableItem", ExperienceItem);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateExperienceItem([FromBody] ExperienceTableItem experienceItem)
+        {
+            if (experienceItem == null)
+            {
+                return BadRequest(new { message = "empty experienceItem" });
+            }
+
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/UpdateExperienceTableItem", experienceItem);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SalarySettingsProductionLocations()
+        {
+            const string requestUrl = "http://rknet-server:1571/api/Edit/GetBaseTable";
+            return PartialView("_SalarySettingsProductionLocations");
         }
 
         [HttpPost]
@@ -244,7 +321,7 @@ namespace Portal.Controllers
                 return BadRequest(new { message = "empty baseTableItem" });
             }
 
-            return await ProxyBaseTablePostAsync("http://rknet-server:1571/api/Edit/SetBaseTableItem", baseTableItem);
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/SetBaseTableItem", baseTableItem);
         }
 
         [HttpPost]
@@ -255,14 +332,14 @@ namespace Portal.Controllers
                 return BadRequest(new { message = "empty baseTableItem" });
             }
 
-            return await ProxyBaseTablePostAsync("http://rknet-server:1571/api/Edit/UpdateBaseTableItem", baseTableItem);
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/UpdateBaseTableItem", baseTableItem);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteBaseTableItem(int id)
+        public async Task<IActionResult> DeleteItem(int id)
         {
             using HttpClient httpClient = httpClientFactory.CreateClient();
-            using HttpResponseMessage response = await httpClient.DeleteAsync($"http://rknet-server:1571/api/Edit/DeleteBaseTableItem?id={id}");
+            using HttpResponseMessage response = await httpClient.DeleteAsync($"http://rknet-server:1571/api/Edit/DeleteItem?id={id}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -275,10 +352,10 @@ namespace Portal.Controllers
             });
         }
 
-        private async Task<IActionResult> ProxyBaseTablePostAsync(string requestUrl, BaseTableItem baseTableItem)
+        private async Task<IActionResult> ProxyPostAsync<T>(string requestUrl, T payload)
         {
             using HttpClient httpClient = httpClientFactory.CreateClient();
-            using HttpResponseMessage response = await httpClient.PostAsJsonAsync(requestUrl, baseTableItem);
+            using HttpResponseMessage response = await httpClient.PostAsJsonAsync(requestUrl, payload);
 
             if (response.IsSuccessStatusCode)
             {
@@ -289,12 +366,35 @@ namespace Portal.Controllers
             {
                 message = await response.Content.ReadAsStringAsync()
             });
+        }
+
+        private async Task<List<T>> LoadSalarySettingsItemsAsync<T>(string requestUrl)
+        {
+            try
+            {
+                using HttpClient httpClient = httpClientFactory.CreateClient();
+                using HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.SalarySettingsTabLoadError = $"Не удалось загрузить данные (HTTP {(int)response.StatusCode})";
+                    return new List<T>();
+                }
+
+                return await response.Content.ReadFromJsonAsync<List<T>>() ?? new List<T>();
+            }
+            catch
+            {
+                ViewBag.SalarySettingsTabLoadError = "Ошибка обращения к сервису данных";
+                return new List<T>();
+            }
         }
 
         public class SalarySettingsBaseTable 
         {
             public List<BaseTableItem> Items { get; set; }
             public List<JobTitle> jobTitles { get; set; }
+            public List<Portal.Models.MSSQL.Location.Location> Locations { get; set; }
         }
 
         public class BaseTableItem
@@ -309,6 +409,25 @@ namespace Portal.Controllers
             public DateTime End { get; set; }
             public bool PartTimer { get; set; }
         }
+
+        public class LocationTableItem
+        {
+            public int RuleId { get; set; }
+            public Models.MSSQL.Location.Location Location { get; set; }
+            public int BAM { get; set; }
+            public DateTime Begin { get; set; }
+            public DateTime End { get; set; }
+        }
+
+        public class ExperienceTableItem
+        {
+            public int RuleId { get; set; }
+            public int? EXPmin { get; set; }
+            public int? EXPmax { get; set; }
+            public int EXM { get; set; }
+            public DateTime Begin { get; set; }
+            public DateTime End { get; set; }
+        }
+
     }
 }
-

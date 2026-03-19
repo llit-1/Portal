@@ -1,0 +1,48 @@
+@model List<Portal.Controllers.SalaryController.LocationTableItem>
+
+@{
+    var items = Model ?? new List<Portal.Controllers.SalaryController.LocationTableItem>();
+    var loadError = ViewBag.SalarySettingsTabLoadError as string;
+}
+
+<div class="addButton-wrapper">
+    <button type="button" class="addButton salary-panel-add-button" data-tab-target="special-locations">Добавить</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(loadError))
+{
+    <div class="salary-result-panel__state salary-result-panel__state--error">@loadError</div>
+}
+else if (items.Count == 0)
+{
+    <div class="salary-result-panel__state">Данные не найдены.</div>
+}
+else
+{
+    <div class="salary-result__table-wrap">
+        <table class="salary-result__table salary-editable-table">
+            <thead>
+                <tr>
+                    <th>ТТ</th>
+                    <th>Тариф</th>
+                    <th>Период</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr class="salary-location-row"
+                        data-rule-id="@item.RuleId"
+                        data-location-guid="@(item.Location?.RKCode.ToString() ?? string.Empty)"
+                        data-rate="@item.BAM"
+                        data-period-from="@item.Begin.ToString("yyyy-MM-dd")"
+                        data-period-to="@item.End.ToString("yyyy-MM-dd")">
+                        <td data-label="ТТ">@(item.Location?.Name ?? "-")</td>
+                        <td data-label="Тариф">@item.BAM</td>
+                        <td data-label="Период">@item.Begin.ToString("dd.MM.yyyy") - @item.End.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

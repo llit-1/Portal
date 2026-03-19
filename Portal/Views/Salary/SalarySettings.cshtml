@@ -3,6 +3,7 @@
 @{
     var items = Model?.Items ?? new System.Collections.Generic.List<Portal.Controllers.SalaryController.BaseTableItem>();
     var jobTitles = Model?.jobTitles ?? new System.Collections.Generic.List<Portal.Models.MSSQL.Personality.JobTitle>();
+    var locations = Model?.Locations ?? new System.Collections.Generic.List<Portal.Models.MSSQL.Location.Location>();
 }
 
 <div class="salary_wrapper">
@@ -16,8 +17,8 @@
             <div class="salary-filters-panel" role="tablist" aria-label="Вкладки настроек ставки">
                 <button type="button" class="salary-tab-button is-active" data-tab="rate-constructor" aria-selected="true">Конструктор ставки</button>
                 <button type="button" class="salary-tab-button" data-tab="special-locations" aria-selected="false">Особые локации</button>
-                <button type="button" class="salary-tab-button" disabled title="Доступно после отпуска">Стаж</button>
-                <button type="button" class="salary-tab-button" disabled title="Доступно после отпуска">Исключения</button>
+                <button type="button" class="salary-tab-button" data-tab="experience-locations" aria-selected="false">Стаж</button>
+                <button type="button" class="salary-tab-button" data-tab="production-locations" aria-selected="false">Выработка</button>
             </div>
         </div>
     </div>
@@ -88,26 +89,25 @@
             </div>
         </div>
 
-        <div class="salary-result-panel" data-tab-panel="special-locations" hidden>
-            <div class="salary-result__table-wrap">
-                <table class="salary-result__table">
-                    <thead>
-                        <tr>
-                            <th>ТТ</th>
-                            <th>Тариф</th>
-                            <th>Период</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td data-label="ТТ">ТТ-001</td>
-                            <td data-label="Тариф">300</td>
-                            <td data-label="Период">20.02.2026-20.03.2026</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="salary-result-panel"
+             data-tab-panel="special-locations"
+             data-tab-url="@Url.Action("SalarySettingsSpecialLocations", "Salary")"
+             hidden>
         </div>
+
+        <div class="salary-result-panel"
+             data-tab-panel="experience-locations"
+             data-tab-url="@Url.Action("SalarySettingsExperienceLocations", "Salary")"
+             hidden>
+        </div>
+
+        <div class="salary-result-panel"
+             data-tab-panel="production-locations"
+             data-tab-url="@Url.Action("SalarySettingsProductionLocations", "Salary")"
+             hidden>
+        </div>
+
+
     </div>
 </div>
 
@@ -171,6 +171,89 @@
     </div>
 </div>
 
+<div class="salary-modal-overlay" id="salaryLocationModal" hidden>
+    <div class="salary-modal" role="dialog" aria-modal="true" aria-labelledby="salaryLocationModalTitle">
+        <div class="salary-modal__header">
+            <h3 id="salaryLocationModalTitle" class="salary-modal__title">Добавление особой локации</h3>
+            <button type="button" id="salaryLocationModalClose" class="salary-modal__close" aria-label="Закрыть">Г—</button>
+        </div>
+
+        <form id="salaryLocationForm" class="salary-modal__body">
+            <input type="hidden" id="salaryLocationRuleId" />
+
+            <div class="salary-modal__field">
+                <label for="salaryLocationSelect">ТТ</label>
+                <select id="salaryLocationSelect" required>
+                    <option value=""></option>
+                    @foreach (var location in locations)
+                    {
+                        <option value="@location.RKCode">@location.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryLocationRate">Тариф</label>
+                <input id="salaryLocationRate" type="number" step="1" min="0" required />
+            </div>
+
+            <div class="salary-modal__field">
+                <label>Период</label>
+                <div class="salary-modal__period">
+                    <input id="salaryLocationPeriodFrom" type="date" required />
+                    <input id="salaryLocationPeriodTo" type="date" required />
+                </div>
+            </div>
+
+            <div class="salary-modal__actions">
+                <button type="button" id="salaryLocationDeleteButton" class="salary-modal__btn salary-modal__btn--danger">Удалить</button>
+                <button type="submit" id="salaryLocationSubmitButton" class="salary-modal__btn salary-modal__btn--primary">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="salary-modal-overlay" id="salaryExperienceModal" hidden>
+    <div class="salary-modal" role="dialog" aria-modal="true" aria-labelledby="salaryExperienceModalTitle">
+        <div class="salary-modal__header">
+            <h3 id="salaryExperienceModalTitle" class="salary-modal__title">Добавление стажа</h3>
+            <button type="button" id="salaryExperienceModalClose" class="salary-modal__close" aria-label="Закрыть">Г—</button>
+        </div>
+
+        <form id="salaryExperienceForm" class="salary-modal__body">
+            <input type="hidden" id="salaryExperienceRuleId" />
+
+            <div class="salary-modal__field">
+                <label for="salaryExperienceMin">Стаж от</label>
+                <input id="salaryExperienceMin" type="number" step="1" min="0" />
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryExperienceMax">Стаж до</label>
+                <input id="salaryExperienceMax" type="number" step="1" min="0" />
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryExperienceBonus">Доплата</label>
+                <input id="salaryExperienceBonus" type="number" step="1" min="0" required />
+            </div>
+
+            <div class="salary-modal__field">
+                <label>Период</label>
+                <div class="salary-modal__period">
+                    <input id="salaryExperiencePeriodFrom" type="date" required />
+                    <input id="salaryExperiencePeriodTo" type="date" required />
+                </div>
+            </div>
+
+            <div class="salary-modal__actions">
+                <button type="button" id="salaryExperienceDeleteButton" class="salary-modal__btn salary-modal__btn--danger">Удалить</button>
+                <button type="submit" id="salaryExperienceSubmitButton" class="salary-modal__btn salary-modal__btn--primary">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <script>
     (() => {
@@ -207,10 +290,42 @@
         const submitButton = document.getElementById('salaryRuleSubmitButton');
         const deleteButton = document.getElementById('salaryRuleDeleteButton');
 
+        const locationModal = document.getElementById('salaryLocationModal');
+        const locationModalTitle = document.getElementById('salaryLocationModalTitle');
+        const locationModalCloseButton = document.getElementById('salaryLocationModalClose');
+        const locationForm = document.getElementById('salaryLocationForm');
+        const locationRuleIdInput = document.getElementById('salaryLocationRuleId');
+        const locationSelect = document.getElementById('salaryLocationSelect');
+        const locationRateInput = document.getElementById('salaryLocationRate');
+        const locationPeriodFromInput = document.getElementById('salaryLocationPeriodFrom');
+        const locationPeriodToInput = document.getElementById('salaryLocationPeriodTo');
+        const locationSubmitButton = document.getElementById('salaryLocationSubmitButton');
+        const locationDeleteButton = document.getElementById('salaryLocationDeleteButton');
+
+        const experienceModal = document.getElementById('salaryExperienceModal');
+        const experienceModalTitle = document.getElementById('salaryExperienceModalTitle');
+        const experienceModalCloseButton = document.getElementById('salaryExperienceModalClose');
+        const experienceForm = document.getElementById('salaryExperienceForm');
+        const experienceRuleIdInput = document.getElementById('salaryExperienceRuleId');
+        const experienceMinInput = document.getElementById('salaryExperienceMin');
+        const experienceMaxInput = document.getElementById('salaryExperienceMax');
+        const experienceBonusInput = document.getElementById('salaryExperienceBonus');
+        const experiencePeriodFromInput = document.getElementById('salaryExperiencePeriodFrom');
+        const experiencePeriodToInput = document.getElementById('salaryExperiencePeriodTo');
+        const experienceSubmitButton = document.getElementById('salaryExperienceSubmitButton');
+        const experienceDeleteButton = document.getElementById('salaryExperienceDeleteButton');
+
         let modalMode = 'create';
         let isFormLoading = false;
+        let activeTabName = 'rate-constructor';
+        let locationModalMode = 'create';
+        let isLocationFormLoading = false;
+        let experienceModalMode = 'create';
+        let isExperienceFormLoading = false;
 
         function setActiveTab(tabName) {
+            activeTabName = tabName;
+
             tabButtons.forEach(button => {
                 const isActive = button.dataset.tab === tabName;
                 button.classList.toggle('is-active', isActive);
@@ -222,6 +337,94 @@
                 panel.hidden = !isActive;
                 panel.classList.toggle('is-active', isActive);
             });
+        }
+
+        function setDateRangeLimits(fromInput, toInput) {
+            toInput.min = fromInput.value ? shiftIsoDate(fromInput.value, 1) : '';
+            fromInput.max = toInput.value ? shiftIsoDate(toInput.value, -1) : '';
+        }
+
+        function normalizeDateRangeValues(fromInput, toInput, changedInput) {
+            const from = fromInput.value;
+            const to = toInput.value;
+
+            if (from && to && from >= to) {
+                if (changedInput === fromInput) {
+                    toInput.value = shiftIsoDate(fromInput.value, 1);
+                } else if (changedInput === toInput) {
+                    fromInput.value = shiftIsoDate(toInput.value, -1);
+                } else {
+                    toInput.value = shiftIsoDate(fromInput.value, 1);
+                }
+            }
+
+            setDateRangeLimits(fromInput, toInput);
+        }
+
+        async function loadTabPanelContent(tabName) {
+            const panel = tabPanels.find(x => x.dataset.tabPanel === tabName);
+            const requestUrl = panel ? panel.dataset.tabUrl : '';
+
+            if (!panel || !requestUrl || tabName === 'rate-constructor') {
+                return;
+            }
+
+            panel.innerHTML = '<div class="salary-result-panel__state">Загрузка...</div>';
+
+            try {
+                const response = await fetch(requestUrl, {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                panel.innerHTML = await response.text();
+                bindDynamicPanelInteractions(panel, tabName);
+            } catch (error) {
+                panel.innerHTML = '<div class="salary-result-panel__state salary-result-panel__state--error">Не удалось загрузить вкладку.</div>';
+                console.error('load salary settings tab failed', error);
+            }
+        }
+
+        function bindDynamicPanelInteractions(panel, tabName) {
+            if (!panel) {
+                return;
+            }
+
+            const addPanelButton = panel.querySelector('.salary-panel-add-button[data-tab-target]');
+            if (addPanelButton) {
+                addPanelButton.onclick = function (event) {
+                    event.preventDefault();
+
+                    if (tabName === 'special-locations') {
+                        openCreateLocationModal();
+                        return;
+                    }
+
+                    if (tabName === 'experience-locations') {
+                        openCreateExperienceModal();
+                    }
+                };
+            }
+
+            if (tabName === 'special-locations') {
+                panel.querySelectorAll('.salary-location-row[data-rule-id]').forEach(row => {
+                    row.onclick = function () {
+                        openEditLocationModal(row);
+                    };
+                });
+            }
+
+            if (tabName === 'experience-locations') {
+                panel.querySelectorAll('.salary-experience-row[data-rule-id]').forEach(row => {
+                    row.onclick = function () {
+                        openEditExperienceModal(row);
+                    };
+                });
+            }
         }
 
         function shiftIsoDate(isoDate, days) {
@@ -400,6 +603,16 @@
             $('#container-fluid').load('/Salary/SalarySettings');
         }
 
+        async function reloadActiveTabPanel() {
+            if (activeTabName === 'rate-constructor') {
+                reloadSalarySettings();
+                return;
+            }
+
+            await loadTabPanelContent(activeTabName);
+            setActiveTab(activeTabName);
+        }
+
         function buildBaseTableItemPayload() {
             const mainJobName = mainPositionSelect.options[mainPositionSelect.selectedIndex]?.text || '';
             const realJobName = timesheetCategorySelect.options[timesheetCategorySelect.selectedIndex]?.text || '';
@@ -444,10 +657,221 @@
             setFormLoading(false);
         }
 
+        function setLocationModalMode(mode) {
+            locationModalMode = mode;
+            const isEdit = mode === 'edit';
+
+            locationModalTitle.textContent = isEdit ? 'Редактирование особой локации' : 'Добавление особой локации';
+            locationSubmitButton.textContent = isEdit ? 'Сохранить' : 'Создать';
+            locationDeleteButton.hidden = !isEdit;
+        }
+
+        function clearLocationForm() {
+            locationRuleIdInput.value = '';
+            locationSelect.value = '';
+            locationRateInput.value = '';
+            locationPeriodFromInput.value = '';
+            locationPeriodToInput.value = '';
+            setDateRangeLimits(locationPeriodFromInput, locationPeriodToInput);
+        }
+
+        function fillLocationForm(data) {
+            locationRuleIdInput.value = data.ruleId || '';
+            locationSelect.value = data.locationGuid || '';
+            locationRateInput.value = data.rate || '';
+            locationPeriodFromInput.value = data.periodFrom || '';
+            locationPeriodToInput.value = data.periodTo || '';
+            normalizeDateRangeValues(locationPeriodFromInput, locationPeriodToInput);
+        }
+
+        function setLocationFormLoading(isLoading) {
+            isLocationFormLoading = isLoading;
+
+            [
+                locationSelect,
+                locationRateInput,
+                locationPeriodFromInput,
+                locationPeriodToInput,
+                locationSubmitButton,
+                locationDeleteButton
+            ].forEach(field => {
+                if (field) {
+                    field.disabled = isLoading;
+                }
+            });
+
+            locationForm.classList.toggle('salary-modal__body--loading', isLoading);
+        }
+
+        function openLocationModal() {
+            locationModal.hidden = false;
+            document.body.classList.add('salary-modal-open');
+        }
+
+        function closeLocationModal() {
+            locationModal.hidden = true;
+            document.body.classList.remove('salary-modal-open');
+        }
+
+        function getLocationItemDataFromRow(row) {
+            const data = row ? row.dataset : {};
+
+            return {
+                ruleId: data.ruleId || '',
+                locationGuid: data.locationGuid || '',
+                rate: data.rate || '',
+                periodFrom: data.periodFrom || '',
+                periodTo: data.periodTo || ''
+            };
+        }
+
+        function openCreateLocationModal() {
+            setLocationModalMode('create');
+            clearLocationForm();
+            setLocationFormLoading(false);
+            openLocationModal();
+        }
+
+        function openEditLocationModal(row) {
+            if (!row) {
+                return;
+            }
+
+            setLocationModalMode('edit');
+            clearLocationForm();
+            fillLocationForm(getLocationItemDataFromRow(row));
+            setLocationFormLoading(false);
+            openLocationModal();
+        }
+
+        function buildLocationItemPayload() {
+            const parsedRuleId = parseInt(locationRuleIdInput.value, 10);
+            const normalizedRuleId = Number.isFinite(parsedRuleId) ? parsedRuleId : 0;
+            const selectedLocationName = locationSelect.options[locationSelect.selectedIndex]?.text || '';
+
+            return {
+                RuleId: locationModalMode === 'edit' ? normalizedRuleId : 0,
+                Location: locationSelect.value ? {
+                    RKCode: locationSelect.value,
+                    Name: selectedLocationName
+                } : null,
+                BAM: parseInt(locationRateInput.value, 10) || 0,
+                Begin: locationPeriodFromInput.value,
+                End: locationPeriodToInput.value
+            };
+        }
+
+        function setExperienceModalMode(mode) {
+            experienceModalMode = mode;
+            const isEdit = mode === 'edit';
+
+            experienceModalTitle.textContent = isEdit ? 'Редактирование стажа' : 'Добавление стажа';
+            experienceSubmitButton.textContent = isEdit ? 'Сохранить' : 'Создать';
+            experienceDeleteButton.hidden = !isEdit;
+        }
+
+        function clearExperienceForm() {
+            experienceRuleIdInput.value = '';
+            experienceMinInput.value = '';
+            experienceMaxInput.value = '';
+            experienceBonusInput.value = '';
+            experiencePeriodFromInput.value = '';
+            experiencePeriodToInput.value = '';
+            setDateRangeLimits(experiencePeriodFromInput, experiencePeriodToInput);
+        }
+
+        function fillExperienceForm(data) {
+            experienceRuleIdInput.value = data.ruleId || '';
+            experienceMinInput.value = data.expMin || '';
+            experienceMaxInput.value = data.expMax || '';
+            experienceBonusInput.value = data.bonus || '';
+            experiencePeriodFromInput.value = data.periodFrom || '';
+            experiencePeriodToInput.value = data.periodTo || '';
+            normalizeDateRangeValues(experiencePeriodFromInput, experiencePeriodToInput);
+        }
+
+        function setExperienceFormLoading(isLoading) {
+            isExperienceFormLoading = isLoading;
+
+            [
+                experienceMinInput,
+                experienceMaxInput,
+                experienceBonusInput,
+                experiencePeriodFromInput,
+                experiencePeriodToInput,
+                experienceSubmitButton,
+                experienceDeleteButton
+            ].forEach(field => {
+                if (field) {
+                    field.disabled = isLoading;
+                }
+            });
+
+            experienceForm.classList.toggle('salary-modal__body--loading', isLoading);
+        }
+
+        function openExperienceModal() {
+            experienceModal.hidden = false;
+            document.body.classList.add('salary-modal-open');
+        }
+
+        function closeExperienceModal() {
+            experienceModal.hidden = true;
+            document.body.classList.remove('salary-modal-open');
+        }
+
+        function getExperienceItemDataFromRow(row) {
+            const data = row ? row.dataset : {};
+
+            return {
+                ruleId: data.ruleId || '',
+                expMin: data.expMin || '',
+                expMax: data.expMax || '',
+                bonus: data.bonus || '',
+                periodFrom: data.periodFrom || '',
+                periodTo: data.periodTo || ''
+            };
+        }
+
+        function openCreateExperienceModal() {
+            setExperienceModalMode('create');
+            clearExperienceForm();
+            setExperienceFormLoading(false);
+            openExperienceModal();
+        }
+
+        function openEditExperienceModal(row) {
+            if (!row) {
+                return;
+            }
+
+            setExperienceModalMode('edit');
+            clearExperienceForm();
+            fillExperienceForm(getExperienceItemDataFromRow(row));
+            setExperienceFormLoading(false);
+            openExperienceModal();
+        }
+
+        function buildExperienceItemPayload() {
+            const parsedRuleId = parseInt(experienceRuleIdInput.value, 10);
+            const normalizedRuleId = Number.isFinite(parsedRuleId) ? parsedRuleId : 0;
+            const parsedExpMin = parseInt(experienceMinInput.value, 10);
+            const parsedExpMax = parseInt(experienceMaxInput.value, 10);
+
+            return {
+                RuleId: experienceModalMode === 'edit' ? normalizedRuleId : 0,
+                EXPmin: Number.isFinite(parsedExpMin) ? parsedExpMin : null,
+                EXPmax: Number.isFinite(parsedExpMax) ? parsedExpMax : null,
+                EXM: parseInt(experienceBonusInput.value, 10) || 0,
+                Begin: experiencePeriodFromInput.value,
+                End: experiencePeriodToInput.value
+            };
+        }
+
         setActiveTab('rate-constructor');
 
         tabButtons.forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', async function () {
                 if (button.disabled) {
                     return;
                 }
@@ -458,6 +882,7 @@
                 }
 
                 setActiveTab(tabName);
+                await loadTabPanelContent(tabName);
             });
         });
 
@@ -485,6 +910,18 @@
             });
         }
 
+        if (locationModalCloseButton) {
+            locationModalCloseButton.addEventListener('click', function () {
+                closeLocationModal();
+            });
+        }
+
+        if (experienceModalCloseButton) {
+            experienceModalCloseButton.addEventListener('click', function () {
+                closeExperienceModal();
+            });
+        }
+
         if (periodFromInput) {
             periodFromInput.addEventListener('input', function () {
                 normalizePeriodValues(periodFromInput);
@@ -494,6 +931,30 @@
         if (periodToInput) {
             periodToInput.addEventListener('input', function () {
                 normalizePeriodValues(periodToInput);
+            });
+        }
+
+        if (locationPeriodFromInput) {
+            locationPeriodFromInput.addEventListener('input', function () {
+                normalizeDateRangeValues(locationPeriodFromInput, locationPeriodToInput, locationPeriodFromInput);
+            });
+        }
+
+        if (locationPeriodToInput) {
+            locationPeriodToInput.addEventListener('input', function () {
+                normalizeDateRangeValues(locationPeriodFromInput, locationPeriodToInput, locationPeriodToInput);
+            });
+        }
+
+        if (experiencePeriodFromInput) {
+            experiencePeriodFromInput.addEventListener('input', function () {
+                normalizeDateRangeValues(experiencePeriodFromInput, experiencePeriodToInput, experiencePeriodFromInput);
+            });
+        }
+
+        if (experiencePeriodToInput) {
+            experiencePeriodToInput.addEventListener('input', function () {
+                normalizeDateRangeValues(experiencePeriodFromInput, experiencePeriodToInput, experiencePeriodToInput);
             });
         }
 
@@ -554,6 +1015,98 @@
             });
         }
 
+        if (locationForm) {
+            locationForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                if (!locationSelect.value) {
+                    alert('Выберите ТТ.');
+                    return;
+                }
+
+                if (!isValidPeriod(locationPeriodFromInput.value, locationPeriodToInput.value)) {
+                    alert('Период должен быть минимум 1 день: дата "По" должна быть позже даты "С".');
+                    return;
+                }
+
+                const isEdit = locationModalMode === 'edit';
+                const requestUrl = isEdit
+                    ? '@Url.Action("UpdateLocationItem", "Salary")'
+                    : '@Url.Action("SetLocationItem", "Salary")';
+                const payload = buildLocationItemPayload();
+
+                try {
+                    setLocationFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeLocationModal();
+                    await reloadActiveTabPanel();
+                } catch (error) {
+                    alert(isEdit ? 'Не удалось сохранить особую локацию.' : 'Не удалось создать особую локацию.');
+                    console.error('save location item failed', error);
+                } finally {
+                    setLocationFormLoading(false);
+                }
+            });
+        }
+
+        if (experienceForm) {
+            experienceForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                if (!isValidPeriod(experiencePeriodFromInput.value, experiencePeriodToInput.value)) {
+                    alert('Период должен быть минимум 1 день: дата "По" должна быть позже даты "С".');
+                    return;
+                }
+
+                const payload = buildExperienceItemPayload();
+                if (payload.EXPmin == null && payload.EXPmax == null) {
+                    alert('Заполните хотя бы одно значение стажа.');
+                    return;
+                }
+
+                const isEdit = experienceModalMode === 'edit';
+                const requestUrl = isEdit
+                    ? '@Url.Action("UpdateExperienceItem", "Salary")'
+                    : '@Url.Action("SetExperienceItem", "Salary")';
+
+                try {
+                    setExperienceFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeExperienceModal();
+                    await reloadActiveTabPanel();
+                } catch (error) {
+                    alert(isEdit ? 'Не удалось сохранить правило стажа.' : 'Не удалось создать правило стажа.');
+                    console.error('save experience item failed', error);
+                } finally {
+                    setExperienceFormLoading(false);
+                }
+            });
+        }
+
         if (deleteButton) {
             deleteButton.addEventListener('click', async function () {
                 if (modalMode !== 'edit') {
@@ -570,7 +1123,7 @@
                     return;
                 }
 
-                const requestUrl = `@Url.Action("DeleteBaseTableItem", "Salary")?id=${encodeURIComponent(ruleId)}`;
+                const requestUrl = `@Url.Action("DeleteItem", "Salary")?id=${encodeURIComponent(ruleId)}`;
 
                 try {
                     setFormLoading(true);
@@ -590,6 +1143,86 @@
                     console.error('delete rule failed', error);
                 } finally {
                     setFormLoading(false);
+                }
+            });
+        }
+
+        if (locationDeleteButton) {
+            locationDeleteButton.addEventListener('click', async function () {
+                if (locationModalMode !== 'edit') {
+                    return;
+                }
+
+                if (!window.confirm('Точно удалить правило?')) {
+                    return;
+                }
+
+                const ruleId = locationRuleIdInput.value;
+                if (!ruleId) {
+                    alert('Не найден id правила для удаления.');
+                    return;
+                }
+
+                const requestUrl = `@Url.Action("DeleteItem", "Salary")?id=${encodeURIComponent(ruleId)}`;
+
+                try {
+                    setLocationFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeLocationModal();
+                    await reloadActiveTabPanel();
+                } catch (error) {
+                    alert('Не удалось удалить особую локацию.');
+                    console.error('delete location item failed', error);
+                } finally {
+                    setLocationFormLoading(false);
+                }
+            });
+        }
+
+        if (experienceDeleteButton) {
+            experienceDeleteButton.addEventListener('click', async function () {
+                if (experienceModalMode !== 'edit') {
+                    return;
+                }
+
+                if (!window.confirm('Точно удалить правило?')) {
+                    return;
+                }
+
+                const ruleId = experienceRuleIdInput.value;
+                if (!ruleId) {
+                    alert('Не найден id правила для удаления.');
+                    return;
+                }
+
+                const requestUrl = `@Url.Action("DeleteItem", "Salary")?id=${encodeURIComponent(ruleId)}`;
+
+                try {
+                    setExperienceFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeExperienceModal();
+                    await reloadActiveTabPanel();
+                } catch (error) {
+                    alert('Не удалось удалить правило стажа.');
+                    console.error('delete experience item failed', error);
+                } finally {
+                    setExperienceFormLoading(false);
                 }
             });
         }
@@ -712,6 +1345,17 @@
         display: none !important;
     }
 
+    .salary-result-panel__state {
+        padding: 20px 12px;
+        color: #6f7780;
+        font-size: 15px;
+        font-family: "Akrobat-Regular", sans-serif;
+    }
+
+    .salary-result-panel__state--error {
+        color: #d63031;
+    }
+
     .salary-result__table-wrap {
         width: 100%;
         overflow: auto;
@@ -785,6 +1429,15 @@
         cursor: pointer;
     }
 
+    .salary-editable-table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .salary-editable-table tbody tr:hover {
+        background: #f2f2f2;
+        cursor: pointer;
+    }
+
     .salary-modal-open {
         overflow: hidden;
     }
@@ -836,12 +1489,20 @@
         color: #222;
         width: 32px;
         height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         line-height: 1;
-        font-size: 24px;
+        font-size: 0;
         cursor: pointer;
-        padding-bottom: 2px;
+        padding: 0;
         border-radius: 8px;
         transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .salary-modal__close::before {
+        content: "\00D7";
+        font-size: 24px;
     }
 
     .salary-modal__close:hover {
