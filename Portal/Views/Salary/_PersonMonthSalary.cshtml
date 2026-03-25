@@ -1,0 +1,79 @@
+@using System.Globalization
+@model Portal.ViewModels.Salary.PersonMonthSalaryViewModel
+@{
+    var culture = CultureInfo.GetCultureInfo("ru-RU");
+    var personName = string.IsNullOrWhiteSpace(Model?.PersonName) ? "-" : Model.PersonName;
+    var periodLabel = Model?.PeriodLabel ?? "Выбранный период";
+    var totalAmountText = Model?.TotalAmount.HasValue == true
+        ? string.Format(culture, "{0:N2} руб.", Model.TotalAmount.Value)
+        : "-";
+}
+<div class="salary-result__meta">
+    <div class="data-name">@personName</div>
+    <div class="data-name">@periodLabel</div>
+</div>
+@if (Model?.SummaryCards != null && Model.SummaryCards.Count > 0)
+{
+    <div class="salary-card__wrapper">
+        @foreach (var card in Model.SummaryCards)
+        {
+            var amountText = card.Amount.HasValue
+                ? string.Format(culture, "{0:N2} руб.", card.Amount.Value)
+                : "-";
+            <div class="salary-card">
+                <div class="salary-card__title">@card.Title</div>
+                <div class="salary-card__value">@amountText</div>
+                <div class="salary-card__description">@card.Description</div>
+            </div>
+        }
+    </div>
+}
+@if (Model?.JobCards != null && Model.JobCards.Count > 0)
+{
+    <div class="salary-card__wrapper salary-card__wrapper--jobs">
+        @foreach (var card in Model.JobCards)
+        {
+            var backgroundStyle = string.IsNullOrWhiteSpace(card.BackgroundStyle)
+                ? "background: linear-gradient(24deg, #000000b5, #a4ffa4);"
+                : card.BackgroundStyle;
+            var totalText = card.TotalAmount.HasValue
+                ? string.Format(culture, "{0:N2} руб.", card.TotalAmount.Value)
+                : "-";
+            <div class="job-card" style="@backgroundStyle">
+                <div class="job-card__name">@card.Title</div>
+                @if (!string.IsNullOrWhiteSpace(card.Subtitle))
+                {
+                    <div class="job-card__subtitle">@card.Subtitle</div>
+                }
+                <div class="income-details">
+                    @if (card.Items != null && card.Items.Count > 0)
+                    {
+                        foreach (var item in card.Items)
+                        {
+                            var amountText = item.Amount.HasValue
+                                ? string.Format(culture, "{0:N2} руб.", item.Amount.Value)
+                                : "-";
+                            <div class="income-details__row">
+                                <span class="income-details__label">@item.Label</span>
+                                <span class="income-details__leader"></span>
+                                <span class="income-details__amount">@amountText</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="income-details__empty">Нет начислений по должности</div>
+                    }
+                </div>
+                <div class="job-card__total">Итого: @totalText</div>
+            </div>
+        }
+    </div>
+}
+<div class="salary-result__footer">
+    <div class="salary-result__footer-actions">
+        <button type="button" class="salary-refresh-button">Обновить</button>
+        <button type="button" class="salary-print-button">Печать</button>
+    </div>
+    <div class="salary-total">Всего: @totalAmountText</div>
+</div>

@@ -38,7 +38,7 @@
                             <th>Ставка (без учета стажа и локации)</th>
                             <th>Стаж</th>
                             <th>Локация</th>
-                            @* <th>Выработка</th> *@
+                            <th>Выработка</th>
                             <th>Период</th>
                         </tr>
                     </thead>
@@ -53,7 +53,7 @@
                                 data-has-experience="@(rule.EXK == "1" ? "1" : "0")"
                                 data-has-location="@(rule.BAK == "1" ? "1" : "0")"
                                 data-part-timer="@(rule.PartTimer ? "1" : "0")"
-                                data-has-output="0"
+                                data-has-output="@(rule.PRK == "1" ? "1" : "0")"
                                 data-period-from="@rule.Begin.ToString("yyyy-MM-dd")"
                                 data-period-to="@rule.End.ToString("yyyy-MM-dd")">
                                 <td data-label="Основная должность">@(rule.MainJob?.Name ?? "Парт-Таймер")</td>
@@ -79,7 +79,16 @@
                                         <span class="salary-flag is-minus" aria-label="Нет">-</span>
                                     }
                                 </td>
-                                @* <td style="text-align: center;" data-label="Выработка"><span class="salary-flag is-plus" aria-label="Да">+</span></td> *@
+                                <td style="text-align: center;" data-label="Выработка"><span class="salary-flag is-plus" aria-label="Да">
+                                        @if (rule.PRK == "1")
+                                        {
+                                            <span class="salary-flag is-plus" aria-label="Да">+</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="salary-flag is-minus" aria-label="Нет">-</span>
+                                        }
+                                </span></td>
                                 <td data-label="Период">@rule.Begin.ToString("dd.MM.yyyy") - @rule.End.ToString("dd.MM.yyyy")</td>
                             </tr>
                         }
@@ -254,6 +263,58 @@
     </div>
 </div>
 
+<div class="salary-modal-overlay" id="salaryProductionModal" hidden>
+    <div class="salary-modal" role="dialog" aria-modal="true" aria-labelledby="salaryProductionModalTitle">
+        <div class="salary-modal__header">
+            <h3 id="salaryProductionModalTitle" class="salary-modal__title">Добавление выработки</h3>
+            <button type="button" id="salaryProductionModalClose" class="salary-modal__close" aria-label="Закрыть">Г—</button>
+        </div>
+
+        <form id="salaryProductionForm" class="salary-modal__body">
+            <input type="hidden" id="salaryProductionRuleId" />
+
+            <div class="salary-modal__field">
+                <label for="salaryProductionJobTitle">Категория из табеля</label>
+                <select id="salaryProductionJobTitle" required>
+                    <option value=""></option>
+                    @foreach (var job in jobTitles)
+                    {
+                        <option value="@job.Guid">@job.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryProductionLong">Длительность</label>
+                <input id="salaryProductionLong" type="number" step="1" min="0" required />
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryProductionCount">Смены</label>
+                <input id="salaryProductionCount" type="number" step="1" min="0" required />
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryProductionPrm">Доплата</label>
+                <input id="salaryProductionPrm" type="number" step="1" min="0" required />
+            </div>
+
+            <div class="salary-modal__field">
+                <label>Период</label>
+                <div class="salary-modal__period">
+                    <input id="salaryProductionPeriodFrom" type="date" required />
+                    <input id="salaryProductionPeriodTo" type="date" required />
+                </div>
+            </div>
+
+            <div class="salary-modal__actions">
+                <button type="button" id="salaryProductionDeleteButton" class="salary-modal__btn salary-modal__btn--danger">Удалить</button>
+                <button type="submit" id="salaryProductionSubmitButton" class="salary-modal__btn salary-modal__btn--primary">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <script>
     (() => {
@@ -315,6 +376,20 @@
         const experienceSubmitButton = document.getElementById('salaryExperienceSubmitButton');
         const experienceDeleteButton = document.getElementById('salaryExperienceDeleteButton');
 
+        const productionModal = document.getElementById('salaryProductionModal');
+        const productionModalTitle = document.getElementById('salaryProductionModalTitle');
+        const productionModalCloseButton = document.getElementById('salaryProductionModalClose');
+        const productionForm = document.getElementById('salaryProductionForm');
+        const productionRuleIdInput = document.getElementById('salaryProductionRuleId');
+        const productionJobTitleSelect = document.getElementById('salaryProductionJobTitle');
+        const productionLongInput = document.getElementById('salaryProductionLong');
+        const productionCountInput = document.getElementById('salaryProductionCount');
+        const productionPrmInput = document.getElementById('salaryProductionPrm');
+        const productionPeriodFromInput = document.getElementById('salaryProductionPeriodFrom');
+        const productionPeriodToInput = document.getElementById('salaryProductionPeriodTo');
+        const productionSubmitButton = document.getElementById('salaryProductionSubmitButton');
+        const productionDeleteButton = document.getElementById('salaryProductionDeleteButton');
+
         let modalMode = 'create';
         let isFormLoading = false;
         let activeTabName = 'rate-constructor';
@@ -322,6 +397,8 @@
         let isLocationFormLoading = false;
         let experienceModalMode = 'create';
         let isExperienceFormLoading = false;
+        let productionModalMode = 'create';
+        let isProductionFormLoading = false;
 
         function setActiveTab(tabName) {
             activeTabName = tabName;
@@ -406,6 +483,11 @@
 
                     if (tabName === 'experience-locations') {
                         openCreateExperienceModal();
+                        return;
+                    }
+
+                    if (tabName === 'production-locations') {
+                        openCreateProductionModal();
                     }
                 };
             }
@@ -422,6 +504,14 @@
                 panel.querySelectorAll('.salary-experience-row[data-rule-id]').forEach(row => {
                     row.onclick = function () {
                         openEditExperienceModal(row);
+                    };
+                });
+            }
+
+            if (tabName === 'production-locations') {
+                panel.querySelectorAll('.salary-production-row[data-rule-id]').forEach(row => {
+                    row.onclick = function () {
+                        openEditProductionModal(row);
                     };
                 });
             }
@@ -631,6 +721,7 @@
                 } : null,
                 BSM: (baseRateInput.value || '').toString(),
                 BAK: hasLocationCheckbox.checked ? '1' : '0',
+                PRK: hasOutputCheckbox.checked ? '1' : '0',
                 EXK: hasExperienceCheckbox.checked ? '1' : '0',
                 Begin: periodFromInput.value,
                 End: periodToInput.value,
@@ -868,6 +959,120 @@
             };
         }
 
+        function setProductionModalMode(mode) {
+            productionModalMode = mode;
+            const isEdit = mode === 'edit';
+
+            productionModalTitle.textContent = isEdit ? 'Редактирование выработки' : 'Добавление выработки';
+            productionSubmitButton.textContent = isEdit ? 'Сохранить' : 'Создать';
+            productionDeleteButton.hidden = !isEdit;
+        }
+
+        function clearProductionForm() {
+            productionRuleIdInput.value = '';
+            productionJobTitleSelect.value = '';
+            productionLongInput.value = '';
+            productionCountInput.value = '';
+            productionPrmInput.value = '';
+            productionPeriodFromInput.value = '';
+            productionPeriodToInput.value = '';
+            setDateRangeLimits(productionPeriodFromInput, productionPeriodToInput);
+        }
+
+        function fillProductionForm(data) {
+            productionRuleIdInput.value = data.ruleId || '';
+            productionJobTitleSelect.value = data.jobTitleGuid || '';
+            productionLongInput.value = data.timesheetLong || '';
+            productionCountInput.value = data.timesheetCount || '';
+            productionPrmInput.value = data.prm || '';
+            productionPeriodFromInput.value = data.periodFrom || '';
+            productionPeriodToInput.value = data.periodTo || '';
+            normalizeDateRangeValues(productionPeriodFromInput, productionPeriodToInput);
+        }
+
+        function setProductionFormLoading(isLoading) {
+            isProductionFormLoading = isLoading;
+
+            [
+                productionJobTitleSelect,
+                productionLongInput,
+                productionCountInput,
+                productionPrmInput,
+                productionPeriodFromInput,
+                productionPeriodToInput,
+                productionSubmitButton,
+                productionDeleteButton
+            ].forEach(field => {
+                if (field) {
+                    field.disabled = isLoading;
+                }
+            });
+
+            productionForm.classList.toggle('salary-modal__body--loading', isLoading);
+        }
+
+        function openProductionModal() {
+            productionModal.hidden = false;
+            document.body.classList.add('salary-modal-open');
+        }
+
+        function closeProductionModal() {
+            productionModal.hidden = true;
+            document.body.classList.remove('salary-modal-open');
+        }
+
+        function getProductionItemDataFromRow(row) {
+            const data = row ? row.dataset : {};
+
+            return {
+                ruleId: data.ruleId || '',
+                jobTitleGuid: data.jobTitleGuid || '',
+                timesheetLong: data.timesheetLong || '',
+                timesheetCount: data.timesheetCount || '',
+                prm: data.prm || '',
+                periodFrom: data.periodFrom || '',
+                periodTo: data.periodTo || ''
+            };
+        }
+
+        function openCreateProductionModal() {
+            setProductionModalMode('create');
+            clearProductionForm();
+            setProductionFormLoading(false);
+            openProductionModal();
+        }
+
+        function openEditProductionModal(row) {
+            if (!row) {
+                return;
+            }
+
+            setProductionModalMode('edit');
+            clearProductionForm();
+            fillProductionForm(getProductionItemDataFromRow(row));
+            setProductionFormLoading(false);
+            openProductionModal();
+        }
+
+        function buildProductionItemPayload() {
+            const parsedRuleId = parseInt(productionRuleIdInput.value, 10);
+            const normalizedRuleId = Number.isFinite(parsedRuleId) ? parsedRuleId : 0;
+            const selectedJobTitleName = productionJobTitleSelect.options[productionJobTitleSelect.selectedIndex]?.text || '';
+
+            return {
+                RuleId: productionModalMode === 'edit' ? normalizedRuleId : 0,
+                TimesheetJobTitle: productionJobTitleSelect.value ? {
+                    Guid: productionJobTitleSelect.value,
+                    Name: selectedJobTitleName
+                } : null,
+                TimesheetLong: parseInt(productionLongInput.value, 10) || 0,
+                TimesheetCount: parseInt(productionCountInput.value, 10) || 0,
+                PRM: parseInt(productionPrmInput.value, 10) || 0,
+                Begin: productionPeriodFromInput.value,
+                End: productionPeriodToInput.value
+            };
+        }
+
         setActiveTab('rate-constructor');
 
         tabButtons.forEach(button => {
@@ -922,6 +1127,12 @@
             });
         }
 
+        if (productionModalCloseButton) {
+            productionModalCloseButton.addEventListener('click', function () {
+                closeProductionModal();
+            });
+        }
+
         if (periodFromInput) {
             periodFromInput.addEventListener('input', function () {
                 normalizePeriodValues(periodFromInput);
@@ -955,6 +1166,18 @@
         if (experiencePeriodToInput) {
             experiencePeriodToInput.addEventListener('input', function () {
                 normalizeDateRangeValues(experiencePeriodFromInput, experiencePeriodToInput, experiencePeriodToInput);
+            });
+        }
+
+        if (productionPeriodFromInput) {
+            productionPeriodFromInput.addEventListener('input', function () {
+                normalizeDateRangeValues(productionPeriodFromInput, productionPeriodToInput, productionPeriodFromInput);
+            });
+        }
+
+        if (productionPeriodToInput) {
+            productionPeriodToInput.addEventListener('input', function () {
+                normalizeDateRangeValues(productionPeriodFromInput, productionPeriodToInput, productionPeriodToInput);
             });
         }
 
@@ -1107,6 +1330,52 @@
             });
         }
 
+        if (productionForm) {
+            productionForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                if (!productionJobTitleSelect.value) {
+                    alert('Выберите категорию из табеля.');
+                    return;
+                }
+
+                if (!isValidPeriod(productionPeriodFromInput.value, productionPeriodToInput.value)) {
+                    alert('Период должен быть минимум 1 день: дата "По" должна быть позже даты "С".');
+                    return;
+                }
+
+                const payload = buildProductionItemPayload();
+                const isEdit = productionModalMode === 'edit';
+                const requestUrl = isEdit
+                    ? '@Url.Action("UpdateProductionTableItem", "Salary")'
+                    : '@Url.Action("SetProductionTableItem", "Salary")';
+
+                try {
+                    setProductionFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeProductionModal();
+                    await reloadActiveTabPanel();
+                } catch (error) {
+                    alert(isEdit ? 'Не удалось сохранить правило выработки.' : 'Не удалось создать правило выработки.');
+                    console.error('save production item failed', error);
+                } finally {
+                    setProductionFormLoading(false);
+                }
+            });
+        }
+
         if (deleteButton) {
             deleteButton.addEventListener('click', async function () {
                 if (modalMode !== 'edit') {
@@ -1223,6 +1492,46 @@
                     console.error('delete experience item failed', error);
                 } finally {
                     setExperienceFormLoading(false);
+                }
+            });
+        }
+
+        if (productionDeleteButton) {
+            productionDeleteButton.addEventListener('click', async function () {
+                if (productionModalMode !== 'edit') {
+                    return;
+                }
+
+                if (!window.confirm('Точно удалить правило?')) {
+                    return;
+                }
+
+                const ruleId = productionRuleIdInput.value;
+                if (!ruleId) {
+                    alert('Не найден id правила для удаления.');
+                    return;
+                }
+
+                const requestUrl = `@Url.Action("DeleteItem", "Salary")?id=${encodeURIComponent(ruleId)}`;
+
+                try {
+                    setProductionFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeProductionModal();
+                    await reloadActiveTabPanel();
+                } catch (error) {
+                    alert('Не удалось удалить правило выработки.');
+                    console.error('delete production item failed', error);
+                } finally {
+                    setProductionFormLoading(false);
                 }
             });
         }
@@ -1362,7 +1671,6 @@
         -webkit-overflow-scrolling: touch;
         border: 1px solid #ececec;
         border-radius: 8px;
-        overflow: hidden;
     }
 
     .salary-result__table {
@@ -1711,7 +2019,6 @@
         }
 
         .result-block .salary-result__table-wrap {
-            overflow-x: visible;
             border: none;
             border-radius: 0;
         }
