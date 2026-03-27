@@ -129,6 +129,11 @@ namespace Portal.Controllers
 
             foreach (var item in timeSheets)
             {
+                if(item.Absence != null)
+                {
+                    continue;
+                }
+
                 AddHours(item.Begin, item.End);
             }
 
@@ -446,7 +451,7 @@ namespace Portal.Controllers
                         duration = (timesheet.Begin - timesheet.End).TotalHours;
                     }
                     
-                    if(timesheet.Location.Guid == Guid.Parse(locationGuid))
+                    if(timesheet.Location.Guid == Guid.Parse(locationGuid) && timesheet.Absence == null)
                     {
                         totalHours += duration;
                     }

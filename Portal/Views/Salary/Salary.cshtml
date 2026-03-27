@@ -2566,57 +2566,83 @@
     }
 
     @@media print {
-        * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+        body {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            color: #000;
+            background: #fff;
         }
-
+        /* Скрываем фильтры и кнопки */
         .filter-block,
         .salary-panel-actions,
         .salary-back,
-        .salary-refresh-button,
-        .salary-print-button {
+        #showSalaryButton {
             display: none !important;
         }
-
+        /* Основной контейнер */
         .salary_wrapper,
         .result-block {
-            background: #fff !important;
+            width: 100% !important;
             padding: 0 !important;
             margin: 0 !important;
-            border-radius: 0 !important;
+            background: #fff !important;
             box-shadow: none !important;
         }
-
-        .salary-result__meta,
+        /* Карточки и таблицы */
         .salary-card__wrapper,
-        .salary-result__footer {
-            break-inside: avoid;
+        .salary-card,
+        .job-card,
+        .salary-result__table {
+            width: 100% !important;
             page-break-inside: avoid;
+            break-inside: avoid;
+            box-shadow: none !important;
         }
 
         .salary-card,
         .job-card,
-        .salary-period-bonus,
-        .salary-total,
-        .data-name {
-            border: 1px solid #cfcfcf !important;
-            box-shadow: none !important;
-        }
-
-        .salary-card {
-            background: #eeeeee !important;
-        }
-
         .salary-total,
         .salary-period-bonus,
         .data-name {
-            background: #eeeeee !important;
+            border: 1px solid #ccc !important;
+            padding: 6px !important;
+            margin: 2px 0 !important;
+            font-size: 11px !important;
+            background: #f9f9f9 !important;
         }
-
-        .job-card {
-            overflow: hidden;
+        /* Таблицы */
+        .salary-result__table th,
+        .salary-result__table td {
+            font-size: 10px !important;
+            padding: 4px 6px !important;
+            white-space: normal !important;
+            border: 1px solid #ccc !important;
+        }
+        /* Убираем скролл */
+        .result-block {
+            overflow: visible !important;
+            max-height: none !important;
+        }
+        /* Общее компактное отображение */
+        .salary-result__meta,
+        .salary-result__footer,
+        .income-details__row,
+        .salary-period-bonus__row {
+            flex-direction: column !important;
+            gap: 2px !important;
+        }
+        /* Сокращаем поля для читаемости */
+        .salary-date-range input,
+        .salary-field > input,
+        .salary-field > select,
+        .salary-select,
+        .salary-autocomplete {
+            width: 100% !important;
+            font-size: 10px !important;
+            padding: 2px 4px !important;
         }
     }
 
 </style>
+

@@ -1,7 +1,6 @@
 <!--шапка-->
 <div id="headMenu" class="row" style="margin:0px">
     <div class="col-12">
-
         <!--блок заголовка-->
         <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
             <tbody>
@@ -21,7 +20,6 @@
 
         <!--меню таблицы-->
         <div class="tableMenu" id="tableMenu">
-            
             <div id="tableMenu1" class="col-md-12" style="padding:0px">
                 <input class="form-control-sm" id="personality_search" placeholder="Поиск" id="searchDatatable">
                 <a href="#AddPerson" class="btn btn-sm btn-success" id="buttonAdd" style="margin-left:20px">добавить</a>
@@ -42,38 +40,34 @@
                     <span class="switch__slider"></span>
                 </label>
             </div>
-
         </div>
 
         <!--меню добавления пользователя-->
         <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-
         </div>
-
     </div>
 </div>
 
 <div id="page" style="margin-top:15px"></div>
 
 <script>
-
     function loadPersonalityTable() {
         let error = document.getElementById('errorsPick').checked;
         let actual = document.getElementById('closedPersonality').checked;
 
-        if(actual){
+        if (actual) {
             actual = 1;
         } else {
             actual = 0;
         }
 
-        if(error){
+        if (error) {
             error = 1;
         } else {
             error = 0;
         }
 
-         $('#page').load(`/Personality/PersonalityTable?showUnActual=${actual}&checkErrors=${error}`, function () { SpinnerHide(); });
+        $('#page').load(`/Personality/PersonalityTable?showUnActual=${actual}&checkErrors=${error}`, function () { SpinnerHide(); });
     }
 </script>
 
@@ -86,11 +80,9 @@
         $('#page').empty();
         loadPersonalityTable();
     }
+
     DataTable()
 </script>
-
-
-
 
 <!--загрузка формы добавления пользователя-->
 <script>
@@ -101,11 +93,12 @@
         } else {
             $('#header').text('Добавление версии');
         }
-       $('#addMenu').show();
+
+        $('#addMenu').show();
         SpinnerShow();
-        $('#page').load(`/Personality/PersonalityEdit?typeGuid=${typeGuid}&newPerson=${newPerson}` , function () {
-         SpinnerHide()
-         });
+        $('#page').load(`/Personality/PersonalityEdit?typeGuid=${typeGuid}&newPerson=${newPerson}`, function () {
+            SpinnerHide()
+        });
     }
 </script>
 
@@ -128,27 +121,26 @@
         location.hash = "#PersonalityVersions";
         let closedPersonality = document.getElementById("closedPersonality").checked;
         let errorsPick = document.getElementById("errorsPick").checked;
-        
-        if(errorsPick)
-        {
+
+        if (errorsPick) {
             errorsPick = 1;
         } else {
             errorsPick = 0;
         }
 
-        if(closedPersonality)
-        {
+        if (closedPersonality) {
             closedPersonality = 1;
         } else {
             closedPersonality = 0;
         }
+
         $('#header').text('Выбор версии');
         $('#back').unbind('click');
         $('#back').click(function () {
             $('#tableMenu').show();
             $('.userActive').show();
             DataTable();
-         });
+        });
         $('.userActive').hide();
         $('#tableMenu').show();
         $('#editMenu').show();

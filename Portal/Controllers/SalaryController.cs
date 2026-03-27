@@ -479,20 +479,13 @@ namespace Portal.Controllers
                         Amount = group.Sum(x => x.CashBonus),
                         Description = $"{group.Count()} начисл."
                     }));
-            var cardBackgrounds = new[]
-            {
-                "background: linear-gradient(24deg, #000000b5, #a4ffa4);",
-                "background: linear-gradient(24deg, #000000b5, #a4b7ff);",
-                "background: linear-gradient(24deg, #000000b5, #ffa4dc);",
-                "background: linear-gradient(24deg, #000000b5, #a4ffea);"
-            };
             var jobCards = income.JobIncomes
-                .Select((jobIncome, index) => new PersonMonthSalaryJobCardViewModel
+                .Select(jobIncome => new PersonMonthSalaryJobCardViewModel
                 {
                     Title = string.IsNullOrWhiteSpace(jobIncome.JobTitle) ? "Без должности" : jobIncome.JobTitle,
                     Subtitle = $"{jobIncome.TimesheetsCount} таб. / {jobIncome.IncomeItems.Count} начисл.",
                     TotalAmount = jobIncome.Income,
-                    BackgroundStyle = cardBackgrounds[index % cardBackgrounds.Length],
+                    BackgroundStyle = GetJobCardBackgroundStyle(jobIncome.JobTitleGuid, jobIncome.JobTitle),
                     Items = jobIncome.IncomeItems
                         .Where(x => x != null && x.Income > 0)
                         .Select(x => new PersonMonthSalaryJobIncomeItemViewModel
@@ -523,6 +516,53 @@ namespace Portal.Controllers
             return roundedHours % 1 == 0
                 ? ((int)roundedHours).ToString()
                 : roundedHours.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo("ru-RU"));
+        }
+        private string GetJobCardBackgroundStyle(Guid? jobTitleGuid, string jobTitle)
+        {
+            if (jobTitleGuid.HasValue)
+            {
+                switch (jobTitleGuid.Value.ToString().ToUpperInvariant())
+                {
+                    case "70102C24-677F-4330-F6BC-08DCCC0EB665":
+                        return "background: linear-gradient(24deg, #000000b5, #ffb36b);";
+                    case "61905F67-1592-4636-F6BD-08DCCC0EB665":
+                        return "background: linear-gradient(24deg, #000000b5, #8fb0ff);";
+                    case "ACF37C24-D9A4-4062-F6BE-08DCCC0EB665":
+                        return "background: linear-gradient(24deg, #000000b5, #9084ff);";
+                    case "E9FD1296-2E2E-4552-F6C0-08DCCC0EB665":
+                        return "background: linear-gradient(24deg, #000000b5, #7ed4c6);";
+                    case "0783C3E0-DCA6-4220-88C6-265BFC51510B":
+                        return "background: linear-gradient(24deg, #000000b5, #a4ffa4);";
+                    case "880A47B4-9A4F-41DF-ACA5-DB17FFE0635B":
+                        return "background: linear-gradient(24deg, #000000b5, #ffd36f);";
+                }
+            }
+            var normalizedJobTitle = (jobTitle ?? string.Empty).Trim();
+            if (string.Equals(normalizedJobTitle, "Вечерний", StringComparison.OrdinalIgnoreCase))
+            {
+                return "background: linear-gradient(24deg, #000000b5, #ffb36b);";
+            }
+            if (string.Equals(normalizedJobTitle, "Основной", StringComparison.OrdinalIgnoreCase))
+            {
+                return "background: linear-gradient(24deg, #000000b5, #8fb0ff);";
+            }
+            if (string.Equals(normalizedJobTitle, "Ночной пекарь", StringComparison.OrdinalIgnoreCase))
+            {
+                return "background: linear-gradient(24deg, #000000b5, #9084ff);";
+            }
+            if (string.Equals(normalizedJobTitle, "Работник пекарни", StringComparison.OrdinalIgnoreCase))
+            {
+                return "background: linear-gradient(24deg, #000000b5, #7ed4c6);";
+            }
+            if (string.Equals(normalizedJobTitle, "Дневной", StringComparison.OrdinalIgnoreCase))
+            {
+                return "background: linear-gradient(24deg, #000000b5, #a4ffa4);";
+            }
+            if (string.Equals(normalizedJobTitle, "Администратор", StringComparison.OrdinalIgnoreCase))
+            {
+                return "background: linear-gradient(24deg, #000000b5, #ffd36f);";
+            }
+            return "background: linear-gradient(24deg, #000000b5, #a4b7ff);";
         }
         private T DeserializeApiPayload<T>(string payload) where T : class
         {
@@ -626,6 +666,8 @@ namespace Portal.Controllers
         {
             [JsonPropertyName("jobTitle")]
             public string JobTitle { get; set; }
+            [JsonPropertyName("jobTitleGuid")]
+            public Guid? JobTitleGuid { get; set; }
             [JsonPropertyName("incomeItems")]
             public List<PersonIncomeItemApiResponse> IncomeItems { get; set; } = new List<PersonIncomeItemApiResponse>();
             [JsonPropertyName("timesheetsCount")]

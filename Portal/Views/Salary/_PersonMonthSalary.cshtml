@@ -34,7 +34,7 @@
         @foreach (var card in Model.JobCards)
         {
             var backgroundStyle = string.IsNullOrWhiteSpace(card.BackgroundStyle)
-                ? "background: linear-gradient(24deg, #000000b5, #a4ffa4);"
+                ? "background: linear-gradient(24deg, #000000b5, #a4b7ff);"
                 : card.BackgroundStyle;
             var totalText = card.TotalAmount.HasValue
                 ? string.Format(culture, "{0:N2} руб.", card.TotalAmount.Value)
