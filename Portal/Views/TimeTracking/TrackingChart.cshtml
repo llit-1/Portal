@@ -23,7 +23,9 @@
         return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
     }
 
-    var colorFromJobTitle = new Dictionary<string, string>
+    var defaultJobTitleColor = "#d9d9d9";
+
+    var colorFromJobTitle = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         { "Дневной", "#f7bfff" },
         { "Вечерний", "#dcdcff" },
@@ -31,8 +33,32 @@
         { "Ночной пекарь", "#dbdbdb" },
         { "Работник пекарни", "#ffbdc0" },
         { "Администратор", "#ffdd9e" },
-        { "Терр. менеджер", "#6dfbff" },
     };
+
+    string GetJobTitleColor(string? jobTitleName)
+    {
+        if (string.IsNullOrWhiteSpace(jobTitleName))
+        {
+            return defaultJobTitleColor;
+        }
+
+        jobTitleName = jobTitleName.Trim();
+
+        if (!colorFromJobTitle.ContainsKey(jobTitleName))
+        {
+            colorFromJobTitle[jobTitleName] = defaultJobTitleColor;
+        }
+
+        return colorFromJobTitle[jobTitleName];
+    }
+
+    if (Model.jobTitles != null)
+    {
+        foreach (var jobTitle in Model.jobTitles)
+        {
+            _ = GetJobTitleColor(jobTitle?.Name);
+        }
+    }
 
     // Статусы для отсутствующих людей
     // 1 - Болезнь (Б)
@@ -125,7 +151,7 @@
 <div class="selectorColorWrapper hidden">
     <select id="trackingChart_selectd" class="form-control" onchange="getSheduleTime(this.value)">
         @foreach(var item in Model.jobTitles) {
-            <option value="@item.Guid" data-color="@colorFromJobTitle[item.Name.Trim()]">@item.Name.Trim()</option>
+            <option value="@item.Guid" data-color="@GetJobTitleColor(item.Name)">@item.Name.Trim()</option>
         }
         <option value="1" data-color="green">Больничный</option>
         <option value="2" data-color="#ffa100">Отпуск</option>
