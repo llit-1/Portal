@@ -288,7 +288,8 @@ namespace Portal.Controllers
             {
                 Items = new List<BaseTableItem>(),
                 jobTitles = new List<JobTitle>(),
-                Locations = new List<Portal.Models.MSSQL.Location.Location>()
+                Locations = new List<Portal.Models.MSSQL.Location.Location>(),
+                FreeRules = new List<SalaryRules>()
             };
             try
             {
@@ -299,10 +300,12 @@ namespace Portal.Controllers
                 if (!response.IsSuccessStatusCode)
                 {
                     ViewBag.BaseTableLoadError = $"Не удалось загрузить таблицу ставок (HTTP {(int)response.StatusCode})";
-                    return PartialView(salarySettingsBaseTable);
                 }
-                baseTableItems = await response.Content.ReadFromJsonAsync<List<BaseTableItem>>() ?? new List<BaseTableItem>();
-                salarySettingsBaseTable.Items = baseTableItems;
+                if (response.IsSuccessStatusCode)
+                {
+                    baseTableItems = await response.Content.ReadFromJsonAsync<List<BaseTableItem>>() ?? new List<BaseTableItem>();
+                    salarySettingsBaseTable.Items = baseTableItems;
+                }
                 salarySettingsBaseTable.jobTitles = dbSql.JobTitles.AsNoTracking().ToList();
                 salarySettingsBaseTable.Locations = dbSql.Locations.Include(X => X.LocationType)
                     .Where(x => x.LocationType != null &&
@@ -315,6 +318,7 @@ namespace Portal.Controllers
             {
                 ViewBag.BaseTableLoadError = "Ошибка обращения к сервису таблицы ставок";
             }
+            salarySettingsBaseTable.FreeRules = await LoadFreeSalaryRulesAsync();
             return PartialView(salarySettingsBaseTable);
         }
         [HttpGet]
@@ -410,6 +414,24 @@ namespace Portal.Controllers
             }
             return await ProxyPostAsync("http://rknet-server:1571/api/Edit/UpdateBaseTableItem", baseTableItem);
         }
+        [HttpPost]
+        public async Task<IActionResult> SetFreeRuleItem([FromBody] SalaryRules freeRuleItem)
+        {
+            if (freeRuleItem == null)
+            {
+                return BadRequest(new { message = "empty freeRuleItem" });
+            }
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/SetFreeRuleItem", freeRuleItem);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateFreeRuleItem([FromBody] SalaryRules freeRuleItem)
+        {
+            if (freeRuleItem == null)
+            {
+                return BadRequest(new { message = "empty freeRuleItem" });
+            }
+            return await ProxyPostAsync("http://rknet-server:1571/api/Edit/UpdateFreeRuleItem", freeRuleItem);
+        }
         [HttpDelete]
         public async Task<IActionResult> DeleteItem(int id)
         {
@@ -454,6 +476,39 @@ namespace Portal.Controllers
             {
                 ViewBag.SalarySettingsTabLoadError = "Ошибка обращения к сервису данных";
                 return new List<T>();
+            }
+        }
+        private async Task<List<SalaryRules>> LoadFreeSalaryRulesAsync()
+        {
+            const string requestUrl = "http://rknet-server:1571/api/Edit/GetFreeRuleTable";
+            try
+            {
+                using HttpClient httpClient = httpClientFactory.CreateClient();
+                using HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.FreeRulesLoadError = $"\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0435 \u043f\u0440\u0430\u0432\u0438\u043b\u0430 (HTTP {(int)response.StatusCode})";
+                    return new List<SalaryRules>();
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var items = DeserializeApiPayload<List<SalaryRules>>(responseContent);
+                if (items == null)
+                {
+                    var wrappedPayload = DeserializeApiPayload<ApiListResponse<SalaryRules>>(responseContent);
+                    items = wrappedPayload?.Value ?? new List<SalaryRules>();
+                }
+
+                return (items ?? new List<SalaryRules>())
+                    .Where(x => x != null && x.Type > 5)
+                    .OrderBy(x => x.Priority)
+                    .ThenBy(x => x.Begin)
+                    .ToList();
+            }
+            catch
+            {
+                ViewBag.FreeRulesLoadError = "\u041e\u0448\u0438\u0431\u043a\u0430 \u043e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u044f \u043a \u0441\u0435\u0440\u0432\u0438\u0441\u0443 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0445 \u043f\u0440\u0430\u0432\u0438\u043b";
+                return new List<SalaryRules>();
             }
         }
         private PersonMonthSalaryViewModel MapPersonIncomeToViewModel(Guid personGuid, int month, int year, PersonIncomeApiResponse income)
@@ -601,12 +656,22 @@ namespace Portal.Controllers
             public List<BaseTableItem> Items { get; set; }
             public List<JobTitle> jobTitles { get; set; }
             public List<Portal.Models.MSSQL.Location.Location> Locations { get; set; }
+            public List<SalaryRules> FreeRules { get; set; }
+        }
+        public class SalaryRules
+        {
+            public int Id { get; set; }
+            public string Formula { get; set; } = string.Empty;
+            public int Type { get; set; }
+            public DateTime Begin { get; set; }
+            public DateTime End { get; set; }
+            public int Priority { get; set; }
         }
         public class BaseTableItem
         {
             public int? RuleId { get; set; }
-            public Models.MSSQL.Personality.JobTitle? MainJob { get; set; }
-            public Models.MSSQL.Personality.JobTitle? RealJob { get; set; }
+            public JobTitle? MainJob { get; set; }
+            public JobTitle? RealJob { get; set; }
             public string BSM { get; set; }
             public string BAK { get; set; }
             public string EXK { get; set; }
@@ -646,6 +711,11 @@ namespace Portal.Controllers
         {
             [JsonPropertyName("message")]
             public string Message { get; set; }
+        }
+        private class ApiListResponse<T>
+        {
+            [JsonPropertyName("value")]
+            public List<T> Value { get; set; } = new List<T>();
         }
         private class PersonIncomeApiResponse
         {

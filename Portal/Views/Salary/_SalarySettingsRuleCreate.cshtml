@@ -1,0 +1,1086 @@
+@model List<Portal.Controllers.SalaryController.SalaryRules>
+
+@{
+    var items = Model ?? new System.Collections.Generic.List<Portal.Controllers.SalaryController.SalaryRules>();
+    var loadError = ViewBag.FreeRulesLoadError as string;
+}
+
+<div class="salary-rule-create">
+    <details class="salary-rule-create__accordion">
+        <summary class="salary-rule-create__summary">Как работают формулы <span>8 правил</span></summary>
+        <div class="salary-rule-create__content">
+            <ol class="salary-rule-create__list">
+                <li>Формулы рассчитываются отдельно для каждой смены.</li>
+                <li>Учитываются только формулы, действующие на момент начала смены.</li>
+                <li>Формулы выполняются по приоритету: от меньшего к большему.</li>
+                <li>Запись состоит из условия и задания, разделенных <code>=&gt;</code>.</li>
+                <li>Условие: <code>Параметр|Сравнение|Значение</code>.</li>
+                <li>Задание: <code>Параметр|Операция|Значение</code>.</li>
+                <li>Несколько условий соединяются словом <code>AND</code>.</li>
+                <li>Несколько заданий тоже соединяются словом <code>AND</code>.</li>
+            </ol>
+        </div>
+    </details>
+
+    <details class="salary-rule-create__accordion">
+        <summary class="salary-rule-create__summary">Шпаргалка по синтаксису <span>пример</span></summary>
+        <div class="salary-rule-create__content">
+            <p class="salary-rule-create__text"><strong>Условие:</strong> <code>MAJ|=|70102C24-677F-4330-F6BC-08DCCC0EB665|AND|REJ|=|70102C24-677F-4330-F6BC-08DCCC0EB665</code></p>
+            <p class="salary-rule-create__text"><strong>MAJ(Главная должность) = определенной должности и REJ(Должность по смене) = той же должности</strong></p>
+            <p class="salary-rule-create__text"><strong>Задание:</strong> <code>BSM|=|250|AND|EXK|=|1|AND|BAK|=|0|AND|PRK|=|1</code></p>
+            <p class="salary-rule-create__text"><strong>BSM(Базовая ставка) = 250 и EXK(Использование стажа) = 1 и BAK(Использование спецлокации) = 0 и PRK(Использование выработки) = 1</strong></p>
+            <p class="salary-rule-create__text"><strong>Полная запись:</strong></p>
+            <code class="salary-rule-create__code">MAJ|=|70102C24-677F-4330-F6BC-08DCCC0EB665|AND|REJ|=|70102C24-677F-4330-F6BC-08DCCC0EB665|=&gt;|BSM|=|250|AND|EXK|=|1|AND|BAK|=|0|AND|PRK|=|1</code>
+        </div>
+    </details>
+
+    <div class="salary-rule-create__table-section">
+        <div class="addButton-wrapper">
+            <button type="button" class="addButton salary-rule-create__open-modal">Добавить</button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(loadError))
+        {
+            <div class="salary-result-panel__state salary-result-panel__state--error">@loadError</div>
+        }
+        else if (items.Count == 0)
+        {
+            <div class="salary-result-panel__state">Данные не найдены.</div>
+        }
+        else
+        {
+            <div class="salary-result__table-wrap">
+                <table class="salary-result__table salary-editable-table salary-rule-create__table">
+                    <colgroup>
+                        <col class="salary-rule-create__col salary-rule-create__col--formula" />
+                        <col class="salary-rule-create__col salary-rule-create__col--period" />
+                        <col class="salary-rule-create__col salary-rule-create__col--priority" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Формула</th>
+                            <th>Дата действия</th>
+                            <th>Приоритет</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            <tr class="salary-rule-create__table-row"
+                                data-rule-id="@item.Id"
+                                data-rule-type="@item.Type"
+                                data-formula="@item.Formula"
+                                data-period-from="@item.Begin.ToString("yyyy-MM-dd")"
+                                data-period-to="@item.End.ToString("yyyy-MM-dd")"
+                                data-priority="@item.Priority">
+                                <td data-label="Формула">@item.Formula</td>
+                                <td data-label="Дата действия">@item.Begin.ToString("dd.MM.yyyy") - @item.End.ToString("dd.MM.yyyy")</td>
+                                <td data-label="Приоритет">@item.Priority</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="salary-modal-overlay salary-rule-create__modal-overlay" id="salaryRuleCreateModal" hidden>
+        <div class="salary-modal salary-rule-create__modal" role="dialog" aria-modal="true" aria-labelledby="salaryRuleCreateModalTitle">
+            <div class="salary-modal__header">
+                <h3 id="salaryRuleCreateModalTitle" class="salary-modal__title">Добавление правила</h3>
+                <button type="button" class="salary-modal__close salary-rule-create__modal-close" aria-label="Закрыть">×</button>
+            </div>
+
+            <form class="salary-modal__body salary-rule-create__modal-body" id="salaryRuleCreateForm">
+                <input type="hidden" id="salaryRuleCreateRowId" />
+                <input type="hidden" id="salaryRuleCreateType" value="6" />
+
+                <div class="salary-rule-create__form-grid">
+                    <div class="salary-modal__field">
+                        <label for="salaryRuleCreatePeriodFrom">Дата действия с</label>
+                        <input id="salaryRuleCreatePeriodFrom" type="date" required />
+                    </div>
+
+                    <div class="salary-modal__field">
+                        <label for="salaryRuleCreatePeriodTo">Дата действия по</label>
+                        <input id="salaryRuleCreatePeriodTo" type="date" required />
+                    </div>
+
+                    <div class="salary-modal__field">
+                        <label for="salaryRuleCreatePriority">Приоритет</label>
+                        <input id="salaryRuleCreatePriority" type="number" step="1" min="0" required />
+                    </div>
+                </div>
+
+                <div class="salary-rule-create__builder">
+                    <div class="salary-rule-create__builder-layout">
+                        <aside class="salary-rule-create__palette">
+                            <div class="salary-rule-create__palette-group">
+                                <div class="salary-rule-create__group-title">Входные параметры</div>
+                                <div class="salary-rule-create__palette-list">
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="MAJ" data-type="GUID" data-scope="condition"><strong>MAJ</strong><span>Главная должность</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">GUID</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="REJ" data-type="GUID" data-scope="condition"><strong>REJ</strong><span>Должность по смене</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">GUID</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="BAC" data-type="int" data-scope="condition"><strong>BAC</strong><span>Торговая точка</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">int</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="EXP" data-type="int" data-scope="condition"><strong>EXP</strong><span>Стаж в днях</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">int</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="AGE" data-type="int" data-scope="condition"><strong>AGE</strong><span>Возраст</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">int</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="HRE" data-type="date" data-scope="condition"><strong>HRE</strong><span>Дата приема</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">date</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="CIT" data-type="int" data-scope="condition"><strong>CIT</strong><span>Гражданство</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">int</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="PRS" data-type="GUID" data-scope="condition"><strong>PRS</strong><span>Работник</span><small><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">GUID</span></small></button>
+                                </div>
+                            </div>
+
+                            <div class="salary-rule-create__palette-group">
+                                <div class="salary-rule-create__group-title">Смешанные параметры</div>
+                                <div class="salary-rule-create__palette-list">
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="BSM" data-type="decimal" data-scope="action" data-allowed-scopes="condition,action"><strong>BSM</strong><span>Базовая ставка</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">decimal</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="EXK" data-type="bool" data-scope="action" data-allowed-scopes="condition,action"><strong>EXK</strong><span>Использование стажа</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">bool</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="BAK" data-type="bool" data-scope="action" data-allowed-scopes="condition,action"><strong>BAK</strong><span>Использование спецлокации</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">bool</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="PRK" data-type="bool" data-scope="action" data-allowed-scopes="condition,action"><strong>PRK</strong><span>Использование выработки</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">bool</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="EXM" data-type="decimal" data-scope="action" data-allowed-scopes="condition,action"><strong>EXM</strong><span>Выплата за стаж</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">decimal</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="BAM" data-type="decimal" data-scope="action" data-allowed-scopes="condition,action"><strong>BAM</strong><span>Выплата за пекарню</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Входной</span><span class="salary-rule-create__tag">decimal</span></small></button>
+                                    <button type="button" class="salary-rule-create__token" draggable="true" data-code="PEM" data-type="decimal" data-scope="action" data-allowed-scopes="condition,action"><strong>PEM</strong><span>Персональная надбавка</span><small><span class="salary-rule-create__tag salary-rule-create__tag--action">Выходной</span><span class="salary-rule-create__tag salary-rule-create__tag--condition">Условие</span><span class="salary-rule-create__tag">decimal</span></small></button>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <div class="salary-rule-create__zones">
+                            <div class="salary-rule-create__zone-wrap">
+                                <div class="salary-rule-create__zone-head">
+                                    <div class="salary-rule-create__caption">Условия</div>
+                                    <button type="button" class="salary-rule-create__clear" data-clear="condition">Очистить</button>
+                                </div>
+                                <div class="salary-rule-create__zone" data-zone="condition">
+                                    <div class="salary-rule-create__hint">Перетащите сюда параметр условия или нажмите на кнопку параметра.</div>
+                                    <div class="salary-rule-create__rows" data-rows="condition"></div>
+                                </div>
+                            </div>
+
+                            <div class="salary-rule-create__zone-wrap">
+                                <div class="salary-rule-create__zone-head">
+                                    <div class="salary-rule-create__caption">Задания</div>
+                                    <button type="button" class="salary-rule-create__clear" data-clear="action">Очистить</button>
+                                </div>
+                                <div class="salary-rule-create__zone" data-zone="action">
+                                    <div class="salary-rule-create__hint">Перетащите сюда параметр задания или нажмите на кнопку параметра.</div>
+                                    <div class="salary-rule-create__rows" data-rows="action"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="salary-rule-create__result">
+                        <div class="salary-rule-create__caption">Готовый код</div>
+                        <code class="salary-rule-create__code salary-rule-create__code--wrap" data-output>Перетащите параметры в условия и задания.</code>
+                    </div>
+                </div>
+
+                <div class="salary-modal__actions">
+                    <button type="button" class="salary-modal__btn salary-modal__btn--danger salary-rule-create__modal-delete" hidden>Удалить</button>
+                    <button type="submit" class="salary-modal__btn salary-modal__btn--primary salary-rule-create__modal-submit">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .salary-rule-create { display: grid; gap: 12px; color: #1f2937; }
+    .salary-rule-create__accordion { border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05); overflow: hidden; }
+    .salary-rule-create__summary { font-family: 'Akrobat-Regular'; display: flex; justify-content: space-between; gap: 12px; padding: 14px 16px; cursor: pointer; font-size: 15px; font-weight: 700; list-style: none; }
+    .salary-rule-create__summary span { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .salary-rule-create__summary::-webkit-details-marker { display: none; }
+    .salary-rule-create__content { padding: 0 16px 16px; }
+    .salary-rule-create__list { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 14px; line-height: 1.45; }
+    .salary-rule-create__text { margin: 0 0 8px; font-size: 13px; line-height: 1.45; }
+    .salary-rule-create__code { display: block; padding: 12px 14px; border-radius: 8px; background: #0f172a; color: #f8fafc; font-size: 13px; line-height: 1.5; overflow-x: auto; white-space: nowrap; }
+    .salary-rule-create__code--wrap { white-space: normal; word-break: break-all; }
+    .salary-rule-create__table-section { display: grid; gap: 10px; }
+    .salary-rule-create__table { min-width: 840px; table-layout: fixed; }
+    .salary-rule-create__col--formula { width: 100%; }
+    .salary-rule-create__col--period { width: 220px; }
+    .salary-rule-create__col--priority { width: 120px; }
+    .salary-rule-create__table th:first-child,
+    .salary-rule-create__table td:first-child { max-width: 0; white-space: normal; word-break: break-word; }
+    .salary-rule-create__table th:nth-child(2),
+    .salary-rule-create__table td:nth-child(2),
+    .salary-rule-create__table th:nth-child(3),
+    .salary-rule-create__table td:nth-child(3) { white-space: nowrap; }
+    .salary-rule-create__table-row { transition: background-color 0.3s ease; }
+    .salary-rule-create__table-row:hover { background: #f2f2f2; cursor: pointer; }
+    .salary-rule-create .salary-rule-create__modal { width: calc(100vw - 32px); max-width: none; }
+    .salary-rule-create__modal-body { gap: 18px; }
+    .salary-rule-create__form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .salary-rule-create__builder { display: flex; flex-direction: column; gap: 14px; }
+    .salary-rule-create__builder-layout { display: flex; flex-direction: column; gap: 14px; }
+    .salary-rule-create__palette, .salary-rule-create__zone-wrap { border-radius: 8px; background: #fff; }
+    .salary-rule-create__caption { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #334155; }
+    .salary-rule-create__palette-group + .salary-rule-create__palette-group { margin-top: 12px; }
+    .salary-rule-create__group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; }
+    .salary-rule-create__palette-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin-top: 8px; }
+    .salary-rule-create__token { display: block; width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; text-align: left; cursor: grab; }
+    .salary-rule-create__token strong { display: block; font: 700 14px/1 Consolas, monospace; color: #0f172a; }
+    .salary-rule-create__token span { display: block; margin-top: 5px; font-size: 13px; line-height: 1.3; color: #475569; }
+    .salary-rule-create__token small { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .salary-rule-create__token:hover { border-color: #93c5fd; background: #eff6ff; }
+    .salary-rule-create__token:active { cursor: grabbing; }
+    .salary-rule-create__zones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .salary-rule-create__zone-head { min-height: 35px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .salary-rule-create__clear { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font-size: 12px; color: #475569; cursor: pointer; }
+    .salary-rule-create__zone { min-height: 220px; padding: 12px; border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; transition: 0.2s; }
+    .salary-rule-create__zone.is-over { border-color: #2563eb; background: #eff6ff; }
+    .salary-rule-create__zone.is-invalid { border-color: #dc2626; background: #fef2f2; }
+    .salary-rule-create__hint { margin-bottom: 10px; font-size: 12px; line-height: 1.4; color: #64748b; }
+    .salary-rule-create__rows { display: grid; gap: 8px; }
+    .salary-rule-create__row { display: grid; grid-template-columns: minmax(110px, auto) minmax(74px, 88px) minmax(0, 1fr) auto; gap: 6px; align-items: center; padding: 8px; border: 1px solid #dbe3ef; border-radius: 10px; background: #fff; }
+    .salary-rule-create__row-code { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .salary-rule-create__row-code strong { font: 700 12px/1 Consolas, monospace; color: #0f172a; }
+    .salary-rule-create__row-meta { display: flex; flex-wrap: wrap; gap: 4px; }
+    .salary-rule-create__tag { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 8px; background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; line-height: 1; }
+    .salary-rule-create__tag--condition { background: #dbeafe; color: #1d4ed8; }
+    .salary-rule-create__tag--action { background: #dcfce7; color: #15803d; }
+    .salary-rule-create__row .salary-rule-create__tag { padding: 2px 6px; font-size: 10px; }
+    .salary-rule-create__input { width: 100%; min-height: 32px; max-height: 32px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font-size: 12px; text-align: center; }
+    .salary-rule-create__input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+    .salary-rule-create__remove { width: 30px; height: 30px; border: 1px solid #fecaca; border-radius: 8px; background: #fff5f5; color: #b91c1c; font-size: 14px; cursor: pointer; }
+    .salary-rule-create__result { display: flex; flex-direction: column; gap: 10px; }
+    .salary-rule-create__summary span { display: flex; align-items: center;}
+    @@media (max-width: 980px) {
+        .salary-rule-create__form-grid,
+        .salary-rule-create__zones {
+            grid-template-columns: 1fr;
+        }
+
+        .salary-rule-create__palette-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 680px) {
+        .salary-rule-create {
+            gap: 10px;
+        }
+
+        .salary-rule-create .salary-result__table-wrap {
+            border: none;
+            border-radius: 0;
+            overflow: visible;
+        }
+
+        .salary-rule-create__table-section .addButton-wrapper {
+            justify-content: stretch;
+        }
+
+        .salary-rule-create__table-section .addButton {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        .salary-rule-create .salary-rule-create__table {
+            min-width: 0;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .salary-rule-create .salary-rule-create__table colgroup,
+        .salary-rule-create .salary-rule-create__table thead {
+            display: none;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody tr {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(92px, 120px);
+            gap: 0;
+            border: 1px solid #ececec;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody td {
+            display: block;
+            border: none;
+            border-bottom: 1px dashed #efefef;
+            padding: 10px 12px;
+            white-space: normal;
+            font-size: 13px;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody td::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: 4px;
+            color: #6f7780;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody td:first-child {
+            grid-column: 1 / -1;
+            max-width: none;
+            min-width: 0;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody td:nth-child(2) {
+            border-bottom: none;
+            border-right: 1px dashed #efefef;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody td:nth-child(3) {
+            border-bottom: none;
+            text-align: left;
+        }
+
+        .salary-rule-create .salary-rule-create__table tbody td:last-child {
+            border-bottom: none;
+        }
+
+        .salary-rule-create__content {
+            padding: 12px 14px 14px;
+        }
+
+        .salary-rule-create__summary {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        .salary-rule-create__summary span {
+            justify-content: flex-start;
+        }
+
+        .salary-rule-create .salary-rule-create__modal {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+        }
+
+        .salary-rule-create__modal-body {
+            gap: 14px;
+            padding: 12px;
+        }
+
+        .salary-rule-create__form-grid {
+            gap: 10px;
+        }
+
+        .salary-rule-create__palette-list {
+            grid-template-columns: 1fr;
+        }
+
+        .salary-rule-create__token {
+            padding: 12px;
+        }
+
+        .salary-rule-create__token strong {
+            font-size: 13px;
+        }
+
+        .salary-rule-create__token span {
+            font-size: 12px;
+        }
+
+        .salary-rule-create__zone-head {
+            align-items: flex-start;
+            flex-direction: column;
+            margin-bottom: 8px;
+        }
+
+        .salary-rule-create__clear {
+            width: 100%;
+            min-height: 38px;
+        }
+
+        .salary-rule-create__zone {
+            min-height: 150px;
+            padding: 10px;
+        }
+
+        .salary-rule-create__row {
+            grid-template-columns: minmax(0, 1fr) 42px;
+            gap: 8px;
+        }
+
+        .salary-rule-create__row-code {
+            grid-column: 1 / -1;
+        }
+
+        .salary-rule-create__row > :nth-child(2) {
+            grid-column: 1 / 2;
+        }
+
+        .salary-rule-create__row > :nth-child(3) {
+            grid-column: 1 / 2;
+        }
+
+        .salary-rule-create__row > :nth-child(4) {
+            grid-column: 2 / 3;
+            grid-row: 2 / 4;
+            width: 42px;
+            height: 100%;
+            min-height: 72px;
+        }
+
+        .salary-rule-create__input {
+            min-height: 38px;
+            max-height: none;
+            font-size: 13px;
+        }
+
+        .salary-rule-create__result {
+            gap: 8px;
+        }
+
+        .salary-rule-create__code {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+
+        .salary-rule-create__modal .salary-modal__header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #fff;
+        }
+
+        .salary-rule-create__modal .salary-modal__actions {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+            background: linear-gradient(180deg, rgba(255,255,255,0.82), #fff 24%);
+            padding-top: 10px;
+            margin-top: 0;
+        }
+
+        .salary-rule-create__modal .salary-modal__btn {
+            width: 100%;
+        }
+
+        .salary-rule-create__modal .salary-modal__btn--danger {
+            margin-right: 0;
+        }
+    }
+</style>
+
+<script>
+    (() => {
+        const root = document.querySelector(".salary-rule-create");
+        if (!root) {
+            return;
+        }
+
+        const dragType = "application/x-salary-rule-param";
+        const tableBody = root.querySelector(".salary-rule-create__table tbody");
+        const addButton = root.querySelector(".salary-rule-create__open-modal");
+        const modal = document.getElementById("salaryRuleCreateModal");
+        const modalTitle = document.getElementById("salaryRuleCreateModalTitle");
+        const modalCloseButton = root.querySelector(".salary-rule-create__modal-close");
+        const modalDeleteButton = root.querySelector(".salary-rule-create__modal-delete");
+        const modalSubmitButton = root.querySelector(".salary-rule-create__modal-submit");
+        const form = document.getElementById("salaryRuleCreateForm");
+        const rowIdInput = document.getElementById("salaryRuleCreateRowId");
+        const ruleTypeInput = document.getElementById("salaryRuleCreateType");
+        const periodFromInput = document.getElementById("salaryRuleCreatePeriodFrom");
+        const periodToInput = document.getElementById("salaryRuleCreatePeriodTo");
+        const priorityInput = document.getElementById("salaryRuleCreatePriority");
+        const setFreeRuleItemUrl = '@Url.Action("SetFreeRuleItem", "Salary")';
+        const updateFreeRuleItemUrl = '@Url.Action("UpdateFreeRuleItem", "Salary")';
+        const deleteFreeRuleItemUrl = '@Url.Action("DeleteItem", "Salary")';
+        const output = root.querySelector("[data-output]");
+        const tokens = Array.from(root.querySelectorAll(".salary-rule-create__token"));
+        const lists = {
+            condition: root.querySelector('[data-rows="condition"]'),
+            action: root.querySelector('[data-rows="action"]')
+        };
+
+        const parameterDefinitions = new Map();
+        tokens.forEach(token => {
+            parameterDefinitions.set(token.dataset.code || "", {
+                code: token.dataset.code || "",
+                type: token.dataset.type || "int",
+                scope: token.dataset.scope || "condition",
+                allowedScopes: (token.dataset.allowedScopes || token.dataset.scope || "condition")
+                    .split(",")
+                    .map(scope => scope.trim())
+                    .filter(Boolean)
+            });
+        });
+
+        const ops = {
+            condition: {
+                GUID: ["=", "!="],
+                int: ["=", "!=", ">", "<", ">=", "<="],
+                decimal: ["=", "!=", ">", "<", ">=", "<="],
+                date: ["=", "!=", ">", "<", ">=", "<="],
+                bool: ["=", "!="]
+            },
+            action: {
+                GUID: ["="],
+                int: ["=", "+", "-"],
+                decimal: ["=", "+", "-", "*", "/"],
+                bool: ["="]
+            }
+        };
+
+        let modalMode = "create";
+
+        function reloadSalarySettingsPanel() {
+            if (typeof loadContent === "function") {
+                loadContent("salarysettings", "/Salary/SalarySettings");
+                return;
+            }
+
+            if (typeof contentContainer !== "undefined") {
+                $(contentContainer).load("/Salary/SalarySettings");
+                return;
+            }
+
+            $("#container-fluid").load("/Salary/SalarySettings");
+        }
+
+        function formatDate(dateValue) {
+            if (!dateValue) {
+                return "";
+            }
+
+            const parts = dateValue.split("-");
+            if (parts.length !== 3) {
+                return dateValue;
+            }
+
+            return [parts[2], parts[1], parts[0]].join(".");
+        }
+
+        function inferType(value) {
+            if (/^(0|1)$/.test(value)) {
+                return "bool";
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return "date";
+            }
+
+            if (/^-?\d+$/.test(value)) {
+                return "int";
+            }
+
+            if (/^-?\d+[.,]\d+$/.test(value)) {
+                return "decimal";
+            }
+
+            return "GUID";
+        }
+
+        function getParameterDefinition(code, scope, value) {
+            const known = parameterDefinitions.get(code);
+            if (known) {
+                return {
+                    code,
+                    type: known.type,
+                    scope,
+                    allowedScopes: known.allowedScopes
+                };
+            }
+
+            return {
+                code,
+                type: inferType(value),
+                scope,
+                allowedScopes: [scope]
+            };
+        }
+
+        function makeValue(type, initialValue) {
+            if (type === "bool") {
+                const select = document.createElement("select");
+                select.className = "salary-rule-create__input";
+                select.dataset.role = "value";
+
+                ["1", "0"].forEach(value => {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.textContent = value;
+                    select.appendChild(option);
+                });
+
+                if (typeof initialValue !== "undefined") {
+                    select.value = initialValue;
+                }
+
+                return select;
+            }
+
+            const input = document.createElement("input");
+            input.className = "salary-rule-create__input";
+            input.dataset.role = "value";
+
+            if (type === "date") {
+                input.type = "date";
+            } else if (type === "GUID") {
+                input.type = "text";
+                input.placeholder = "Значение";
+            } else {
+                input.type = "number";
+                input.step = type === "decimal" ? "0.01" : "1";
+            }
+
+            input.value = typeof initialValue === "undefined" ? "" : initialValue;
+            return input;
+        }
+
+        function rowCode(param) {
+            const wrap = document.createElement("div");
+            wrap.className = "salary-rule-create__row-code";
+
+            const code = document.createElement("strong");
+            code.textContent = param.code;
+
+            const meta = document.createElement("div");
+            meta.className = "salary-rule-create__row-meta";
+
+            const scope = document.createElement("span");
+            scope.className = `salary-rule-create__tag salary-rule-create__tag--${param.scope}`;
+            scope.textContent = param.scope === "condition" ? "Входной" : "Выходной";
+
+            const type = document.createElement("span");
+            type.className = "salary-rule-create__tag";
+            type.textContent = param.type;
+
+            meta.appendChild(scope);
+            meta.appendChild(type);
+            wrap.appendChild(code);
+            wrap.appendChild(meta);
+
+            return wrap;
+        }
+
+        function rowOperator(param, initialValue) {
+            const select = document.createElement("select");
+            select.className = "salary-rule-create__input";
+            select.dataset.role = "operator";
+
+            const availableOps = ops[param.scope]?.[param.type] || ["="];
+            availableOps.forEach(operator => {
+                const option = document.createElement("option");
+                option.value = operator;
+                option.textContent = operator;
+                select.appendChild(option);
+            });
+
+            if (initialValue && !availableOps.includes(initialValue)) {
+                const option = document.createElement("option");
+                option.value = initialValue;
+                option.textContent = initialValue;
+                select.appendChild(option);
+            }
+
+            select.value = initialValue || availableOps[0] || "=";
+            select.addEventListener("change", updatePreview);
+
+            return select;
+        }
+
+        function rowRemove(row) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "salary-rule-create__remove";
+            button.textContent = "×";
+            button.addEventListener("click", () => {
+                row.remove();
+                updatePreview();
+            });
+            return button;
+        }
+
+        function addRow(param, options = {}) {
+            const list = lists[param.scope];
+            if (!list) {
+                return;
+            }
+
+            const row = document.createElement("div");
+            row.className = "salary-rule-create__row";
+            row.dataset.code = param.code;
+            row.dataset.scope = param.scope;
+            row.dataset.type = param.type;
+
+            const value = makeValue(param.type, options.value);
+            value.addEventListener("input", updatePreview);
+            value.addEventListener("change", updatePreview);
+
+            row.appendChild(rowCode(param));
+            row.appendChild(rowOperator(param, options.operator));
+            row.appendChild(value);
+            row.appendChild(rowRemove(row));
+            list.appendChild(row);
+
+            updatePreview();
+        }
+
+        function serialize(scope) {
+            return Array.from(lists[scope]?.querySelectorAll(".salary-rule-create__row") || [])
+                .map(row => {
+                    const code = row.dataset.code || "";
+                    const operator = row.querySelector('[data-role="operator"]')?.value || "=";
+                    const value = row.querySelector('[data-role="value"]')?.value || "";
+                    return code && value !== "" ? `${code}|${operator}|${value}` : "";
+                })
+                .filter(Boolean);
+        }
+
+        function buildFormula() {
+            const conditions = serialize("condition");
+            const actions = serialize("action");
+
+            if (!conditions.length && !actions.length) {
+                return {
+                    value: "",
+                    isComplete: false,
+                    message: "Перетащите параметры в условия и задания."
+                };
+            }
+
+            if (!conditions.length || !actions.length) {
+                return {
+                    value: "",
+                    isComplete: false,
+                    message: "Нужно добавить хотя бы одно условие и одно задание."
+                };
+            }
+
+            return {
+                value: `${conditions.join("|AND|")}|=>|${actions.join("|AND|")}`,
+                isComplete: true,
+                message: ""
+            };
+        }
+
+        function updatePreview() {
+            const formula = buildFormula();
+            output.textContent = formula.isComplete ? formula.value : formula.message;
+        }
+
+        function resetBuilder() {
+            lists.condition.innerHTML = "";
+            lists.action.innerHTML = "";
+            updatePreview();
+        }
+        function parseExpression(expression, scope) {
+            return expression
+                .split("|AND|")
+                .map(item => item.trim())
+                .filter(Boolean)
+                .map(item => item.replace(/\|+$/, ""))
+                .map(item => {
+                    const parts = item.split("|");
+                    if (parts.length < 3) {
+                        return null;
+                    }
+
+                    const code = (parts[0] || "").trim();
+                    const operator = (parts[1] || "=").trim();
+                    const value = parts.slice(2).join("|").trim();
+
+                    if (!code || value === "") {
+                        return null;
+                    }
+
+                    return {
+                        ...getParameterDefinition(code, scope, value),
+                        operator,
+                        value
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        function fillBuilderFromFormula(formula) {
+            resetBuilder();
+
+            if (!formula) {
+                return;
+            }
+
+            const normalized = formula.replace(/\s+/g, "");
+            const parts = normalized.split("|=>|");
+
+            if (parts.length !== 2) {
+                throw new Error("Формула должна содержать разделитель |=>|.");
+            }
+
+            const conditions = parseExpression(parts[0], "condition");
+            const actions = parseExpression(parts[1], "action");
+
+            conditions.forEach(item => addRow(item, { operator: item.operator, value: item.value }));
+            actions.forEach(item => addRow(item, { operator: item.operator, value: item.value }));
+
+            updatePreview();
+        }
+
+        function openModal(mode, row) {
+            modalMode = mode;
+            const isEdit = mode === "edit";
+
+            modalTitle.textContent = isEdit ? "Редактирование правила" : "Добавление правила";
+            modalSubmitButton.textContent = isEdit ? "Сохранить" : "Добавить";
+            modalDeleteButton.hidden = !isEdit;
+
+            rowIdInput.value = row?.dataset.ruleId || "";
+            ruleTypeInput.value = row?.dataset.ruleType || "6";
+            periodFromInput.value = row?.dataset.periodFrom || "";
+            periodToInput.value = row?.dataset.periodTo || "";
+            priorityInput.value = row?.dataset.priority || "";
+
+            try {
+                fillBuilderFromFormula(row?.dataset.formula || "");
+            } catch (error) {
+                console.error("rule formula parse failed", error);
+                resetBuilder();
+                if (row?.dataset.formula) {
+                    alert("Не удалось разобрать формулу из выбранной строки.");
+                }
+            }
+
+            modal.hidden = false;
+            document.body.classList.add("salary-modal-open");
+        }
+
+        function closeModal() {
+            modal.hidden = true;
+            document.body.classList.remove("salary-modal-open");
+        }
+
+        function setFormLoading(isLoading) {
+            form.classList.toggle("salary-modal__body--loading", isLoading);
+            modalSubmitButton.disabled = isLoading;
+            modalCloseButton.disabled = isLoading;
+            modalDeleteButton.disabled = isLoading;
+        }
+
+        function buildRequestPayload(formula) {
+            const parsedId = parseInt(rowIdInput.value, 10);
+            const parsedType = parseInt(ruleTypeInput.value, 10);
+            const parsedPriority = parseInt(priorityInput.value, 10);
+
+            return {
+                Id: modalMode === "edit" && Number.isFinite(parsedId) ? parsedId : 0,
+                Formula: formula,
+                Type: Number.isFinite(parsedType) ? parsedType : 6,
+                Begin: periodFromInput.value,
+                End: periodToInput.value,
+                Priority: Number.isFinite(parsedPriority) ? parsedPriority : 0
+            };
+        }
+
+        tokens.forEach(token => {
+            token.addEventListener("dragstart", event => {
+                const payload = {
+                    code: token.dataset.code || "",
+                    type: token.dataset.type || "int",
+                    scope: token.dataset.scope || "condition",
+                    allowedScopes: (token.dataset.allowedScopes || token.dataset.scope || "condition")
+                        .split(",")
+                        .map(scope => scope.trim())
+                        .filter(Boolean)
+                };
+
+                event.dataTransfer?.setData(dragType, JSON.stringify(payload));
+                if (event.dataTransfer) {
+                    event.dataTransfer.effectAllowed = "copy";
+                }
+            });
+
+            token.addEventListener("click", () => {
+                addRow({
+                    code: token.dataset.code || "",
+                    type: token.dataset.type || "int",
+                    scope: token.dataset.scope || "condition",
+                    allowedScopes: (token.dataset.allowedScopes || token.dataset.scope || "condition")
+                        .split(",")
+                        .map(scope => scope.trim())
+                        .filter(Boolean)
+                });
+            });
+        });
+
+        root.querySelectorAll("[data-zone]").forEach(zone => {
+            zone.addEventListener("dragover", event => {
+                event.preventDefault();
+                zone.classList.add("is-over");
+            });
+
+            zone.addEventListener("dragleave", () => {
+                zone.classList.remove("is-over");
+            });
+
+            zone.addEventListener("drop", event => {
+                event.preventDefault();
+                zone.classList.remove("is-over");
+
+                const raw = event.dataTransfer?.getData(dragType);
+                if (!raw) {
+                    return;
+                }
+
+                let param;
+                try {
+                    param = JSON.parse(raw);
+                } catch {
+                    return;
+                }
+
+                const allowedScopes = Array.isArray(param.allowedScopes) ? param.allowedScopes : [param.scope];
+                if (!allowedScopes.includes(zone.dataset.zone || "")) {
+                    zone.classList.add("is-invalid");
+                    window.setTimeout(() => zone.classList.remove("is-invalid"), 500);
+                    return;
+                }
+
+                addRow({
+                    code: param.code,
+                    type: param.type,
+                    scope: zone.dataset.zone || param.scope,
+                    allowedScopes
+                });
+            });
+        });
+
+        root.querySelectorAll("[data-clear]").forEach(button => {
+            button.addEventListener("click", () => {
+                const scope = button.getAttribute("data-clear");
+                const list = scope ? lists[scope] : null;
+                if (!list) {
+                    return;
+                }
+
+                list.innerHTML = "";
+                updatePreview();
+            });
+        });
+
+        if (addButton) {
+            addButton.addEventListener("click", () => {
+                openModal("create");
+            });
+        }
+
+        if (tableBody) {
+            tableBody.addEventListener("click", event => {
+                const row = event.target instanceof Element ? event.target.closest(".salary-rule-create__table-row") : null;
+                if (!row || !tableBody.contains(row)) {
+                    return;
+                }
+
+                openModal("edit", row);
+            });
+        }
+
+        if (modalCloseButton) {
+            modalCloseButton.addEventListener("click", closeModal);
+        }
+
+        if (modalDeleteButton) {
+            modalDeleteButton.addEventListener("click", async () => {
+                if (modalMode !== "edit") {
+                    return;
+                }
+
+                const ruleId = parseInt(rowIdInput.value, 10);
+                if (!Number.isFinite(ruleId) || ruleId <= 0) {
+                    alert("Не найден id правила для удаления.");
+                    return;
+                }
+
+                if (!window.confirm("Точно удалить правило?")) {
+                    return;
+                }
+
+                try {
+                    setFormLoading(true);
+
+                    const response = await fetch(`${deleteFreeRuleItemUrl}?id=${encodeURIComponent(ruleId)}`, {
+                        method: "DELETE"
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeModal();
+                    reloadSalarySettingsPanel();
+                } catch (error) {
+                    console.error("delete free rule failed", error);
+                    alert("Не удалось удалить правило.");
+                } finally {
+                    setFormLoading(false);
+                }
+            });
+        }
+
+        if (form) {
+            form.addEventListener("submit", async event => {
+                event.preventDefault();
+
+                const formula = buildFormula();
+                if (!formula.isComplete) {
+                    alert(formula.message);
+                    return;
+                }
+
+                if (!periodFromInput.value || !periodToInput.value) {
+                    alert("Заполните период действия правила.");
+                    return;
+                }
+
+                if (periodFromInput.value > periodToInput.value) {
+                    alert("Дата начала не может быть больше даты окончания.");
+                    return;
+                }
+
+                const requestUrl = modalMode === "edit" ? updateFreeRuleItemUrl : setFreeRuleItemUrl;
+                const payload = buildRequestPayload(formula.value);
+
+                try {
+                    setFormLoading(true);
+
+                    const response = await fetch(requestUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    closeModal();
+                    reloadSalarySettingsPanel();
+                } catch (error) {
+                    console.error("save free rule failed", error);
+                    alert(modalMode === "edit" ? "Не удалось обновить правило." : "Не удалось добавить правило.");
+                } finally {
+                    setFormLoading(false);
+                }
+            });
+        }
+
+        updatePreview();
+    })();
+</script>

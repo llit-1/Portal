@@ -4,6 +4,7 @@
     var items = Model?.Items ?? new System.Collections.Generic.List<Portal.Controllers.SalaryController.BaseTableItem>();
     var jobTitles = Model?.jobTitles ?? new System.Collections.Generic.List<Portal.Models.MSSQL.Personality.JobTitle>();
     var locations = Model?.Locations ?? new System.Collections.Generic.List<Portal.Models.MSSQL.Location.Location>();
+    var freeRules = Model?.FreeRules ?? new System.Collections.Generic.List<Portal.Controllers.SalaryController.SalaryRules>();
 }
 
 <div class="salary_wrapper">
@@ -19,6 +20,7 @@
                 <button type="button" class="salary-tab-button" data-tab="special-locations" aria-selected="false">Особые локации</button>
                 <button type="button" class="salary-tab-button" data-tab="experience-locations" aria-selected="false">Стаж</button>
                 <button type="button" class="salary-tab-button" data-tab="production-locations" aria-selected="false">Выработка</button>
+                <button type="button" class="salary-tab-button" data-tab="rule-create" aria-selected="false">Конструктор надбавок</button>
             </div>
         </div>
     </div>
@@ -114,6 +116,12 @@
              data-tab-panel="production-locations"
              data-tab-url="@Url.Action("SalarySettingsProductionLocations", "Salary")"
              hidden>
+        </div>
+
+        <div class="salary-result-panel"
+             data-tab-panel="rule-create"
+             hidden>
+            @await Html.PartialAsync("_SalarySettingsRuleCreate", freeRules)
         </div>
 
 
@@ -328,6 +336,7 @@
             return;
         }
 
+        const salarySettingsTabStorageKey = 'salary-settings-active-tab';
         const tabButtons = Array.from(salaryWrapper.querySelectorAll('.salary-tab-button[data-tab]'));
         const tabPanels = Array.from(salaryWrapper.querySelectorAll('.salary-result-panel[data-tab-panel]'));
         const constructorPanel = salaryWrapper.querySelector('[data-tab-panel="rate-constructor"]');
@@ -400,8 +409,30 @@
         let productionModalMode = 'create';
         let isProductionFormLoading = false;
 
+        function getStoredActiveTabName() {
+            try {
+                const storedTabName = sessionStorage.getItem(salarySettingsTabStorageKey);
+                if (storedTabName && tabButtons.some(button => button.dataset.tab === storedTabName)) {
+                    return storedTabName;
+                }
+            } catch (error) {
+                console.error('read salary settings active tab failed', error);
+            }
+
+            return 'rate-constructor';
+        }
+
+        function persistActiveTabName(tabName) {
+            try {
+                sessionStorage.setItem(salarySettingsTabStorageKey, tabName);
+            } catch (error) {
+                console.error('persist salary settings active tab failed', error);
+            }
+        }
+
         function setActiveTab(tabName) {
             activeTabName = tabName;
+            persistActiveTabName(tabName);
 
             tabButtons.forEach(button => {
                 const isActive = button.dataset.tab === tabName;
@@ -1073,7 +1104,11 @@
             };
         }
 
-        setActiveTab('rate-constructor');
+        const initialTabName = getStoredActiveTabName();
+        setActiveTab(initialTabName);
+        if (initialTabName !== 'rate-constructor') {
+            loadTabPanelContent(initialTabName);
+        }
 
         tabButtons.forEach(button => {
             button.addEventListener('click', async function () {
@@ -1554,7 +1589,6 @@
         align-items: center;
         gap: 10px;
         width: 100%;
-        min-height: 60px;
         padding: 10px 0px;
     }
 
@@ -1821,7 +1855,7 @@
     .salary-modal__body {
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 5px;
         padding: 16px;
     }
 
@@ -1848,6 +1882,7 @@
         border: 1px solid #d9d9d9;
         border-radius: 8px;
         min-height: 40px;
+        max-height: 40px;
         font-size: 16px;
         padding: 8px 10px;
         outline: none;
@@ -1975,7 +2010,6 @@
             gap: 8px;
             padding: 8px 0;
             flex-wrap: nowrap;
-            height: 100%;
         }
 
         .salary-back {
@@ -2015,7 +2049,7 @@
         .salary-result__table tbody {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 5px;
         }
 
         .result-block .salary-result__table-wrap {
@@ -2067,11 +2101,7 @@
         .salary-filters-panel-wrapper {
             align-items: start;
             height: fit-content;
-        }
-
-        .filter-block {
-            height: fit-content;
-            margin-bottom: 85px;
+            flex: 0;
         }
 
         .salary-modal-overlay {
