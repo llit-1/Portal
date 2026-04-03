@@ -702,7 +702,8 @@ namespace Portal.Controllers
             public int RuleId { get; set; }
             public JobTitle TimesheetJobTitle { get; set; }
             public int TimesheetLong { get; set; }
-            public int TimesheetCount { get; set; }
+            public int? TimesheetCountStart { get; set; }
+            public int? TimesheetCountEnd{ get; set; }
             public int PRM { get; set; }
             public DateTime Begin { get; set; }
             public DateTime End { get; set; }

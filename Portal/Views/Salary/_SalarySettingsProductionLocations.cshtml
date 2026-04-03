@@ -25,7 +25,8 @@ else
                 <tr>
                     <th>Категория из табеля</th>
                     <th>Длительность</th>
-                    <th>Смены</th>
+                    <th>Смены от</th>
+                    <th>Смены до</th>
                     <th>Доплата</th>
                     <th>Период</th>
                 </tr>
@@ -37,13 +38,15 @@ else
                         data-rule-id="@item.RuleId"
                         data-job-title-guid="@(item.TimesheetJobTitle?.Guid.ToString() ?? string.Empty)"
                         data-timesheet-long="@item.TimesheetLong"
-                        data-timesheet-count="@item.TimesheetCount"
+                        data-timesheet-count-start="@item.TimesheetCountStart"
+                        data-timesheet-count-end="@item.TimesheetCountEnd"
                         data-prm="@item.PRM"
                         data-period-from="@item.Begin.ToString("yyyy-MM-dd")"
                         data-period-to="@item.End.ToString("yyyy-MM-dd")">
                         <td data-label="Категория из табеля">@(item.TimesheetJobTitle?.Name ?? "-")</td>
                         <td data-label="Длительность">от @item.TimesheetLong часов</td>
-                        <td data-label="Смены">@item.TimesheetCount</td>
+                        <td data-label="Смены от">@item.TimesheetCountStart</td>
+                        <td data-label="Смены до">@item.TimesheetCountEnd</td>
                         <td data-label="Доплата">@item.PRM</td>
                         <td data-label="Период">@item.Begin.ToString("dd.MM.yyyy") - @item.End.ToString("dd.MM.yyyy")</td>
                     </tr>

@@ -298,13 +298,18 @@
             </div>
 
             <div class="salary-modal__field">
-                <label for="salaryProductionCount">Смены</label>
-                <input id="salaryProductionCount" type="number" step="1" min="0" required />
+                <label for="salaryProductionCountStart">Смены от</label>
+                <input id="salaryProductionCountStart" type="number" step="1" min="0" />
+            </div>
+
+            <div class="salary-modal__field">
+                <label for="salaryProductionCountEnd">Смены до</label>
+                <input id="salaryProductionCountEnd" type="number" min="0" />
             </div>
 
             <div class="salary-modal__field">
                 <label for="salaryProductionPrm">Доплата</label>
-                <input id="salaryProductionPrm" type="number" step="1" min="0" required />
+                <input id="salaryProductionPrm" type="number" step="1"  required />
             </div>
 
             <div class="salary-modal__field">
@@ -392,7 +397,8 @@
         const productionRuleIdInput = document.getElementById('salaryProductionRuleId');
         const productionJobTitleSelect = document.getElementById('salaryProductionJobTitle');
         const productionLongInput = document.getElementById('salaryProductionLong');
-        const productionCountInput = document.getElementById('salaryProductionCount');
+        const productionCountStartInput = document.getElementById('salaryProductionCountStart');
+        const productionCountEndInput = document.getElementById('salaryProductionCountEnd');
         const productionPrmInput = document.getElementById('salaryProductionPrm');
         const productionPeriodFromInput = document.getElementById('salaryProductionPeriodFrom');
         const productionPeriodToInput = document.getElementById('salaryProductionPeriodTo');
@@ -1003,7 +1009,8 @@
             productionRuleIdInput.value = '';
             productionJobTitleSelect.value = '';
             productionLongInput.value = '';
-            productionCountInput.value = '';
+            productionCountStartInput.value = '';
+            productionCountEndInput.value = '';
             productionPrmInput.value = '';
             productionPeriodFromInput.value = '';
             productionPeriodToInput.value = '';
@@ -1014,7 +1021,8 @@
             productionRuleIdInput.value = data.ruleId || '';
             productionJobTitleSelect.value = data.jobTitleGuid || '';
             productionLongInput.value = data.timesheetLong || '';
-            productionCountInput.value = data.timesheetCount || '';
+            productionCountStartInput.value = data.timesheetCountStart || '';
+            productionCountEndInput.value = data.timesheetCountEnd || '';
             productionPrmInput.value = data.prm || '';
             productionPeriodFromInput.value = data.periodFrom || '';
             productionPeriodToInput.value = data.periodTo || '';
@@ -1027,7 +1035,8 @@
             [
                 productionJobTitleSelect,
                 productionLongInput,
-                productionCountInput,
+                productionCountStartInput,
+                productionCountEndInput,
                 productionPrmInput,
                 productionPeriodFromInput,
                 productionPeriodToInput,
@@ -1059,7 +1068,8 @@
                 ruleId: data.ruleId || '',
                 jobTitleGuid: data.jobTitleGuid || '',
                 timesheetLong: data.timesheetLong || '',
-                timesheetCount: data.timesheetCount || '',
+                timesheetCountStart: data.timesheetCountStart || '',
+                timesheetCountEnd: data.timesheetCountEnd || '',
                 prm: data.prm || '',
                 periodFrom: data.periodFrom || '',
                 periodTo: data.periodTo || ''
@@ -1097,7 +1107,8 @@
                     Name: selectedJobTitleName
                 } : null,
                 TimesheetLong: parseInt(productionLongInput.value, 10) || 0,
-                TimesheetCount: parseInt(productionCountInput.value, 10) || 0,
+                TimesheetCountStart: parseInt(productionCountStartInput.value, 10) || null,
+                TimesheetCountEnd: parseInt(productionCountEndInput.value, 10) || null,
                 PRM: parseInt(productionPrmInput.value, 10) || 0,
                 Begin: productionPeriodFromInput.value,
                 End: productionPeriodToInput.value
@@ -1376,6 +1387,13 @@
 
                 if (!isValidPeriod(productionPeriodFromInput.value, productionPeriodToInput.value)) {
                     alert('Период должен быть минимум 1 день: дата "По" должна быть позже даты "С".');
+                    return;
+                }
+
+                const productionCountStart = parseInt(productionCountStartInput.value, 10);
+                const productionCountEnd = parseInt(productionCountEndInput.value, 10);
+                if (Number.isFinite(productionCountStart) && Number.isFinite(productionCountEnd) && productionCountStart > productionCountEnd) {
+                    alert('Значение "Смены от" не должно быть больше значения "Смены до".');
                     return;
                 }
 
