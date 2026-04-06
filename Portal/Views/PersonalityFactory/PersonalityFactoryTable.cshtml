@@ -52,8 +52,8 @@
                                     <th>Юр. лицо</th>
                                     <th class="hidden">Тип документа</th>
                                     <th class="hidden">Номер телефона</th>
-                                    <th class="hidden">Номер банковской карты</th>
-                                    <th class="hidden">Банк</th>
+                                    @* <th class="hidden">Номер банковской карты</th> *@
+                                    @* <th class="hidden">Банк</th> *@
                                     <th class="hidden">Дата въезда</th>
                                     <th class="hidden">Дата выезда</th>
                                     <th class="hidden">Дата приема на работу</th>
@@ -100,12 +100,12 @@
                                         <td class="tdPersonTable hidden">
                                             <p>@item?.Phone</p>
                                         </td>
-                                        <td class="tdPersonTable hidden">
-                                            <p>@item?.CardNumber</p>
-                                        </td>
-                                        <td class="tdPersonTable hidden">
-                                            <p>@item?.Bank?.Name</p>
-                                        </td>
+                                        @* <td class="tdPersonTable hidden"> *@
+                                        @*     <p>@item?.CardNumber</p> *@
+                                        @* </td> *@
+                                        @* <td class="tdPersonTable hidden"> *@
+                                        @*     <p>@item?.Bank?.Name</p> *@
+                                        @* </td> *@
                                         <td class="tdPersonTable hidden">
                                             <p>@item?.HostelChekin</p>
                                         </td>

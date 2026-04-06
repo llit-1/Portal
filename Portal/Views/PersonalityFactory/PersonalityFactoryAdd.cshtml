@@ -150,8 +150,8 @@
             </div>
 
 
-            <label class="label-light">Номер банковской карты</label>
-            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" minlength="19" maxlength="19" id="cardFactory" value="">
+            <label class="label-light hidden">Номер банковской карты</label>
+            <input type="text" class="form-control hidden" placeholder="0000 0000 0000 0000" minlength="19" maxlength="19" id="cardFactory" value="">
 
             <div class="form-group">
                 <label class="label-light" style="width:100%">Схема доступа</label>
@@ -166,7 +166,7 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group hidden">
                 <label class="label-light" style="width:100%">Банк</label>
                 <div style="width:100%; float:left;">
                     <select id="bankFactory" class="form-control selectors" data-width="100%">
@@ -317,7 +317,6 @@
     nameFactory.addEventListener('input', checkOnlyRussianTextInput);
     lastnameFactory.addEventListener('input', checkOnlyRussianTextInput);
     cardFactory.addEventListener('input', formatCardNumber);
-    passportFactory.addEventListener('input', checkOnlyNumberInput);
     departmentFactory.addEventListener("change", getWorkshops);
     workshopFactory.addEventListener("change", getJobTitles);
     citizenshipTypeFactory.addEventListener("change", getCitizenship);
@@ -435,10 +434,10 @@
 
     async function AddFactoryPerson(e) {
 
-        if( cardFactory.value.trim().replaceAll(" ", "").length != 16 && cardFactory.value.trim().replaceAll(" ", "").length != 0)
-        {
-            return alert('Некорректно заполнено поле "Номер банковской карты"');
-        }
+        // if( cardFactory.value.trim().replaceAll(" ", "").length != 16 && cardFactory.value.trim().replaceAll(" ", "").length != 0)
+        // {
+        //     return alert('Некорректно заполнено поле "Номер банковской карты"');
+        // }
 
         const imgElement = document.getElementById("imgPhotoWrapper");
         const photoDataUrl = imgElement.src;
