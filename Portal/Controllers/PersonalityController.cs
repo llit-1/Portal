@@ -440,10 +440,12 @@ namespace Portal.Controllers
                     {
                         return BadRequest("Номер телефона должен содержать 10 символов и иметь вид 9ХХХХХХХХХ");
                     }
-                    if(dbSql.Personalities.FirstOrDefault(x => x.Name.ToLower().Trim() == personality.Name.ToLower().Trim()) != null && dbSql.Personalities.FirstOrDefault(x => x.BirthDate == personality.BirthDate) != null)
+
+                    if(dbSql.Personalities.FirstOrDefault(x => x.Name.ToLower().Trim() == personality.Name.ToLower().Trim())?.BirthDate == personality.BirthDate)
                     {
                         return BadRequest("Пользователь с таким ФИО и датой рождения уже существует");
                     }
+
                     if(personalityJson.SNILS != "" && dbSql.Personalities.FirstOrDefault(x => x.SNILS == personalityJson.SNILS) != null)
                     {
                         var person = dbSql.Personalities.FirstOrDefault(x => x.SNILS == personalityJson.SNILS);
