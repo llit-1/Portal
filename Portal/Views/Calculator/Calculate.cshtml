@@ -96,6 +96,13 @@
                                 <input class="itemCode" value="@Model.Items[i].ItemOnTT.Item.RkCode">
                                 <input class="itemName" value="@Model.Items[i].ItemOnTT.Item.Name">
                                 <input class="itemMinShowCase" value="@Model.Items[i].ItemOnTT.Item.MinShowCase">
+                                <input class="ReplacementGroupsId" value="@Model.Items[i].ReplacementGroupsId">                             
+                                <input class="Groupblockedcoff" value="@Model.Items[i].Groupblockedcoff">
+                                <input class="ThisPeriodAdding" value="@Model.Items[i].ThisPeriodAdding">
+                                <input class="NextPeriodAdding" value="@Model.Items[i].NextPeriodAdding">
+                                <input class="SecondNextPeriodAdding" value="@Model.Items[i].SecondNextPeriodAdding">
+                                <input class="Blocked" value="@Model.Items[i].Blocked">
+                                <input class="IdOfBlock" value="@Model.Items[i].IdOfBlock">
                                 @if (Model.Items[i].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
                                 {
                                     <input class="isSandvich" value="true">
@@ -152,7 +159,6 @@
         let averageNextPer = trObject.querySelector('.averageNextPer').value.replace(/(,)/, ".");
         let averageSecondNextPer = trObject.querySelector('.averageSecondNextPer').value.replace(/(,)/, ".");
         let averageProductionPeriod = trObject.querySelector('.averageProductionPeriod').value.replace(/(,)/, ".");
-
         let itemOnTTCoef = trObject.querySelector('.itemOnTTCoef').value.replace(/(,)/, ".");
         let itemCoef = trObject.querySelector('.itemCoef').value.replace(/(,)/, ".");
         let thisPeriodCoefficient = trObject.querySelector('.thisPeriodCoefficient').value.replace(/(,)/, ".");
@@ -161,6 +167,9 @@
         let itemCode = trObject.querySelector('.itemCode').value;
         let itemName = trObject.querySelector('.itemName').value;
         let itemMinShowCase = trObject.querySelector('.itemMinShowCase').value;
+        let thisPeriodAdding = trObject.querySelector('.ThisPeriodAdding').value.replace(/(,)/, ".");
+        let nextPeriodAdding = trObject.querySelector('.NextPeriodAdding').value.replace(/(,)/, ".");
+        let secondNextPeriodAdding = trObject.querySelector('.SecondNextPeriodAdding').value.replace(/(,)/, ".");
         let resp;
         switch (@Model.Reaction)
          {
@@ -169,24 +178,24 @@
                 break;
             case 1:
                 if(+inputObject.value < (+averageProductionPeriod* +itemCoef * +itemOnTTCoef)){
-                    resp = Math.round((+averageRestOfThisPeriod - +averageProductionPeriod) * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient)
+                    resp = Math.round((+averageRestOfThisPeriod - +averageProductionPeriod) * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient + +thisPeriodAdding)
                     break;
                 }
-                resp = Math.round(+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value);
+                resp = Math.round(+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value + +thisPeriodAdding);
                 break;
             case 2:
                 if (+inputObject.value < (+averageProductionPeriod* +itemCoef * +itemOnTTCoef)) {
-                    resp = Math.round((+averageNextPer * +nextPeriodCoefficient + (+averageRestOfThisPeriod - +averageProductionPeriod) * +thisPeriodCoefficient) * +itemCoef * +itemOnTTCoef)
+                    resp = Math.round((+averageNextPer * +nextPeriodCoefficient + (+averageRestOfThisPeriod - +averageProductionPeriod) * +thisPeriodCoefficient) * +itemCoef * +itemOnTTCoef + +thisPeriodAdding + +nextPeriodAdding)
                     break;
                 }
-                resp = Math.round(+averageNextPer * +itemCoef * +itemOnTTCoef * +nextPeriodCoefficient + (+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value));
+                resp = Math.round(+averageNextPer * +itemCoef * +itemOnTTCoef * +nextPeriodCoefficient + (+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value) + +thisPeriodAdding+ +nextPeriodAdding);
                 break;
             case 3:
                 if (+inputObject.value < (+averageProductionPeriod* +itemCoef * +itemOnTTCoef)) {
-                    resp = Math.round((+averageSecondNextPer * +nextSecondPeriodCoefficient + +averageNextPer * +nextPeriodCoefficient + (+averageRestOfThisPeriod - +averageProductionPeriod) * +thisPeriodCoefficient) * +itemCoef * +itemOnTTCoef)
+                    resp = Math.round((+averageSecondNextPer * +nextSecondPeriodCoefficient + +averageNextPer * +nextPeriodCoefficient + (+averageRestOfThisPeriod - +averageProductionPeriod) * +thisPeriodCoefficient) * +itemCoef * +itemOnTTCoef + +thisPeriodAdding + +nextPeriodAdding + +secondNextPeriodAdding)
                     break;
                 }
-                resp = Math.round((+averageSecondNextPer * +nextSecondPeriodCoefficient + +averageNextPer * +nextPeriodCoefficient) * +itemCoef * +itemOnTTCoef + (+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value));
+                resp = Math.round((+averageSecondNextPer * +nextSecondPeriodCoefficient + +averageNextPer * +nextPeriodCoefficient) * +itemCoef * +itemOnTTCoef + (+averageRestOfThisPeriod * +itemCoef * +itemOnTTCoef * +thisPeriodCoefficient - +inputObject.value) + +thisPeriodAdding + +nextPeriodAdding + +secondNextPeriodAdding);
                 break;
          }
         if (resp < 0) {resp = 0}

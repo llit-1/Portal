@@ -18,6 +18,13 @@ namespace Portal.Models.Calculator
         public double AverageNextPer { get; set; }
         public double AverageSecondNextPer { get; set; }
         public double AverageProductionPeriod { get; set; }
+        public int? ReplacementGroupsId { get; set; }
+        public double Groupblockedcoff { get; set; }
+        public double ThisPeriodAdding { get; set; }
+        public double NextPeriodAdding { get; set; }
+        public double SecondNextPeriodAdding { get; set; }
+        public int Blocked { get; set; }
+        public int IdOfBlock { get; set; }
     }
 
 }

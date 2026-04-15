@@ -7,6 +7,7 @@ using Portal.Models;
 using Portal.Models.Calculator;
 using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Calculator;
+using Portal.ViewModels.Settings_Access.json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -266,6 +267,7 @@ namespace Portal.Controllers
                 thisItem.SettlementDaysRestOfThisPeriod = 1;
                 thisItem.SettlementDaysNextPer = 1;
                 thisItem.SettlementDaysSecondNextPer = 1;
+                thisItem.ReplacementGroupsId = item.ReplacementGroupsId;
                 thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
 
                 CalculatorLogsTest calulatorLogs = dbSql.CalculatorLogsTest.Where(x => x.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr &&
@@ -330,6 +332,60 @@ namespace Portal.Controllers
                 thisItem.AverageSecondNextPer = thisItem.SumSecondNextPer / thisItem.SettlementDaysSecondNextPer;
 
                 calculatorInformation.Items.Add(thisItem);
+            }
+            List<int> groupItemsId = items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)
+                                              .Select(c => c.RkCode)
+                                              .ToList();
+            List<ItemBlock> itemBlocks = CalculatorDb.itemBlocks.Where(c => c.Enable == true 
+                                                                         && c.Begin<=DateTime.Now 
+                                                                         && c.End>=DateTime.Now 
+                                                                         && (c.TTCode == null || c.TTCode.Value == calculatorInformation.TTs[0].Restaurant_Sifr)
+                                                                         && (groupItemsId.Contains(c.ItemRkCode))).ToList();
+            if (itemBlocks.Count > 0)
+            {
+                List<int> replacementGroupsId = items.Where(x => x.ReplacementGroupsId.HasValue).Select(x => x.ReplacementGroupsId.Value).Distinct().ToList();
+                List<ReplacementGroups> replacementGroups = CalculatorDb.ReplacementGroups.Where(x => replacementGroupsId.Contains(x.ID)).ToList();
+                foreach (ReplacementGroups group in replacementGroups)
+                { 
+                    List<CalculatorItem> groupitems = calculatorInformation.Items.Where(x => x.ItemOnTT.Item.ReplacementGroupsId == group.ID).ToList();
+                    HashSet<int> blockedIds = itemBlocks.Select(x => x.ItemRkCode).ToHashSet();
+                    List<CalculatorItem> blockedItems = groupitems.Where(x => blockedIds.Contains(x.ItemOnTT.Item.RkCode)).ToList();
+                    List<CalculatorItem> unblockedItems = groupitems.Where(x => !blockedIds.Contains(x.ItemOnTT.Item.RkCode)).ToList();
+                    if (blockedItems.Count == 0)
+                    {
+                        continue;
+                    }
+                    double groupblockedcoff = 1.0 - ((double)blockedItems.Count / groupitems.Count);
+                    double ThisPeriodGroupAdding = blockedItems.Sum(x => x.AverageRestOfThisPeriod - x.AverageProductionPeriod)*groupblockedcoff;
+                    double NextPeriodGroupAdding = blockedItems.Sum(x => x.AverageNextPer) * groupblockedcoff;
+                    double SecondNextPeriodGroupAdding = blockedItems.Sum(x => x.AverageSecondNextPer) * groupblockedcoff;
+                    double ThisPeriodUnblockedSum = unblockedItems.Sum(x => x.AverageRestOfThisPeriod);
+                    double NextPeriodUnblockedSum = unblockedItems.Sum(x => x.AverageNextPer);
+                    double SecondNextPeriodUnblockedSum = unblockedItems.Sum(x => x.AverageSecondNextPer);
+                    foreach (var calculatorItem in unblockedItems)
+                    {
+                        calculatorItem.ReplacementGroupsId = group.ID;
+                        calculatorItem.Groupblockedcoff = groupblockedcoff;
+                        if (ThisPeriodUnblockedSum > 0)
+                        {
+                            calculatorItem.ThisPeriodAdding = ThisPeriodGroupAdding * (calculatorItem.AverageRestOfThisPeriod - calculatorItem.AverageProductionPeriod / ThisPeriodUnblockedSum);
+                        }
+                        if (NextPeriodUnblockedSum > 0)
+                        {
+                            calculatorItem.NextPeriodAdding = NextPeriodGroupAdding * (calculatorItem.AverageNextPer / NextPeriodUnblockedSum);
+                        }
+                        if (SecondNextPeriodUnblockedSum > 0)
+                        {
+                            calculatorItem.SecondNextPeriodAdding = SecondNextPeriodGroupAdding * (calculatorItem.AverageSecondNextPer / SecondNextPeriodUnblockedSum);
+                        }
+                    }
+                    foreach (var calculatorItem in blockedItems)
+                    {
+                        ItemBlock itemBlock = itemBlocks.FirstOrDefault(x => x.ItemRkCode == calculatorItem.ItemOnTT.Item.RkCode);
+                        calculatorItem.Blocked = itemBlock.Type;
+                        calculatorItem.IdOfBlock = itemBlock.Id;
+                    }
+                }
             }
             ViewBag.logs = calculatorLogTests;
             return PartialView(calculatorInformation);
