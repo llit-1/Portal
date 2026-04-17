@@ -256,10 +256,12 @@
     };
 
     function pickTransferPoint(location, element, guid) {
+        const locationCard = element.closest('.location_item');
 
         if(element.style.border == "2px solid green")
         {
             element.style.border = "1px solid rgba(0, 0, 0, 0.09)"
+            locationCard?.classList.remove('location_item--selected');
             document.getElementById("transfer_end").innerText = `Конечная точка:`
             state.transfer_end = null;
             state.transfer_end_guid = null;
@@ -268,19 +270,25 @@
             state.transfer_end_guid = guid
             document.getElementById("transfer_end").innerText = `Конечная точка: ${location}`
             document.querySelectorAll("#transferTo").forEach(x => x.style.border = "1px solid rgba(0, 0, 0, 0.09)")
+            document.querySelectorAll(".location_item").forEach(x => x.classList.remove('location_item--selected'))
             element.style.border = "2px solid green"
+            locationCard?.classList.add('location_item--selected');
         }
     }
 
      function pickNewOwner(element) {
+         const ownerCard = element.closest('.newowner_item');
 
          if(element.style.border == "2px solid green") {
              element.style.border = "1px solid #00000017"
+             ownerCard?.classList.remove('newowner_item--selected');
              state.newowner = null;
              state.newownername = null;
          } else {
              document.querySelectorAll(".newowner_button").forEach(x => x.style.border = "1px solid #00000017");
+             document.querySelectorAll(".newowner_item").forEach(x => x.classList.remove('newowner_item--selected'));
              element.style.border = "2px solid green";
+             ownerCard?.classList.add('newowner_item--selected');
              state.newowner = element.parentElement.parentElement.id;
              state.newownername = element.parentElement.parentElement.children[0].textContent;
          }
@@ -410,6 +418,47 @@
         }
     }
 
+    function buildTransferRowMarkup(id, result, commentsValue) {
+        return `<tr class="activeRow itemTransferObject" data-object-id="${id}" onclick="">
+                    <td class="forHidden">
+                        <p class="text-mute itemTransferObjectID">${id}</p>
+                    </td>
+                    <td>
+                        <p class="text-muted itemTransferObjectName">${result.warehouseCategories.name}</p>
+                    </td>
+                    <td>
+                        <p class="text-muted itemTransferObjectLocationStart">${result.location?.name != undefined ? result.location?.name : ""}</p>
+                    </td>
+                    <td>
+                        <p class="text-muted locationId itemTransferObjectLocationEnd" id="${state.transfer_end_guid != null ? state.transfer_end_guid : ""}">${state.transfer_end != null ? state.transfer_end : ""}</p>
+                    </td>
+                    <td>
+                        <p class="text-muted"><input class='inputForComment' value='${commentsValue}' /></p>
+                    </td>
+                    <td class="forHidden">
+                        <p class="text-muted itemTransferObjectNewOwner ownerid" id="${state.newowner != null ? state.newowner : ""}">${state.newownername != null ? state.newownername : ""}</p>
+                    </td>
+                    <td class="forHidden">
+                        <p class="text-muted">@User.Identity.Name.ToString()</p>
+                    </td>
+                </tr>`;
+    }
+
+    function updateExistingTransferRow(row, result, commentsValue) {
+        row.querySelector('.itemTransferObjectName').textContent = result.warehouseCategories.name;
+        row.querySelector('.itemTransferObjectLocationStart').textContent = result.location?.name != undefined ? result.location?.name : "";
+
+        const locationNode = row.querySelector('.itemTransferObjectLocationEnd');
+        locationNode.id = state.transfer_end_guid != null ? state.transfer_end_guid : "";
+        locationNode.textContent = state.transfer_end != null ? state.transfer_end : "";
+
+        row.querySelector('.inputForComment').value = commentsValue;
+
+        const ownerNode = row.querySelector('.itemTransferObjectNewOwner');
+        ownerNode.id = state.newowner != null ? state.newowner : "";
+        ownerNode.textContent = state.newownername != null ? state.newownername : "";
+    }
+
     async function addNewRaw(id) {
 
         const scan_button = document.querySelector(".scan_button ")
@@ -428,14 +477,7 @@
 
         const table = document.getElementById("transfer_table")
         const comments = document.querySelector(".comments_area")
-        const owner = document.getElementById("newowner")
-
-        if(state.scannedCodes.has(id))
-        {
-            return null;
-        } else {
-            state.scannedCodes.add(id)
-        }
+        const existingRow = table.querySelector(`[data-object-id="${id}"]`);
 
         
         // if(comments.value == "" || comments.value.length < 2)
@@ -448,7 +490,6 @@
         if(state.transfer_end === null && state.newowner === null)
         {
             openModalStockTransfer("Ошибка" ,"Вы должны заполнить конечную точку или нового держателя!")
-            state.scannedCodes.delete(id)
             state.currentCode = '';
             return null;
         }
@@ -457,29 +498,12 @@
 
         
 
-        table.innerHTML += `<tr class="activeRow itemTransferObject" onclick="">
-                                <td class="forHidden">
-                                    <p class="text-mute itemTransferObjectID">${id}</p>
-                                </td>
-                                <td>
-                                    <p class="text-muted">${result.warehouseCategories.name}</p>
-                                </td>
-                                <td>
-                                    <p class="text-muted">${result.location?.name != undefined ? result.location?.name : ""}</p>
-                                </td>
-                                <td>
-                                    <p class="text-muted locationId" id="${state.transfer_end_guid != null ? state.transfer_end_guid : ""}">${state.transfer_end != null ? state.transfer_end : ""}</p>
-                                </td>
-                                <td >
-                                    <p class="text-muted"><input class='inputForComment' value='${comments.value}' /></p>
-                                </td>
-                                 <td class="forHidden">
-                                    <p class="text-muted itemTransferObjectNewOwner ownerid" id="${state.newowner != null ? state.newowner : ""}">${state.newownername != null ? state.newownername : ""}</p>
-                                </td>
-                                <td class="forHidden">
-                                    <p class="text-muted">@User.Identity.Name.ToString()</p>
-                                </td>
-                            </tr>`
+        if (existingRow) {
+            updateExistingTransferRow(existingRow, result, comments.value);
+        } else {
+            state.scannedCodes.add(id)
+            table.innerHTML += buildTransferRowMarkup(id, result, comments.value)
+        }
     }
 
 
@@ -549,6 +573,8 @@
         
         document.querySelectorAll('#newowner').forEach(x => x.style.border = "1px solid rgba(0, 0, 0, 0.09)")
         document.querySelectorAll('#transferTo').forEach(x => x.style.border = "1px solid rgba(0, 0, 0, 0.09)")
+        document.querySelectorAll('.newowner_item').forEach(x => x.classList.remove('newowner_item--selected'))
+        document.querySelectorAll('.location_item').forEach(x => x.classList.remove('location_item--selected'))
         
         document.querySelectorAll('.newowner_button').forEach(x => x.disabled = false)
         
@@ -770,6 +796,19 @@
 
     .modal_body_modalAddPerson > .model_button {
         border: none;
+    }
+
+    .location_item,
+    .newowner_item {
+        border: 1px solid rgba(0, 0, 0, 0.09);
+        transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .location_item--selected,
+    .newowner_item--selected {
+        background: rgba(40, 167, 69, 0.08);
+        border-color: rgba(40, 167, 69, 0.45);
+        box-shadow: inset 0 0 0 1px rgba(40, 167, 69, 0.08);
     }
 
 </style>

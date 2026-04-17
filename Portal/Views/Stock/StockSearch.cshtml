@@ -1,51 +1,113 @@
 @model Portal.Controllers.StockController.DataStockSearch
+@{
+    var holderOptions = Model.Holders
+        .OrderBy(x => x.Surname)
+        .Select(x => new
+        {
+            value = x.Id.ToString(),
+            label = $"{x.Surname} {x.Name} {x?.Patronymic}".Replace("  ", " ").Trim()
+        })
+        .ToList();
 
+    var ttOptions = Model.Locations
+        .OrderBy(x => x.Name)
+        .Select(x => new
+        {
+            value = x.Guid.ToString(),
+            label = x.Name
+        })
+        .ToList();
+
+    var categoryOptions = Model.MainCategories
+        .OrderBy(x => x.Name)
+        .Select(x => new
+        {
+            value = x.Id.ToString(),
+            label = x.Name
+        })
+        .ToList();
+}
 
 <div class="stock_filters_wrapper">
-
     <div class="stock_filters">
-
         <div class="custom_slider" id="1">
             <div class="slider_option1" id="slider1" onclick="selectSide('green')">Только активные</div>
             <div class="slider_option2" id="slider2" onclick="selectSide('red')">Только списанные</div>
         </div>
 
-        <select onchange="buttonSendTurnOn()" class="stock_search_select" id="holdersCategory">
+        <div class="stock_custom_select stock_search_select" id="holdersCategorySelect" data-placeholder="Выберите ФИО">
+            <input type="hidden" id="holdersCategory" value="" />
+            <button type="button" class="stock_custom_select__trigger" onclick="toggleStockSearchSelect('holdersCategorySelect', event)">
+                <span class="stock_custom_select__value stock_custom_select__value--placeholder">Выберите ФИО</span>
+                <span class="stock_custom_select__arrow"></span>
+            </button>
+            <div class="stock_custom_select__dropdown">
+                <div class="stock_custom_select__search_wrap">
+                    <input type="text" class="stock_custom_select__search" placeholder="Поиск..." oninput="filterStockSearchSelect('holdersCategorySelect', this.value)" onclick="event.stopPropagation()" />
+                </div>
+                <div class="stock_custom_select__options"></div>
+            </div>
+        </div>
 
-            <option value="" selected style="select_option"> Выберите ФИО </option>
+        <div class="stock_custom_select stock_search_select" id="ttSelectWrapper" data-placeholder="Выберите ТТ">
+            <input type="hidden" id="ttSelect" value="" />
+            <button type="button" class="stock_custom_select__trigger" onclick="toggleStockSearchSelect('ttSelectWrapper', event)">
+                <span class="stock_custom_select__value stock_custom_select__value--placeholder">Выберите ТТ</span>
+                <span class="stock_custom_select__arrow"></span>
+            </button>
+            <div class="stock_custom_select__dropdown">
+                <div class="stock_custom_select__search_wrap">
+                    <input type="text" class="stock_custom_select__search" placeholder="Поиск..." oninput="filterStockSearchSelect('ttSelectWrapper', this.value)" onclick="event.stopPropagation()" />
+                </div>
+                <div class="stock_custom_select__options"></div>
+            </div>
+        </div>
 
-            @foreach(var item in Model.Holders.OrderBy(x => x.Surname))
-            {
-                <option id="@item.Id" style="select_option"> @item.Surname @item.Name @item?.Patronymic </option>
-            }
-            
-        </select>
+        <div class="stock_custom_select stock_search_select" id="categorySelectWrapper" data-placeholder="Выберите категорию">
+            <input type="hidden" id="categorySelect" value="" />
+            <button type="button" class="stock_custom_select__trigger" onclick="toggleStockSearchSelect('categorySelectWrapper', event)">
+                <span class="stock_custom_select__value stock_custom_select__value--placeholder">Выберите категорию</span>
+                <span class="stock_custom_select__arrow"></span>
+            </button>
+            <div class="stock_custom_select__dropdown">
+                <div class="stock_custom_select__search_wrap">
+                    <input type="text" class="stock_custom_select__search" placeholder="Поиск..." oninput="filterStockSearchSelect('categorySelectWrapper', this.value)" onclick="event.stopPropagation()" />
+                </div>
+                <div class="stock_custom_select__options"></div>
+            </div>
+        </div>
 
-        <select onchange="buttonSendTurnOn()" class="stock_search_select" id="ttSelect">
-             <option value="" selected style="select_option"> Выберите ТТ </option>
-             @foreach (var item in Model.Locations.OrderBy(x => x.Name))
-             {
-                 <option id="@item.Guid" style="select_option"> @item.Name </option>
-             }
-         </select>
+        <div class="stock_custom_select stock_search_select stock_custom_select--disabled" id="subCategorySelectWrapper" data-placeholder="Выберите подкатегорию">
+            <input type="hidden" id="subCategorySelect" value="" />
+            <button type="button" class="stock_custom_select__trigger" onclick="toggleStockSearchSelect('subCategorySelectWrapper', event)">
+                <span class="stock_custom_select__value stock_custom_select__value--placeholder">Выберите подкатегорию</span>
+                <span class="stock_custom_select__arrow"></span>
+            </button>
+            <div class="stock_custom_select__dropdown">
+                <div class="stock_custom_select__search_wrap">
+                    <input type="text" class="stock_custom_select__search" placeholder="Поиск..." oninput="filterStockSearchSelect('subCategorySelectWrapper', this.value)" onclick="event.stopPropagation()" />
+                </div>
+                <div class="stock_custom_select__options"></div>
+            </div>
+        </div>
 
-         <select class="stock_search_select" id="categorySelect" onchange="enableOtherSelect(this, 1)">
-             <option value="" selected style="select_option"> Выберите категорию </option>
-             @foreach (var item in Model.MainCategories.OrderBy(x => x.Name))
-             {
-                 <option id="@item.Id" style="select_option"> @item.Name </option>
-             }
-         </select>
+        <div class="stock_custom_select stock_search_select stock_custom_select--disabled" id="subSubCategorySelectWrapper" data-placeholder="Выберите группу">
+            <input type="hidden" id="subSubCategorySelect" value="" />
+            <button type="button" class="stock_custom_select__trigger" onclick="toggleStockSearchSelect('subSubCategorySelectWrapper', event)">
+                <span class="stock_custom_select__value stock_custom_select__value--placeholder">Выберите группу</span>
+                <span class="stock_custom_select__arrow"></span>
+            </button>
+            <div class="stock_custom_select__dropdown">
+                <div class="stock_custom_select__search_wrap">
+                    <input type="text" class="stock_custom_select__search" placeholder="Поиск..." oninput="filterStockSearchSelect('subSubCategorySelectWrapper', this.value)" onclick="event.stopPropagation()" />
+                </div>
+                <div class="stock_custom_select__options"></div>
+            </div>
+        </div>
 
-         <select class="stock_search_select" onchange="enableOtherSelect(this, 2)" id="subCategorySelect"></select>
-         <select onchange="buttonSendTurnOn()" class="stock_search_select" id="subSubCategorySelect"></select>
-       
         <button class="stock_search_button btn btn-success" id="sendDataButton" onclick="sendData()">Поиск</button>
         <button class="stock_search_button btn btn-default" onclick="clearFields()">Очистить</button>
     </div>
-    
-    
-
 </div>
 
 <div class="header_stock_wrapper">
@@ -60,11 +122,10 @@
 
     <div id="null-message" style="text-align: center;" class="hidden">К сожалению, ничего не найдено</div>
 
-    <div id='body_stock' class="body_stock"></div>
-
+    <div id="body_stock" class="body_stock"></div>
 </div>
 
-@* Модальное окно для просмотра истории*@
+@* Модальное окно для просмотра истории *@
 <div class="stockSearchCard_modal" style="display: none">
     <div class="stockSearchCard_modal_body" id="stockSearchCard_modal_body">
         <div class="stockSearchCard_modal_header">История</div>
@@ -73,25 +134,21 @@
 </div>
 
 <script>
-    
-    const custom_slider = document.querySelector(".custom_slider")
-    const slider1 = document.getElementById("slider1")
-    const slider2 = document.getElementById("slider2")
+    const custom_slider = document.querySelector(".custom_slider");
+    const slider1 = document.getElementById("slider1");
+    const slider2 = document.getElementById("slider2");
 
     function selectSide(side) {
-
-        if(side === "red")
-        {
+        if (side === "red") {
             custom_slider.id = 0;
-            slider1.style = "width: 20px;justify-content: end;"
-            slider2.style = "width: 120px"
+            slider1.style = "width: 20px;justify-content: end;";
+            slider2.style = "width: 120px";
         }
 
-        if(side === "green")
-        {
+        if (side === "green") {
             custom_slider.id = 1;
-            slider1.style = "width: 120px;"
-            slider2.style = "width: 40px;"
+            slider1.style = "width: 120px;";
+            slider2.style = "width: 40px;";
         }
     }
 
@@ -108,48 +165,36 @@
         if (!modal_body.contains(e.target)) {
             closeModal();
         }
-    })
+    });
 
     function openModalStockSearchCard(code, name) {
-        modal_header.innerHTML = `<p>${code}</p> <b>${name}</b>`
+        modal_header.innerHTML = `<p>${code}</p> <b>${name}</b>`;
         modal.style.display = "block";
-        search(code)
+        search(code);
     }
 
-     async function search(code) {
-
+    async function search(code) {
         const data = await getData(code);
-
-        buildInterface(data, code)
-     }
+        buildInterface(data, code);
+    }
 
     async function getData(id) {
         try {
-            const response = await fetch('https://warehouseapi.ludilove.ru/api/transfer/GetObjectHistory?id=' + id, 
-            {
+            const response = await fetch('https://warehouseapi.ludilove.ru/api/transfer/GetObjectHistory?id=' + id, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
                 }
-            })
-            return await response.json()
-        } catch(e) {
-            console.log(e.message)
+            });
+
+            return await response.json();
+        } catch (e) {
+            console.log(e.message);
         }
     }
 
     async function buildInterface(data, id) {
-
-        const card_details = document.getElementById("card_details")
-
-        const objectInfo = {
-            category: null,
-            subcategory: null,
-            subsubcategory: null,
-            holder: data[0]?.warehouseObjects?.holder ? data[0]?.warehouseObjects?.holder : null,
-            location: data[0]?.warehouseObjects?.location?.name ? data[0]?.warehouseObjects?.location?.name : null,
-            status: data[0]?.warehouseObjects?.actual ? data[0]?.warehouseObjects?.actual : null
-        }
+        const card_details = document.getElementById("card_details");
 
         const category = data[0]?.warehouseObjects?.warehouseCategories;
 
@@ -160,89 +205,76 @@
 
         let block = `
             <div class="details_history">
-
                 <div class="history_card" style="background-color: #00ff001c">
                     <div class="history_card_header">Оприходование</div>
-                </div>`
+                </div>`;
 
-        let str = ""
+        let str = "";
 
         data.filter(x => x?.warehouseAction?.id == 1).forEach((elem) => {
+            if (elem.holder && elem.holder.patronymic == null) {
+                elem.holder.patronymic = "";
+            }
 
-                if(elem.holder && elem.holder.patronymic == null)
-                {
-                    elem.holder.patronymic = ""
-                }
+            str += `
+                <div class="history_card">
+                    <div class="history_card_body">
+                        <p>${elem?.user}</p>
+                        <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                        <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                        <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                        <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                    </div>
+                </div>`;
+        });
 
-                str += `
-                    <div class="history_card">
-                        <div class="history_card_body">
-                            <p>${elem?.user}</p>
-                            <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
-                            <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
-                            <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
-                            <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
-                        </div>
-                    </div>`
-        })
-
-        if(data.filter(x => x?.warehouseAction?.id == 2).length > 0)
-        {
-                str += `<div class="history_card" style="background-color: #ffff001c">
-                            <div class="history_card_header">Перемещение</div>
-                        </div>`
+        if (data.filter(x => x?.warehouseAction?.id == 2).length > 0) {
+            str += `<div class="history_card" style="background-color: #ffff001c">
+                        <div class="history_card_header">Перемещение</div>
+                    </div>`;
         }
 
         data.filter(x => x?.warehouseAction?.id == 2).forEach((elem) => {
+            if (elem.holder && elem.holder.patronymic == null) {
+                elem.holder.patronymic = "";
+            }
 
+            str += `
+                <div class="history_card">
+                    <div class="history_card_body">
+                        <p>${elem?.user}</p>
+                        <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                        <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                        <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                        <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                    </div>
+                </div>`;
+        });
 
-
-                if(elem.holder && elem.holder.patronymic == null)
-                {
-                    elem.holder.patronymic = ""
-                }
-
-                str += `
-                    <div class="history_card">
-                        <div class="history_card_body">
-                            <p>${elem?.user}</p>
-                            <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
-                            <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
-                            <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
-                            <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
-                        </div>
-                    </div>`
-        })
-
-        if(data.filter(x => x?.warehouseAction?.id == 3).length > 0)
-        {
-                str += `<div class="history_card" style="background-color: #ff00001c">
-                        <div class="history_card_header">Списание</div>
-                      </div>`
+        if (data.filter(x => x?.warehouseAction?.id == 3).length > 0) {
+            str += `<div class="history_card" style="background-color: #ff00001c">
+                    <div class="history_card_header">Списание</div>
+                  </div>`;
         }
 
         data.filter(x => x?.warehouseAction?.id == 3).forEach((elem) => {
+            if (elem.holder && elem.holder.patronymic == null) {
+                elem.holder.patronymic = "";
+            }
 
-
-                if(elem.holder && elem.holder.patronymic == null)
-                {
-                    elem.holder.patronymic = ""
-                }
-
-                str += `
-                    <div class="history_card">
-                        <div class="history_card_body">
-                            <p>${elem?.user}</p>
-                            <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
-                            <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
-                            <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
-                            <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
-                        </div>
-                    </div>`
-        })
+            str += `
+                <div class="history_card">
+                    <div class="history_card_body">
+                        <p>${elem?.user}</p>
+                        <p>${elem?.location?.name ? elem?.location?.name : ""}</p>
+                        <p style='min-width: 115px;'>${elem?.dateTime.split(".")[0].split("T").join(" ").replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2}):\d{2}$/, "$3.$2.$1 $4")}</p>
+                        <p style='overflow-wrap: anywhere;'>${elem?.comment ? elem?.comment : ""}</p>
+                        <p>${elem?.holder?.name ? elem.holder.surname + " " + elem.holder.name + " " + elem.holder.patronymic : ""}</p>
+                    </div>
+                </div>`;
+        });
 
         const resString = block + str + "</div></div>";
-
         card_details.innerHTML = resString;
     }
 
@@ -253,93 +285,247 @@
     const subCategorySelect = document.getElementById('subCategorySelect');
     const subSubCategorySelect = document.getElementById('subSubCategorySelect');
     const sendDataButton = document.getElementById('sendDataButton');
-    const nullMessage = document.getElementById('null-message')
-    const body_stock = document.getElementById('body_stock')
-    
-    async function enableOtherSelect(elem, level) {
+    const nullMessage = document.getElementById('null-message');
+    const body_stock = document.getElementById('body_stock');
 
-        const selectedOption = elem.options[elem.selectedIndex];
-        const id = selectedOption.id;
-        
+    const stockSearchSelects = {
+        holdersCategorySelect: {
+            wrapper: document.getElementById('holdersCategorySelect'),
+            hiddenInput: holdersCategory,
+            placeholder: 'Выберите ФИО',
+            options: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(holderOptions)),
+            searchValue: '',
+            disabled: false,
+            onChange: () => buttonSendTurnOn()
+        },
+        ttSelectWrapper: {
+            wrapper: document.getElementById('ttSelectWrapper'),
+            hiddenInput: ttSelect,
+            placeholder: 'Выберите ТТ',
+            options: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ttOptions)),
+            searchValue: '',
+            disabled: false,
+            onChange: () => buttonSendTurnOn()
+        },
+        categorySelectWrapper: {
+            wrapper: document.getElementById('categorySelectWrapper'),
+            hiddenInput: categorySelect,
+            placeholder: 'Выберите категорию',
+            options: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryOptions)),
+            searchValue: '',
+            disabled: false,
+            onChange: (value) => handleCategoryChange(value)
+        },
+        subCategorySelectWrapper: {
+            wrapper: document.getElementById('subCategorySelectWrapper'),
+            hiddenInput: subCategorySelect,
+            placeholder: 'Выберите подкатегорию',
+            options: [],
+            searchValue: '',
+            disabled: true,
+            onChange: (value) => handleSubCategoryChange(value)
+        },
+        subSubCategorySelectWrapper: {
+            wrapper: document.getElementById('subSubCategorySelectWrapper'),
+            hiddenInput: subSubCategorySelect,
+            placeholder: 'Выберите группу',
+            options: [],
+            searchValue: '',
+            disabled: true,
+            onChange: () => buttonSendTurnOn()
+        }
+    };
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function closeAllStockSearchSelects() {
+        Object.values(stockSearchSelects).forEach(config => {
+            config.wrapper.classList.remove('stock_custom_select--open');
+        });
+    }
+
+    function renderStockSearchSelect(selectId) {
+        const config = stockSearchSelects[selectId];
+        const triggerValue = config.wrapper.querySelector('.stock_custom_select__value');
+        const searchInput = config.wrapper.querySelector('.stock_custom_select__search');
+        const optionsContainer = config.wrapper.querySelector('.stock_custom_select__options');
+        const selectedValue = config.hiddenInput.value;
+        const selectedOption = config.options.find(x => x.value === selectedValue);
+        const filterValue = (config.searchValue || '').trim().toLowerCase();
+
+        triggerValue.textContent = selectedOption ? selectedOption.label : config.placeholder;
+        triggerValue.classList.toggle('stock_custom_select__value--placeholder', !selectedOption);
+        searchInput.value = config.searchValue || '';
+
+        let html = '';
+
+        if (selectedValue) {
+            html += `<button type="button" class="stock_custom_select__option stock_custom_select__option--clear" data-value="">Сбросить выбор</button>`;
+        }
+
+        const filteredOptions = config.options.filter(option => {
+            if (!filterValue) {
+                return true;
+            }
+
+            return option.label.toLowerCase().includes(filterValue);
+        });
+
+        if (filteredOptions.length) {
+            filteredOptions.forEach(option => {
+                const selectedClass = option.value === selectedValue ? ' stock_custom_select__option--selected' : '';
+                html += `<button type="button" class="stock_custom_select__option${selectedClass}" data-value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</button>`;
+            });
+        } else {
+            html += `<div class="stock_custom_select__empty">Ничего не найдено</div>`;
+        }
+
+        optionsContainer.innerHTML = html;
+    }
+
+    function setStockSearchDisabled(selectId, disabled) {
+        const config = stockSearchSelects[selectId];
+        config.disabled = disabled;
+        config.wrapper.classList.toggle('stock_custom_select--disabled', disabled);
+
+        if (disabled) {
+            config.wrapper.classList.remove('stock_custom_select--open');
+        }
+    }
+
+    function setStockSearchValue(selectId, value, invokeChange) {
+        const config = stockSearchSelects[selectId];
+        const hasValue = value && config.options.some(option => option.value === value);
+        config.hiddenInput.value = hasValue ? value : '';
+        config.searchValue = '';
+        renderStockSearchSelect(selectId);
+
+        if (invokeChange && typeof config.onChange === 'function') {
+            config.onChange(config.hiddenInput.value);
+        }
+    }
+
+    function setStockSearchOptions(selectId, options, disabled) {
+        const config = stockSearchSelects[selectId];
+        config.options = options || [];
+        config.searchValue = '';
+        config.hiddenInput.value = '';
+        setStockSearchDisabled(selectId, disabled);
+        renderStockSearchSelect(selectId);
+    }
+
+    function toggleStockSearchSelect(selectId, event) {
+        event.stopPropagation();
+
+        const config = stockSearchSelects[selectId];
+        if (config.disabled) {
+            return;
+        }
+
+        const shouldOpen = !config.wrapper.classList.contains('stock_custom_select--open');
+        closeAllStockSearchSelects();
+
+        if (shouldOpen) {
+            config.wrapper.classList.add('stock_custom_select--open');
+
+            window.setTimeout(() => {
+                config.wrapper.querySelector('.stock_custom_select__search').focus();
+            }, 0);
+        }
+    }
+
+    function filterStockSearchSelect(selectId, value) {
+        stockSearchSelects[selectId].searchValue = value;
+        renderStockSearchSelect(selectId);
+        stockSearchSelects[selectId].wrapper.classList.add('stock_custom_select--open');
+    }
+
+    async function handleCategoryChange(value) {
+        setStockSearchOptions('subCategorySelectWrapper', [], true);
+        setStockSearchOptions('subSubCategorySelectWrapper', [], true);
+
+        if (!value) {
+            buttonSendTurnOn();
+            return;
+        }
+
+        await enableOtherSelect(value, 1);
+    }
+
+    async function handleSubCategoryChange(value) {
+        setStockSearchOptions('subSubCategorySelectWrapper', [], true);
+
+        if (!value) {
+            buttonSendTurnOn();
+            return;
+        }
+
+        await enableOtherSelect(value, 2);
+    }
+
+    async function enableOtherSelect(id, level) {
+        if (!id) {
+            return;
+        }
 
         try {
+            $("#spinner").show();
 
-            $("#spinner").show()
-
-            const response = await fetch("https://warehouseapi.ludilove.ru/api/category/childCategories?id=" + id,
-            {
+            const response = await fetch("https://warehouseapi.ludilove.ru/api/category/childCategories?id=" + encodeURIComponent(id), {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
                 }
-            })
+            });
 
-            const result = await response.json()
+            if (!response.ok) {
+                throw new Error('Не удалось загрузить категории');
+            }
 
-            let CategorySelect; document.getElementById('subCategorySelect')
+            const result = await response.json();
+            const options = result.map(x => ({
+                value: String(x.id),
+                label: x.name
+            }));
 
-            if(level === 1) {
-                CategorySelect = document.getElementById('subCategorySelect')
-                document.getElementById('subCategorySelect').innerHTML = ""
-                document.getElementById('subSubCategorySelect').innerHTML = ""
+            if (level === 1) {
+                setStockSearchOptions('subCategorySelectWrapper', options, !options.length);
             } else {
-                CategorySelect = document.getElementById('subSubCategorySelect')
+                setStockSearchOptions('subSubCategorySelectWrapper', options, !options.length);
             }
 
-            if(result.length)
-            {
-                CategorySelect.disabled = false;
-                CategorySelect.innerHTML = `<option id="" disabled selected style="select_option"> Выберите подкатегорию </option>`
-                result.forEach(x => CategorySelect.innerHTML += `<option id="${x.id}" style="select_option">${x.name}</option>`)
-            }
-
-            buttonSendTurnOn()
+            buttonSendTurnOn();
+        } catch (e) {
+            console.error(e.message);
         } finally {
-            $("#spinner").hide()
+            $("#spinner").hide();
         }
-        
     }
 
     async function sendData() {
-        // Собираем нужные селекты в объект для перебора
-        const selects = {
-            holdersCategory,
-            ttSelect,
-        };
-
-        // Функция для безопасного получения выбранного id
-        const getSelectedId = select =>
-            select.options[select.selectedIndex]?.id || null;
-
-        // Формируем объект с данными
         const obj = {
-            holdersCategory: getSelectedId(selects.holdersCategory),
-            ttSelect:       getSelectedId(selects.ttSelect),
+            holdersCategory: holdersCategory.value || null,
+            ttSelect: ttSelect.value || null,
+            category: subSubCategorySelect.value || subCategorySelect.value || categorySelect.value || null
         };
-
-        // Определяем приоритет категорий
-        const categoryOrder = [
-            subSubCategorySelect,
-            subCategorySelect,
-            categorySelect,
-        ];
-        const category =
-            categoryOrder
-            .map(getSelectedId)
-            .find(id => id !== null) || null;
-        obj.category = category;
 
         const url = new URL("https://warehouseapi.ludilove.ru/api/category/gethardmodel");
         const params = new URLSearchParams();
 
-        if (obj.category)        params.append("cathegory", obj.category);
-        if (obj.holdersCategory) params.append("holder",   obj.holdersCategory);
-        if (obj.ttSelect)        params.append("location", obj.ttSelect);
+        if (obj.category) params.append("cathegory", obj.category);
+        if (obj.holdersCategory) params.append("holder", obj.holdersCategory);
+        if (obj.ttSelect) params.append("location", obj.ttSelect);
         params.append("actual", custom_slider.id);
 
         url.search = params.toString();
 
-        
         try {
             $("#spinner").show();
             const response = await fetch(url, {
@@ -348,17 +534,16 @@
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
                 }
             });
+
             const result = await response.json();
 
-            if(!result.length) {
-                body_stock.innerHTML = ""
-                return nullMessage.classList.remove('hidden')
+            if (!result.length) {
+                body_stock.innerHTML = "";
+                return nullMessage.classList.remove('hidden');
             }
 
             urlBackup = url.toString();
-
-            showData(result, custom_slider.id)
-
+            showData(result, custom_slider.id);
         } catch (e) {
             console.error(e.message);
         } finally {
@@ -367,15 +552,12 @@
     }
 
     function showData(data, sliderId) {
-        body_stock.innerHTML = ""
+        body_stock.innerHTML = "";
+        nullMessage.classList.add('hidden');
 
-        nullMessage.classList.add('hidden')
-
-        data.forEach((category, index) => {
-            
-            if(category.warehouseHolder && category.warehouseHolder.patronymic == null)
-            {
-                category.warehouseHolder.patronymic = ""
+        data.forEach((category) => {
+            if (category.warehouseHolder && category.warehouseHolder.patronymic == null) {
+                category.warehouseHolder.patronymic = "";
             }
 
             body_stock.innerHTML += `
@@ -383,35 +565,29 @@
                     <p style="width: 20%">${category.mainCat ? category.mainCat.name : "-"}</p>
                     <p style="width: 20%">${category.cat ? category.cat.name : "-"}</p>
                     <p style="width: 20%">${category.secondCat ? category.secondCat.name : "-"}</p>
-                    <p style="width: 30%" class="mobile_hidden">${category.warehouseHolder ? category.warehouseHolder.surname + " " + category.warehouseHolder.name + " " + category.warehouseHolder.patronymic: "-"}</p>
+                    <p style="width: 30%" class="mobile_hidden">${category.warehouseHolder ? category.warehouseHolder.surname + " " + category.warehouseHolder.name + " " + category.warehouseHolder.patronymic : "-"}</p>
                     <p style="width: 20%" class="mobile_hidden">${category.location ? category.location.name : "-"}</p>
                     <p style="width: 10%">${category.items.length}</p>
                 </div>
-            `
-
-           
-            
+            `;
 
             category.items.forEach(items => {
-
                 let name;
-                if(items.mainCat) name = items.mainCat.name;
-                if(items.cat) name = items.cat.name;
-                if(items.secondCat) name = items.secondCat.name;
+                if (items.mainCat) name = items.mainCat.name;
+                if (items.cat) name = items.cat.name;
+                if (items.secondCat) name = items.secondCat.name;
 
                 let color;
-                if(items.warehouseHolder === null && items?.location?.guid === "c6c585f2-2825-4946-88a7-92ce7c97013c")
-                {
-                    color = "#00ff0625"
+                if (items.warehouseHolder === null && items?.location?.guid === "c6c585f2-2825-4946-88a7-92ce7c97013c") {
+                    color = "#00ff0625";
                 }
 
-                if(sliderId === "0") {
-                    color = "#ff00003d"
+                if (sliderId === "0") {
+                    color = "#ff00003d";
                 }
 
-                if(items.warehouseHolder && items.warehouseHolder.patronymic == null)
-                {
-                    items.warehouseHolder.patronymic = ""
+                if (items.warehouseHolder && items.warehouseHolder.patronymic == null) {
+                    items.warehouseHolder.patronymic = "";
                 }
 
                 name = name.replace(/["']/g, '\\"');
@@ -421,40 +597,193 @@
                         <p style="width: 20%">${items.mainCat ? items.mainCat.name : "-"}</p>
                         <p style="width: 20%">${items.cat ? items.cat.name : "-"}</p>
                         <p style="width: 20%">${items.secondCat ? items.secondCat.name : "-"}</p>
-                        <p style="width: 30%" class="mobile_hidden">${items.warehouseHolder ? items.warehouseHolder.surname + " " + items.warehouseHolder.name + " " + items.warehouseHolder.patronymic   : "-"}</p>
+                        <p style="width: 30%" class="mobile_hidden">${items.warehouseHolder ? items.warehouseHolder.surname + " " + items.warehouseHolder.name + " " + items.warehouseHolder.patronymic : "-"}</p>
                         <p style="width: 20%" class="mobile_hidden">${items.location ? items.location.name : "-"}</p>
                         <p style="width: 20%">${items.code}</p>
                     </div>
-                `
-            })
-
-        })
-        
+                `;
+            });
+        });
     }
 
     function loadCard(code) {
-        $('#container-fluid').load('/Stock/StockSearchCard?code=' + code.trim())
+        $('#container-fluid').load('/Stock/StockSearchCard?code=' + code.trim());
     }
 
     function showDetails(id) {
         document.querySelectorAll('.children-' + id).forEach(x => {
-            x.classList.toggle("hidden")
-        })
+            x.classList.toggle("hidden");
+        });
     }
 
     function clearFields() {
-        holdersCategory.selectedIndex = 0;
-        ttSelect.selectedIndex = 0;
-        categorySelect.selectedIndex = 0;
-        subCategorySelect.innerHTML = ""
-        subCategorySelect.disabled = true;
-        subSubCategorySelect.innerHTML = ""
-        subSubCategorySelect.disabled = true;
+        closeAllStockSearchSelects();
+        setStockSearchValue('holdersCategorySelect', '', false);
+        setStockSearchValue('ttSelectWrapper', '', false);
+        setStockSearchValue('categorySelectWrapper', '', false);
+        setStockSearchOptions('subCategorySelectWrapper', [], true);
+        setStockSearchOptions('subSubCategorySelectWrapper', [], true);
         sendDataButton.disabled = true;
     }
 
     function buttonSendTurnOn() {
         sendDataButton.disabled = false;
     }
+
+    document.addEventListener('click', function (event) {
+        const option = event.target.closest('.stock_custom_select__option');
+        if (option) {
+            const wrapper = option.closest('.stock_custom_select');
+            setStockSearchValue(wrapper.id, option.dataset.value || '', true);
+            closeAllStockSearchSelects();
+            return;
+        }
+
+        if (!event.target.closest('.stock_custom_select')) {
+            closeAllStockSearchSelects();
+        }
+    });
+
+    Object.keys(stockSearchSelects).forEach(renderStockSearchSelect);
 </script>
 
+<style>
+    .stock_custom_select {
+        position: relative;
+        min-width: 200px;
+        width: 200px;
+        flex: 0 0 auto;
+    }
+
+    .stock_custom_select__trigger {
+        position: relative;
+        width: 100%;
+        height: 34px;
+        padding: 6px 34px 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background: #fff;
+        color: #555;
+        font-size: 14px;
+        line-height: 20px;
+        text-align: left;
+        overflow: hidden;
+    }
+
+    .stock_custom_select__value {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .stock_custom_select__value--placeholder {
+        color: #777;
+    }
+
+    .stock_custom_select__arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #777;
+        border-bottom: 2px solid #777;
+        transform: translateY(-60%) rotate(45deg);
+        transition: transform 0.15s ease;
+        pointer-events: none;
+    }
+
+    .stock_custom_select__dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        display: none;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        z-index: 50;
+    }
+
+    .stock_custom_select__search_wrap {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .stock_custom_select__search {
+        width: 100%;
+        height: 32px;
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+    }
+
+    .stock_custom_select__search:focus {
+        border-color: #66afe9;
+        box-shadow: 0 0 0 2px rgba(102, 175, 233, 0.15);
+    }
+
+    .stock_custom_select__options {
+        max-height: 240px;
+        overflow-y: auto;
+        padding: 4px 0;
+    }
+
+    .stock_custom_select__option,
+    .stock_custom_select__empty {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        border: 0;
+        background: transparent;
+        color: #333;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .stock_custom_select__option:hover {
+        background: #f3f5f7;
+    }
+
+    .stock_custom_select__option--selected {
+        background: #eaf3ff;
+    }
+
+    .stock_custom_select__option--clear {
+        color: #8a6d3b;
+        border-bottom: 1px solid #eee;
+    }
+
+    .stock_custom_select__empty {
+        color: #888;
+        cursor: default;
+    }
+
+    .stock_custom_select--open .stock_custom_select__dropdown {
+        display: block;
+    }
+
+    .stock_custom_select--open .stock_custom_select__arrow {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .stock_custom_select--disabled .stock_custom_select__trigger {
+        background: #f5f5f5;
+        color: #999;
+        cursor: default;
+    }
+
+    .stock_custom_select--disabled .stock_custom_select__arrow {
+        border-color: #bcbcbc;
+    }
+
+    @@media (max-width: 768px) {
+        .stock_custom_select {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+</style>

@@ -1,0 +1,378 @@
+@model Portal.Controllers.CalculatorController.ItemsBlocksProps;
+
+@{
+    var blockTypes = new Dictionary<int, string>
+    {
+        {1, "Локальная блокировка"},
+        {2, "Временная блокировка"},
+        {3, "Постоянная блокировка"},
+    };
+}
+
+
+
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+
+        <div class="row" style="margin-top: 0px; margin-bottom:10px">
+            <!--Назад-->
+            <a id="back" href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+                <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+            </a>
+        </div>
+
+        <!--меню таблицы-->
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+            <a href="#AddRole" class="btn btn-sm btn-success" onclick="AddItem(); return false;" style="margin-left:20px">добавить</a>
+        </div>
+    </div>
+</div>
+
+
+<div id="page" style="margin-top:15px">
+    <div class="panel panel-default" style="margin-bottom:0px">
+        <div class="panel-body">
+            <div class="row mb-4 mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <table class="data-table nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Наименование</th>
+                                        <th>ТТ</th>
+                                        <th>Дата начала блокировки</th>
+                                        <th>Дата окончания блокировки</th>
+                                        <th>Тип блокировки</th>
+                                        <th>Заполнил</th>
+                                        <th>Действие</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.itemBlocks)
+                                    {
+                                        <tr class="item-block-row" onclick="editItemBlock(@item.Id, @item.ItemRkCode, @(item.TTCode.HasValue ? item.TTCode.Value.ToString() : "null"), '@item.Begin.ToString("yyyy-MM-dd")', '@item.End.ToString("yyyy-MM-dd")', @item.Type)">
+                                            <td>@Model.items.FirstOrDefault(x => x.RkCode == item.ItemRkCode)?.Name</td>
+                                            <td>@Model.tts.FirstOrDefault(x => x.Restaurant_Sifr == item.TTCode)?.Name </td>
+                                            <td>@item.Begin.ToString("dd.MM.yyyy")</td>
+                                            <td>@item.End.ToString("dd.MM.yyyy")</td>
+                                            <td>@blockTypes[item.Type]</td>
+                                            <td title="@(item.Info ?? string.Empty)">@((item.Info?.Length ?? 0) > 50 ? item.Info.Substring(0, 50) + "..." : item.Info)</td>
+                                            <td><button class="btn btn-danger button-table" onclick="event.stopPropagation(); toggleRowLock(@item.Id)">Удалить</button></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="lockConfirmModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeLockConfirmModal()"></label>
+                </div>
+                <h4 class="modal-title" id="lockConfirmModalTitle">Подтверждение</h4>
+            </div>
+            <div class="modal-body">
+                <p id="lockConfirmModalText" style="margin: 0; font-size: 16px;">Вы уверены, что хотите удалить позицию?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-danger" onclick="DeleteItem()">Подтвердить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeLockConfirmModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--вычисление высоты таблицы-->
+<div id="addItemBlockModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeAddItemBlockModal()"></label>
+                </div>
+                <h4 class="modal-title" id="itemBlockModalTitle">Добавление блокировки</h4>
+            </div>
+            <div class="modal-body">
+                <div class="item-block-form">
+                    <input id="itemBlockId" type="hidden" value="" />
+                    <div class="item-block-form__field">
+                        <label for="itemBlockItemRkCode">Позиция</label>
+                        <select id="itemBlockItemRkCode" class="form-control" required>
+                            <option value="">Выберите позицию</option>
+                            @foreach (var item in Model.items.OrderBy(x => x.Name))
+                            {
+                                <option value="@item.RkCode">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="item-block-form__field">
+                        <label for="itemBlockBegin">Дата начала</label>
+                        <input id="itemBlockBegin" type="date" class="form-control" required />
+                    </div>
+                    <div class="item-block-form__field">
+                        <label for="itemBlockEnd">Дата окончания</label>
+                        <input id="itemBlockEnd" type="date" class="form-control" required />
+                    </div>
+                    <div class="item-block-form__field" id="itemBlockTypeField">
+                        <label for="itemBlockType">Тип блокировки</label>
+                        <select id="itemBlockType" class="form-control" required>
+                            <option value="">Выберите тип</option>
+                            @foreach (var blockType in blockTypes)
+                            {
+                                if(blockType.Key == 1)
+                                {
+                                    continue;
+                                }
+                                <option value="@blockType.Key">@blockType.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-success" id="itemBlockSubmitButton" onclick="saveItemBlock()">Добавить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeAddItemBlockModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var height = $('#global').height();
+
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+</script>
+
+<!--инициализация таблицы-->
+<script>
+    let idToDelete = null;
+
+    function getTodayForItemBlock() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function getNextYearForItemBlock() {
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+        return nextYear.toISOString().split('T')[0];
+    }
+
+    function getNextDayForItemBlock(dateValue) {
+        const date = new Date(dateValue);
+        date.setDate(date.getDate() + 1);
+        return date.toISOString().split('T')[0];
+    }
+
+    function syncItemBlockEndMin() {
+        const id = document.getElementById('itemBlockId').value;
+        const isEdit = Boolean(id);
+        const beginInput = document.getElementById('itemBlockBegin');
+        const endInput = document.getElementById('itemBlockEnd');
+
+        if (isEdit) {
+            beginInput.removeAttribute('min');
+            endInput.removeAttribute('min');
+            return;
+        }
+
+        beginInput.min = getTodayForItemBlock();
+
+        if (!beginInput.value) {
+            endInput.removeAttribute('min');
+            return;
+        }
+
+        const minEnd = getNextDayForItemBlock(beginInput.value);
+        endInput.min = minEnd;
+
+        if (!endInput.value || endInput.value < minEnd) {
+            endInput.value = minEnd;
+        }
+    }
+
+    function AddItem() {
+        document.getElementById('itemBlockId').value = '';
+        document.getElementById('itemBlockItemRkCode').value = '';
+        const today = getTodayForItemBlock();
+        document.getElementById('itemBlockBegin').value = today;
+        document.getElementById('itemBlockEnd').value = getNextDayForItemBlock(today);
+        document.getElementById('itemBlockType').value = '1';
+        document.getElementById('itemBlockTypeField').style.display = '';
+        syncItemBlockEndMin();
+        document.getElementById('itemBlockModalTitle').textContent = 'Добавление блокировки';
+        document.getElementById('itemBlockSubmitButton').textContent = 'Добавить';
+        $("#addItemBlockModal").modal("show");
+    }
+
+    function editItemBlock(id, itemRkCode, ttCode, begin, end, type) {
+        document.getElementById('itemBlockId').value = id;
+        document.getElementById('itemBlockItemRkCode').value = itemRkCode;
+        document.getElementById('itemBlockBegin').value = begin;
+        document.getElementById('itemBlockEnd').value = end;
+        document.getElementById('itemBlockTypeField').style.display = 'none';
+        syncItemBlockEndMin();
+        document.getElementById('itemBlockModalTitle').textContent = 'Редактирование блокировки';
+        document.getElementById('itemBlockSubmitButton').textContent = 'Сохранить';
+        $("#addItemBlockModal").modal("show");
+    }
+
+    function closeAddItemBlockModal() {
+        $("#addItemBlockModal").modal("hide");
+    }
+
+    function closeLockConfirmModal() {
+        $("#lockConfirmModal").modal("hide");
+    }
+
+    document.getElementById('itemBlockBegin').addEventListener('change', syncItemBlockEndMin);
+
+    function toggleRowLock(id) {
+        $("#lockConfirmModal").modal("show");
+        idToDelete = id;
+    }
+
+    var table = $(".data-table").DataTable({
+        "ordering": true,
+        "order": [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: !0,
+        deferRender: !0,
+        scrollY: height,
+        scrollCollapse: !0
+    });
+
+    // сортируем по-умолчанию по первому столбцу
+    table.order([0, 'asc']).draw();
+
+    // поиск по таблице
+    $("#searchDatatable").on("keyup", function (event) {
+        table.search($(this).val()).draw();
+    });
+
+    // скрываем сверху таблицы фильтры data-table
+    $('.view-filter').hide();
+
+
+    async function DeleteItem() {
+        const url = `/Calculator/DeleteItemBlock?id=${idToDelete}`
+        
+        const req = await fetch(url);
+        closeLockConfirmModal()
+        if(!req.ok)
+        {
+            return alert('Произошла ошибка')
+        }
+        
+        $("#container-fluid").load('/Calculator/ItemBlocks')
+    }
+
+    async function saveItemBlock() {
+        const id = document.getElementById('itemBlockId').value;
+        const isEdit = Boolean(id);
+        const itemRkCode = document.getElementById('itemBlockItemRkCode').value;
+        const begin = document.getElementById('itemBlockBegin').value;
+        const end = document.getElementById('itemBlockEnd').value;
+        const type = isEdit ? null : document.getElementById('itemBlockType').value;
+
+        if (!itemRkCode) {
+            return alert('Выберите позицию');
+        }
+
+        if (!begin || !end) {
+            return alert('Заполните даты');
+        }
+
+        if (begin > end) {
+            return alert('Дата начала не может быть позже даты окончания');
+        }
+
+        if (!isEdit && getNextDayForItemBlock(begin) > end) {
+            return alert('Дата окончания должна быть минимум на 1 день позже даты начала');
+        }
+
+        if (!isEdit && !type) {
+            return alert('Выберите тип блокировки');
+        }
+
+        const request = {
+            Id: id ? parseInt(id, 10) : null,
+            ItemRkCode: parseInt(itemRkCode, 10),
+            TTCode: null,
+            Begin: begin,
+            End: end
+        };
+
+        if (!isEdit) {
+            request.Type = parseInt(type, 10);
+        }
+
+        const response = await fetch('/Calculator/AddItemBlock', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request)
+        });
+
+        if (!response.ok) {
+            return alert('Произошла ошибка при сохранении');
+        }
+
+        closeAddItemBlockModal();
+        $("#container-fluid").load('/Calculator/ItemBlocks');
+    }
+
+
+</script>
+
+<style>
+    .button-table {
+        width: 60px;
+        height: 25px;
+        margin: 0;
+        padding: 0;
+        font-size: 10px;
+    }
+
+    .item-block-row {
+        cursor: pointer;
+    }
+
+    .item-block-row:hover {
+        background-color: #f5f5f5;
+    }
+
+    .item-block-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .item-block-form__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .item-block-form__field > label {
+        margin: 0;
+        font-weight: 600;
+    }
+</style>

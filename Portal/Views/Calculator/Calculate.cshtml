@@ -46,6 +46,7 @@
             <table class="calculator-table">
                 <thread>
                     <tr>
+                        
                         <th>№</th>
                         <th>Наименование</th>
                         <th class="defrostTime">Время дефроста</th>
@@ -56,23 +57,45 @@
                         @if (Model.Items[0].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
                         {
                             <th>Расход булок</th>
-                        }                        
+                        }
+                        <th>Блокировка</th>                        
                     </tr>
                 </thread>
                 <tbody>
                     @for (int i = 0; i < Model.Items.Count; i++)
                     {
+                        var blockState = Model.Items[i].Blocked;
+                        var isLocked = blockState != 0;
+                        var isHardLocked = blockState == 2 || blockState == 3;
+                        var isToggleableLock = !isHardLocked;
+                        var lockIconClass = isLocked ? "fa-lock" : "fa-unlock-alt";
+                        var inputStateClass = blockState switch
+                        {
+                            0 => "calculator-input--open",
+                            1 => "calculator-input--soft-locked",
+                            2 => "calculator-input--hard-locked",
+                            3 => "calculator-input--hard-locked",
+                            _ => "calculator-input--soft-locked"
+                        };
+                        var lockTitle = blockState switch
+                        {
+                            0 => "Позиция доступна для ввода. Нажмите, чтобы заблокировать",
+                            1 => "Позиция заблокирована. Нажмите, чтобы разблокировать",
+                            2 => "Позиция заблокирована без возможности разблокировки",
+                            3 => "Позиция заблокирована без возможности разблокировки",
+                            _ => "Позиция заблокирована"
+                        };
                         <tr>
-                            <td>@(i + 1)</td>
+                            <td style="text-align: center;">@(i + 1)</td>
                             <td>@Model.Items[i].ItemOnTT.Item.Name</td>
                             <td class="defrostTime" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
                             <td class="bakingMode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
-                            <td>
+                            <td style="text-align: center;">
                                 @if(ViewBag.logs[i] != null)
                                 {
-                                    <input class="inputObject" placeholder="@ViewBag.logs[i]?.Rest" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)'>
+                                    <input class="inputObject @inputStateClass" data-locked="@isLocked.ToString().ToLower()" placeholder="@ViewBag.logs[i]?.Rest" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)' disabled="@isLocked">
                                 } else {
-                                    <input class="inputObject" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)'>
+                                    <input class="inputObject @inputStateClass" data-locked="@isLocked.ToString().ToLower()" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)' disabled="@isLocked">
                                 }
                             </td>
                             <td class="answer" style="text-align: center" id=@i>0</td>                            
@@ -113,19 +136,28 @@
                                     <input class="isSandvich" value="false">
                                 }
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 @if (ViewBag.logs[i]?.Fact == null)
                                 {
-                                    <input class="fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
+                                    <input class="fact @inputStateClass" data-locked="@isLocked.ToString().ToLower()" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)' disabled="@isLocked">
                                 } else 
                                 {
-                                    <input class="fact" placeholder="@ViewBag.logs[i]?.Fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)'>
+                                    <input class="fact @inputStateClass" data-locked="@isLocked.ToString().ToLower()" placeholder="@ViewBag.logs[i]?.Fact" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)' disabled="@isLocked">
                                 }                                
                             </td>
                             @if (Model.Items[i].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
                             {
                                 <td style="text-align: center" class="Buns"></td>
                             }
+                             <td class="calculator-lock-cell">
+                                <span class="calculator-lock @(isLocked ? "calculator-lock--closed" : "calculator-lock--open") @(isHardLocked ? "calculator-lock--hard" : "") @(isToggleableLock ? "calculator-lock--toggleable" : "")"
+                                      title="@lockTitle"
+                                      data-block-state="@blockState"
+                                      data-locked="@isLocked.ToString().ToLower()"
+                                      onclick="toggleRowLock(this)">
+                                    <i class="fa @lockIconClass" aria-hidden="true"></i>
+                                </span>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -143,7 +175,149 @@
     } 
 </div>
 
+<div id="lockConfirmModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeLockConfirmModal()"></label>
+                </div>
+                <h4 class="modal-title" id="lockConfirmModalTitle">Подтверждение</h4>
+            </div>
+            <div class="modal-body">
+                <p id="lockConfirmModalText" style="margin: 0; font-size: 16px;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-danger" onclick="confirmToggleRowLock()">Подтвердить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeLockConfirmModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    function setRowInputState(row, state) {
+        row.querySelectorAll('.inputObject, .fact').forEach(input => {
+            input.classList.remove('calculator-input--open', 'calculator-input--soft-locked', 'calculator-input--hard-locked');
+            input.classList.add(`calculator-input--${state}`);
+        });
+    }
+
+    let pendingLockElement = null;
+
+    async function sendItemBlockRequest(lockElement) {
+        const row = lockElement.closest('tr');
+        const itemRkCode = Number(row.querySelector('.itemCode').value);
+        const ttCode = Number('@Html.Raw(Model.TTs[0].Restaurant_Sifr)');
+        const isLocked = lockElement.dataset.locked === 'true';
+        const url = isLocked ? '/Calculator/UnlockItemBlock' : '/Calculator/LockItemBlock';
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ItemRkCode: itemRkCode,
+                TTCode: ttCode
+            })
+        });
+
+        if (!response.ok) {
+            let errorText = 'Не удалось изменить блокировку позиции';
+            try {
+                const errorData = await response.json();
+                errorText = errorData.message || errorData.Message || errorText;
+            } catch {
+                const fallbackText = await response.text();
+                if (fallbackText) {
+                    errorText = fallbackText;
+                }
+            }
+
+            throw new Error(errorText);
+        }
+    }
+
+    function applyToggleRowLock(lockElement) {
+        const blockState = Number(lockElement.dataset.blockState);
+        if (blockState === 2 || blockState === 3) {
+            return;
+        }
+
+        const isLocked = lockElement.dataset.locked === 'true';
+        const nextLocked = !isLocked;
+        const icon = lockElement.querySelector('i');
+        const row = lockElement.closest('tr');
+
+        lockElement.dataset.locked = nextLocked.toString();
+        lockElement.title = nextLocked
+            ? 'Позиция заблокирована. Нажмите, чтобы разблокировать'
+            : 'Позиция доступна для ввода. Нажмите, чтобы заблокировать';
+        lockElement.classList.toggle('calculator-lock--closed', nextLocked);
+        lockElement.classList.toggle('calculator-lock--open', !nextLocked);
+        icon.classList.toggle('fa-lock', nextLocked);
+        icon.classList.toggle('fa-unlock-alt', !nextLocked);
+
+        row.querySelectorAll('.inputObject, .fact').forEach(input => {
+            input.dataset.locked = nextLocked.toString();
+            input.disabled = nextLocked;
+        });
+        setRowInputState(row, nextLocked ? 'soft-locked' : 'open');
+    }
+
+    function toggleRowLock(lockElement) {
+        const blockState = Number(lockElement.dataset.blockState);
+        if (blockState === 2 || blockState === 3) {
+            return;
+        }
+
+        pendingLockElement = lockElement;
+        const isLocked = lockElement.dataset.locked === 'true';
+        document.getElementById('lockConfirmModalText').textContent = isLocked
+            ? 'Вы уверены, что хотите разблокировать данную позицию?'
+            : 'Вы уверены, что хотите заблокировать данную позицию?';
+        $("#lockConfirmModal").modal("show");
+    }
+
+    function closeLockConfirmModal() {
+        pendingLockElement = null;
+        $("#lockConfirmModal").modal("hide");
+    }
+
+    function reloadCurrentCalculateView() {
+        const url = '/Calculator/Calculate?typeGuid=@Html.Raw(Model.ItemsGroup.Guid)&tt=@Html.Raw(Model.TTs[0].Restaurant_Sifr)';
+        SpinnerShow();
+        $(contentContainer).load(url, function () { SpinnerHide(); });
+    }
+
+    async function confirmToggleRowLock() {
+        if (pendingLockElement != null) {
+            try {
+                $("#spinner").show();
+                await sendItemBlockRequest(pendingLockElement);
+                closeLockConfirmModal();
+                reloadCurrentCalculateView();
+                return;
+            } catch (error) {
+                if (typeof openModal === 'function') {
+                    openModal('Ошибка', error.message);
+                } else {
+                    alert(error.message);
+                }
+                return;
+            } finally {
+                $("#spinner").hide();
+            }
+        }
+        closeLockConfirmModal();
+    }
+
+    function toggleCalculatorInputsState(isDisabled) {
+        document.querySelectorAll(".inputObject, .fact").forEach(input => {
+            const isLocked = input.dataset.locked === 'true';
+            input.disabled = isDisabled || isLocked;
+        });
+    }
+
     function calculate(inputObject){
         inputObject.value = inputObject.value.replace(/[^\d]/g, '');      
         let trObject = inputObject.parentNode.parentNode;
@@ -218,8 +392,7 @@
         log.Result = answerObject.textContent;
 
         $("#spinner").show()
-        document.querySelectorAll(".inputObject").forEach(x => x.disabled = true)
-        document.querySelectorAll(".fact").forEach(x => x.disabled = true)
+        toggleCalculatorInputsState(true)
 
         WriteLog(log, inputObject)
     }
@@ -261,8 +434,7 @@
 
         // Закрываем инпуты для ввода и активируем loader
         $("#spinner").show()
-        document.querySelectorAll(".inputObject").forEach(x => x.disabled = true)
-        document.querySelectorAll(".fact").forEach(x => x.disabled = true)
+        toggleCalculatorInputsState(true)
 
         WriteLog(log, factObject)
     }
@@ -302,8 +474,7 @@
                     }
 
                     $("#spinner").hide()
-                    document.querySelectorAll(".inputObject").forEach(x => x.disabled = false)
-                    document.querySelectorAll(".fact").forEach(x => x.disabled = false)
+                    toggleCalculatorInputsState(false)
                     element.focus()
                 },
             });
@@ -328,11 +499,10 @@
                     {
                         $("#spinner").hide()
                         attempts = 0
-                        document.querySelectorAll(".inputObject").forEach(x => x.disabled = false)
-                        document.querySelectorAll(".fact").forEach(x => x.disabled = false)
+                        toggleCalculatorInputsState(false)
 
                         element.value = ""
-                        let planId = +element.parentElement.parentElement.children[0].textContent - 1
+                        let planId = +element.parentElement.parentElement.children[1].textContent - 1
 
                         document.getElementById(planId).textContent = 0
 
@@ -398,6 +568,71 @@
 
 
 <style>
+    .calculator-lock-cell {
+        width: 40px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .calculator-lock {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 14px;
+    }
+
+    .calculator-lock--open {
+        color: #1f7a36;
+        background: #e8f5eb;
+    }
+
+    .calculator-lock--closed {
+        color: #9a6700;
+        background: #fff3cd;
+    }
+
+    .calculator-lock--toggleable {
+        cursor: pointer;
+    }
+
+    .calculator-lock--hard {
+        color: #a61b29;
+        background: #f8d7da;
+        cursor: not-allowed;
+    }
+
+    .inputObject:disabled,
+    .fact:disabled {
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    .calculator-input--open {
+        background: #fff;
+        color: #24324a;
+        border: 1px solid #CCC;
+    }
+
+    .calculator-input--open:focus {
+        border-color: #6c8fbd;
+        box-shadow: 0 0 0 0.12rem rgba(76, 116, 179, 0.14);
+    }
+
+    .calculator-input--soft-locked {
+        background: #fff3cd;
+        border-color: #f1d58a;
+        color: #9a6700;
+    }
+
+    .calculator-input--hard-locked {
+        background: #f8d7da;
+        border-color: #e5aab2;
+        color: #a61b29;
+    }
+
     .calculator_info {
         width: 100%;
         background: #CFE2FF;
@@ -414,4 +649,5 @@
         border-radius: 5px;
         text-align: center;
     }
+
 </style>

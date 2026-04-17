@@ -379,12 +379,17 @@ namespace Portal.Controllers
                             calculatorItem.SecondNextPeriodAdding = SecondNextPeriodGroupAdding * (calculatorItem.AverageSecondNextPer / SecondNextPeriodUnblockedSum);
                         }
                     }
-                    foreach (var calculatorItem in blockedItems)
+                }
+
+                foreach (var calculatorItem in calculatorInformation.Items)
+                {
+                    ItemBlock itemBlock = itemBlocks.FirstOrDefault(x => x.ItemRkCode == calculatorItem.ItemOnTT.Item.RkCode);
+                    if(itemBlock == null)
                     {
-                        ItemBlock itemBlock = itemBlocks.FirstOrDefault(x => x.ItemRkCode == calculatorItem.ItemOnTT.Item.RkCode);
-                        calculatorItem.Blocked = itemBlock.Type;
-                        calculatorItem.IdOfBlock = itemBlock.Id;
+                        continue;
                     }
+                    calculatorItem.Blocked = itemBlock.Type;
+                    calculatorItem.IdOfBlock = itemBlock.Id;
                 }
             }
             ViewBag.logs = calculatorLogTests;
@@ -814,6 +819,7 @@ namespace Portal.Controllers
             ReplacementGroupsModel model = new ReplacementGroupsModel();
             model.ReplacementGroups = new List<ReplacementGroup>();
             model.Items = CalculatorDb.Items.ToList();
+            model.ItemsGroups = CalculatorDb.ItemsGroups.ToList();
             List<ReplacementGroups> replacements = CalculatorDb.ReplacementGroups.ToList();
             foreach (var group in replacements)
             {
@@ -821,6 +827,10 @@ namespace Portal.Controllers
                 replacementGroup.ID = group.ID;
                 replacementGroup.Name = group.Name;
                 replacementGroup.Items = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == group.ID).ToList();
+                replacementGroup.Category = replacementGroup.Items.FirstOrDefault()?.ItemsGroup;
+                replacementGroup.CategoryName = replacementGroup.Category.HasValue
+                    ? CalculatorDb.ItemsGroups.FirstOrDefault(x => x.Guid == replacementGroup.Category.Value)?.Name
+                    : null;
                 model.ReplacementGroups.Add(replacementGroup);
             }
             return PartialView(model);
@@ -886,10 +896,15 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateGroup(string name)
+        public IActionResult CreateGroup([FromBody] CreateReplacementGroupRequest request)
         {
+            if (request == null || string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest(new { Message = "invalid group data" });
+            }
+
             ReplacementGroups replacementGroups = new ReplacementGroups();
-            replacementGroups.Name = name;
+            replacementGroups.Name = request.Name.Trim();
             CalculatorDb.ReplacementGroups.Add(replacementGroups);
             CalculatorDb.SaveChanges();
             return Ok();
@@ -901,12 +916,63 @@ namespace Portal.Controllers
             {
                 return BadRequest(new { Message = "itemsModel is null" });
             }
-            List<Items> OldGroupItems = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == itemsModel.Group).ToList();
-            foreach (var item in OldGroupItems)
+
+            ReplacementGroups group = CalculatorDb.ReplacementGroups.FirstOrDefault(x => x.ID == itemsModel.Group);
+            if (group == null)
+            {
+                return NotFound(new { Message = "group not found" });
+            }
+
+            List<Items> existingGroupItems = CalculatorDb.Items.Where(x => x.ReplacementGroupsId == itemsModel.Group).ToList();
+            Guid? groupCategory = existingGroupItems.FirstOrDefault()?.ItemsGroup;
+
+            if (!groupCategory.HasValue)
+            {
+                int? firstSelectedItemId = itemsModel.Items?
+                    .Where(x => x.HasValue)
+                    .Select(x => x.Value)
+                    .FirstOrDefault();
+
+                if (firstSelectedItemId.HasValue && firstSelectedItemId.Value > 0)
+                {
+                    groupCategory = CalculatorDb.Items
+                        .Where(x => x.RkCode == firstSelectedItemId.Value)
+                        .Select(x => (Guid?)x.ItemsGroup)
+                        .FirstOrDefault();
+                }
+            }
+
+            if (!groupCategory.HasValue)
+            {
+                foreach (var item in existingGroupItems)
+                {
+                    item.ReplacementGroupsId = null;
+                }
+
+                CalculatorDb.SaveChanges();
+                return Ok();
+            }
+
+            bool itemsGroupExists = CalculatorDb.ItemsGroups.Any(x => x.Guid == groupCategory.Value);
+            if (!itemsGroupExists)
+            {
+                return BadRequest(new { Message = "items group not found" });
+            }
+
+            foreach (var item in existingGroupItems)
             {
                 item.ReplacementGroupsId = null;
             }
-            List<Items> items = CalculatorDb.Items.Where(x => itemsModel.Items.Contains(x.RkCode)).ToList();
+
+            List<int> itemIds = itemsModel.Items?
+                .Where(x => x.HasValue)
+                .Select(x => x.Value)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            List<Items> items = CalculatorDb.Items
+                .Where(x => itemIds.Contains(x.RkCode) && x.ItemsGroup == groupCategory.Value)
+                .ToList();
             foreach (var item in items)
             {
                 item.ReplacementGroupsId = itemsModel.Group;
@@ -915,7 +981,168 @@ namespace Portal.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult LockItemBlock([FromBody] CalculatorItemBlockRequest request)
+        {
+            if (request == null || request.ItemRkCode == 0 || request.TTCode == 0)
+            {
+                return BadRequest(new { Message = "invalid request" });
+            }
 
+            ItemBlock itemBlock = new ItemBlock
+            {
+                ItemRkCode = request.ItemRkCode,
+                TTCode = request.TTCode,
+                Type = 1,
+                Enable = true,
+                Info = User.Identity.Name,
+                Begin = DateTime.Today,
+                End = DateTime.Today.AddDays(1)
+            };
+
+            CalculatorDb.itemBlocks.Add(itemBlock);
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult UnlockItemBlock([FromBody] CalculatorItemBlockRequest request)
+        {
+            if (request == null || request.ItemRkCode == 0)
+            {
+                return BadRequest(new { Message = "invalid request" });
+            }
+
+            ItemBlock itemBlock = CalculatorDb.itemBlocks.Where(x => x.ItemRkCode == request.ItemRkCode && x.Enable)
+                                                         .OrderByDescending(x => x.Id)
+                                                         .FirstOrDefault();
+
+            if (itemBlock == null)
+            {
+                return NotFound(new { Message = "block not found" });
+            }
+
+            itemBlock.Enable = false;
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+        public IActionResult ItemBlocks()
+        {
+            ItemsBlocksProps ItemsBlocksProps = new ItemsBlocksProps();
+            ItemsBlocksProps.itemBlocks = CalculatorDb.itemBlocks.Where(x => x.Enable).ToList();
+            ItemsBlocksProps.tts = db.TTs.ToList();
+            ItemsBlocksProps.items = CalculatorDb.Items.ToList();
+
+            return PartialView(ItemsBlocksProps);
+        }
+
+        public class ItemsBlocksProps
+        {
+            public List<ItemBlock> itemBlocks { get; set; }
+            public List<RKNet_Model.TT.TT> tts { get; set; }
+            public List<Items> items { get; set; }
+        }
+
+        public class CreateItemBlockRequest
+        {
+            public int? Id { get; set; }
+            public int ItemRkCode { get; set; }
+            public int? TTCode { get; set; }
+            public DateTime Begin { get; set; }
+            public DateTime End { get; set; }
+            public int? Type { get; set; }
+        }
+
+        [HttpPost]
+        public IActionResult AddItemBlock([FromBody] CreateItemBlockRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { Message = "invalid request" });
+            }
+
+            if (request.ItemRkCode <= 0)
+            {
+                return BadRequest(new { Message = "invalid item" });
+            }
+
+            if (request.Begin == default || request.End == default)
+            {
+                return BadRequest(new { Message = "invalid dates" });
+            }
+
+            if (request.Begin > request.End)
+            {
+                return BadRequest(new { Message = "begin date must be before end date" });
+            }
+
+            bool isEdit = request.Id.HasValue && request.Id.Value > 0;
+
+            if (!isEdit && request.End.Date <= request.Begin.Date)
+            {
+                return BadRequest(new { Message = "end date must be at least one day after begin date" });
+            }
+
+            if (!isEdit && (!request.Type.HasValue || request.Type < 1 || request.Type > 3))
+            {
+                return BadRequest(new { Message = "invalid type" });
+            }
+
+            Items item = CalculatorDb.Items.FirstOrDefault(x => x.RkCode == request.ItemRkCode);
+            if (item == null)
+            {
+                return NotFound(new { Message = "item not found" });
+            }
+
+            ItemBlock itemBlock;
+            if (isEdit)
+            {
+                itemBlock = CalculatorDb.itemBlocks.FirstOrDefault(x => x.Id == request.Id.Value);
+                if (itemBlock == null)
+                {
+                    return NotFound(new { Message = "block not found" });
+                }
+                itemBlock.Info = itemBlock.Info + " Изменил: " + User?.Identity?.Name + " " + DateTime.Now.ToString();
+            }
+            else
+            {
+                itemBlock = new ItemBlock();
+                CalculatorDb.itemBlocks.Add(itemBlock);
+                itemBlock.Info = "Заполнил: " + User?.Identity?.Name + " " + DateTime.Now.ToString();
+            }
+
+            itemBlock.ItemRkCode = request.ItemRkCode;
+            itemBlock.TTCode = request.TTCode;
+            itemBlock.Begin = request.Begin.Date;
+            itemBlock.End = request.End.Date;
+            if (!isEdit)
+            {
+                itemBlock.Type = request.Type.Value;
+            }
+            itemBlock.Enable = true;
+            
+
+            CalculatorDb.SaveChanges();
+
+            return Ok();
+        }
+
+        public IActionResult DeleteItemBlock(int id)
+        {
+            ItemBlock item = CalculatorDb.itemBlocks.FirstOrDefault(x => x.Id == id);
+
+            if(item == null)
+            {
+                return NotFound(new { Message = "block not found" });
+            }
+
+            item.Enable = false;
+            item.Info = item.Info + " Удалил: " + User?.Identity?.Name + " " + DateTime.Now.ToString();
+            CalculatorDb.SaveChanges();
+
+            return Ok();
+        }
 
         [HttpDelete]
         public IActionResult DeleteGroup(int id)
@@ -1114,12 +1341,15 @@ namespace Portal.Controllers
     {
         public int ID { get; set; }
         public string Name { get; set; }
+        public Guid? Category { get; set; }
+        public string CategoryName { get; set; }
         public List<Items> Items { get; set; }
 
     }
     public class ReplacementGroupsModel
     {
         public List<Items> Items { get; set; }
+        public List<ItemsGroups> ItemsGroups { get; set; }
         public List<ReplacementGroup> ReplacementGroups { get; set; }
 
     }
@@ -1127,5 +1357,16 @@ namespace Portal.Controllers
     {
         public int Group { get; set; }
         public List<int?> Items { get; set; }
+    }
+
+    public class CreateReplacementGroupRequest
+    {
+        public string Name { get; set; }
+    }
+
+    public class CalculatorItemBlockRequest
+    {
+        public int ItemRkCode { get; set; }
+        public int TTCode { get; set; }
     }
 }
