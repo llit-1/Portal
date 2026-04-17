@@ -379,12 +379,12 @@ namespace Portal.Controllers
                             calculatorItem.SecondNextPeriodAdding = SecondNextPeriodGroupAdding * (calculatorItem.AverageSecondNextPer / SecondNextPeriodUnblockedSum);
                         }
                     }
+                   
                 }
-
                 foreach (var calculatorItem in calculatorInformation.Items)
                 {
                     ItemBlock itemBlock = itemBlocks.FirstOrDefault(x => x.ItemRkCode == calculatorItem.ItemOnTT.Item.RkCode);
-                    if(itemBlock == null)
+                    if (itemBlock == null)
                     {
                         continue;
                     }
