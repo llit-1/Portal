@@ -368,7 +368,7 @@ namespace Portal.Controllers
                         calculatorItem.Groupblockedcoff = groupblockedcoff;
                         if (ThisPeriodUnblockedSum > 0)
                         {
-                            calculatorItem.ThisPeriodAdding = ThisPeriodGroupAdding * (calculatorItem.AverageRestOfThisPeriod - calculatorItem.AverageProductionPeriod / ThisPeriodUnblockedSum);
+                            calculatorItem.ThisPeriodAdding = ThisPeriodGroupAdding * (calculatorItem.AverageRestOfThisPeriod / ThisPeriodUnblockedSum);
                         }
                         if (NextPeriodUnblockedSum > 0)
                         {

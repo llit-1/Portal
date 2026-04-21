@@ -10,8 +10,8 @@ using System.Text;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
 using System.IO;
-using Portal.Models.MSSQL.Location;
 using Portal.Models.MSSQL;
+using Portal.Models.MSSQL.Location;
 using System.Net.Http.Headers;
 
 namespace Portal.Controllers
@@ -97,6 +97,133 @@ namespace Portal.Controllers
             public List<Portal.Models.MSSQL.WarehouseHolder> Holders { get; set; }
             public List<Location> Locations { get; set; }
             public List<WarehouseCategories> MainCategories { get; set; } = new();
+        }
+
+        public class StockSearchRequest
+        {
+            [JsonProperty("holder")]
+            public string? Holder { get; set; }
+            [JsonProperty("cathegory")]
+            public string? Cathegory { get; set; }
+            [JsonProperty("locationGuids")]
+            public List<Guid> LocationGuids { get; set; } = new();
+            [JsonProperty("actual")]
+            public int Actual { get; set; }
+        }
+
+        private class Cat
+        {
+            public ResponseCategory? mainCat { get; set; }
+            public ResponseCategory? cat { get; set; }
+            public ResponseCategory? secondCat { get; set; }
+            public ResponseHolder? warehouseHolder { get; set; }
+            public ResponseLocation? location { get; set; }
+            public List<ResponseItem> items { get; set; } = new();
+        }
+
+        private class ResponseItem
+        {
+            public ResponseCategory? mainCat { get; set; }
+            public ResponseCategory? cat { get; set; }
+            public ResponseCategory? secondCat { get; set; }
+            public ResponseHolder? warehouseHolder { get; set; }
+            public ResponseLocation? location { get; set; }
+            public string? code { get; set; }
+        }
+
+        private class ResponseCategory
+        {
+            public int id { get; set; }
+            public string? name { get; set; }
+        }
+
+        private class ResponseHolder
+        {
+            public string? surname { get; set; }
+            public string? name { get; set; }
+            public string? patronymic { get; set; }
+        }
+
+        private class ResponseLocation
+        {
+            public Guid guid { get; set; }
+            public string? name { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SearchStockItems([FromBody] StockSearchRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                var token = HttpContext.Request.Cookies["access_token"];
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                int? categoryId = int.TryParse(request.Cathegory, out var parsedCategoryId)
+                    ? parsedCategoryId
+                    : null;
+                int? holderId = int.TryParse(request.Holder, out var parsedHolderId)
+                    ? parsedHolderId
+                    : null;
+
+                var outboundRequest = new StockSearchRequest
+                {
+                    Cathegory = categoryId?.ToString(),
+                    Holder = holderId?.ToString(),
+                    LocationGuids = request.LocationGuids.Where(x => x != Guid.Empty).ToList(),
+                    Actual = request.Actual
+                };
+
+                var content = new StringContent(
+                    JsonConvert.SerializeObject(outboundRequest),
+                    Encoding.UTF8,
+                    "application/json");
+
+                using HttpResponseMessage response = await httpClient.PostAsync(
+                    "https://warehouseapi.ludilove.ru/api/category/gethardmodel",
+                    content);
+                response.EnsureSuccessStatusCode();
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<List<Cat>>(jsonResponse) ?? new List<Cat>();
+
+                if (request.LocationGuids == null || !request.LocationGuids.Any())
+                {
+                    return Content(JsonConvert.SerializeObject(data), "application/json");
+                }
+
+                var selectedLocations = request.LocationGuids
+                    .Where(x => x != Guid.Empty)
+                    .ToHashSet();
+
+                if (!selectedLocations.Any())
+                {
+                    return Content(JsonConvert.SerializeObject(data), "application/json");
+                }
+
+                var filteredData = data
+                    .Select(category =>
+                    {
+                        category.items = category.items
+                            .Where(item => item.location != null && selectedLocations.Contains(item.location.guid))
+                            .ToList();
+                        return category;
+                    })
+                    .Where(category => category.items.Any())
+                    .ToList();
+
+                return Content(JsonConvert.SerializeObject(filteredData), "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in SearchStockItems: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
 

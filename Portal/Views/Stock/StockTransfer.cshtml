@@ -117,49 +117,62 @@
 </div>
 
 
-<div class="stockTransfer_modal" style="display: none">
-    <div class="modal_body">
-        <div class="modal_header">Ошибка</div>
-        <div class="modal_message">Не выбрана начальная точка</div>
-        <div class="model_button"> <button onclick="closeModal()" class="btn btn-default">ОК</button> </div>
+<div id="stockTransferMessageModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeModal()"></label>
+                </div>
+                <h4 class="modal-title" id="stockTransferModalTitle">Ошибка</h4>
+            </div>
+            <div class="modal-body" id="stockTransferModalMessage">Не выбрана начальная точка</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeModal()">ОК</button>
+            </div>
+        </div>
     </div>
 </div>
 
-
-<div class="stockTransfer_modalAddPerson" style="display: none">
-    <div class="modal_body_modalAddPerson">
-        <div class="modal_header">Добавление держателя</div>
-        <div class="modal_message">
-
-            <label class="label-light">Фамилия</label>
-            <div class="form-group">
-                <input id="modal_surname" class="form-control" />
+<div id="stockTransferAddPersonModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeModalAddPerson()"></label>
+                </div>
+                <h4 class="modal-title">Добавление держателя</h4>
             </div>
+            <div class="modal-body">
+                <label class="label-light">Фамилия</label>
+                <div class="form-group">
+                    <input id="modal_surname" class="form-control" />
+                </div>
 
-            <label class="label-light">Имя</label>
-            <div class="form-group">
-                <input id="modal_name" class="form-control" />
+                <label class="label-light">Имя</label>
+                <div class="form-group">
+                    <input id="modal_name" class="form-control" />
+                </div>
+
+                <label class="label-light">Отчество</label>
+                <div class="form-group">
+                    <input id="modal_patronymic" class="form-control" />
+                </div>
+
+                <label class="label-light">Должность</label>
+                <div class="form-group">
+                    <input id="modal_jobTitle" class="form-control" />
+                </div>
+
+                <label class="label-light">Отдел</label>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input id="modal_department" class="form-control" />
+                </div>
             </div>
-
-            <label class="label-light">Отчество</label>
-            <div class="form-group">
-                <input id="modal_patronymic" class="form-control" />
+            <div class="modal-footer">
+                <button disabled id="addNewHolder" onclick="addNewHolder()" class="btn btn-sm btn-success">Добавить</button>
+                <button id="closeModalNewHolder" type="button" onclick="closeModalAddPerson()" class="btn btn-sm btn-default" data-dismiss="modal">Закрыть</button>
             </div>
-
-            <label class="label-light">Должность</label>
-            <div class="form-group">
-                <input id="modal_jobTitle" class="form-control" />
-            </div>
-
-            <label class="label-light">Отдел</label>
-            <div class="form-group">
-                <input id="modal_department" class="form-control" />
-            </div>
-
-        </div>
-        <div class="model_button">
-            <button disabled id="addNewHolder" onclick="addNewHolder()" class="btn btn-success">Добавить</button>
-            <button id="closeModalNewHolder" onclick="closeModalAddPerson()" class="btn btn-default">Закрыть</button>
         </div>
     </div>
 </div>
@@ -168,38 +181,28 @@
 
     $('#PageHeader').text('Склад');
 
-    const modal = document.querySelector('.stockTransfer_modal');
-    const modal_body = document.querySelector('.modal_body'); 
-    const modal_message = document.querySelector('.modal_message');
-    const modal_header = document.querySelector('.modal_header');
+    const modal = $("#stockTransferMessageModal");
+    const modal_message = document.getElementById('stockTransferModalMessage');
+    const modal_header = document.getElementById('stockTransferModalTitle');
     
-    const modalAddPerson = document.querySelector('.stockTransfer_modalAddPerson');
-    const modal_body_modalAddPerson = document.querySelector('.modal_body_modalAddPerson');
+    const modalAddPerson = $("#stockTransferAddPersonModal");
 
     function closeModal() {
-        modal.style.display = "none";
+        modal.modal("hide");
     }
 
     function closeModalAddPerson() {
-        modalAddPerson.style.display = "none";
+        modalAddPerson.modal("hide");
     }
-
-    modal.addEventListener('click', (e) => {
-        if (!modal_body.contains(e.target)) {
-            closeModal();
-        }
-    })
-
-     modalAddPerson.addEventListener('click', (e) => {
-        if (!modal_body_modalAddPerson.contains(e.target)) {
-            closeModalAddPerson();
-        }
-    })
 
     function openModalStockTransfer(header ,message) {
         modal_message.textContent = message;
         modal_header.textContent = header;
-        modal.style.display = "block";
+        modal.modal({
+            backdrop: "static",
+            keyboard: false,
+            show: true
+        });
     }
 
     async function getAllHolders() {
@@ -480,11 +483,11 @@
         const existingRow = table.querySelector(`[data-object-id="${id}"]`);
 
         
-        // if(comments.value == "" || comments.value.length < 2)
-        // {
-        //     openModalStockTransfer("Вы должны указать комментарий!")
-        //     return null;
-        // }
+        if(comments.value == "" || comments.value.length < 2)
+        {
+            openModalStockTransfer("Ошибка" ,"Вы должны указать комментарий!")
+            return null;
+        }
 
 
         if(state.transfer_end === null && state.newowner === null)
@@ -650,7 +653,11 @@
         {
             document.getElementById('addNewHolder').style.display = "block"
             document.getElementById('closeModalNewHolder').style.display = "none"
-            modalAddPerson.style.display = "block";
+            modalAddPerson.modal({
+                backdrop: "static",
+                keyboard: false,
+                show: true
+            });
 
             modal_surname.value = ""
             modal_name.value = ""
@@ -665,7 +672,11 @@
         } else {
             document.getElementById('addNewHolder').style.display = "none"
             document.getElementById('closeModalNewHolder').style.display = "block"
-            modalAddPerson.style.display = "block";
+            modalAddPerson.modal({
+                backdrop: "static",
+                keyboard: false,
+                show: true
+            });
 
             try{
                 $("#spinner").show()

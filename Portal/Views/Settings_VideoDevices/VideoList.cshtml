@@ -1,14 +1,5 @@
 @model List<Portal.Controllers.Settings_VideoDevicesController.VideoFileInfo>
 
-<div class="hidden">
-    <h2>Upload Video</h2>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" id="videoFile" name="videoFile" accept="video/*" required>
-        <button type="button" id="uploadButton">Upload</button>
-    </form>
-    <div id="result"></div>
-</div>
-
 <div id="headMenu" class="row" style="margin:0px">
     <div class="col-12" style="display:inline-block">
         <table class="table-page-menu" style="margin-top: 10px; margin-bottom: 10px">
@@ -26,13 +17,9 @@
         </table>
 
         <div id="tableMenu" class="col-md-12" style="padding:0px">
-            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
-            <button class="btn btn-sm btn-success addTTButton" onclick="selectVideo(this)" style="margin-left:20px">1. Выбрать видео</button>
-            <button class="btn btn-sm btn-success addTTButton" onclick="uploadVideo()" style="margin-left:20px" id="downloadButton" disabled>2. Загрузить видео</button>
+            <input class="form-control-sm" placeholder="Search" id="searchDatatable">
         </div>
 
-        <div id="addMenu" class="col-md-12" style="margin-top:10px; padding:0px">
-        </div>
     </div>
 </div>
 
@@ -51,7 +38,6 @@
                                         <th>Название видео</th>
                                         <th style="text-align: center">Размер видео</th>
                                         <th style="text-align: center">Просмотр</th>
-                                        <th align="left" style="text-align: center" class="deleteVideo">Удалить</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablePerson">
@@ -93,9 +79,6 @@
                                                     <video class="videoTV"  controls="controls" style="max-width: 14vw" preload="none" muted="muted" volume="0">
                                                         <source src="/Settings_VideoDevices/GetFile?path=@item.FullName">
                                                     </video>
-                                                </td>
-                                                <td  width="10%" align="center">
-                                                    <label class="md-remove-circle-outline ico deleteDeviceIp" onclick="deleteVideoModal('@item.Guid')" style="margin: 0;"> </label>
                                                 </td>
                                             </tr>
                                             count++;
@@ -153,39 +136,6 @@
         border-radius: 10px;
         border-color: #CCCCCC;
      }
-
-    .ttvideo_container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        padding: 5px;
-        border: 1px solid black;
-        border-radius: 5px;
-        gap: 5px;
-        margin-top: 10px;
-    }
-
-    .ttvideo_container_main {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px;
-        border: 1px solid black;
-        border-radius: 5px;
-    }
-
-    .ttvideo_container_main > div {
-        width: 25%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    #videoFile {
-        width: 130px;
-        padding: 10px;
-    }
 
  </style>
 
@@ -336,42 +286,6 @@
     }
 </style>
 
-<script>
-    function uploadVideo() {
-        var fileInput = document.getElementById('videoFile');
-        var file = fileInput.files[0];
-        if (!file) {
-            alert("Please select a video file.");
-            return;
-        }
-        var formData = new FormData();
-        formData.append('videoFile', file);
-        SpinnerShow();
-        $.ajax({
-            type: 'POST',
-            url: `/Settings_VideoDevices/UploadVideo`,
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (result) {
-                location.reload()
-            },
-            error: function (xhr, status, error) {
-                console.log("Error: " + error);
-                SpinnerHide();
-            }
-        });
-    }
-
-    function selectVideo(elem) { 
-        $('#videoFile').click()
-    }
-
-
-
-    const deleteVideo = document.querySelector('.deleteVideo')
-    deleteVideo.classList.remove('sorting')
-</script>
 
 @* Смена позиции видео и обновление данных на устройстве *@
 <script>
@@ -411,65 +325,6 @@
 </script>
 
 @* Удаление видео *@
-<script>
-    function deleteVideo(guid) {
-        try {
-            SpinnerShow()
-            $.ajax({
-                type: "POST",
-                url: `/Settings_VideoDevices/DeleteVideo?guid=${guid}`,
-                dataType: "text",
-                success: function (result) {
-                    location.reload()
-                },
-            });
-        } catch {
-            SpinnerHide()
-            openModal('Ошибка', "Не удалось отправить данные на сервер. Попробуйте повторить попытку позже");
-
-        }
-    }
-
-    function deleteVideoModal(guid) {
-        global.innerHTML += `
-                        <div id="myModalVideo" class="modalVideo">
-                            <div class="modal-contentVideoDelete">
-                                <div id="modalDelete" class="modalDelete">
-                                    <p>Удалить видео?</p>
-                                    <div class="">
-                                                <button class="buttonForDeleteRed" onClick='deleteVideo("${guid}")'>Да</button>
-                                        <button class="buttonForDeleteGreen" onClick="noFn()">Нет</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`
-
-        const myModalVideo = document.getElementById('myModalVideo')
-        myModalVideo.style.display = "block";
-        window.onclick = function (event) {
-            if (event.target == myModalVideo) {
-                myModalVideo.remove()
-            }
-        }
-    }
-
-    function noFn() {
-        myModalVideo.remove()
-    }
-
-    (() => {
-        const videoFile = document.getElementById('videoFile')
-        const downloadButton = document.getElementById('downloadButton')
-        downloadButton.style.backgroundColor = "#2ECC71"
-        videoFile.addEventListener('change', () => {
-            if (videoFile.file != null || videoFile.file != 'undefined') { 
-                downloadButton.style.backgroundColor = "#2ECC71"
-                downloadButton.disabled = false
-            }
-        })
-    })()
-</script>
-
 <script>
     $('#back').unbind('click');
     $('#back').click(function () { location.hash = "#" });

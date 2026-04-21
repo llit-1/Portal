@@ -126,10 +126,20 @@
 </div>
 
 @* Модальное окно для просмотра истории *@
-<div class="stockSearchCard_modal" style="display: none">
-    <div class="stockSearchCard_modal_body" id="stockSearchCard_modal_body">
-        <div class="stockSearchCard_modal_header">История</div>
-        <div class="stockSearchCard_modal_message" id="card_details"></div>
+<div id="stockSearchHistoryModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none;">
+    <div class="modal-dialog modal-lg" style="width: 90%; max-width: 1100px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeModal()"></label>
+                </div>
+                <div class="modal-title" id="stockSearchHistoryTitle">История</div>
+            </div>
+            <div class="modal-body" id="card_details"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeModal()">Закрыть</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -152,24 +162,20 @@
         }
     }
 
-    const modal = document.querySelector('.stockSearchCard_modal');
-    const modal_body = document.querySelector('.stockSearchCard_modal_body');
-    const modal_message = document.querySelector('.stockSearchCard_modal_message');
-    const modal_header = document.querySelector('.stockSearchCard_modal_header');
+    const modal = $("#stockSearchHistoryModal");
+    const modal_header = document.getElementById("stockSearchHistoryTitle");
 
     function closeModal() {
-        modal.style.display = "none";
+        modal.modal("hide");
     }
-
-    modal.addEventListener('click', (e) => {
-        if (!modal_body.contains(e.target)) {
-            closeModal();
-        }
-    });
 
     function openModalStockSearchCard(code, name) {
         modal_header.innerHTML = `<p>${code}</p> <b>${name}</b>`;
-        modal.style.display = "block";
+        modal.modal({
+            backdrop: "static",
+            keyboard: false,
+            show: true
+        });
         search(code);
     }
 
@@ -305,6 +311,7 @@
             options: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ttOptions)),
             searchValue: '',
             disabled: false,
+            multiple: true,
             onChange: () => buttonSendTurnOn()
         },
         categorySelectWrapper: {
@@ -351,22 +358,64 @@
         });
     }
 
+    function getStockSearchValues(config) {
+        if (!config.multiple) {
+            return config.hiddenInput.value ? [config.hiddenInput.value] : [];
+        }
+
+        if (!config.hiddenInput.value) {
+            return [];
+        }
+
+        try {
+            const parsedValue = JSON.parse(config.hiddenInput.value);
+            return Array.isArray(parsedValue) ? parsedValue.filter(Boolean) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function setStockSearchValues(selectId, values, invokeChange) {
+        const config = stockSearchSelects[selectId];
+        const normalizedValues = (values || [])
+            .filter(value => config.options.some(option => option.value === value));
+
+        config.hiddenInput.value = config.multiple
+            ? JSON.stringify(normalizedValues)
+            : (normalizedValues[0] || '');
+        config.searchValue = '';
+        renderStockSearchSelect(selectId);
+
+        if (invokeChange && typeof config.onChange === 'function') {
+            config.onChange(config.multiple ? normalizedValues : config.hiddenInput.value);
+        }
+    }
+
     function renderStockSearchSelect(selectId) {
         const config = stockSearchSelects[selectId];
         const triggerValue = config.wrapper.querySelector('.stock_custom_select__value');
         const searchInput = config.wrapper.querySelector('.stock_custom_select__search');
         const optionsContainer = config.wrapper.querySelector('.stock_custom_select__options');
-        const selectedValue = config.hiddenInput.value;
-        const selectedOption = config.options.find(x => x.value === selectedValue);
+        const selectedValues = getStockSearchValues(config);
+        const selectedOptions = config.options.filter(option => selectedValues.includes(option.value));
         const filterValue = (config.searchValue || '').trim().toLowerCase();
 
-        triggerValue.textContent = selectedOption ? selectedOption.label : config.placeholder;
-        triggerValue.classList.toggle('stock_custom_select__value--placeholder', !selectedOption);
+        if (!selectedOptions.length) {
+            triggerValue.textContent = config.placeholder;
+        } else if (!config.multiple || selectedOptions.length === 1) {
+            triggerValue.textContent = selectedOptions[0].label;
+        } else if (selectedOptions.length <= 2) {
+            triggerValue.textContent = selectedOptions.map(option => option.label).join(', ');
+        } else {
+            triggerValue.textContent = `Выбрано: ${selectedOptions.length}`;
+        }
+
+        triggerValue.classList.toggle('stock_custom_select__value--placeholder', !selectedOptions.length);
         searchInput.value = config.searchValue || '';
 
         let html = '';
 
-        if (selectedValue) {
+        if (selectedValues.length) {
             html += `<button type="button" class="stock_custom_select__option stock_custom_select__option--clear" data-value="">Сбросить выбор</button>`;
         }
 
@@ -380,7 +429,7 @@
 
         if (filteredOptions.length) {
             filteredOptions.forEach(option => {
-                const selectedClass = option.value === selectedValue ? ' stock_custom_select__option--selected' : '';
+                const selectedClass = selectedValues.includes(option.value) ? ' stock_custom_select__option--selected' : '';
                 html += `<button type="button" class="stock_custom_select__option${selectedClass}" data-value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</button>`;
             });
         } else {
@@ -402,21 +451,26 @@
 
     function setStockSearchValue(selectId, value, invokeChange) {
         const config = stockSearchSelects[selectId];
-        const hasValue = value && config.options.some(option => option.value === value);
-        config.hiddenInput.value = hasValue ? value : '';
-        config.searchValue = '';
-        renderStockSearchSelect(selectId);
+        if (config.multiple) {
+            const currentValues = getStockSearchValues(config);
+            const nextValues = value
+                ? (currentValues.includes(value)
+                    ? currentValues.filter(item => item !== value)
+                    : [...currentValues, value])
+                : [];
 
-        if (invokeChange && typeof config.onChange === 'function') {
-            config.onChange(config.hiddenInput.value);
+            setStockSearchValues(selectId, nextValues, invokeChange);
+            return;
         }
+
+        setStockSearchValues(selectId, value ? [value] : [], invokeChange);
     }
 
     function setStockSearchOptions(selectId, options, disabled) {
         const config = stockSearchSelects[selectId];
         config.options = options || [];
         config.searchValue = '';
-        config.hiddenInput.value = '';
+        config.hiddenInput.value = config.multiple ? '[]' : '';
         setStockSearchDisabled(selectId, disabled);
         renderStockSearchSelect(selectId);
     }
@@ -512,37 +566,38 @@
     async function sendData() {
         const obj = {
             holdersCategory: holdersCategory.value || null,
-            ttSelect: ttSelect.value || null,
+            ttSelect: getStockSearchValues(stockSearchSelects.ttSelectWrapper),
             category: subSubCategorySelect.value || subCategorySelect.value || categorySelect.value || null
         };
 
-        const url = new URL("https://warehouseapi.ludilove.ru/api/category/gethardmodel");
-        const params = new URLSearchParams();
-
-        if (obj.category) params.append("cathegory", obj.category);
-        if (obj.holdersCategory) params.append("holder", obj.holdersCategory);
-        if (obj.ttSelect) params.append("location", obj.ttSelect);
-        params.append("actual", custom_slider.id);
-
-        url.search = params.toString();
-
         try {
             $("#spinner").show();
-            const response = await fetch(url, {
-                method: 'GET',
+            const response = await fetch('/Stock/SearchStockItems', {
+                method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("token")}`
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    holder: obj.holdersCategory,
+                    cathegory: obj.category,
+                    locationGuids: obj.ttSelect,
+                    actual: Number(custom_slider.id)
+                })
             });
+
+            if (!response.ok) {
+                throw new Error('Не удалось загрузить данные склада');
+            }
 
             const result = await response.json();
 
             if (!result.length) {
                 body_stock.innerHTML = "";
+                urlBackup = '';
                 return nullMessage.classList.remove('hidden');
             }
 
-            urlBackup = url.toString();
+            urlBackup = '';
             showData(result, custom_slider.id);
         } catch (e) {
             console.error(e.message);
@@ -619,7 +674,7 @@
     function clearFields() {
         closeAllStockSearchSelects();
         setStockSearchValue('holdersCategorySelect', '', false);
-        setStockSearchValue('ttSelectWrapper', '', false);
+        setStockSearchValues('ttSelectWrapper', [], false);
         setStockSearchValue('categorySelectWrapper', '', false);
         setStockSearchOptions('subCategorySelectWrapper', [], true);
         setStockSearchOptions('subSubCategorySelectWrapper', [], true);
@@ -635,7 +690,9 @@
         if (option) {
             const wrapper = option.closest('.stock_custom_select');
             setStockSearchValue(wrapper.id, option.dataset.value || '', true);
-            closeAllStockSearchSelects();
+            if (!stockSearchSelects[wrapper.id].multiple || !option.dataset.value) {
+                closeAllStockSearchSelects();
+            }
             return;
         }
 
@@ -658,7 +715,7 @@
     .stock_custom_select__trigger {
         position: relative;
         width: 100%;
-        height: 34px;
+        height: 40px;
         padding: 6px 34px 6px 12px;
         border: 1px solid #ccc;
         border-radius: 5px;
@@ -749,7 +806,11 @@
     }
 
     .stock_custom_select__option--selected {
-        background: #eaf3ff;
+        position: relative;
+        background: linear-gradient(90deg, #d7ecff 0%, #edf6ff 100%);
+        color: #0b4f8a;
+        font-weight: 700;
+        box-shadow: inset 4px 0 0 #1f7ed0;
     }
 
     .stock_custom_select__option--clear {
