@@ -1,55 +1,69 @@
 @model int
 
-<div class="modal-content-stock">
-
-    <form class="content-stock-table" onsubmit="addSubCategoryItem(event, @Model, document.querySelector('.stock-table-input').value)">
-        <span class="stock-table-span">Введите название:</span>
-        <input class="stock-table-input" required />
-        <input type="submit" class="stock-table-button" value="ДОБАВИТЬ">
-    </form>
-
+<div id="stockTableCreateModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label>
+                </div>
+                <h4 class="modal-title">Добавление подкатегории</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stock-table-input">Введите название</label>
+                    <input id="stock-table-input" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-success" onclick="saveStockTableCategory(@Model)">Добавить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<style>
-    .modal-content-stock {
-        margin: 15% auto;
-        padding: 20px;
-        background: white;
-        border: 1px solid #D3D2D2;
-        width: fit-content;
-        display: flex;
-        flex-direction: row;
-        justify-content: start;
-    }
+<script>
+    async function saveStockTableCategory(parentId) {
+        const input = document.getElementById("stock-table-input");
+        const name = input ? input.value.trim() : "";
 
-    .content-stock-table {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        align-items: center;
-    }
+        if (!name) {
+            return;
+        }
 
-    .stock-table-span {
-        font-size: 16px;
-        font-family: "Akrobat-regular";
-    }
+        const data = {
+            Id: null,
+            Name: name,
+            Parent: parentId,
+            Actual: 1,
+            Img: null
+        };
 
-    .stock-table-input {
-        padding: 8px;
-        border: 1px solid #CCCCCC;
-    }
+        $("#spinner").show();
 
-    .stock-table-button {
-        padding: 5px 10px;
-        color: white;
-        border: none;
-        background-color: #F47920;
-        font-family: "Akrobat-regular";
-        transition: all 0.25s linear;
-    }
+        try {
+            await fetch("/Stock/AddSubCategoryItem", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
 
-    .stock-table-button:hover {
-        background-color: #e6660b;
+            if (typeof hideDynamicStockModal === "function") {
+                hideDynamicStockModal();
+            }
+
+            const categoryIdElement = document.getElementById("categoryID");
+            if (categoryIdElement) {
+                await $(".stock").load("/Stock/StockTable?id=" + categoryIdElement.textContent.trim());
+                return;
+            }
+
+            await $(".stock").load("/Stock/Stock");
+        } finally {
+            $("#spinner").hide();
+        }
     }
-    
-</style>
+</script>

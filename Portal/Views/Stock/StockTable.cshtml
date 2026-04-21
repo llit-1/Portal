@@ -63,7 +63,7 @@
 
     </div>
 
-<div id="modalContainer" class="modal" style="display: none;"></div>
+<div id="modalContainer"></div>
 
 
 <style>
@@ -159,6 +159,10 @@
         });
 
         $("#spinner").hide()
+
+        if (typeof hideDynamicStockModal === "function") {
+            hideDynamicStockModal();
+        }
 
         return await $(".stock").load("/Stock/StockTable?id=" + idCategory);
     }

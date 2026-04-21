@@ -421,11 +421,27 @@ namespace Portal.Controllers
                     location.Parent = null;
                 }
 
-                locationVersions.Location.Latitude = ttJsn.latitude;
-                locationVersions.Location.Longitude = ttJsn.longitude;
+                locationVersions.Location = location;
+
+                if (ttJsn.latitude != null)
+                {
+                    locationVersions.Location.Latitude = ttJsn.latitude;
+                }
+                else
+                {
+                    locationVersions.Location.Latitude = null;
+                }
+
+                if (ttJsn.longitude != null)
+                {
+                    locationVersions.Location.Longitude = ttJsn.longitude;
+                }
+                else
+                {
+                    locationVersions.Location.Longitude = null;
+                }
                 location.Actual = 1;
 
-                locationVersions.Location = location;
                 locationVersions.Name = ttJsn.Name;
                 locationVersions.OBD = null;
                 locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
