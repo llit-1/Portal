@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.EMMA;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -995,7 +996,7 @@ namespace Portal.Controllers
                 TTCode = request.TTCode,
                 Type = 1,
                 Enable = true,
-                Info = User.Identity.Name,
+                Info = "Заполнил: " + User.Identity.Name + " " + DateTime.Now,
                 Begin = DateTime.Today,
                 End = DateTime.Today.AddDays(1)
             };
@@ -1022,6 +1023,7 @@ namespace Portal.Controllers
                 return NotFound(new { Message = "block not found" });
             }
 
+            itemBlock.Info = " Удалил: " + User.Identity.Name + " " + DateTime.Now;
             itemBlock.Enable = false;
             CalculatorDb.SaveChanges();
             return Ok();
