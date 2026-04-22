@@ -1,4 +1,7 @@
 @model PersonalityEditModel
+@{
+    var maxBirthDate = DateTime.Today.AddYears(-14).ToString("yyyy-MM-dd");
+}
 
 <div class="personalityVersionEditWrapper">
     <!--Блок добавления\редактирования работника-->
@@ -68,7 +71,7 @@
                         <label class="label-light">Отчество</label>
                         <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" value="@Model.PersonalitiesVersions.Patronymic">
                         <label class="label-light">Дата рождения</label>
-                        <input required type="date" min="1900-01-01" max="2010-01-01" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
+                        <input required type="date" min="1900-01-01" max="@maxBirthDate" class="inputPersonData" id="birthDatePerson" value="@Model.PersonalitiesVersions.Personalities.BirthDate.ToString("yyyy-MM-dd")">
 
                         <label class="label-light">Парт-таймер</label>
                         <div style="width:100%; float:left; max-height:500px; overflow-y:auto">
@@ -447,7 +450,7 @@
                     <label class="label-light">Отчество</label>
                     <input type="text" class="inputPersonData" placeholder="Введите отчество" id="patronymicPerson" >
                     <label class="label-light">Дата рождения</label>
-                    <input required type="date" class="inputPersonData" id="birthDatePerson" min="1900-01-01" max="2010-01-01">
+                        <input required type="date" class="inputPersonData" id="birthDatePerson" min="1900-01-01" max="@maxBirthDate">
 
                     <label class="label-light">Парт-таймер</label>
                     <div style="width:100%; float:left; max-height:500px; overflow-y:auto">

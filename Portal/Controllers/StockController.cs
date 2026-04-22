@@ -106,7 +106,7 @@ namespace Portal.Controllers
             [JsonProperty("cathegory")]
             public string? Cathegory { get; set; }
             [JsonProperty("locationGuids")]
-            public List<Guid> LocationGuids { get; set; } = new();
+            public List<Guid>? LocationGuids { get; set; } = new();
             [JsonProperty("actual")]
             public int Actual { get; set; }
         }
@@ -175,7 +175,7 @@ namespace Portal.Controllers
                 {
                     Cathegory = categoryId?.ToString(),
                     Holder = holderId?.ToString(),
-                    LocationGuids = request.LocationGuids.Where(x => x != Guid.Empty).ToList(),
+                    LocationGuids = request.LocationGuids?.Where(x => x != Guid.Empty).ToList(),
                     Actual = request.Actual
                 };
 

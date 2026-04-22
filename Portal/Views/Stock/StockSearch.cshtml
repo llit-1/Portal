@@ -360,19 +360,28 @@
 
     function getStockSearchValues(config) {
         if (!config.multiple) {
-            return config.hiddenInput.value ? [config.hiddenInput.value] : [];
+            return config.hiddenInput.value ? [config.hiddenInput.value] : null;
         }
 
         if (!config.hiddenInput.value) {
-            return [];
+            return null;
         }
 
         try {
             const parsedValue = JSON.parse(config.hiddenInput.value);
-            return Array.isArray(parsedValue) ? parsedValue.filter(Boolean) : [];
+            if (!Array.isArray(parsedValue)) {
+                return null;
+            }
+
+            const normalizedValues = parsedValue.filter(Boolean);
+            return normalizedValues.length ? normalizedValues : null;
         } catch {
-            return [];
+            return null;
         }
+    }
+
+    function getStockSearchValueList(config) {
+        return getStockSearchValues(config) || [];
     }
 
     function setStockSearchValues(selectId, values, invokeChange) {
@@ -396,8 +405,8 @@
         const triggerValue = config.wrapper.querySelector('.stock_custom_select__value');
         const searchInput = config.wrapper.querySelector('.stock_custom_select__search');
         const optionsContainer = config.wrapper.querySelector('.stock_custom_select__options');
-        const selectedValues = getStockSearchValues(config);
-        const selectedOptions = config.options.filter(option => selectedValues.includes(option.value));
+        const selectedValues = getStockSearchValueList(config);
+        const selectedOptions = config?.options?.filter(option => selectedValues.includes(option.value));
         const filterValue = (config.searchValue || '').trim().toLowerCase();
 
         if (!selectedOptions.length) {
@@ -452,7 +461,7 @@
     function setStockSearchValue(selectId, value, invokeChange) {
         const config = stockSearchSelects[selectId];
         if (config.multiple) {
-            const currentValues = getStockSearchValues(config);
+            const currentValues = getStockSearchValueList(config);
             const nextValues = value
                 ? (currentValues.includes(value)
                     ? currentValues.filter(item => item !== value)

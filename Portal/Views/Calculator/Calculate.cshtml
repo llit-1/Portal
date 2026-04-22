@@ -154,6 +154,7 @@
                                       title="@lockTitle"
                                       data-block-state="@blockState"
                                       data-locked="@isLocked.ToString().ToLower()"
+                                      data-request-pending="false"
                                       onclick="toggleRowLock(this)">
                                     <i class="fa @lockIconClass" aria-hidden="true"></i>
                                 </span>
@@ -188,7 +189,7 @@
                 <p id="lockConfirmModalText" style="margin: 0; font-size: 16px;"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-danger" onclick="confirmToggleRowLock()">Подтвердить</button>
+                <button type="button" class="btn btn-sm btn-danger" id="lockConfirmButton" onclick="confirmToggleRowLock()">Подтвердить</button>
                 <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeLockConfirmModal()">Отмена</button>
             </div>
         </div>
@@ -204,6 +205,23 @@
     }
 
     let pendingLockElement = null;
+    let isLockRequestInProgress = false;
+
+    function setLockConfirmButtonBusy(isBusy) {
+        const confirmButton = document.getElementById('lockConfirmButton');
+        if (confirmButton) {
+            confirmButton.disabled = isBusy;
+        }
+    }
+
+    function setLockElementBusy(lockElement, isBusy) {
+        if (!lockElement) {
+            return;
+        }
+
+        lockElement.dataset.requestPending = isBusy ? 'true' : 'false';
+        lockElement.classList.toggle('calculator-lock--pending', isBusy);
+    }
 
     async function sendItemBlockRequest(lockElement) {
         const row = lockElement.closest('tr');
@@ -266,7 +284,7 @@
 
     function toggleRowLock(lockElement) {
         const blockState = Number(lockElement.dataset.blockState);
-        if (blockState === 2 || blockState === 3) {
+        if (blockState === 2 || blockState === 3 || lockElement.dataset.requestPending === 'true') {
             return;
         }
 
@@ -279,7 +297,12 @@
     }
 
     function closeLockConfirmModal() {
+        if (isLockRequestInProgress) {
+            return;
+        }
+
         pendingLockElement = null;
+        setLockConfirmButtonBusy(false);
         $("#lockConfirmModal").modal("hide");
     }
 
@@ -290,10 +313,19 @@
     }
 
     async function confirmToggleRowLock() {
+        if (isLockRequestInProgress || pendingLockElement == null) {
+            return;
+        }
+
+        isLockRequestInProgress = true;
+        setLockConfirmButtonBusy(true);
+        setLockElementBusy(pendingLockElement, true);
+
         if (pendingLockElement != null) {
             try {
                 $("#spinner").show();
                 await sendItemBlockRequest(pendingLockElement);
+                isLockRequestInProgress = false;
                 closeLockConfirmModal();
                 reloadCurrentCalculateView();
                 return;
@@ -305,6 +337,9 @@
                 }
                 return;
             } finally {
+                isLockRequestInProgress = false;
+                setLockConfirmButtonBusy(false);
+                setLockElementBusy(pendingLockElement, false);
                 $("#spinner").hide();
             }
         }
@@ -596,6 +631,12 @@
 
     .calculator-lock--toggleable {
         cursor: pointer;
+    }
+
+    .calculator-lock--pending {
+        opacity: 0.55;
+        cursor: wait;
+        pointer-events: none;
     }
 
     .calculator-lock--hard {

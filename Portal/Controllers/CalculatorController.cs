@@ -1023,7 +1023,7 @@ namespace Portal.Controllers
                 return NotFound(new { Message = "block not found" });
             }
 
-            itemBlock.Info = " Удалил: " + User.Identity.Name + " " + DateTime.Now;
+            itemBlock.Info += " Удалил: " + User.Identity.Name + " " + DateTime.Now;
             itemBlock.Enable = false;
             CalculatorDb.SaveChanges();
             return Ok();
@@ -1032,7 +1032,7 @@ namespace Portal.Controllers
         public IActionResult ItemBlocks()
         {
             ItemsBlocksProps ItemsBlocksProps = new ItemsBlocksProps();
-            ItemsBlocksProps.itemBlocks = CalculatorDb.itemBlocks.Where(x => x.Enable).ToList();
+            ItemsBlocksProps.itemBlocks = CalculatorDb.itemBlocks.Where(x => x.End > DateTime.Now.AddMonths(-1)).ToList();
             ItemsBlocksProps.tts = db.TTs.ToList();
             ItemsBlocksProps.items = CalculatorDb.Items.ToList();
 

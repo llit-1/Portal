@@ -23,24 +23,131 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "employee_control_factory")]
-        public IActionResult PersonalityFactoryTable()
+        public IActionResult PersonalityFactoryTable(int activeOnly = 1)
         {
-            List<FactoryPerson> Factorypersons = dbSql.FactoryPerson.Include(c => c.Bank)
-                                                                    .Include(c => c.Citizenship)
-                                                                    .Include(c => c.Entity)
-                                                                    .Include(c => c.DocumentType)
-                                                                    .Include(c => c.DepartmentWorkshopJobTitle)
-                                                                    .ThenInclude(a => a.JobTitleWorkshop)
-                                                                    .ThenInclude(b => b.FactoryJobTitle)
-                                                                    .Include(c => c.DepartmentWorkshopJobTitle)
-                                                                    .ThenInclude(a => a.JobTitleWorkshop)
-                                                                    .ThenInclude(b => b.FactoryWorkshop)
-                                                                    .Include(c => c.DepartmentWorkshopJobTitle)
-                                                                    .ThenInclude(a => a.DepartmentWorkshop)
-                                                                    .ThenInclude(b => b.FactoryDepartment)
-                                                                    .Where(x => x.Fake == null)
-                                                                    .ToList();
-            return PartialView(Factorypersons);
+            ViewBag.ActiveOnly = activeOnly;
+            return PartialView();
+        }
+
+        [Authorize(Roles = "employee_control_factory")]
+        [HttpPost]
+        public IActionResult PersonalityFactoryTableData(int activeOnly = 1)
+        {
+            dbSql.Database.SetCommandTimeout(120);
+
+            var draw = Convert.ToInt32(Request.Form["draw"].FirstOrDefault() ?? "1");
+            var start = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
+            var length = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "17");
+            var searchValue = (Request.Form["search[value]"].FirstOrDefault() ?? string.Empty).Trim();
+            var orderColumnIndex = Convert.ToInt32(Request.Form["order[0][column]"].FirstOrDefault() ?? "0");
+            var orderDir = (Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc").ToLowerInvariant();
+
+            var query = dbSql.FactoryPerson
+                .AsNoTracking()
+                .Where(x => x.Fake == null)
+                .Select(x => new FactoryPersonTableRow
+                {
+                    Id = x.Id,
+                    Surname = x.Surname,
+                    Name = x.Name,
+                    Patronymic = x.Patronymic,
+                    Birthdate = x.Birthdate,
+                    Passport = x.Passport,
+                    DepartmentName = x.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryDepartment.Name,
+                    WorkshopName = x.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryWorkshop.Name,
+                    JobTitleName = x.DepartmentWorkshopJobTitle.JobTitleWorkshop.FactoryJobTitle.Name,
+                    CitizenshipName = x.Citizenship != null ? x.Citizenship.Name : string.Empty,
+                    EntityName = x.Entity != null ? x.Entity.Name : string.Empty,
+                    DocumentTypeName = x.DocumentType != null ? x.DocumentType.Name : string.Empty,
+                    Phone = x.Phone,
+                    HostelChekin = x.HostelChekin,
+                    HostelCheckOut = x.HostelCheckOut,
+                    HiringDate = x.HiringDate,
+                    DismissedDate = x.DismissedDate
+                });
+
+            if (activeOnly == 1)
+            {
+                query = query.Where(x => x.DismissedDate == null);
+            }
+
+            var recordsTotal = query.Count();
+
+            if (!string.IsNullOrWhiteSpace(searchValue))
+            {
+                query = query.Where(x =>
+                    (x.Surname ?? "").Contains(searchValue) ||
+                    (x.Name ?? "").Contains(searchValue) ||
+                    (x.Patronymic ?? "").Contains(searchValue) ||
+                    (((x.Surname ?? "") + " " + (x.Name ?? "")).Trim()).Contains(searchValue) ||
+                    (((x.Surname ?? "") + " " + (x.Name ?? "") + " " + (x.Patronymic ?? "")).Trim()).Contains(searchValue) ||
+                    (x.Passport ?? "").Contains(searchValue) ||
+                    (x.DepartmentName ?? "").Contains(searchValue) ||
+                    (x.WorkshopName ?? "").Contains(searchValue) ||
+                    (x.JobTitleName ?? "").Contains(searchValue) ||
+                    (x.CitizenshipName ?? "").Contains(searchValue) ||
+                    (x.EntityName ?? "").Contains(searchValue) ||
+                    (x.DocumentTypeName ?? "").Contains(searchValue) ||
+                    (x.Phone ?? "").Contains(searchValue)
+                );
+            }
+
+            var recordsFiltered = query.Count();
+            var desc = orderDir == "desc";
+
+            query = orderColumnIndex switch
+            {
+                0 => desc ? query.OrderByDescending(x => x.Surname).ThenBy(x => x.Id) : query.OrderBy(x => x.Surname).ThenBy(x => x.Id),
+                1 => desc ? query.OrderByDescending(x => x.Name).ThenBy(x => x.Id) : query.OrderBy(x => x.Name).ThenBy(x => x.Id),
+                2 => desc ? query.OrderByDescending(x => x.Patronymic).ThenBy(x => x.Id) : query.OrderBy(x => x.Patronymic).ThenBy(x => x.Id),
+                3 => desc ? query.OrderByDescending(x => x.Birthdate).ThenBy(x => x.Id) : query.OrderBy(x => x.Birthdate).ThenBy(x => x.Id),
+                4 => desc ? query.OrderByDescending(x => x.Passport).ThenBy(x => x.Id) : query.OrderBy(x => x.Passport).ThenBy(x => x.Id),
+                5 => desc ? query.OrderByDescending(x => x.DepartmentName).ThenBy(x => x.Id) : query.OrderBy(x => x.DepartmentName).ThenBy(x => x.Id),
+                6 => desc ? query.OrderByDescending(x => x.WorkshopName).ThenBy(x => x.Id) : query.OrderBy(x => x.WorkshopName).ThenBy(x => x.Id),
+                7 => desc ? query.OrderByDescending(x => x.JobTitleName).ThenBy(x => x.Id) : query.OrderBy(x => x.JobTitleName).ThenBy(x => x.Id),
+                8 => desc ? query.OrderByDescending(x => x.CitizenshipName).ThenBy(x => x.Id) : query.OrderBy(x => x.CitizenshipName).ThenBy(x => x.Id),
+                9 => desc ? query.OrderByDescending(x => x.EntityName).ThenBy(x => x.Id) : query.OrderBy(x => x.EntityName).ThenBy(x => x.Id),
+                10 => desc ? query.OrderByDescending(x => x.DocumentTypeName).ThenBy(x => x.Id) : query.OrderBy(x => x.DocumentTypeName).ThenBy(x => x.Id),
+                11 => desc ? query.OrderByDescending(x => x.Phone).ThenBy(x => x.Id) : query.OrderBy(x => x.Phone).ThenBy(x => x.Id),
+                12 => desc ? query.OrderByDescending(x => x.HostelChekin).ThenBy(x => x.Id) : query.OrderBy(x => x.HostelChekin).ThenBy(x => x.Id),
+                13 => desc ? query.OrderByDescending(x => x.HostelCheckOut).ThenBy(x => x.Id) : query.OrderBy(x => x.HostelCheckOut).ThenBy(x => x.Id),
+                14 => desc ? query.OrderByDescending(x => x.HiringDate).ThenBy(x => x.Id) : query.OrderBy(x => x.HiringDate).ThenBy(x => x.Id),
+                15 => desc ? query.OrderByDescending(x => x.DismissedDate).ThenBy(x => x.Id) : query.OrderBy(x => x.DismissedDate).ThenBy(x => x.Id),
+                _ => query.OrderBy(x => x.Surname).ThenBy(x => x.Id)
+            };
+
+            var data = query
+                .Skip(start)
+                .Take(length)
+                .ToList()
+                .Select(x => new
+                {
+                    id = x.Id,
+                    surname = x.Surname ?? string.Empty,
+                    name = x.Name ?? string.Empty,
+                    patronymic = x.Patronymic ?? string.Empty,
+                    birthdate = x.Birthdate.ToString("dd.MM.yyyy"),
+                    passport = x.Passport ?? string.Empty,
+                    departmentName = x.DepartmentName ?? string.Empty,
+                    workshopName = x.WorkshopName ?? string.Empty,
+                    jobTitleName = x.JobTitleName ?? string.Empty,
+                    citizenshipName = x.CitizenshipName ?? string.Empty,
+                    entityName = x.EntityName ?? string.Empty,
+                    documentTypeName = x.DocumentTypeName ?? string.Empty,
+                    phone = x.Phone ?? string.Empty,
+                    hostelChekin = x.HostelChekin?.ToString("dd.MM.yyyy") ?? string.Empty,
+                    hostelCheckOut = x.HostelCheckOut?.ToString("dd.MM.yyyy") ?? string.Empty,
+                    hiringDate = x.HiringDate.ToString("dd.MM.yyyy"),
+                    dismissedDate = x.DismissedDate?.ToString("dd.MM.yyyy") ?? string.Empty
+                });
+
+            return Json(new
+            {
+                draw,
+                recordsTotal,
+                recordsFiltered,
+                data
+            });
         }
 
         [Authorize(Roles = "employee_control_factory")]
@@ -223,6 +330,27 @@ namespace Portal.Controllers
             public List<FactoryBanks> FactoryBanks { get; set; } = new List<FactoryBanks>();
             public List<FactorySKUDGroup> FactorySKUDGroups { get; set; } = new List<FactorySKUDGroup>();
 
+        }
+
+        private class FactoryPersonTableRow
+        {
+            public int Id { get; set; }
+            public string Surname { get; set; }
+            public string Name { get; set; }
+            public string Patronymic { get; set; }
+            public DateTime Birthdate { get; set; }
+            public string Passport { get; set; }
+            public string DepartmentName { get; set; }
+            public string WorkshopName { get; set; }
+            public string JobTitleName { get; set; }
+            public string CitizenshipName { get; set; }
+            public string EntityName { get; set; }
+            public string DocumentTypeName { get; set; }
+            public string Phone { get; set; }
+            public DateTime? HostelChekin { get; set; }
+            public DateTime? HostelCheckOut { get; set; }
+            public DateTime HiringDate { get; set; }
+            public DateTime? DismissedDate { get; set; }
         }
     }
 }
