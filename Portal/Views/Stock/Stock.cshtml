@@ -64,22 +64,35 @@
     </div>
 
 
-    <div id="modalContainer" class="modal" style="display: none;"></div>
+    <div id="modalContainer"></div>
     
 
 </div>
 
-<div class="modalEditStock" style="display: none" id="editStockModal">
+<div id="editStockModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none;">
 
-    <div class="modalEditStock-content">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeModal()"></label>
+                </div>
+                <h4 class="modal-title">Редактирование категории</h4>
+            </div>
+            <div class="modal-body">
+                <div class="replacement-modal-form">
+                    <div class="replacement-modal-form__field">
         <label style="margin: 0px">Название категории</label>
-        <input id="modalEditStock-name" value="">
-        <div>
-            <button id="modalEditStock-delete" style="background-color: #a9a9a9">Удалить</button>
-            <button id="modalEditStock-save">Сохранить</button>
+                        <input id="modalEditStock-name" class="form-control" value="">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" id="modalEditStock-delete">Удалить</button>
+                <button type="button" class="btn btn-sm btn-success" id="modalEditStock-save">Сохранить</button>
+        </div>
         </div>
     </div>
-
 </div>
 
 <div class="fullShadow"></div>
@@ -96,6 +109,43 @@
 
 
 <script>
+    function cleanupStockModalArtifacts() {
+        $("body").removeClass("modal-open");
+        $(".modal-backdrop").remove();
+    }
+
+    function hideDynamicStockModal() {
+        const modal = $("#modalContainer .modal");
+
+        if (modal.length > 0) {
+            modal.modal("hide");
+        }
+
+        $("#modalContainer").empty();
+        cleanupStockModalArtifacts();
+    }
+
+    function showDynamicStockModal(modalHtml) {
+        const modalContainer = $("#modalContainer");
+        modalContainer.html(modalHtml);
+
+        const modal = modalContainer.find(".modal").first();
+        if (modal.length === 0) {
+            return;
+        }
+
+        modal.on("hidden.bs.modal", function () {
+            modalContainer.empty();
+            cleanupStockModalArtifacts();
+        });
+
+        modal.modal({
+            backdrop: "static",
+            keyboard: false,
+            show: true
+        });
+    }
+
     async function addSubCategoryItemModal(id) {
         try {
             const response = await fetch("/Stock/LoadModalStockTable?id=" + id, {
@@ -105,24 +155,7 @@
 
             if (response.ok) {
                 const modalHtml = await response.text();
-                const modalContainer = document.getElementById("modalContainer");
-                modalContainer.innerHTML = modalHtml;
-                modalContainer.style.display = "block";
-
-                const closeModalButton = document.getElementById("closeModalButton");
-                if (closeModalButton) {
-                    closeModalButton.addEventListener("click", function () {
-                        modalContainer.style.display = "none";
-                        modalContainer.innerHTML = "";
-                    });
-                }
-
-                modalContainer.addEventListener("click", function (e) {
-                    if (e.target === modalContainer) {
-                        modalContainer.style.display = "none";
-                        modalContainer.innerHTML = "";
-                    }
-                });
+                showDynamicStockModal(modalHtml);
             } else {
                 alert("Ошибка при добавлении");
             }
@@ -246,24 +279,7 @@
 
             if (response.ok) {
                 const modalHtml = await response.text();
-                const modalContainer = document.getElementById("modalContainer");
-                modalContainer.innerHTML = modalHtml;
-                modalContainer.style.display = "block";
-
-                const closeModalButton = document.getElementById("closeModalButton");
-                if (closeModalButton) {
-                    closeModalButton.addEventListener("click", function () {
-                        modalContainer.style.display = "none";
-                        modalContainer.innerHTML = "";
-                    });
-                }
-
-                modalContainer.addEventListener("click", function (e) {
-                    if (e.target === modalContainer) {
-                        modalContainer.style.display = "none";
-                        modalContainer.innerHTML = "";
-                    }
-                });
+                showDynamicStockModal(modalHtml);
             } else {
                 alert("Ошибка");
             }
@@ -314,43 +330,29 @@
 
 <script>
 
-    let modalEditStock = document.getElementById('editStockModal');
-    const modalContent = modalEditStock.querySelector('.modalEditStock-content');
-
-    modalEditStock.style.display = "none"
-
     // Функция для закрытия модального окна
     function closeModal() {
-      let  modalEditStock = document.getElementById('editStockModal');
-      modalEditStock.style.display = "none"
+        $("#editStockModal").modal("hide");
     }
 
 
     function showModalY(id, name) {
-        let modalEditStock = document.querySelector(".modalEditStock").style.display = "flex"
-
-        modalEditStock = document.getElementById('editStockModal');
-
-        
-
         document.getElementById('modalEditStock-name').value = name;
 
         document.getElementById('modalEditStock-delete').onclick = function() {
             DeleteCategory(id);
-            document.querySelector(".modalEditStock").style.display = "none"
         };
 
         document.getElementById('modalEditStock-save').onclick = function() {
             SaveSubCategory(id, document.getElementById('modalEditStock-name').value)
-            document.querySelector(".modalEditStock").style.display = "none"
         };
-    }
 
-    modalEditStock.addEventListener('click', function(e) {
-            if (!modalContent.contains(e.target)) {
-                closeModal();
-            }
-    });
+        $("#editStockModal").modal({
+            backdrop: "static",
+            keyboard: false,
+            show: true
+        });
+    }
 
     async function SaveSubCategory(id, name) {
 
@@ -374,7 +376,8 @@
 
         $("#spinner").hide();
 
-        $("#modalContainer").remove();
+        closeModal();
+        hideDynamicStockModal();
 
         return await $(".stock").load("/Stock/Stock");
     }
@@ -412,9 +415,8 @@
 
         $("#spinner").hide();
 
-        $(".modalEditStock").style = "display: none";
-        $("#modalContainer").remove();
-        $(".modal-content-stock").remove();
+        closeModal();
+        hideDynamicStockModal();
 
         return await $(".stock").load("/Stock/Stock");
     }
@@ -454,9 +456,8 @@
 
          $("#spinner").hide()
          
-         $(".modalEditStock").style = "display: none";
-         $(".modal-content-stock").remove();
-         $("#modalContainer").remove()
+         closeModal();
+         hideDynamicStockModal()
 
          return await $(".stock").load("/Stock/Stock")
     }
@@ -476,7 +477,8 @@
 
          $("#spinner").hide()
 
-         $("#modalContainer").remove()
+         closeModal();
+         hideDynamicStockModal()
 
          return await $(".stock").load("/Stock/Stock")
     }
@@ -624,18 +626,6 @@ async function Stock() {
         font-weight: 600;
         font-family: "Akrobat-Regular";
         text-align: center;
-    }
-
-    .modal {
-        display: block;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
     }
 
     .fullShadow {

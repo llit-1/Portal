@@ -1,4 +1,14 @@
 @model Portal.Models.JsonModels.DeviceMainJson
+@{
+    var usedVideoNames = Model.videoDevices
+        .Select(x => (x.VideoList ?? string.Empty).Trim())
+        .Where(x => !string.IsNullOrWhiteSpace(x) && x.StartsWith("[") && x.EndsWith("]"))
+        .Select(x => x.Substring(1, x.Length - 2).Trim())
+        .Where(x => !string.IsNullOrWhiteSpace(x) && !x.Contains(","))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+}
 
 <div id="headMenu" class="row" style="margin:0">
     <div class="col-12" style="display:flex; flex-direction: row;align-items: center;width: 100%;">
@@ -18,8 +28,11 @@
                 <img src="/themes/clearmin/img/search.png">
                 <input oninput="searchCard(this)" class="input_search_device" style="" />
             </div>
-            <button class="btn btn-sm btn-success addTTButton" onclick="addDevice()" style="margin-left:10px; border-radius: 8px; border: none;">Добавить устройство</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="addDevice()" style="border-radius: 8px; border: none;">Добавить устройство</button>
+            <button class="btn btn-sm btn-success addTTButton" onclick="openReplaceVideoModal()" style="border-radius: 8px; border: none;">Замена видео</button>
         </div>
+
+        
 
         <div class="deviceFilterBar">
             <button type="button" class="deviceFilterButton is-active" data-filter="video">Видео</button>
@@ -396,6 +409,7 @@
 
     const SERVER_VERSION = ("@Model.Version" || "").toString().trim();
     const DEVICE_FILTERS_STORAGE_KEY = "settings_video_devices_filters";
+    const USED_VIDEO_NAMES = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(usedVideoNames));
 
     function saveDeviceFilterState(filterState) {
         try {
@@ -719,7 +733,7 @@
 
     function deleteDevice(guid) {
         const global = document.getElementById('global');
-        global.innerHTML += `
+        global.insertAdjacentHTML('beforeend', `
             <div id="myModalVideo" class="modalVideo">
                 <div class="modal-contentVideoDelete">
                     <div id="modalDelete" class="modalDelete">
@@ -730,7 +744,7 @@
                         </div>
                     </div>
                 </div>
-            </div>`;
+            </div>`);
 
         const myModalVideo = document.getElementById('myModalVideo');
         myModalVideo.style.display = "block";
@@ -785,6 +799,128 @@
         }
     }
 
+    function openVideoModal() {
+        const modal = document.getElementById("myModalVideo");
+        if (!modal) {
+            return null;
+        }
+
+        const handleOutsideClick = function (event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        modal.dataset.outsideClickBound = "true";
+        modal._handleOutsideClick = handleOutsideClick;
+        modal.addEventListener("click", handleOutsideClick);
+        modal.style.display = "block";
+
+        return modal;
+    }
+
+    function buildVideoOptions(videoItems) {
+        return (videoItems || [])
+            .map(item => `<option value="${item.name.trim()}">${item.name.trim()}</option>`)
+            .join("");
+    }
+
+    function buildUsedVideoOptions(videoNames) {
+        return (videoNames || [])
+            .map(name => {
+                const safeName = (name || "").trim();
+                return `<option value="${safeName}">${safeName}</option>`;
+            })
+            .join("");
+    }
+
+    function openReplaceVideoModal() {
+        $.ajax({
+            type: 'GET',
+            url: '/Settings_VideoDevices/GetLocationList',
+            success: function (result) {
+                if (!result?.item1?.length) {
+                    if (typeof openModal === 'function') openModal('Error', 'Video list is empty.');
+                    else alert('Video list is empty.');
+                    return;
+                }
+
+                const global = document.getElementById('global');
+                const fromVideoOptions = buildUsedVideoOptions(USED_VIDEO_NAMES);
+                const toVideoOptions = buildVideoOptions(result.item1);
+
+                if (!fromVideoOptions) {
+                    if (typeof openModal === 'function') openModal('Error', 'No videos are currently assigned to devices.');
+                    else alert('No videos are currently assigned to devices.');
+                    return;
+                }
+
+                global.insertAdjacentHTML('beforeend', `
+                    <div id="myModalVideo" class="modalVideo">
+                        <div class="modal-contentVideo">
+                            <form class="modal-formVideo" id="replaceVideoForm">
+                                <label for="replaceVideoFrom" class="label-light">&#1055;&#1086;&#1084;&#1077;&#1085;&#1103;&#1090;&#1100; &#1089;:</label>
+                                <select id="replaceVideoFrom" name="replaceVideoFrom" required>
+                                    ${fromVideoOptions}
+                                </select>
+
+                                <label for="replaceVideoTo" class="label-light">&#1055;&#1086;&#1084;&#1077;&#1085;&#1103;&#1090;&#1100; &#1085;&#1072;:</label>
+                                <select id="replaceVideoTo" name="replaceVideoTo" required>
+                                    ${toVideoOptions}
+                                </select>
+
+                                <div class="divForSubmitButton">
+                                    <button type="submit">&#1047;&#1072;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>`);
+
+                openVideoModal();
+
+                document.getElementById('replaceVideoForm').onsubmit = function (event) {
+                    event.preventDefault();
+
+                    const fromVideo = document.getElementById('replaceVideoFrom').value;
+                    const toVideo = document.getElementById('replaceVideoTo').value;
+
+                    if (!fromVideo || !toVideo) {
+                        return;
+                    }
+
+                    SpinnerShow();
+                    $.ajax({
+                        type: 'POST',
+                        url: `/Settings_VideoDevices/ReplaceVideoInDevices?fromVideo=${encodeURIComponent(fromVideo)}&toVideo=${encodeURIComponent(toVideo)}`,
+                        success: function (response) {
+                            SpinnerHide();
+                            closeModal();
+
+                            if (response?.ok) {
+                                $('#container-fluid').load('/Settings_VideoDevices/DevicesMainNew');
+                                return;
+                            }
+
+                            if (typeof openModal === 'function') openModal('Error', response?.errorMessage || 'Failed to replace video.');
+                            else alert(response?.errorMessage || 'Failed to replace video.');
+                        },
+                        error: function () {
+                            SpinnerHide();
+                            closeModal();
+
+                            if (typeof openModal === 'function') openModal('Error', 'Failed to replace video.');
+                            else alert('Failed to replace video.');
+                        }
+                    });
+                };
+            },
+            error: function () {
+                if (typeof openModal === 'function') openModal('Error', 'Failed to get video list.');
+                else alert('Failed to get video list.');
+            }
+        });
+    }
+
     function addDevice() {
         $.ajax({
             type: 'GET',
@@ -796,7 +932,7 @@
                     result.item1.forEach(x => {
                         videoList += `<option>${x.name.trim()}</option>`.trim()
                     })
-                    global.innerHTML += `
+                    global.insertAdjacentHTML('beforeend', `
                             <div id="myModalVideo" class="modalVideo">
                                 <div class="modal-contentVideo">
                                     <form class="modal-formVideo" id="modalFormVideo">
@@ -821,20 +957,14 @@
                                         </div>
                                     </form>
                                 </div>
-                            </div>`;
+                            </div>`);
 
                     const addressSelect = document.getElementById('addressSelectVideo');
                     result.item2.forEach(x => {
                         addressSelect.innerHTML += `<option value="${x.guid}">${x.name}</option>`;
                     });
 
-                    const modal = document.getElementById("myModalVideo");
-                    modal.style.display = "block";
-                    window.onclick = function (event) {
-                        if (event.target == modal) {
-                            closeModal()
-                        }
-                    };
+                    const modal = openVideoModal();
 
                     document.getElementById("modalFormVideo").onsubmit = function (event) {
                         event.preventDefault();
@@ -937,7 +1067,7 @@
                     const onlyMusicClass = result.item3.onlyMusic == 1 ? "onlyMusic active" : "onlyMusic";
                     const onlyVideoClass = result.item3.onlyMusic == 1 ? "onlyVideo" : "onlyVideo  active";
 
-                    global.innerHTML += `
+                    global.insertAdjacentHTML('beforeend', `
                             <div id="myModalVideo" class="modalVideo">
                                 <div class="modal-contentVideo">
                                     <form class="modal-formVideo" id="modalFormVideo">
@@ -962,7 +1092,7 @@
                                         </div>
                                     </form>
                                 </div>
-                            </div>`;
+                            </div>`);
 
                     const addressSelect = document.getElementById('addressSelectVideo');
                     result.item2.forEach(x => {
@@ -981,13 +1111,7 @@
                         })
                     }
 
-                    const modal = document.getElementById("myModalVideo");
-                    modal.style.display = "block";
-                    window.onclick = function (event) {
-                        if (event.target == modal) {
-                            closeModal()
-                        }
-                    };
+                    const modal = openVideoModal();
                     document.getElementById("modalFormVideo").onsubmit = function (event) {
                         event.preventDefault();
 
@@ -1077,6 +1201,10 @@
     function closeModal() {
         const modal = document.getElementById("myModalVideo");
         if (modal) {
+            if (modal._handleOutsideClick) {
+                modal.removeEventListener("click", modal._handleOutsideClick);
+                delete modal._handleOutsideClick;
+            }
             modal.remove();
         }
     }

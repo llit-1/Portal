@@ -23,12 +23,120 @@ namespace Portal.Controllers
     [AllowAnonymous]
     public class Settings_VideoDevicesController : Controller
     {
+        private const string VideoTvRootPath = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ";
         private DB.MSSQLDBContext dbSql;
         private IHttpClientFactory _httpClientFactory;
         public Settings_VideoDevicesController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext, IHttpClientFactory _httpClientFactoryConnect)
         {
             dbSql = dbSqlContext;
             _httpClientFactory = _httpClientFactoryConnect;
+        }
+
+        private static readonly HashSet<string> VideoLibraryExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".mp4",
+            ".avi",
+            ".mov",
+            ".mpeg"
+        };
+
+        private static bool IsLibraryVideoFile(string filePath)
+        {
+            return VideoLibraryExtensions.Contains(Path.GetExtension(filePath));
+        }
+
+        private void NormalizeVideoPositions(List<VideoInfo> videoInfos)
+        {
+            var orderedVideos = videoInfos
+                .OrderBy(x => x.Position)
+                .ThenBy(x => x.Name)
+                .ToList();
+
+            var hasChanges = false;
+
+            for (var index = 0; index < orderedVideos.Count; index++)
+            {
+                if (orderedVideos[index].Position != index)
+                {
+                    orderedVideos[index].Position = index;
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges)
+            {
+                dbSql.SaveChanges();
+            }
+        }
+
+        private void SyncVideoLibraryWithDisk()
+        {
+            if (!Directory.Exists(VideoTvRootPath))
+            {
+                return;
+            }
+
+            var filesOnDisk = Directory
+                .EnumerateFiles(VideoTvRootPath, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(IsLibraryVideoFile)
+                .Select(path => new FileInfo(path))
+                .ToList();
+
+            var filesByName = filesOnDisk
+                .GroupBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+            var dbVideos = dbSql.VideoInfo
+                .OrderBy(x => x.Position)
+                .ThenBy(x => x.Name)
+                .ToList();
+
+            var dbVideoNames = new HashSet<string>(
+                dbVideos.Select(x => x.Name),
+                StringComparer.OrdinalIgnoreCase);
+
+            var hasChanges = false;
+
+            foreach (var dbVideo in dbVideos.ToList())
+            {
+                if (!filesByName.TryGetValue(dbVideo.Name, out var fileInfo))
+                {
+                    dbSql.VideoInfo.Remove(dbVideo);
+                    hasChanges = true;
+                    continue;
+                }
+
+                if (!string.Equals(dbVideo.Path, fileInfo.FullName, StringComparison.OrdinalIgnoreCase))
+                {
+                    dbVideo.Path = fileInfo.FullName;
+                    hasChanges = true;
+                }
+            }
+
+            var nextPosition = dbVideos.Any() ? dbVideos.Max(x => x.Position) + 1 : 0;
+
+            foreach (var fileInfo in filesOnDisk.OrderBy(x => x.Name))
+            {
+                if (dbVideoNames.Contains(fileInfo.Name))
+                {
+                    continue;
+                }
+
+                dbSql.VideoInfo.Add(new VideoInfo
+                {
+                    Name = fileInfo.Name,
+                    Path = fileInfo.FullName,
+                    Position = nextPosition++
+                });
+                hasChanges = true;
+            }
+
+            if (hasChanges)
+            {
+                dbSql.SaveChanges();
+            }
+
+            NormalizeVideoPositions(dbSql.VideoInfo.ToList());
         }
 
         public IActionResult TabMenu()
@@ -61,6 +169,7 @@ namespace Portal.Controllers
         [HttpGet]
         public IActionResult GetLocationList()
         {
+            SyncVideoLibraryWithDisk();
             List<VideoInfo> videoInfos = dbSql.VideoInfo.OrderBy(x => x.Name).ToList();
             List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
             var model = Tuple.Create(videoInfos, locations);
@@ -136,7 +245,7 @@ namespace Portal.Controllers
             // разэкранирование "плюс" и "пробел"
             var result = new RKNet_Model.Result<string>();
             result.Ok = false;
-            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
+            string path = VideoTvRootPath;
             string[] allfiles = Directory.GetFiles(path);
             foreach (string filename in allfiles)
             {
@@ -158,7 +267,7 @@ namespace Portal.Controllers
         public IActionResult GetAPK(string filename)
         {
             // разэкранирование "плюс" и "пробел"
-            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
+            string path = VideoTvRootPath;
             string filePath = path + "\\" + filename + ".apk";
             // Получение информации о файле
             var fileInfo = new FileInfo(filePath);
@@ -211,37 +320,37 @@ namespace Portal.Controllers
         public IActionResult VideoList()
         {
             // разэкранирование "плюс" и "пробел"
-            var result = new RKNet_Model.Result<string>();
-            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
-                List<VideoFileInfo> list = new List<VideoFileInfo>();
-                string[] allfiles = Directory.GetFiles(path);
-                foreach (string filename in allfiles)
+            SyncVideoLibraryWithDisk();
+
+            var list = dbSql.VideoInfo
+                .OrderBy(x => x.Position)
+                .ThenBy(x => x.Name)
+                .AsEnumerable()
+                .Select(videoInfo =>
                 {
-                    VideoFileInfo info = new VideoFileInfo();
-                    var fileInfo = new System.IO.FileInfo(filename);
-                    if(fileInfo.Name.EndsWith(".apk"))
+                    var fullPath = string.IsNullOrWhiteSpace(videoInfo.Path)
+                        ? Path.Combine(VideoTvRootPath, videoInfo.Name)
+                        : videoInfo.Path;
+
+                    var fileInfo = new System.IO.FileInfo(fullPath);
+                    if (!fileInfo.Exists || !IsLibraryVideoFile(fileInfo.FullName))
                     {
-                        continue;
+                        return null;
                     }
 
-                    if (fileInfo.Name.EndsWith(".zip"))
+                    return new VideoFileInfo
                     {
-                        continue;
-                    }
+                        Guid = videoInfo.Guid,
+                        Position = videoInfo.Position,
+                        FullName = fileInfo.FullName,
+                        Name = videoInfo.Name,
+                        SizeInMB = Math.Round(fileInfo.Length / (1024.0 * 1024.0), 2)
+                    };
+                })
+                .Where(x => x != null)
+                .ToList();
 
-                info.Guid = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Guid;
-                    info.Position = dbSql.VideoInfo.FirstOrDefault(x => x.Name == fileInfo.Name).Position;
-                    if(info.Guid == null || info.Position == null)
-                    {
-                        continue;
-                    }
-                    info.FullName = fileInfo.FullName;
-                    info.Name = fileInfo.Name;
-                    info.SizeInMB = Math.Round(fileInfo.Length / (1024.0 * 1024.0), 2);
-                    list.Add(info);
-                }
-            var totallist = list.OrderBy(x => x.Position).ToList();
-            return PartialView(totallist);
+            return PartialView(list);
         }
 
         // Загрузка файла по пути
@@ -293,6 +402,7 @@ namespace Portal.Controllers
         {
             try
             {
+                SyncVideoLibraryWithDisk();
                 List<VideoInfo> info = dbSql.VideoInfo.OrderBy(x => x.Position).ToList();
                 if (info.Count == 0)
                 {
@@ -333,41 +443,12 @@ namespace Portal.Controllers
 
         [RequestSizeLimit(long.MaxValue)]
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue, ValueLengthLimit = int.MaxValue)]
-        public async Task<IActionResult> UploadVideo(IFormFile videoFile)
+        public IActionResult UploadVideo(IFormFile videoFile)
         {
-            string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
-
-            if (videoFile == null || videoFile.Length == 0)
+            return StatusCode(StatusCodes.Status410Gone, new
             {
-                return Json(new { message = "No file selected" });
-            }
-
-            try
-            {
-                var filePath = Path.Combine(path, videoFile.FileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                {
-                    await videoFile.CopyToAsync(stream);
-                }
-
-                foreach (var item in dbSql.VideoInfo.ToList())
-                {
-                    item.Position += 1;
-                }
-                VideoInfo info = new VideoInfo();
-                info.Position = 0;
-                info.Name = videoFile.FileName;
-                info.Path = filePath;
-                dbSql.VideoInfo.Add(info);
-                dbSql.SaveChanges();
-
-                return Json(new { message = "File uploaded successfully" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { message = $"Error uploading file: {ex.Message}" });
-            }
+                message = $"Веб-загрузка отключена. Скопируйте файл напрямую в {VideoTvRootPath} и затем обновите вкладку."
+            });
         }
 
         [AllowAnonymous]
@@ -427,7 +508,7 @@ namespace Portal.Controllers
         public IActionResult GetAllMusic()
         {
             // Корневая папка с музыкой на файловом сервере
-            var musicRoot = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ";
+            var musicRoot = VideoTvRootPath;
 
             if (!Directory.Exists(musicRoot))
             {
@@ -483,7 +564,7 @@ namespace Portal.Controllers
         public IActionResult GetAllMusicNEW()
         {
             // Корневая папка с музыкой на файловом сервере
-            var musicRoot = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ\Музыка";
+            var musicRoot = Path.Combine(VideoTvRootPath, "Музыка");
 
             if (!Directory.Exists(musicRoot))
             {
@@ -539,7 +620,7 @@ namespace Portal.Controllers
         public IActionResult GetAllAdsNEW()
         {
             // Корневая папка с рекламой на файловом сервере
-            var adsRoot = @"\\shzhleb.ru\shz\SHZWork\Обмен2\ВидеоТВ\Реклама";
+            var adsRoot = Path.Combine(VideoTvRootPath, "Реклама");
 
             if (!Directory.Exists(adsRoot))
             {
@@ -681,8 +762,27 @@ namespace Portal.Controllers
             var result = new RKNet_Model.Result<string>();
             try
             {
-                var oldpos = dbSql.VideoInfo.FirstOrDefault(x => x.Position == newposition).Position = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position;
-                var npos = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid)).Position = newposition;
+                SyncVideoLibraryWithDisk();
+
+                var currentVideo = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
+                if (currentVideo == null)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Video not found";
+                    return new ObjectResult(result);
+                }
+
+                var targetVideo = dbSql.VideoInfo.FirstOrDefault(x => x.Position == newposition);
+                if (targetVideo == null)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Target position not found";
+                    return new ObjectResult(result);
+                }
+
+                var oldPosition = currentVideo.Position;
+                targetVideo.Position = oldPosition;
+                currentVideo.Position = newposition;
                 dbSql.SaveChanges();
                 result.Ok = true;
                 return new OkObjectResult(result);
@@ -741,7 +841,8 @@ namespace Portal.Controllers
             var result = new RKNet_Model.Result<string>();
             try
             {
-                string path = "\\\\shzhleb.ru\\shz\\SHZWork\\Обмен2\\ВидеоТВ";
+                SyncVideoLibraryWithDisk();
+                string path = VideoTvRootPath;
                 VideoInfo videoInfo = dbSql.VideoInfo.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
                 if(videoInfo != null) 
                 {
@@ -760,8 +861,6 @@ namespace Portal.Controllers
 
                     dbSql.Remove(videoInfo);
                     dbSql.SaveChanges();
-
-                    EditCustomVideoArray(videoInfo.Name);
 
                     result.Ok = true;
                     return new ObjectResult(result);
@@ -873,6 +972,7 @@ namespace Portal.Controllers
         [HttpGet]
         public IActionResult GetLocationListWithGuid(string guid)
         {
+            SyncVideoLibraryWithDisk();
             List<VideoInfo> videoInfos = dbSql.VideoInfo.OrderBy(x => x.Name).ToList();
             List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
             VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
@@ -892,6 +992,53 @@ namespace Portal.Controllers
                 videoDevices.OnlyMusic = contentType != "null" ? int.Parse(contentType) : null;
                 dbSql.SaveChanges();
                 result.Ok = true;
+                return new OkObjectResult(result);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = ex.Message;
+                return new ObjectResult(result);
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ReplaceVideoInDevices(string fromVideo, string toVideo)
+        {
+            var result = new Result<object>();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(fromVideo) || string.IsNullOrWhiteSpace(toVideo))
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "Video names are empty";
+                    return new ObjectResult(result);
+                }
+
+                var fromValue = $"[{fromVideo.Trim()}]";
+                var toValue = $"[{toVideo.Trim()}]";
+
+                var devicesToUpdate = dbSql.VideoDevices
+                    .AsEnumerable()
+                    .Where(x => string.Equals(x.VideoList, fromValue, StringComparison.Ordinal))
+                    .ToList();
+
+                foreach (var device in devicesToUpdate)
+                {
+                    device.VideoList = toValue;
+                }
+
+                dbSql.SaveChanges();
+
+                result.Ok = true;
+                result.Data = new
+                {
+                    updatedCount = devicesToUpdate.Count,
+                    fromVideo = fromValue,
+                    toVideo = toValue
+                };
+
                 return new OkObjectResult(result);
             }
             catch (Exception ex)

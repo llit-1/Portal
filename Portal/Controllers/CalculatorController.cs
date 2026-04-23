@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.EMMA;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -368,7 +369,7 @@ namespace Portal.Controllers
                         calculatorItem.Groupblockedcoff = groupblockedcoff;
                         if (ThisPeriodUnblockedSum > 0)
                         {
-                            calculatorItem.ThisPeriodAdding = ThisPeriodGroupAdding * (calculatorItem.AverageRestOfThisPeriod - calculatorItem.AverageProductionPeriod / ThisPeriodUnblockedSum);
+                            calculatorItem.ThisPeriodAdding = ThisPeriodGroupAdding * (calculatorItem.AverageRestOfThisPeriod / ThisPeriodUnblockedSum);
                         }
                         if (NextPeriodUnblockedSum > 0)
                         {
@@ -995,7 +996,7 @@ namespace Portal.Controllers
                 TTCode = request.TTCode,
                 Type = 1,
                 Enable = true,
-                Info = User.Identity.Name,
+                Info = "Заполнил: " + User.Identity.Name + " " + DateTime.Now,
                 Begin = DateTime.Today,
                 End = DateTime.Today.AddDays(1)
             };
@@ -1022,6 +1023,7 @@ namespace Portal.Controllers
                 return NotFound(new { Message = "block not found" });
             }
 
+            itemBlock.Info += " Удалил: " + User.Identity.Name + " " + DateTime.Now;
             itemBlock.Enable = false;
             CalculatorDb.SaveChanges();
             return Ok();
@@ -1030,7 +1032,7 @@ namespace Portal.Controllers
         public IActionResult ItemBlocks()
         {
             ItemsBlocksProps ItemsBlocksProps = new ItemsBlocksProps();
-            ItemsBlocksProps.itemBlocks = CalculatorDb.itemBlocks.Where(x => x.Enable).ToList();
+            ItemsBlocksProps.itemBlocks = CalculatorDb.itemBlocks.Where(x => x.End > DateTime.Now.AddMonths(-1)).ToList();
             ItemsBlocksProps.tts = db.TTs.ToList();
             ItemsBlocksProps.items = CalculatorDb.Items.ToList();
 

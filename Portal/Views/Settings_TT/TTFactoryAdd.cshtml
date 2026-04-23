@@ -17,7 +17,7 @@
         <!--адрес тт-->
         <label class="label-light">адрес</label>
         <div class="" style="margin-bottom:15px">
-            <input id="address" type="text" class="form-control" value="" style="font-weight:bold" required>
+            <input id="address" type="text" class="form-control" value="" style="font-weight:bold">
             <span class="input-group-btn">
             </span>
         </div>
@@ -27,6 +27,7 @@
             <label class="label-light" style="width:100%">юл</label>
             <div style="width:100%; float:left; margin-bottom:15px">
                 <select id="entity" class="form-control selectors" data-width="100%" required>
+                    <option value="" selected disabled></option>
                     @foreach (var organization in Model?.entity.OrderBy(o => o.Name))
                     {
                         <option value="@organization.Guid">@organization.Name</option>
@@ -40,6 +41,7 @@
             <label class="label-light" style="width:100%">тип</label>
             <div style="width:100%; float:left">
                 <select id="type" class="form-control selectors" data-width="100%" required>
+                    <option value="" selected disabled></option>
                     @foreach (var type in Model?.locationTypes.OrderBy(t => t.Name))
                     {
                         <option value="@type.Guid">@type.Name</option>
@@ -66,7 +68,7 @@
         <!--дата открытия-->
         <label class="label-light" style="margin-top: 15px;">дата открытия</label>
         <div class="" style="margin-bottom:15px">
-            <input id="open" type="date" class="form-control" value="" style="font-weight:bold" required>
+            <input id="open" type="date" class="form-control" value="" style="font-weight:bold">
             <span class="input-group-btn">
             </span>
         </div>
@@ -147,6 +149,11 @@
     });
 
     function AddTT() {
+        const validationError = validateFactoryForm();
+        if (validationError) {
+            return openModal('Ошибка', validationError);
+        }
+
         const loc = {}
         loc.name = document.getElementById("name").value;
         loc.address = document.getElementById("address").value;
@@ -176,11 +183,59 @@
                     $('#back').click(function () { location.hash = "#settings" });
                 }
                 else {
-                    openModal('Ошибка', result)
+                    openModal('Ошибка', getFactoryErrorMessage(result))
                 }
             },
-            error: function (error) { openModal('Ошибка', error) }
+            error: function (error) { openModal('Ошибка', getFactoryErrorMessage(error)) }
         });
+    }
+
+    function validateFactoryForm() {
+        const requiredFields = [
+            { element: document.getElementById("name"), message: 'Заполните поле "Название".' },
+            { element: document.getElementById("entity"), message: 'Выберите юридическое лицо.' },
+            { element: document.getElementById("type"), message: 'Выберите тип.' },
+        ];
+
+        for (const field of requiredFields) {
+            if (!field.element.value || !String(field.element.value).trim()) {
+                field.element.focus();
+                if (typeof field.element.reportValidity === 'function') {
+                    field.element.reportValidity();
+                }
+                return field.message;
+            }
+        }
+
+        return null;
+    }
+
+    function getFactoryErrorMessage(error) {
+        if (!error) {
+            return 'Не удалось сохранить данные.';
+        }
+
+        if (typeof error === 'string') {
+            return error;
+        }
+
+        if (typeof error.data === 'string' && error.data) {
+            return error.data;
+        }
+
+        if (typeof error.responseText === 'string' && error.responseText) {
+            return error.responseText;
+        }
+
+        if (typeof error.statusText === 'string' && error.statusText) {
+            return error.statusText;
+        }
+
+        try {
+            return JSON.stringify(error);
+        } catch {
+            return 'Не удалось сохранить данные.';
+        }
     }
 
     $('#back').unbind('click');

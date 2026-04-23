@@ -333,6 +333,13 @@ namespace Portal.Controllers
             {
                 json = json.Replace("%bkspc%", " ");
                 var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
+                var validationError = ValidateFactoryRequest(ttJsn, false);
+                if (validationError != null)
+                {
+                    result.Ok = false;
+                    result.Data = validationError;
+                    return new ObjectResult(result);
+                }
 
                 LocationVersions locationVersions = dbSql.LocationVersions.Include(x => x.Location)
                                                                           .Include(x => x.Location.LocationType)
@@ -344,7 +351,7 @@ namespace Portal.Controllers
                 locationVersions.Location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
                 locationVersions.Location.RKCode = 0;
                 locationVersions.Location.AggregatorsCode = null;
-                if (ttJsn.parent != "" && ttJsn.parent != null)
+                if (!string.IsNullOrWhiteSpace(ttJsn.parent))
                 {
                     locationVersions.Location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
                 }
@@ -378,8 +385,13 @@ namespace Portal.Controllers
                     dbSql.BindingLocationToUsers.Remove(x);
                 });
 
-                ttJsn.usersid.ForEach(x =>
+                (ttJsn.usersid ?? new List<string?>()).ForEach(x =>
                 {
+                    if (string.IsNullOrWhiteSpace(x))
+                    {
+                        return;
+                    }
+
                     BindingLocationToUsers bindingLocationToUsers = new BindingLocationToUsers();
                     bindingLocationToUsers.LocationID = locationVersions.Guid;
                     bindingLocationToUsers.UserID = int.Parse(x);
@@ -404,6 +416,13 @@ namespace Portal.Controllers
             {
                 json = json.Replace("%bkspc%", " ");
                 var ttJsn = JsonConvert.DeserializeObject<Portal.Models.JsonModels.TTsFactoryAdd>(json);
+                var validationError = ValidateFactoryRequest(ttJsn, true);
+                if (validationError != null)
+                {
+                    result.Ok = false;
+                    result.Data = validationError;
+                    return new ObjectResult(result);
+                }
 
                 LocationVersions locationVersions = new LocationVersions();
                 Models.MSSQL.Location.Location location = new Models.MSSQL.Location.Location();
@@ -412,26 +431,49 @@ namespace Portal.Controllers
                 location.LocationType = dbSql.LocationTypes.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.type));
                 location.RKCode = 0;
                 location.AggregatorsCode = null;
-                if (ttJsn?.parent != "" || ttJsn?.parent != null)
+                if (!string.IsNullOrWhiteSpace(ttJsn?.parent))
                 {
                     location.Parent = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.parent));
-                } 
+                }
                 else
                 {
                     location.Parent = null;
                 }
 
-                locationVersions.Location.Latitude = ttJsn.latitude;
-                locationVersions.Location.Longitude = ttJsn.longitude;
+                locationVersions.Location = location;
+
+                if (ttJsn.latitude != null)
+                {
+                    locationVersions.Location.Latitude = ttJsn.latitude;
+                }
+                else
+                {
+                    locationVersions.Location.Latitude = null;
+                }
+
+                if (ttJsn.longitude != null)
+                {
+                    locationVersions.Location.Longitude = ttJsn.longitude;
+                }
+                else
+                {
+                    locationVersions.Location.Longitude = null;
+                }
                 location.Actual = 1;
 
-                locationVersions.Location = location;
                 locationVersions.Name = ttJsn.Name;
                 locationVersions.OBD = null;
                 locationVersions.Entity = dbSql.Entity.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.entity));
                 locationVersions.Actual = 1;
-                locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
-                if(ttJsn.close != "")
+                if (ttJsn.open == null || ttJsn.open == "")
+                {
+                    locationVersions.VersionStartDate = null;
+                } else
+                {
+                    locationVersions.VersionStartDate = DateTime.Parse(ttJsn.open);
+                }
+                
+                if(ttJsn.close == null || ttJsn.close != "")
                 {
                     locationVersions.VersionEndDate = DateTime.Parse(ttJsn.close);
                 } 
@@ -444,8 +486,13 @@ namespace Portal.Controllers
                 dbSql.Locations.Add(location);
                 dbSql.LocationVersions.Add(locationVersions);
 
-                ttJsn.usersid.ForEach(x =>
+                (ttJsn.usersid ?? new List<string?>()).ForEach(x =>
                 {
+                    if (string.IsNullOrWhiteSpace(x))
+                    {
+                        return;
+                    }
+
                     BindingLocationToUsers bindingLocationToUsers = new BindingLocationToUsers();
                     bindingLocationToUsers.LocationID = locationVersions.Guid;
                     bindingLocationToUsers.UserID = int.Parse(x);
@@ -463,6 +510,41 @@ namespace Portal.Controllers
                 result.Data = e.ToString();
             }
             return new ObjectResult(result);
+        }
+
+        private string ValidateFactoryRequest(TTsFactoryAdd ttJsn, bool requireGuid)
+        {
+            if (ttJsn == null)
+            {
+                return "Не удалось прочитать данные формы.";
+            }
+
+            if (requireGuid == false && string.IsNullOrWhiteSpace(ttJsn.guid))
+            {
+                return "Не найден идентификатор записи.";
+            }
+
+            if (!string.IsNullOrWhiteSpace(ttJsn.guid) && !Guid.TryParse(ttJsn.guid, out _))
+            {
+                return "Некорректный идентификатор записи.";
+            }
+
+            if (string.IsNullOrWhiteSpace(ttJsn.Name))
+            {
+                return "Заполните поле \"Название\".";
+            }
+
+            if (string.IsNullOrWhiteSpace(ttJsn.entity) || !Guid.TryParse(ttJsn.entity, out _))
+            {
+                return "Выберите юридическое лицо.";
+            }
+
+            if (string.IsNullOrWhiteSpace(ttJsn.type) || !Guid.TryParse(ttJsn.type, out _))
+            {
+                return "Выберите тип.";
+            }
+
+            return null;
         }
 
         public IActionResult TTOfficeSave(string json)
