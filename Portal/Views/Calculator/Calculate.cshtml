@@ -255,6 +255,41 @@
         }
     }
 
+    function buildBlockLog(row) {
+        const inputObject = row.querySelector('.inputObject');
+        const itemCode = row.querySelector('.itemCode').value;
+        const itemName = row.querySelector('.itemName').value;
+        const restValue = inputObject && inputObject.value !== '' ? inputObject.value : '0';
+
+        return {
+            UserName: '@Html.Raw(Model.User)',
+            ItemCode: itemCode,
+            ItemName: itemName,
+            TTCode: '@Html.Raw(Model.TTs[0].Restaurant_Sifr)',
+            TTName: '@Html.Raw(Model.TTs[0].Name)',
+            Rest: restValue,
+            Result: '-1'
+        };
+    }
+
+    async function sendCalculatorLog(log) {
+        let logjsn = JSON.stringify(log);
+        logjsn = logjsn.replace(/ /g, "%bkspc%");
+
+        const response = await fetch('/Calculator/LogSave', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: new URLSearchParams({ logjsn })
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+            throw new Error(result.errorMessage || 'Не удалось сохранить лог блокировки');
+        }
+    }
+
     function applyToggleRowLock(lockElement) {
         const blockState = Number(lockElement.dataset.blockState);
         if (blockState === 2 || blockState === 3) {
@@ -317,6 +352,7 @@
             return;
         }
 
+        const wasLocked = pendingLockElement.dataset.locked === 'true';
         isLockRequestInProgress = true;
         setLockConfirmButtonBusy(true);
         setLockElementBusy(pendingLockElement, true);
@@ -325,6 +361,15 @@
             try {
                 $("#spinner").show();
                 await sendItemBlockRequest(pendingLockElement);
+                if (!wasLocked) {
+                    const row = pendingLockElement.closest('tr');
+                    const blockLog = buildBlockLog(row);
+                    try {
+                        await sendCalculatorLog(blockLog);
+                    } catch (logError) {
+                        console.error('Block log save failed', logError);
+                    }
+                }
                 isLockRequestInProgress = false;
                 closeLockConfirmModal();
                 reloadCurrentCalculateView();
