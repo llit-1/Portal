@@ -53,7 +53,6 @@
                                     <th>Участок</th>
                                     <th>Должность</th>
                                     <th>Гражданство</th>
-                                    <th>Юр. лицо</th>
                                     <th class="hidden">Тип документа</th>
                                     <th class="hidden">Номер телефона</th>
                                     <th class="hidden">Дата въезда</th>
@@ -72,6 +71,12 @@
 </div>
 
 <div id="paginationContainer"></div>
+
+<style>
+    .factory-person-row--missing-passcard td {
+        background-color: #fff7d6 !important;
+    }
+ </style>
 
 <script>
     var height = $('#global').height();
@@ -104,6 +109,11 @@
             url: '/PersonalityFactory/PersonalityFactoryTableData?activeOnly=@ViewBag.ActiveOnly',
             type: 'POST'
         },
+        createdRow: function (row, data) {
+            if (!data || !data.passCardNumber || !data.passCardNumber.toString().trim()) {
+                row.classList.add('factory-person-row--missing-passcard');
+            }
+        },
         columns: [
             { data: 'surname', className: 'tdPersonTable' },
             { data: 'name', className: 'tdPersonTable' },
@@ -114,7 +124,6 @@
             { data: 'workshopName', className: 'tdPersonTable' },
             { data: 'jobTitleName', className: 'tdPersonTable' },
             { data: 'citizenshipName', className: 'tdPersonTable' },
-            { data: 'entityName', className: 'tdPersonTable' },
             { data: 'documentTypeName', className: 'tdPersonTable hidden' },
             { data: 'phone', className: 'tdPersonTable hidden' },
             { data: 'hostelChekin', className: 'tdPersonTable hidden' },

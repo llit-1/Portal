@@ -56,6 +56,7 @@ namespace Portal.Controllers
                     DepartmentName = x.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryDepartment.Name,
                     WorkshopName = x.DepartmentWorkshopJobTitle.DepartmentWorkshop.FactoryWorkshop.Name,
                     JobTitleName = x.DepartmentWorkshopJobTitle.JobTitleWorkshop.FactoryJobTitle.Name,
+                    PassCardNumber = x.PassCardNumber,
                     CitizenshipName = x.Citizenship != null ? x.Citizenship.Name : string.Empty,
                     EntityName = x.Entity != null ? x.Entity.Name : string.Empty,
                     DocumentTypeName = x.DocumentType != null ? x.DocumentType.Name : string.Empty,
@@ -131,6 +132,7 @@ namespace Portal.Controllers
                     departmentName = x.DepartmentName ?? string.Empty,
                     workshopName = x.WorkshopName ?? string.Empty,
                     jobTitleName = x.JobTitleName ?? string.Empty,
+                    passCardNumber = x.PassCardNumber ?? string.Empty,
                     citizenshipName = x.CitizenshipName ?? string.Empty,
                     entityName = x.EntityName ?? string.Empty,
                     documentTypeName = x.DocumentTypeName ?? string.Empty,
@@ -343,6 +345,7 @@ namespace Portal.Controllers
             public string DepartmentName { get; set; }
             public string WorkshopName { get; set; }
             public string JobTitleName { get; set; }
+            public string PassCardNumber { get; set; }
             public string CitizenshipName { get; set; }
             public string EntityName { get; set; }
             public string DocumentTypeName { get; set; }
