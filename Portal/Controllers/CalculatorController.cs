@@ -73,7 +73,6 @@ namespace Portal.Controllers
             log.Description = "/Calculator/Sandwitches";
             log.IpAdress = HttpContext.Session.GetString("ip");
             log.Save();
-
             return PartialView();
         }
 
@@ -111,13 +110,10 @@ namespace Portal.Controllers
                 default:
                     throw new Exception("Неверный GUID типа калькулятора в строке запроса");
             }
-
             calculatorInformation.ItemsGroup = CalculatorDb.ItemsGroups.FirstOrDefault(c => c.Guid == Guid.Parse(typeGuid));
             string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName).Value;
-
             List<Models.MSSQL.Location.Location> location = dbSql.Locations.Include(x => x.LocationType)
                                                                            .ToList();
-
             RKNet_Model.Account.User user = db.Users.Include(c => c.TTs.Where(d => d.CloseDate == null)).FirstOrDefault(c => c.Login == userLogin);
 
             for (int i = 0; i < user.TTs.Count; i++)
@@ -265,11 +261,29 @@ namespace Portal.Controllers
             foreach (var item in items)
             {
                 CalculatorItem thisItem = new CalculatorItem();
+                ItemOnTT realItemOnTT = thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
+                Replacement replacement = CalculatorDb.Replacements.FirstOrDefault(x=> x.Begin < calculatorInformation.Date && x.End > calculatorInformation.Date && x.ItemCode == item.RkCode);
+                Items calculatingItem = item;
+                if (replacement != null)
+                {
+                    Items replacementItem = CalculatorDb.Items.FirstOrDefault(x => x.RkCode == replacement.ReplacementItemCode);
+                    calculatingItem = replacementItem;
+                }               
                 thisItem.SettlementDaysRestOfThisPeriod = 1;
                 thisItem.SettlementDaysNextPer = 1;
                 thisItem.SettlementDaysSecondNextPer = 1;
-                thisItem.ReplacementGroupsId = item.ReplacementGroupsId;
-                thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == item && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
+                thisItem.ReplacementGroupsId = calculatingItem.ReplacementGroupsId;
+                Replacement replacementTT = CalculatorDb.Replacements.FirstOrDefault(x => x.Begin < calculatorInformation.Date && x.End > calculatorInformation.Date && x.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
+                
+                if (replacementTT != null)
+                {
+                    thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == calculatingItem && c.TTCode == replacementTT.ReplacementTTCode);
+                }
+                else
+                {
+                    thisItem.ItemOnTT = CalculatorDb.ItemOnTT.FirstOrDefault(c => c.Item == calculatingItem && c.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr);
+                }
+                    
 
                 CalculatorLogsTest calulatorLogs = dbSql.CalculatorLogsTest.Where(x => x.TTCode == calculatorInformation.TTs[0].Restaurant_Sifr &&
                                                                                        x.ItemName == item.Name &&
@@ -278,8 +292,6 @@ namespace Portal.Controllers
                                                                            .FirstOrDefault();
 
                 calculatorLogTests.Add(calulatorLogs);
-
-
                 List<NumberOfSales> thisPeriodRestSales = CalculatorDb.NumberOfSales.Where(c => c.TimeDayGroupsGUID == calculatorInformation.ThisTimeDayGroup.Guid &&
                                                                                                         c.ItemOnTTGUID == thisItem.ItemOnTT.Guid &&
                                                                                                         c.Hour > calculatorInformation.Date.Hour)
@@ -331,7 +343,7 @@ namespace Portal.Controllers
                 }
 
                 thisItem.AverageSecondNextPer = thisItem.SumSecondNextPer / thisItem.SettlementDaysSecondNextPer;
-
+                thisItem.ItemOnTT = realItemOnTT;
                 calculatorInformation.Items.Add(thisItem);
             }
             List<int> groupItemsId = items.Where(c => c.ItemsGroup == calculatorInformation.ItemsGroup.Guid)

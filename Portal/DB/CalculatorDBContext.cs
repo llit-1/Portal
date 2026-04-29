@@ -28,5 +28,6 @@ namespace Portal.DB
         public DbSet<Models.MSSQL.Calculator.TT> TT { get; set; } // торговые точки
         public DbSet<Models.MSSQL.Calculator.ReplacementGroups> ReplacementGroups { get; set; } // торговые точки
         public DbSet<Models.MSSQL.Calculator.ItemBlock> itemBlocks { get; set; }
+        public DbSet<Models.MSSQL.Calculator.Replacement> Replacements { get; set; }
     }
 }
