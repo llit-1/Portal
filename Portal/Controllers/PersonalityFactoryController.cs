@@ -105,15 +105,14 @@ namespace Portal.Controllers
                 4 => desc ? query.OrderByDescending(x => x.Passport).ThenBy(x => x.Id) : query.OrderBy(x => x.Passport).ThenBy(x => x.Id),
                 5 => desc ? query.OrderByDescending(x => x.DepartmentName).ThenBy(x => x.Id) : query.OrderBy(x => x.DepartmentName).ThenBy(x => x.Id),
                 6 => desc ? query.OrderByDescending(x => x.WorkshopName).ThenBy(x => x.Id) : query.OrderBy(x => x.WorkshopName).ThenBy(x => x.Id),
-                7 => desc ? query.OrderByDescending(x => x.JobTitleName).ThenBy(x => x.Id) : query.OrderBy(x => x.JobTitleName).ThenBy(x => x.Id),
+                7 => desc ? query.OrderByDescending(x => x.EntityName).ThenBy(x => x.Id) : query.OrderBy(x => x.EntityName).ThenBy(x => x.Id),
                 8 => desc ? query.OrderByDescending(x => x.CitizenshipName).ThenBy(x => x.Id) : query.OrderBy(x => x.CitizenshipName).ThenBy(x => x.Id),
-                9 => desc ? query.OrderByDescending(x => x.EntityName).ThenBy(x => x.Id) : query.OrderBy(x => x.EntityName).ThenBy(x => x.Id),
-                10 => desc ? query.OrderByDescending(x => x.DocumentTypeName).ThenBy(x => x.Id) : query.OrderBy(x => x.DocumentTypeName).ThenBy(x => x.Id),
-                11 => desc ? query.OrderByDescending(x => x.Phone).ThenBy(x => x.Id) : query.OrderBy(x => x.Phone).ThenBy(x => x.Id),
-                12 => desc ? query.OrderByDescending(x => x.HostelChekin).ThenBy(x => x.Id) : query.OrderBy(x => x.HostelChekin).ThenBy(x => x.Id),
-                13 => desc ? query.OrderByDescending(x => x.HostelCheckOut).ThenBy(x => x.Id) : query.OrderBy(x => x.HostelCheckOut).ThenBy(x => x.Id),
-                14 => desc ? query.OrderByDescending(x => x.HiringDate).ThenBy(x => x.Id) : query.OrderBy(x => x.HiringDate).ThenBy(x => x.Id),
-                15 => desc ? query.OrderByDescending(x => x.DismissedDate).ThenBy(x => x.Id) : query.OrderBy(x => x.DismissedDate).ThenBy(x => x.Id),
+                9 => desc ? query.OrderByDescending(x => x.DocumentTypeName).ThenBy(x => x.Id) : query.OrderBy(x => x.DocumentTypeName).ThenBy(x => x.Id),
+                10 => desc ? query.OrderByDescending(x => x.Phone).ThenBy(x => x.Id) : query.OrderBy(x => x.Phone).ThenBy(x => x.Id),
+                11 => desc ? query.OrderByDescending(x => x.HostelChekin).ThenBy(x => x.Id) : query.OrderBy(x => x.HostelChekin).ThenBy(x => x.Id),
+                12 => desc ? query.OrderByDescending(x => x.HostelCheckOut).ThenBy(x => x.Id) : query.OrderBy(x => x.HostelCheckOut).ThenBy(x => x.Id),
+                13 => desc ? query.OrderByDescending(x => x.HiringDate).ThenBy(x => x.Id) : query.OrderBy(x => x.HiringDate).ThenBy(x => x.Id),
+                14 => desc ? query.OrderByDescending(x => x.DismissedDate).ThenBy(x => x.Id) : query.OrderBy(x => x.DismissedDate).ThenBy(x => x.Id),
                 _ => query.OrderBy(x => x.Surname).ThenBy(x => x.Id)
             };
 
