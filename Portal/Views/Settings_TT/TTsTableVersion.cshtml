@@ -67,7 +67,14 @@
                                             <p class="text-muted">@old?.CashStations.Count</p>
                                     </td>
                                     <td>
-                                            <p class="text-muted">@old?.NxCameras.Count</p>
+                                            @if (tt?.Location?.NXLayout != null)
+                                            {
+                                                <p class="text-muted"><i class="fa fa-fw fa-check"></i></p>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted"><i class="fa fa-fw fa-minus"></i></p>
+                                            }
                                     </td>                                    
                                     <td>
                                             @if (old?.YandexEda == true)

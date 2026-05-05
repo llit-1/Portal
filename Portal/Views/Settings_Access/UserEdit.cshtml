@@ -437,6 +437,7 @@
             success: function (result) {
 
                 if (result.ok) {
+                        LogNxWarnings(result);
                     // выключаем спиннер на кнопке
                     $(spinner).addClass('d-none');
 
@@ -508,6 +509,12 @@
     }
 
 
+
+    function LogNxWarnings(result) {
+        if (result && result.warnings && result.warnings.length) {
+            console.log('NX TT warnings', result.warnings);
+        }
+    }
 </script>
 
 <!--изменение данных пользователя-->
@@ -573,6 +580,7 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
+                        LogNxWarnings(result);
                     // выключаем спиннер на кнопке
                     $(spinner).addClass('d-none');
 
@@ -666,6 +674,7 @@
                 datatype: "text",
                 success: function (result) {
                     if (result.ok) {
+                        LogNxWarnings(result);
                         SwitchName(user.enabled);
                     }
                     else {
@@ -739,6 +748,7 @@
                 datatype: "text",
                 success: function (result) {
                     if (result.ok) {
+                        LogNxWarnings(result);
                         EditHide(isAd);
                     }
                     else {
@@ -791,11 +801,12 @@
                 datatype: "text",
                 success: function (result) {
                     if (result.ok) {
+                        LogNxWarnings(result);
                         SelectItems(userId, 'objects');
                         ttSelectorState(allTT);
                     }
                     else {
-                        alert(result.data);
+                        ShowModal("NX", result.data);
                     }
                 },
                 error: function (error) {
@@ -855,6 +866,7 @@
             datatype: "text",
             success: function (result) {
                 if (result.ok) {
+                        LogNxWarnings(result);
 
                     ShowModal('Редактор пользователя', 'Пользователь успешно добавлен');
                     //DataTable();

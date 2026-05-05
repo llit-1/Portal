@@ -19,6 +19,11 @@
     var guidNewBase = "0";
     var newAddress = "";
     var oldId = "";
+    var oldTt = Model?.OldTT?.FirstOrDefault();
+    var oldTtCount = Model?.OldTT?.Count ?? 0;
+    var oldTtId = oldTt?.Id.ToString() ?? "0";
+    var currentNxLayoutId = Model?.LocationVersion?.FirstOrDefault()?.Location?.NXLayout?.ToString() ?? "";
+    var currentNxLayoutName = string.IsNullOrWhiteSpace(Model?.NXLayoutName) ? currentNxLayoutId : Model.NXLayoutName;
     Double? latitude = 0.0;
     Double? longitude = 0.0;
 
@@ -36,13 +41,13 @@
 
         locVerName = Model.LocationVersion[0].Name;
         locVerRKCode = (int)Model.LocationVersion[0].Location.RKCode;
-        oldAddress = Model?.OldTT[0]?.Address;
+        oldAddress = oldTt?.Address;
         newAddress = Model.LocationVersion[0].Address;
         locVerEntity = Model.LocationVersion[0].Entity;
         locVerOBD = Model.LocationVersion[0].OBD.ToString();
         locVerType = Model?.LocationVersion[0].Location.LocationType;
         guidNewBase = Model?.LocationVersion[0]?.Guid.ToString();
-        oldId = Model?.OldTT[0].Id.ToString();
+        oldId = oldTt?.Id.ToString() ?? "";
         latitude = Model.LocationVersion[0].Location.Latitude;
         longitude = Model.LocationVersion[0].Location.Longitude;
     }
@@ -64,7 +69,7 @@
     }
 }
 
-<div class="row flex bg-white" style="margin:0px">
+<div class="row flex bg-white tt-edit-compact" style="margin:0px">
 
     <!--данные тт-->
     <div class="col-md-4 col-lg-4" @blockStyle>
@@ -290,7 +295,7 @@
 
                     @foreach (var user in Model?.Users)
                     {
-                        if (Model?.OldTT[0].Users.FirstOrDefault(u => u.Id == user.Id) != null && Model?.LocationVersion != null)
+                        if (oldTt?.Users?.FirstOrDefault(u => u.Id == user.Id) != null && Model?.LocationVersion != null)
                         {
                             <option selected="selected" value="@user.Id">@user.Name</option>
                         }
@@ -328,17 +333,18 @@
             <label class="label-light" style="width:100%">подключенные кассы</label>
             <div id="cashes" style="width:100%; float:left">
 
-                @foreach (var cash in Model?.OldTT[0].CashStations.OrderBy(n => n.Name))
+                @if (oldTt?.CashStations != null)
                 {
-                    var id = "cash_" + cash.Id.ToString();
-                    /*var idip = "caship_" + cash.Id;*/
-                    <a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="@id">
-                        <div class="cashName" style="display:inline">@cash.Name</div>
-                        <div class="cashIp hidden">@cash.Ip</div>
-                        <div class="cashMidserver hidden">@cash.Midserver</div>
-                        <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCash(this)"></label></div>
-                    </a>
-
+                    @foreach (var cash in oldTt.CashStations.OrderBy(n => n.Name))
+                    {
+                        var id = "cash_" + cash.Id.ToString();
+                        <a href="#edit" class="list-group-item list-group-item-slim list-group-item-noaction" id="@id">
+                            <div class="cashName" style="display:inline">@cash.Name</div>
+                            <div class="cashIp hidden">@cash.Ip</div>
+                            <div class="cashMidserver hidden">@cash.Midserver</div>
+                            <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCash(this)"></label></div>
+                        </a>
+                    }
                 }
 
             </div>
@@ -353,29 +359,21 @@
             <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
         </div>
 
-        <!--камеры-->
-        <h5 class="pull-left" style="margin-top:50px">Камеры</h5>
-        <div class="pull-right" style="margin-right:0px; height:10px"><button class="btn btn-xs" style="margin-top: 53px" onclick="CamEdit()">изменить</button></div>        
+        <!--nx группа-->
+        <h5 class="pull-left" style="margin-top:50px">NX группа</h5>
+        <div class="pull-right" style="margin-right:0px; height:10px"><button class="btn btn-xs" style="margin-top: 28px" onclick="$('#camModal').modal('show'); TTlayoutsPreview();">изменить</button></div>        
 
         <!--разделитель-->
         <hr style="width:100%" />
 
-        <!--список камер-->
+        <!--привязка nx группы-->
         <div class="form-group">
-            <label class="label-light" style="width:100%">подключенные камеры</label>
-            <div id="cameras" style="width:100%; float:left">
-                @if (Model?.LocationVersion != null)
-                {
-                    @foreach (var cam in Model.OldTT[0].NxCameras.OrderBy(c => c.Name))
-                    {
-                        <div id="@cam.Id" class="list-group-item list-group-item-slim list-group-item-noaction">
-                            <div style="display:inline">@cam.Name</div>
-                            <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico fa fa-fw fa-pencil" style="margin-top: -2px" onclick="EditCamProps(this)"></label></div>
-                        </div>
-                    }
-                }
-                
+            <label class="label-light" style="width:100%">привязанная группа NX</label>
+            <div id="cameras" class="d-none"></div>
 
+            <input id="selectedNxLayoutId" type="hidden" value="@currentNxLayoutId" />
+            <div id="selectedNxLayoutBlock" class="nx-selected-layout @(string.IsNullOrWhiteSpace(currentNxLayoutName) ? "d-none" : "")">
+                <span id="selectedNxLayoutName">@currentNxLayoutName</span>
             </div>
 
             <!--сохранить-->
@@ -387,6 +385,92 @@
             <!--отменить-->
             <button type="button" class="cancel btn btn-default d-none" onclick="CancelSelect(this)" style="float:left"><i class="fa fa-fw fa-close"></i></button>
         </div>
+
+        <style>
+            .tt-edit-compact h5[style*="margin-top:50px"] {
+                margin-top: 24px !important;
+            }
+
+            .tt-edit-compact .form-group {
+                margin-bottom: 10px;
+            }
+
+            .tt-edit-compact #users + .select2-container {
+                height: calc(100vh - 360px) !important;
+                min-height: 14rem;
+                max-height: 66vh;
+            }
+
+            .tt-edit-compact #users + .select2-container .select2-selection--multiple {
+                height: 100% !important;
+                overflow: hidden;
+            }
+
+            .tt-edit-compact #users + .select2-container .select2-selection__rendered {
+                max-height: 100%;
+            }
+
+            .tt-edit-compact #cashes,
+            .tt-edit-compact #cameras {
+                max-height: 108px;
+            }
+
+            .nx-selected-layout {
+                width: 100%;
+                float: left;
+                padding: 8px 10px;
+                border-left: 3px solid #F47920;
+                background: #fff3e8;
+                color: #25313b;
+                font-weight: 600;
+                line-height: 1.3;
+                word-break: break-word;
+            }
+
+            .tt-edit-actions {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid #e5e5e5;
+                justify-content: space-between;
+            }
+
+            .tt-edit-actions .btn {
+                min-width: 92px;
+            }
+
+            .tt-version-action {
+                display: inline-block;
+                margin-left: 10px;
+                vertical-align: middle;
+            }
+
+            .tt-version-button {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                min-height: 28px;
+                padding: 4px 10px;
+                border: 1px solid #F47920;
+                border-radius: 3px;
+                background: #fff;
+                color: #F47920;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 1.2;
+                transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+            }
+
+            .tt-version-button:hover,
+            .tt-version-button:focus {
+                background: #F47920;
+                color: #fff;
+                box-shadow: 0 1px 4px rgba(244, 121, 32, .28);
+                outline: none;
+            }
+        </style>
 
          <!--интеграции-->
         <h5 class="pull-left" style="margin-top:50px">Интеграции</h5>        
@@ -400,7 +484,7 @@
             <div class="material-switch pull-right">
                 @if (Model?.LocationVersion != null)
                 {
-                    <input class="slider" id="yandexEda" type="checkbox" checked="@Model?.OldTT[0].YandexEda">
+                    <input class="slider" id="yandexEda" type="checkbox" checked="@(oldTt?.YandexEda ?? false)">
                 }
                 else
                 {
@@ -416,7 +500,7 @@
             <div class="material-switch pull-right">
                 @if (Model?.LocationVersion != null)
                 {
-                    <input class="slider" id="deliveryClub" type="checkbox" checked="@Model?.OldTT[0].DeliveryClub">
+                    <input class="slider" id="deliveryClub" type="checkbox" checked="@(oldTt?.DeliveryClub ?? false)">
                 }
                 else
                 {
@@ -463,17 +547,16 @@
             </span>
         </div>
 
-    </div>
+        <!--кнопки сохранить/отмена-->
+        @if (Model.TTNew)
+        {
+            <div class="tt-edit-actions">
+                <button type="button" class="btn btn-sm btn-success default" onclick="SaveNewItem()">Сохранить</button>
+                <button type="button" class="btn btn-sm btn-light default" onclick="DataTable()">Отмена</button>
+            </div>
+        }
 
-    <!--кнопки сохранить/отмена-->
-    @if (Model.TTNew)
-    {
-        blockStyle += ";width:100%";
-        <div class="col-12" @blockStyle>
-            <button type="button" class="btn btn-sm btn-success default" style="margin-right:20px" onclick="SaveNewItem()">Сохранить</button>
-            <button type="button" class="btn btn-sm btn-light default" onclick="DataTable()">Отмена</button>
-        </div>
-    }
+    </div>
 
 </div>
 
@@ -561,7 +644,7 @@
             <div class="modal-header">
                 <div class="pull-right" style="margin-right:10px; height:10px"><label class="ico md-close" style="margin-top: -2px" data-dismiss="modal"></label></div>
                 <h4 class="modal-title" id="camModalLabel">
-                    Камеры на ТТ
+                    NX группы на ТТ
                     <a class="anchorjs-link" href="#camModalLabel"><span class="anchorjs-icon"></span></a>
                 </h4>
             </div>
@@ -642,12 +725,14 @@
     var newTT = @Html.Raw(Json.Serialize(Model?.TTNew));
     var ttId = "@Model.TTNew";
     var ttGuid = "@guidNewBase";
+    var hasSingleOldTt = @(oldTtCount == 1 ? "true" : "false");
+    var existingTtId = "@oldTtId";
     if (ttId == "False") {
-        ttId = @Model?.OldTT[0].Id;
+        ttId = existingTtId;
     }
     var original = "@Model?.original";
     
-    var ttRkSifr = @Model?.OldTT[0].Restaurant_Sifr;
+    var ttRkSifr = @(oldTt?.Restaurant_Sifr ?? 0);
     var mode = '';
     var ttCams = [];
     var camId = 0;
@@ -753,14 +838,15 @@
         // отправляем данные в контроллер
         var tt = {};
         let ttId = "";
-        if ("@Model.OldTT.Count()" == 1) {
-            ttId = "@Model.OldTT[0].Id";
+        if (hasSingleOldTt) {
+            ttId = existingTtId;
         } else {
             ttId = "0"
         }
         tt.id = ttId;
         tt.attribute = selectId;
         tt.Guid = "@guidNewBase";
+        tt.nxLayout = $('#selectedNxLayoutId').val();
         tt.items = [];
         var data = $(selector).select2('data');
 
@@ -919,8 +1005,8 @@
         var tt = {};
         tt.type = $('#ttType').select2('val');
         let ttId = "";
-        if ("@Model.OldTT.Count()" == 1) {
-            ttId = "@Model.OldTT[0].Id";
+        if (hasSingleOldTt) {
+            ttId = existingTtId;
         } else {
             ttId = "0"
         }
@@ -937,6 +1023,7 @@
         tt.closeDate = $('#closeDate').val();
         tt.latitude = $('#latitude').val();
         tt.longitude = $('#longitude').val();
+        tt.nxLayout = $('#selectedNxLayoutId').val();
 
         if(tt.latitude != "" && tt.latitude.includes(","))
         {
@@ -991,8 +1078,8 @@
         var tt = {};
         tt.type = $('#ttType').select2('val');
         let ttId = "";
-            if ("@Model.OldTT.Count()" == 1) {
-                ttId = "@Model.OldTT[0].Id";
+            if (hasSingleOldTt) {
+                ttId = existingTtId;
             } else {
                 ttId = "0"
             }
@@ -1007,6 +1094,7 @@
         tt.obd = $('#ttObd').val();
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
+        tt.nxLayout = $('#selectedNxLayoutId').val();
      
 
         var ttjsn = JSON.stringify(tt);
@@ -1068,8 +1156,8 @@
         tt.closeDate = $('#closeDate').val();
         tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
         let ttId = "";
-        if ("@Model.OldTT.Count()" == 1) {
-            ttId = "@Model.OldTT[0].Id";
+        if (hasSingleOldTt) {
+            ttId = existingTtId;
         } else {
             ttId = "0"
         }
@@ -1083,6 +1171,7 @@
 
         tt.latitude = $('#latitude').val();
         tt.longitude = $('#longitude').val();
+        tt.nxLayout = $('#selectedNxLayoutId').val();
 
         if(tt.latitude != "" && tt.latitude.includes(","))
         {
@@ -1334,13 +1423,14 @@
         }
         var tt = {};
         let ttId = "";
-        if ("@Model.OldTT.Count()" == 1) {
-            ttId = "@Model.OldTT[0].Id";
+        if (hasSingleOldTt) {
+            ttId = existingTtId;
         } else {
             ttId = "0"
         }
         tt.id = ttId;
         tt.attribute = "cashes";
+        tt.nxLayout = $('#selectedNxLayoutId').val();
         tt.cashes = [];
 
         // список касс на точке
@@ -1396,8 +1486,8 @@
             // отправляем данные в контроллер
             var tt = {};
             let ttId = "";
-            if ("@Model.OldTT.Count()" == 1) {
-                ttId = "@Model.OldTT[0].Id";
+            if (hasSingleOldTt) {
+                ttId = existingTtId;
             } else {
                 ttId = "0"
             }
@@ -1405,6 +1495,7 @@
             tt.guid = ttGuid;
             tt.attribute = "yandexEda";
             tt.yandexEda = enabled;
+            tt.nxLayout = $('#selectedNxLayoutId').val();
 
             var ttjsn = JSON.stringify(tt);
             ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -1439,8 +1530,8 @@
             // отправляем данные в контроллер
             var tt = {};
             let ttId = "";
-            if ("@Model.OldTT.Count()" == 1) {
-                ttId = "@Model.OldTT[0].Id";
+            if (hasSingleOldTt) {
+                ttId = existingTtId;
             } else {
                 ttId = "0"
             }
@@ -1448,6 +1539,7 @@
             tt.attribute = "deliveryClub";
             tt.guid = ttGuid;
             tt.deliveryClub = enabled;
+            tt.nxLayout = $('#selectedNxLayoutId').val();
 
             var ttjsn = JSON.stringify(tt);
             ttjsn = ttjsn.replace(/ /g, "%bkspc%"); //экранирование пробелов
@@ -1476,9 +1568,102 @@
 <!--видеонаблюдение----------------------------------------------------------------------->
 <!--кнопка изменить камеры-->
 <script>
+    function applySelectedNxLayout() {
+        var selectedLayoutId = $('#selectedNxLayoutId').val();
+        $('.nx-layout-item').removeClass('active');
+
+        if (!selectedLayoutId) {
+            $('#selectedNxLayoutName').text('');
+            $('#selectedNxLayoutBlock').addClass('d-none');
+            return;
+        }
+
+        var selectedLayout = $('.nx-layout-item[data-layout-id="' + selectedLayoutId + '"]').first();
+        if (selectedLayout.length > 0) {
+            selectedLayout.addClass('active');
+            $('#selectedNxLayoutName').text(selectedLayout.data('layout-name'));
+            $('#selectedNxLayoutBlock').removeClass('d-none');
+        }
+        else {
+            $('#selectedNxLayoutName').text(selectedLayoutId);
+            $('#selectedNxLayoutBlock').removeClass('d-none');
+        }
+    }
+
+    function selectNxLayout(el) {
+        var layoutId = $(el).data('layout-id');
+        var layoutName = $(el).data('layout-name');
+        var currentLayoutId = $('#selectedNxLayoutId').val();
+
+        if (currentLayoutId && currentLayoutId === layoutId) {
+            $('#selectedNxLayoutId').val('');
+            $('#selectedNxLayoutName').text('');
+            $('#selectedNxLayoutBlock').addClass('d-none');
+            $('.nx-layout-item').removeClass('active');
+        }
+        else {
+            $('#selectedNxLayoutId').val(layoutId ?? '');
+            $('#selectedNxLayoutName').text(layoutName || layoutId || '');
+            $('#selectedNxLayoutBlock').toggleClass('d-none', !layoutName && !layoutId);
+            $('.nx-layout-item').removeClass('active');
+            $(el).addClass('active');
+        }
+
+        SaveNxLayout();
+    }
+
+    function SaveNxLayout() {
+        if (newTT) {
+            return;
+        }
+
+        var tt = {};
+        tt.id = hasSingleOldTt ? existingTtId : "0";
+        tt.Guid = ttGuid;
+        tt.attribute = "nxLayout";
+        tt.nxLayout = $('#selectedNxLayoutId').val();
+
+        var ttjsn = JSON.stringify(tt);
+        ttjsn = ttjsn.replace(/ /g, "%bkspc%");
+
+        $.ajax({
+            type: "POST",
+            url: '/Settings_TT/TTSave',
+            data: { ttjsn: ttjsn },
+            datatype: "text",
+            success: function (result) {
+                if (!result.ok) {
+                    ShowModal('Редактор ТТ', result.data);
+                }
+            },
+            error: function (error) {
+                ShowModal('Редактор ТТ', error.responseText);
+            }
+        });
+    }
+
+    function filterNxLayouts(value) {
+        var query = (value || '').toLowerCase();
+
+        $('.nx-layout-item').each(function () {
+            var name = ($(this).data('layout-name') || '').toString().toLowerCase();
+            $(this).toggle(name.indexOf(query) >= 0);
+        });
+    }
+
     function CamEdit() {
         $("#camModal").modal("show");
-        TTcamsPreview();
+        TTlayoutsPreview();
+    }
+</script>
+
+<!--список layouts-->
+<script>
+    function TTlayoutsPreview() {
+        $('#camBody').empty();
+        $('#camBody').load('/Settings_TT/TTLayoutsPreview', function () {
+            applySelectedNxLayout();
+        });
     }
 </script>
 
@@ -1487,8 +1672,8 @@
     function TTcamsPreview() {
         $('#camBody').empty();
         let ttId = "";
-        if("@Model.OldTT.Count()" == 1) {
-            ttId = "@Model.OldTT[0].Id";
+        if (hasSingleOldTt) {
+            ttId = existingTtId;
         } else {
             ttId = "0"
         }
@@ -1510,8 +1695,8 @@
 <!--добавление камеры-->
 <script>
     let ttId = "";
-    if ("@Model.OldTT.Count()" == 1) {
-        ttId = "@Model.OldTT[0].Id";
+    if (hasSingleOldTt) {
+        ttId = existingTtId;
     } else {
         ttId = "0"
     }
@@ -1524,8 +1709,8 @@
 <!--закрытие модального окна-->
 <script>
     let ttId = "";
-    if ("@Model.OldTT.Count()" == 1) {
-        ttId = "@Model.OldTT[0].Id";
+    if (hasSingleOldTt) {
+        ttId = existingTtId;
     } else {
         ttId = "0"
     }
@@ -1565,8 +1750,8 @@
 <!--удаление камеры-->
 <script>
     let ttId = "";
-    if ("@Model.OldTT.Count()" == 1) {
-        ttId = "@Model.OldTT[0].Id";
+    if (hasSingleOldTt) {
+        ttId = existingTtId;
     } else {
         ttId = "0"
     }
@@ -1601,8 +1786,8 @@
 <!--редактирование свойств камеры-->
 <script>
     let ttId = "";
-    if ("@Model.OldTT.Count()" == 1) {
-        ttId = "@Model.OldTT[0].Id";
+    if (hasSingleOldTt) {
+        ttId = existingTtId;
     } else {
         ttId = "0"
     }
@@ -1684,7 +1869,7 @@
     let headerDiv = document.getElementById('headMenu')
     if("@guidNewBase" != "0")
     {
-        headerDiv.innerHTML += "<div id='divForButtonLocVer'><button id='buttonLocVer'> Посмотреть версии ТТ </button></div>"
+        headerDiv.innerHTML += "<div id='divForButtonLocVer' class='tt-version-action'><button id='buttonLocVer' type='button' class='tt-version-button'><i class='fa fa-fw fa-history'></i><span>Версии ТТ</span></button></div>"
     }
 </script>
 

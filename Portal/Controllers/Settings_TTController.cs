@@ -10,6 +10,7 @@ using Portal.Models.MSSQL;
 using Portal.Models.MSSQL.Location;
 using Portal.Models.MSSQL.Personality;
 using Portal.Models.MSSQL.PersonalityVersions;
+using Portal.Global;
 using Portal.ViewModels.Settings_Access.json;
 using Portal.ViewModels.Settings_TT;
 using RKNet_Model;
@@ -236,6 +237,12 @@ namespace Portal.Controllers
             ttSettings.locationTypes = dbSql.LocationTypes.ToList();
             ttSettings.Entities = dbSql.Entity.ToList();
             ttSettings.original = original;
+
+            var nxLayout = ttSettings.LocationVersion?.FirstOrDefault()?.Location?.NXLayout;
+            if (nxLayout.HasValue)
+            {
+                ttSettings.NXLayoutName = new NxRestClient().GetUserGroupName(nxLayout.Value) ?? nxLayout.Value.ToString();
+            }
 
             return PartialView(ttSettings);
         }
@@ -883,6 +890,7 @@ namespace Portal.Controllers
                             }
                             else
                             {
+                                ttNewBase.Location.Actual = 1;
                                 tt.CloseDate = null;
                                 ttNewBase.VersionEndDate = null;
                                 
@@ -927,6 +935,23 @@ namespace Portal.Controllers
 
                         case "deliveryClub":
                             tt.DeliveryClub = ttJsn.deliveryClub;
+                            break;
+
+                        case "nxLayout":
+                            if (string.IsNullOrWhiteSpace(ttJsn.nxLayout))
+                            {
+                                ttNewBase.Location.NXLayout = null;
+                            }
+                            else if (Guid.TryParse(ttJsn.nxLayout, out var nxLayout))
+                            {
+                                ttNewBase.Location.NXLayout = nxLayout;
+                            }
+                            else
+                            {
+                                result.Ok = false;
+                                result.Data = "NX group id is invalid.";
+                                return new ObjectResult(result);
+                            }
                             break;
 
                         case "cashes":
@@ -1229,6 +1254,7 @@ namespace Portal.Controllers
                     }
                     else
                     {
+                        location.Actual = 1;
                         tt.CloseDate = null;
                         locversion.VersionEndDate = null;
                     }
@@ -1247,6 +1273,39 @@ namespace Portal.Controllers
                     }
 
                         // Кассы на новой ТТ
+                    var isNewTt = string.IsNullOrWhiteSpace(ttJsn.original)
+                        && (string.IsNullOrWhiteSpace(ttJsn.Guid) || ttJsn.Guid == "0");
+
+                    if (string.IsNullOrWhiteSpace(ttJsn.nxLayout))
+                    {
+                        if (isNewTt)
+                        {
+                            var nxGroup = new NxRestClient().GetOrCreateUserGroup(ttJsn.name);
+                            if (!Guid.TryParse(nxGroup.Id, out var createdNxLayout))
+                            {
+                                result.Ok = false;
+                                result.Data = "NX group id is invalid.";
+                                return new ObjectResult(result);
+                            }
+
+                            location.NXLayout = createdNxLayout;
+                        }
+                        else
+                        {
+                            location.NXLayout = null;
+                        }
+                    }
+                    else if (Guid.TryParse(ttJsn.nxLayout, out var nxLayout))
+                    {
+                        location.NXLayout = nxLayout;
+                    }
+                    else
+                    {
+                        result.Ok = false;
+                        result.Data = "NX group id is invalid.";
+                        return new ObjectResult(result);
+                    }
+
                         if (ttJsn.cashes != null)
                     {
                         foreach (var item in ttJsn.cashes)
@@ -1951,6 +2010,32 @@ namespace Portal.Controllers
             }
             return PartialView(camList);
         }
+
+        public IActionResult TTLayoutsPreview(int ttId)
+        {
+            var camView = new CamerasView();
+            camView.SelectedTT = db.TTs.FirstOrDefault(t => t.Id == ttId);
+
+            var nxClient = new NxRestClient();
+            var group = new CamerasView.NxLayoutGroup
+            {
+                SystemId = 0,
+                SystemName = nxClient.SystemName
+            };
+
+            try
+            {
+                group.Layouts = nxClient.GetUserGroups();
+            }
+            catch (Exception ex)
+            {
+                group.ErrorMessage = ex.Message;
+            }
+
+            camView.LayoutGroups.Add(group);
+            return PartialView(camView);
+        }
+
         public IActionResult AddTTCam(int ttId)
         {
             var camView = new CamerasView();

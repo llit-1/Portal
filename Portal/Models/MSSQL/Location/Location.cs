@@ -18,6 +18,7 @@ namespace Portal.Models.MSSQL.Location
         public Location? Parent { get; set; }
         public Double? Latitude { get; set; }
         public Double? Longitude { get; set; }
+        public Guid? NXLayout { get; set; }
         public int Actual {  get; set; }
     }
 }

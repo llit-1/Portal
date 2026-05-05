@@ -1,0 +1,146 @@
+﻿@model Portal.ViewModels.Settings_TT.CamerasView
+
+<div class="nx-layouts-tools">
+    <input id="nxLayoutSearch" type="text" class="form-control" placeholder="поиск группы" oninput="filterNxLayouts(this.value)" />
+</div>
+
+<div class="row nx-layouts-row">
+    @foreach (var group in Model.LayoutGroups)
+    {
+        <div class="col-sm-12" style="margin-bottom:20px">
+            <div class="panel panel-default nx-layout-panel">
+                <div class="panel-heading panel-cams-heading nx-layout-panel-heading">
+                    <span>@group.SystemName</span>
+                    <span class="nx-layout-count">@group.Layouts.Count</span>
+                </div>
+                <div class="panel-body nx-layout-list">
+                    @if (!string.IsNullOrWhiteSpace(group.ErrorMessage))
+                    {
+                        <div class="color-red">@group.ErrorMessage</div>
+                    }
+                    else if (!group.Layouts.Any())
+                    {
+                        <div class="color-gray">группы не найдены</div>
+                    }
+                    else
+                    {
+                        @foreach (var layout in group.Layouts)
+                        {
+                            <button type="button" class="nx-layout-item" title="@layout.Id" data-layout-id="@layout.Id" data-layout-name="@layout.Name" onclick="selectNxLayout(this)">
+                                <span class="nx-layout-radio"><i class="fa fa-fw fa-check"></i></span>
+                                <span class="nx-layout-main">
+                                    <span class="nx-layout-name">@layout.Name</span>
+                                    <span class="nx-layout-id">@layout.Id</span>
+                                </span>
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .nx-layouts-tools {
+        margin: 15px 0 10px;
+    }
+
+    .nx-layouts-row {
+        margin-top: 10px;
+    }
+
+    .nx-layout-panel {
+        border: 1px solid #d7dde3;
+        box-shadow: none;
+    }
+
+    .nx-layout-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .nx-layout-count {
+        min-width: 28px;
+        padding: 2px 9px;
+        border-radius: 12px;
+        background: #eef2f5;
+        color: #56616b;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .nx-layout-list {
+        max-height: 60vh;
+        overflow: auto;
+        padding: 8px;
+        background: #f7f9fb;
+    }
+
+    .nx-layout-item {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 6px;
+        padding: 10px 12px;
+        border: 1px solid #dfe5ea;
+        border-radius: 6px;
+        background: #fff;
+        color: #25313b;
+        text-align: left;
+        transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+    }
+
+    .nx-layout-item:hover {
+        border-color: #F47920;
+        background: #fff7f1;
+        box-shadow: 0 1px 4px rgba(37, 49, 59, .12);
+    }
+
+    .nx-layout-item.active {
+        background-color: #fff3e8;
+        border-color: #F47920;
+        box-shadow: inset 3px 0 0 #F47920;
+    }
+
+    .nx-layout-radio {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
+        border: 1px solid #b9c3cc;
+        border-radius: 50%;
+        color: transparent;
+        background: #fff;
+    }
+
+    .nx-layout-item.active .nx-layout-radio {
+        border-color: #F47920;
+        background: #F47920;
+        color: #fff;
+    }
+
+    .nx-layout-main {
+        min-width: 0;
+    }
+
+    .nx-layout-name {
+        display: block;
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    .nx-layout-id {
+        display: block;
+        margin-top: 3px;
+        color: #7a8792;
+        font-size: 11px;
+        line-height: 1.2;
+        word-break: break-all;
+    }
+</style>

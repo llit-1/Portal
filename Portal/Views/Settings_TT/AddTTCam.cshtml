@@ -69,6 +69,14 @@
 
             $('#NxServers').find('option').remove();
             $("#NxServers").append('<option selected disabled>выберите сервер</option>');
+
+            if (!servers.ok) {
+                $('#NxServers').attr('disabled', 'disabled');
+                $('#loading').hide();
+                ShowError(servers.errorMessage || 'Ошибка загрузки серверов NX');
+                return;
+            }
+
             $.each(servers.data, function () {
                 $("#NxServers").append('<option id="' + this.id + '">' + this.name + '</option>');
             });

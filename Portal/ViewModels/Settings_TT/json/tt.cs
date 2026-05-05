@@ -22,6 +22,7 @@ namespace Portal.ViewModels.Settings_Access.json
         public bool deliveryClub;
         public Double? latitude;
         public Double? longitude;
+        public string nxLayout;
         public List<item> users;
         public List<RKNet_Model.Rk7XML.CashStation> cashes;
         public List<Settings_TT.json.ttcams> cameras;

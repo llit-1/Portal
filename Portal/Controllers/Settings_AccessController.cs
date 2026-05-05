@@ -10,6 +10,8 @@ using Newtonsoft.Json;
 using RKNet_Model.Account;
 using System.ComponentModel.DataAnnotations;
 using RKNet_Model.Reports;
+using RKNet_Model.TT;
+using Portal.Global;
 
 namespace Portal.Controllers
 {
@@ -17,28 +19,31 @@ namespace Portal.Controllers
     public class Settings_AccessController : Controller
     {
         private DB.SQLiteDBContext db;
-        public Settings_AccessController(DB.SQLiteDBContext context)
+        private DB.MSSQLDBContext dbSql;
+        public Settings_AccessController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
             db = context;
+            dbSql = dbSqlContext;
         }
 
-        // Горизонтальное меню        
+        // Р“РѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅРѕРµ РјРµРЅСЋ        
         public IActionResult TabMenu()
         {
+            MigratePortalUsersToNxGroups();
             return PartialView();
         }
 
-        // ПОЛЬЗОВАТЕЛИ ***********************************************************
-        // Шапка + разметка для вывода        
+        // РџРћР›Р¬Р—РћР’РђРўР•Р›Р ***********************************************************
+        // РЁР°РїРєР° + СЂР°Р·РјРµС‚РєР° РґР»СЏ РІС‹РІРѕРґР°        
         public IActionResult Users()
         {
             return PartialView();
         }
 
-        // Таблица пользователей
+        // РўР°Р±Р»РёС†Р° РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
         public IActionResult UsersTable()
         {
-            // получаем данные пользователя
+            // РїРѕР»СѓС‡Р°РµРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
             var login = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
             var users = new List<RKNet_Model.Account.User>();
 
@@ -71,7 +76,7 @@ namespace Portal.Controllers
             return PartialView(users);
         }
 
-        // Редактор пользователя
+        // Р РµРґР°РєС‚РѕСЂ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
         public IActionResult UserEdit(int userId)
         {
             var userSettings = new UserSettings();
@@ -96,10 +101,11 @@ namespace Portal.Controllers
             return PartialView(userSettings);
         }
 
-        // Сохранение пользователя
+        // РЎРѕС…СЂР°РЅРµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
         public IActionResult UserSave(string userjsn)
         {
             var result = new RKNet_Model.Result<string>();
+            var nxWarnings = new List<string>();
             userjsn = userjsn.Replace("%bkspc%", " ");
             var userJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.user>(userjsn);
 
@@ -117,14 +123,17 @@ namespace Portal.Controllers
                     if (user == null)
                     {
                         result.Ok = false;
-                        result.Data = "Пользователь не найден.";
+                        result.Data = "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ.";
                         return new ObjectResult(result);
                     }
+
+                    var hadNxRoleBefore = HasNxRole(user);
 
                     switch (userJsn.attribute)
                     {
                         case "userEnabled":
                             user.Enabled = userJsn.enabled;
+                            nxWarnings = SyncNxStateForEnabledUser(user);
                             break;
 
                         case "userAd":
@@ -142,6 +151,7 @@ namespace Portal.Controllers
                             {
                                 user.TTs.Clear();
                             }
+                            nxWarnings = SyncNxGroupsIfAllowed(user, hadNxRoleBefore);
                             break;
 
                         case "userName":
@@ -152,7 +162,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Имя пользователя заполнено некорректно.";
+                                result.Data = "РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅРѕ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -167,7 +177,7 @@ namespace Portal.Controllers
                                 else
                                 {
                                     result.Ok = false;
-                                    result.Data = "Логин администратора не может быть изменен.";
+                                    result.Data = "Р›РѕРіРёРЅ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР° РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РёР·РјРµРЅРµРЅ.";
                                     return new ObjectResult(result);
                                 }
 
@@ -175,14 +185,14 @@ namespace Portal.Controllers
                                 if (userExist != null)
                                 {
                                     result.Ok = false;
-                                    result.Data = "Пользователь с логином " + userJsn.login + " уже существует.";
+                                    result.Data = "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ Р»РѕРіРёРЅРѕРј " + userJsn.login + " СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.";
                                     return new ObjectResult(result);
                                 }
                             }
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Логин пользователя заполнен некорректно.";
+                                result.Data = "Р›РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -196,7 +206,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Пароль пользователя заполнен некорректно.";
+                                result.Data = "РџР°СЂРѕР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -209,7 +219,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Должность пользователя заполнена некорректно.";
+                                result.Data = "Р”РѕР»Р¶РЅРѕСЃС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅР° РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -222,7 +232,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Адрес электронной почты заполнен некорректно.";
+                                result.Data = "РђРґСЂРµСЃ СЌР»РµРєС‚СЂРѕРЅРЅРѕР№ РїРѕС‡С‚С‹ Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -245,6 +255,7 @@ namespace Portal.Controllers
                                     user.Groups.Add(group);
                                 }
                             }
+                            nxWarnings = SyncNxGroupsIfAllowed(user, hadNxRoleBefore);
                             break;
 
                         case "roles":
@@ -257,6 +268,7 @@ namespace Portal.Controllers
                                     user.Roles.Add(role);
                                 }
                             }
+                            nxWarnings = SyncNxGroupsIfAllowed(user, hadNxRoleBefore);
                             break;
 
                         case "objects":
@@ -269,6 +281,7 @@ namespace Portal.Controllers
                                     user.TTs.Add(tt);
                                 }
                             }
+                            nxWarnings = SyncNxGroupsIfAllowed(user, hadNxRoleBefore);
                             break;
                     }
 
@@ -278,11 +291,11 @@ namespace Portal.Controllers
                 {
                     var user = new User
                     {
-                        Name = !string.IsNullOrEmpty(userJsn.name) ? userJsn.name : throw new Exception("Имя пользователя заполнено некорректно."),
-                        Login = !string.IsNullOrEmpty(userJsn.login) ? userJsn.login : throw new Exception("Логин пользователя заполнен некорректно."),
-                        Password = !string.IsNullOrEmpty(userJsn.password) ? AccountController.SecurePasswordHasher.Hash(userJsn.password.ToLower()) : throw new Exception("Пароль пользователя заполнен некорректно."),
-                        JobTitle = !string.IsNullOrEmpty(userJsn.job) ? userJsn.job : throw new Exception("Должность пользователя заполнена некорректно."),
-                        Mail = (string.IsNullOrEmpty(userJsn.mail) || new EmailAddressAttribute().IsValid(userJsn.mail)) ? userJsn.mail : throw new Exception("Адрес электронной почты заполнен некорректно."),
+                        Name = !string.IsNullOrEmpty(userJsn.name) ? userJsn.name : throw new Exception("РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅРѕ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ."),
+                        Login = !string.IsNullOrEmpty(userJsn.login) ? userJsn.login : throw new Exception("Р›РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ."),
+                        Password = !string.IsNullOrEmpty(userJsn.password) ? AccountController.SecurePasswordHasher.Hash(userJsn.password.ToLower()) : throw new Exception("РџР°СЂРѕР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ."),
+                        JobTitle = !string.IsNullOrEmpty(userJsn.job) ? userJsn.job : throw new Exception("Р”РѕР»Р¶РЅРѕСЃС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·Р°РїРѕР»РЅРµРЅР° РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ."),
+                        Mail = (string.IsNullOrEmpty(userJsn.mail) || new EmailAddressAttribute().IsValid(userJsn.mail)) ? userJsn.mail : throw new Exception("РђРґСЂРµСЃ СЌР»РµРєС‚СЂРѕРЅРЅРѕР№ РїРѕС‡С‚С‹ Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ."),
                         Enabled = userJsn.enabled,
                         AdUser = userJsn.ad,
                         Reports = new UserReport
@@ -296,6 +309,7 @@ namespace Portal.Controllers
                         TTs = userJsn.objects.Select(item => db.TTs.FirstOrDefault(t => t.Id == item.id)).ToList()
                     };
 
+                    nxWarnings = SyncNxGroupsIfAllowed(user, false);
                     db.Users.Add(user);
                 }
 
@@ -304,20 +318,578 @@ namespace Portal.Controllers
             catch (DbUpdateConcurrencyException ex)
             {
                 result.Ok = false;
-                result.Data = "Ошибка параллелизма при сохранении данных. Попробуйте еще раз.";
-                // Логирование ошибки
-                return new ObjectResult(result);
+                result.Data = "РћС€РёР±РєР° РїР°СЂР°Р»Р»РµР»РёР·РјР° РїСЂРё СЃРѕС…СЂР°РЅРµРЅРёРё РґР°РЅРЅС‹С…. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰Рµ СЂР°Р·.";
+                return UserSaveResult(result, nxWarnings);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.Data = ex.Message;
+                return UserSaveResult(result, nxWarnings);
+            }
+
+            return UserSaveResult(result, nxWarnings);
+        }
+
+        private ObjectResult UserSaveResult(RKNet_Model.Result<string> result, List<string> nxWarnings)
+        {
+            return new ObjectResult(new
+            {
+                ok = result.Ok,
+                data = result.Data,
+                errorMessage = result.ErrorMessage,
+                warnings = nxWarnings ?? new List<string>()
+            });
+        }
+
+        private List<string> SyncNxGroupsForUser(string login, IEnumerable<TT> userTTs, bool allTT)
+        {
+            var warnings = new List<string>();
+            var nxLayoutRequiredLocationTypes = new HashSet<Guid>
+            {
+                Guid.Parse("94AD659C-AF5B-4CA0-50AD-08DBDF6ABE84"),
+                Guid.Parse("B0E427F9-8996-4C03-33C1-08DBDF713401")
+            };
+
+            if (string.IsNullOrWhiteSpace(login))
+            {
+                throw new Exception("Р›РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїСѓСЃС‚РѕР№. РќРµРІРѕР·РјРѕР¶РЅРѕ СЃРёРЅС…СЂРѕРЅРёР·РёСЂРѕРІР°С‚СЊ РіСЂСѓРїРїС‹ NX.");
+            }
+
+            var tts = userTTs?
+                .Where(tt => tt != null)
+                .ToList() ?? new List<TT>();
+
+            var nxClient = new NxRestClient();
+            var nxGroups = nxClient.GetUserGroups();
+            var allTtGroup = nxGroups.FirstOrDefault(group =>
+                string.Equals(group.Name, "ALLTT", StringComparison.OrdinalIgnoreCase));
+
+            var managedNxGroupIds = dbSql.Locations
+                .Where(location => location.NXLayout != null)
+                .Select(location => location.NXLayout.Value)
+                .Distinct()
+                .ToList();
+
+            var requiredNxGroupIds = new List<Guid>();
+
+            if (allTtGroup != null && Guid.TryParse(allTtGroup.Id, out var allTtGroupId))
+            {
+                managedNxGroupIds.Add(allTtGroupId);
+            }
+
+            managedNxGroupIds = managedNxGroupIds
+                .Distinct()
+                .ToList();
+
+            if (allTT)
+            {
+                if (allTtGroup == null || !Guid.TryParse(allTtGroup.Id, out var parsedAllTtGroupId))
+                {
+                    throw new Exception("Р’ NX РЅРµ РЅР°Р№РґРµРЅР° РіСЂСѓРїРїР° ALLTT. РР·РјРµРЅРµРЅРёСЏ РЅРµ РїСЂРёРјРµРЅРµРЅС‹.");
+                }
+
+                requiredNxGroupIds.Add(parsedAllTtGroupId);
+            }
+            else
+            {
+                foreach (var tt in tts)
+                {
+                    var restaurantSifr = tt.Restaurant_Sifr;
+
+                    var location = dbSql.Locations
+                        .Include(item => item.LocationType)
+                        .FirstOrDefault(item => item.RKCode == restaurantSifr);
+
+                    if (location == null)
+                    {
+                        throw new Exception($"Р”Р»СЏ РўРў {tt.Name} СЃ Restaurant_Sifr {restaurantSifr} РЅРµ РЅР°Р№РґРµРЅ Location. РР·РјРµРЅРµРЅРёСЏ РЅРµ РїСЂРёРјРµРЅРµРЅС‹.");
+                    }
+
+                    if (location.NXLayout == null)
+                    {
+                        var locationTypeGuid = location.LocationType?.Guid;
+                        var shouldThrowNxLayoutError =
+                            location.Actual == 1  &&
+                            locationTypeGuid.HasValue &&
+                            nxLayoutRequiredLocationTypes.Contains(locationTypeGuid.Value);
+
+                        if (shouldThrowNxLayoutError)
+                        {
+                            throw new Exception($"Р”Р»СЏ РўРў {tt.Name} РЅРµ РЅР°Р№РґРµРЅ NXLayout. РР·РјРµРЅРµРЅРёСЏ РЅРµ РїСЂРёРјРµРЅРµРЅС‹.");
+                        }
+
+                        continue;
+                    }
+
+                    requiredNxGroupIds.Add(location.NXLayout.Value);
+                }
+            }
+
+            requiredNxGroupIds = requiredNxGroupIds
+                .Distinct()
+                .ToList();
+
+            nxClient.SyncUserGroups(login, requiredNxGroupIds, managedNxGroupIds);
+
+            return warnings;
+        }
+
+        private List<string> SyncNxStateForEnabledUser(User user)
+        {
+            if (user == null)
+            {
+                return new List<string>();
+            }
+
+            if (string.IsNullOrWhiteSpace(user.Login))
+            {
+                throw new Exception("Р вЂєР С•Р С–Р С‘Р Р… Р С—Р С•Р В»РЎРЉР В·Р С•Р Р†Р В°РЎвЂљР ВµР В»РЎРЏ Р С—РЎС“РЎРѓРЎвЂљР С•Р в„–. Р СњР ВµР Р†Р С•Р В·Р СР С•Р В¶Р Р…Р С• РЎРѓР С‘Р Р…РЎвЂ¦РЎР‚Р С•Р Р…Р С‘Р В·Р С‘РЎР‚Р С•Р Р†Р В°РЎвЂљРЎРЉ NX.");
+            }
+
+            var nxClient = new NxRestClient();
+            var nxUsers = nxClient.GetUsers();
+
+            if (!user.Enabled)
+            {
+                if (!nxClient.UserExists(user.Login, nxUsers))
+                {
+                    return new List<string>();
+                }
+
+                return ClearManagedNxGroupsForUser(user.Login);
+            }
+
+            if (!nxClient.UserExists(user.Login, nxUsers))
+            {
+                throw new Exception($"Р вЂ™ NX Р Р…Р Вµ Р Р…Р В°Р в„–Р Т‘Р ВµР Р… Р С—Р С•Р В»РЎРЉР В·Р С•Р Р†Р В°РЎвЂљР ВµР В»РЎРЉ РЎРѓ Р В»Р С•Р С–Р С‘Р Р…Р С•Р С {user.Login}.");
+            }
+
+            if (HasNxRole(user))
+            {
+                return SyncNxGroupsForUser(user.Login, user.TTs?.ToList(), user.AllTT);
+            }
+
+            return ClearManagedNxGroupsForUser(user.Login);
+        }
+
+        private List<string> SyncNxGroupsIfAllowed(User user, bool hadNxRoleBefore)
+        {
+            if (user != null && !user.Enabled)
+            {
+                return ClearManagedNxGroupsForUser(user.Login);
+            }
+
+            var hasNxRoleNow = HasNxRole(user);
+
+            if (hasNxRoleNow)
+            {
+                return SyncNxGroupsForUser(user.Login, user.TTs?.ToList(), user.AllTT);
+            }
+
+            if (hadNxRoleBefore || !string.IsNullOrWhiteSpace(user?.Login))
+            {
+                return ClearManagedNxGroupsForUser(user.Login);
+            }
+
+            return new List<string>();
+        }
+
+        private List<string> ClearManagedNxGroupsForUser(string login)
+        {
+            if (string.IsNullOrWhiteSpace(login))
+            {
+                throw new Exception("Р вЂєР С•Р С–Р С‘Р Р… Р С—Р С•Р В»РЎРЉР В·Р С•Р Р†Р В°РЎвЂљР ВµР В»РЎРЏ Р С—РЎС“РЎРѓРЎвЂљР С•Р в„–. Р СњР ВµР Р†Р С•Р В·Р СР С•Р В¶Р Р…Р С• Р С•РЎвЂЎР С‘РЎРѓРЎвЂљР С‘РЎвЂљРЎРЉ Р С–РЎР‚РЎС“Р С—Р С—РЎвЂ№ NX.");
+            }
+
+            var nxClient = new NxRestClient();
+            var nxUsers = nxClient.GetUsers();
+
+            if (!nxClient.UserExists(login, nxUsers))
+            {
+                return new List<string>();
+            }
+
+            var managedNxGroupIds = GetManagedNxGroupIds(nxClient.GetUserGroups());
+            nxClient.SyncUserGroups(login, Array.Empty<Guid>(), managedNxGroupIds);
+
+            return new List<string>();
+        }
+
+        private bool HasNxRole(User user)
+        {
+            if (user == null)
+            {
+                return false;
+            }
+
+            const string nxRoleName = "NX";
+
+            var hasDirectNxRole = (user.Roles ?? new List<Role>())
+                .Where(role => role != null)
+                .Any(role => string.Equals(role.Name, nxRoleName, StringComparison.OrdinalIgnoreCase));
+
+            if (hasDirectNxRole)
+            {
+                return true;
+            }
+
+            var groupIds = (user.Groups ?? new List<Group>())
+                .Where(group => group != null)
+                .Select(group => group.Id)
+                .Distinct()
+                .ToList();
+
+            if (!groupIds.Any())
+            {
+                return false;
+            }
+
+            var nxRoleNameLower = nxRoleName.ToLower();
+
+            return db.Groups
+                .Include(group => group.Roles)
+                .Any(group =>
+                    groupIds.Contains(group.Id) &&
+                    group.Roles.Any(role => role.Name != null && role.Name.ToLower() == nxRoleNameLower));
+        }
+
+        private List<Guid> GetManagedNxGroupIds(IEnumerable<NxRestClient.NxItemInfo> nxGroups)
+        {
+            var managedNxGroupIds = dbSql.Locations
+                .Where(location => location.NXLayout != null)
+                .Select(location => location.NXLayout.Value)
+                .Distinct()
+                .ToList();
+
+            var allTtGroup = nxGroups.FirstOrDefault(group =>
+                string.Equals(group.Name, "ALLTT", StringComparison.OrdinalIgnoreCase));
+
+            if (allTtGroup != null && Guid.TryParse(allTtGroup.Id, out var allTtGroupId))
+            {
+                managedNxGroupIds.Add(allTtGroupId);
+            }
+
+            return managedNxGroupIds
+                .Distinct()
+                .ToList();
+        }
+
+        // РЈРґР°Р»РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+        [HttpPost]
+        public IActionResult MigratePortalUsersToNxGroups()
+        {
+            var result = new RKNet_Model.Result<object>();
+            var nxClient = new NxRestClient();
+            User currentUser = null;
+            NxMigrationAction? currentAction = null;
+
+            try
+            {
+                var users = db.Users
+                    .Include(u => u.TTs)
+                    .Include(u => u.Roles)
+                    .Include(u => u.Groups)
+                    .Where(u => !string.IsNullOrWhiteSpace(u.Login))
+                    .Where(u => !string.Equals(u.Login, "VVAbramov"))
+                    .OrderBy(u => u.Login)
+                    .ToList();
+
+                var nxGroups = nxClient.GetUserGroups();
+                var nxUsers = nxClient.GetUsers();
+                var plans = users
+                    .Select(user => new
+                    {
+                        User = user,
+                        user.Login,
+                        Plan = BuildNxMigrationPlan(user, nxGroups, nxUsers)
+                    })
+                    .ToList();
+
+                foreach (var item in plans)
+                {
+                    currentUser = item.User;
+                    currentAction = item.Plan.Action;
+
+                    if (item.Plan.Action == NxMigrationAction.Skip)
+                    {
+                        continue;
+                    }
+
+                    if (item.Plan.Action == NxMigrationAction.ClearManagedGroups)
+                    {
+                        nxClient.SyncUserGroups(item.Login, Array.Empty<Guid>(), item.Plan.ManagedNxGroupIds);
+                        continue;
+                    }
+
+                    nxClient.SyncUserGroups(item.Login, item.Plan.RequiredNxGroupIds, item.Plan.ManagedNxGroupIds);
+                }
+
+                result.Ok = true;
+                result.Data = new
+                {
+                    migratedUsers = plans.Count,
+                    logins = plans.Select(item => item.Login).ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.Data = BuildNxMigrationErrorMessage(ex, currentUser, currentAction);
             }
 
             return new ObjectResult(result);
         }
 
-        // Удаление пользователя
+        private string BuildNxMigrationErrorMessage(Exception ex, User currentUser, NxMigrationAction? currentAction)
+        {
+            if (currentUser == null)
+            {
+                return ex.ToString();
+            }
+
+            var ttNames = (currentUser.TTs ?? new List<TT>())
+                .Where(tt => tt != null)
+                .Select(tt => tt.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .ToList();
+
+            var ttInfo = ttNames.Any()
+                ? string.Join(", ", ttNames)
+                : "РЅРµС‚ РўРў";
+
+            return
+                $"{ex}\n" +
+                $"Migration user login: {currentUser.Login}\n" +
+                $"Migration user name: {currentUser.Name}\n" +
+                $"Migration action: {(currentAction?.ToString() ?? "unknown")}\n" +
+                $"Migration user TTs: {ttInfo}";
+        }
+
+        private NxMigrationPlan BuildNxMigrationPlan(
+            User user,
+            IEnumerable<NxRestClient.NxItemInfo> nxGroups,
+            IEnumerable<NxRestClient.NxUserInfo> nxUsers)
+        {
+            if (user == null || string.IsNullOrWhiteSpace(user.Login))
+            {
+                return new NxMigrationPlan
+                {
+                    Action = NxMigrationAction.Skip,
+                    ManagedNxGroupIds = new List<Guid>(),
+                    RequiredNxGroupIds = new List<Guid>()
+                };
+            }
+
+            var managedNxGroupIds = GetManagedNxGroupIds(nxGroups);
+            var hasNxAccount = new NxRestClient().UserExists(user.Login, nxUsers);
+
+            if (!user.Enabled)
+            {
+                return new NxMigrationPlan
+                {
+                    Action = hasNxAccount ? NxMigrationAction.ClearManagedGroups : NxMigrationAction.Skip,
+                    ManagedNxGroupIds = managedNxGroupIds,
+                    RequiredNxGroupIds = new List<Guid>()
+                };
+            }
+
+            if (!HasNxRole(user))
+            {
+                return new NxMigrationPlan
+                {
+                    Action = hasNxAccount ? NxMigrationAction.ClearManagedGroups : NxMigrationAction.Skip,
+                    ManagedNxGroupIds = managedNxGroupIds,
+                    RequiredNxGroupIds = new List<Guid>()
+                };
+            }
+
+            if (!hasNxAccount)
+            {
+                return new NxMigrationPlan
+                {
+                    Action = NxMigrationAction.Skip,
+                    ManagedNxGroupIds = managedNxGroupIds,
+                    RequiredNxGroupIds = new List<Guid>()
+                };
+            }
+
+            var syncPlan = BuildNxGroupSyncPlan(user.Login, user.TTs?.ToList(), user.AllTT, nxGroups);
+            return new NxMigrationPlan
+            {
+                Action = NxMigrationAction.SyncGroups,
+                ManagedNxGroupIds = syncPlan.ManagedNxGroupIds,
+                RequiredNxGroupIds = syncPlan.RequiredNxGroupIds
+            };
+        }
+
+        [HttpPost]
+        public IActionResult CheckPortalUsersInNx()
+        {
+            var result = new RKNet_Model.Result<object>();
+
+            try
+            {
+                var nxClient = new NxRestClient();
+                var nxUsers = nxClient.GetUsers();
+                var portalUsers = db.Users
+                    .Where(u => !string.IsNullOrWhiteSpace(u.Login) && u.Enabled == true)
+                    .Select(u => new
+                    {
+                        u.Id,
+                        u.Login
+                    })
+                    .OrderBy(u => u.Login)
+                    .ToList();
+
+                var missingUsers = portalUsers
+                    .Where(user => !nxClient.UserExists(user.Login, nxUsers))
+                    .Select(user => new
+                    {
+                        user.Id,
+                        user.Login
+                    })
+                    .ToList();
+
+                Console.WriteLine("NX user check started.");
+                foreach (var user in missingUsers)
+                {
+                    Console.WriteLine($"NX user not found. Portal userId: {user.Id}, login: {user.Login}");
+                }
+                Console.WriteLine($"NX user check finished. Missing users: {missingUsers.Count}");
+
+                result.Ok = true;
+                result.Data = new
+                {
+                    totalPortalUsers = portalUsers.Count,
+                    missingUsersCount = missingUsers.Count,
+                    missingUsers
+                };
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.Data = ex.ToString();
+            }
+
+            return new ObjectResult(result);
+        }
+
+        private NxGroupSyncPlan BuildNxGroupSyncPlan(
+            string login,
+            IEnumerable<TT> userTTs,
+            bool allTT,
+            IEnumerable<NxRestClient.NxItemInfo> nxGroups)
+        {
+            var nxLayoutRequiredLocationTypes = new HashSet<Guid>
+            {
+                Guid.Parse("94AD659C-AF5B-4CA0-50AD-08DBDF6ABE84"),
+                Guid.Parse("B0E427F9-8996-4C03-33C1-08DBDF713401")
+            };
+
+            if (string.IsNullOrWhiteSpace(login))
+            {
+                throw new Exception("Р вЂєР С•Р С–Р С‘Р Р… Р С—Р С•Р В»РЎРЉР В·Р С•Р Р†Р В°РЎвЂљР ВµР В»РЎРЏ Р С—РЎС“РЎРѓРЎвЂљР С•Р в„–. Р СњР ВµР Р†Р С•Р В·Р СР С•Р В¶Р Р…Р С• РЎРѓР С‘Р Р…РЎвЂ¦РЎР‚Р С•Р Р…Р С‘Р В·Р С‘РЎР‚Р С•Р Р†Р В°РЎвЂљРЎРЉ Р С–РЎР‚РЎС“Р С—Р С—РЎвЂ№ NX.");
+            }
+
+            var tts = userTTs?
+                .Where(tt => tt != null)
+                .ToList() ?? new List<TT>();
+
+            var allTtGroup = nxGroups.FirstOrDefault(group =>
+                string.Equals(group.Name, "ALLTT", StringComparison.OrdinalIgnoreCase));
+
+            var managedNxGroupIds = dbSql.Locations
+                .Where(location => location.NXLayout != null)
+                .Select(location => location.NXLayout.Value)
+                .Distinct()
+                .ToList();
+
+            var requiredNxGroupIds = new List<Guid>();
+
+            if (allTtGroup != null && Guid.TryParse(allTtGroup.Id, out var allTtGroupId))
+            {
+                managedNxGroupIds.Add(allTtGroupId);
+            }
+
+            managedNxGroupIds = managedNxGroupIds
+                .Distinct()
+                .ToList();
+
+            if (allTT)
+            {
+                if (allTtGroup == null || !Guid.TryParse(allTtGroup.Id, out var parsedAllTtGroupId))
+                {
+                    throw new Exception("Р вЂ™ NX Р Р…Р Вµ Р Р…Р В°Р в„–Р Т‘Р ВµР Р…Р В° Р С–РЎР‚РЎС“Р С—Р С—Р В° ALLTT. Р ВР В·Р СР ВµР Р…Р ВµР Р…Р С‘РЎРЏ Р Р…Р Вµ Р С—РЎР‚Р С‘Р СР ВµР Р…Р ВµР Р…РЎвЂ№.");
+                }
+
+                requiredNxGroupIds.Add(parsedAllTtGroupId);
+            }
+            else
+            {
+                foreach (var tt in tts)
+                {
+                    var location = dbSql.Locations
+                        .Include(item => item.LocationType)
+                        .FirstOrDefault(item => item.RKCode == tt.Restaurant_Sifr);
+
+                    if (location == null)
+                    {
+                        throw new Exception($"Р вЂќР В»РЎРЏ Р СћР Сћ {tt.Name} РЎРѓ Restaurant_Sifr {tt.Restaurant_Sifr} Р Р…Р Вµ Р Р…Р В°Р в„–Р Т‘Р ВµР Р… Location. Р ВР В·Р СР ВµР Р…Р ВµР Р…Р С‘РЎРЏ Р Р…Р Вµ Р С—РЎР‚Р С‘Р СР ВµР Р…Р ВµР Р…РЎвЂ№.");
+                    }
+
+                    if (location.NXLayout == null)
+                    {
+                        var locationTypeGuid = location.LocationType?.Guid;
+                        var shouldThrowNxLayoutError =
+                            location.Actual == 1 &&
+                            locationTypeGuid.HasValue &&
+                            nxLayoutRequiredLocationTypes.Contains(locationTypeGuid.Value);
+
+                        if (shouldThrowNxLayoutError)
+                        {
+                            throw new Exception($"Р вЂќР В»РЎРЏ Р СћР Сћ {tt.Name} Р Р…Р Вµ Р Р…Р В°Р в„–Р Т‘Р ВµР Р… NXLayout. Р ВР В·Р СР ВµР Р…Р ВµР Р…Р С‘РЎРЏ Р Р…Р Вµ Р С—РЎР‚Р С‘Р СР ВµР Р…Р ВµР Р…РЎвЂ№.");
+                        }
+
+                        continue;
+                    }
+
+                    requiredNxGroupIds.Add(location.NXLayout.Value);
+                }
+            }
+
+            return new NxGroupSyncPlan
+            {
+                RequiredNxGroupIds = requiredNxGroupIds.Distinct().ToList(),
+                ManagedNxGroupIds = managedNxGroupIds
+            };
+        }
+
+        private class NxGroupSyncPlan
+        {
+            public List<Guid> RequiredNxGroupIds { get; set; }
+            public List<Guid> ManagedNxGroupIds { get; set; }
+        }
+
+        private class NxMigrationPlan
+        {
+            public NxMigrationAction Action { get; set; }
+            public List<Guid> RequiredNxGroupIds { get; set; }
+            public List<Guid> ManagedNxGroupIds { get; set; }
+        }
+
+        private enum NxMigrationAction
+        {
+            Skip,
+            ClearManagedGroups,
+            SyncGroups
+        }
+
         public IActionResult UserDelete(int userId)
         {
             try
             {
-                // Получаем пользователя с его связями
+                // РџРѕР»СѓС‡Р°РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СЃ РµРіРѕ СЃРІСЏР·СЏРјРё
                 var user = db.Users
                     .Include(u => u.Roles)
                     .Include(u => u.Groups)
@@ -338,7 +910,7 @@ namespace Portal.Controllers
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                // Логирование ошибки параллелизма
+                // Р›РѕРіРёСЂРѕРІР°РЅРёРµ РѕС€РёР±РєРё РїР°СЂР°Р»Р»РµР»РёР·РјР°
                 return Conflict("Concurrency error occurred: " + ex.Message);
             }
             catch (Exception e)
@@ -347,7 +919,7 @@ namespace Portal.Controllers
             }
         }
 
-        // Выбранные элементы коллекций на пользователе
+        // Р’С‹Р±СЂР°РЅРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ РєРѕР»Р»РµРєС†РёР№ РЅР° РїРѕР»СЊР·РѕРІР°С‚РµР»Рµ
         public IActionResult GetUserItems(int userId, string selectId)
         {
             var user = db.Users
@@ -369,21 +941,21 @@ namespace Portal.Controllers
             }
         }
 
-        // ГРУППЫ ***********************************************************
-        // Шапка + разметка для вывода
+        // Р“Р РЈРџРџР« ***********************************************************
+        // РЁР°РїРєР° + СЂР°Р·РјРµС‚РєР° РґР»СЏ РІС‹РІРѕРґР°
         public IActionResult Groups()
         {
             return PartialView();
         }
 
-        // Таблица групп
+        // РўР°Р±Р»РёС†Р° РіСЂСѓРїРї
         public IActionResult GroupsTable()
         {
             var groups = db.Groups.Include(g => g.Users).ToList();
             return PartialView(groups);
         }
 
-        // Редактор группы
+        // Р РµРґР°РєС‚РѕСЂ РіСЂСѓРїРїС‹
         public IActionResult GroupEdit(int groupId)
         {
             var groupSettings = new GroupSettings();
@@ -405,7 +977,7 @@ namespace Portal.Controllers
             return PartialView(groupSettings);
         }
 
-        // Сохранение группы
+        // РЎРѕС…СЂР°РЅРµРЅРёРµ РіСЂСѓРїРїС‹
         public IActionResult GroupSave(string groupjsn)
         {
             var result = new RKNet_Model.Result<string>();
@@ -414,7 +986,7 @@ namespace Portal.Controllers
                 groupjsn = groupjsn.Replace("%bkspc%", " ");
                 var groupJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.group>(groupjsn);
 
-                // Существующая группа
+                // РЎСѓС‰РµСЃС‚РІСѓСЋС‰Р°СЏ РіСЂСѓРїРїР°
                 if (groupJsn.id != 0)
                 {
                     var group = db.Groups
@@ -432,14 +1004,14 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Название группы заполнено некорректно.";
+                                result.Data = "РќР°Р·РІР°РЅРёРµ РіСЂСѓРїРїС‹ Р·Р°РїРѕР»РЅРµРЅРѕ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             var existName = db.Groups.FirstOrDefault(g => g.Name == group.Name);
                             if (existName != null)
                             {
                                 result.Ok = false;
-                                result.Data = "Группа с названием \"" + existName.Name + "\" уже существует, введите другое имя группы.";
+                                result.Data = "Р“СЂСѓРїРїР° СЃ РЅР°Р·РІР°РЅРёРµРј \"" + existName.Name + "\" СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, РІРІРµРґРёС‚Рµ РґСЂСѓРіРѕРµ РёРјСЏ РіСЂСѓРїРїС‹.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -452,7 +1024,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Необходимо заполнить описание группы: назначение, общие права на группе, категория пользователей и т.п.";
+                                result.Data = "РќРµРѕР±С…РѕРґРёРјРѕ Р·Р°РїРѕР»РЅРёС‚СЊ РѕРїРёСЃР°РЅРёРµ РіСЂСѓРїРїС‹: РЅР°Р·РЅР°С‡РµРЅРёРµ, РѕР±С‰РёРµ РїСЂР°РІР° РЅР° РіСЂСѓРїРїРµ, РєР°С‚РµРіРѕСЂРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ Рё С‚.Рї.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -479,7 +1051,7 @@ namespace Portal.Controllers
 
                     db.Groups.Update(group);
                 }
-                // Новая группа
+                // РќРѕРІР°СЏ РіСЂСѓРїРїР°
                 else
                 {
                     var group = new Group();
@@ -503,7 +1075,7 @@ namespace Portal.Controllers
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Название группы заполнено не корректно.";
+                        result.Data = "РќР°Р·РІР°РЅРёРµ РіСЂСѓРїРїС‹ Р·Р°РїРѕР»РЅРµРЅРѕ РЅРµ РєРѕСЂСЂРµРєС‚РЅРѕ.";
                         return new ObjectResult(result);
                     }
 
@@ -511,7 +1083,7 @@ namespace Portal.Controllers
                     if (existName != null)
                     {
                         result.Ok = false;
-                        result.Data = "Группа с названием \"" + existName.Name + "\" уже существует, введите другое имя группы.";
+                        result.Data = "Р“СЂСѓРїРїР° СЃ РЅР°Р·РІР°РЅРёРµРј \"" + existName.Name + "\" СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, РІРІРµРґРёС‚Рµ РґСЂСѓРіРѕРµ РёРјСЏ РіСЂСѓРїРїС‹.";
                         return new ObjectResult(result);
                     }
 
@@ -522,7 +1094,7 @@ namespace Portal.Controllers
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Необходимо заполнить описание группы: назначение, общие права на группе, категория пользователей и т.п.";
+                        result.Data = "РќРµРѕР±С…РѕРґРёРјРѕ Р·Р°РїРѕР»РЅРёС‚СЊ РѕРїРёСЃР°РЅРёРµ РіСЂСѓРїРїС‹: РЅР°Р·РЅР°С‡РµРЅРёРµ, РѕР±С‰РёРµ РїСЂР°РІР° РЅР° РіСЂСѓРїРїРµ, РєР°С‚РµРіРѕСЂРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ Рё С‚.Рї.";
                         return new ObjectResult(result);
                     }
 
@@ -544,7 +1116,7 @@ namespace Portal.Controllers
             return new ObjectResult(result);
         }
 
-        // Удаление группы
+        // РЈРґР°Р»РµРЅРёРµ РіСЂСѓРїРїС‹
         public IActionResult GroupDelete(int groupId)
         {
             try
@@ -565,7 +1137,7 @@ namespace Portal.Controllers
             }
         }
 
-        // Выбранные элементы коллекций на группе
+        // Р’С‹Р±СЂР°РЅРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ РєРѕР»Р»РµРєС†РёР№ РЅР° РіСЂСѓРїРїРµ
         public IActionResult GetGroupItems(int groupId, string selectId)
         {
             var group = db.Groups
@@ -584,28 +1156,28 @@ namespace Portal.Controllers
             }
         }
 
-        // Id группы по имени
+        // Id РіСЂСѓРїРїС‹ РїРѕ РёРјРµРЅРё
         public IActionResult GetGroupId(string groupName)
         {
             var groupId = db.Groups.FirstOrDefault(g => g.Name == groupName).Id;
             return new ObjectResult(groupId);
         }
 
-        // РОЛИ ***********************************************************
-        // Шапка + разметка для вывода
+        // Р РћР›Р ***********************************************************
+        // РЁР°РїРєР° + СЂР°Р·РјРµС‚РєР° РґР»СЏ РІС‹РІРѕРґР°
         public IActionResult Roles()
         {
             return PartialView();
         }
 
-        // Таблица ролей
+        // РўР°Р±Р»РёС†Р° СЂРѕР»РµР№
         public IActionResult RolesTable()
         {
             var roles = db.Roles.Include(r => r.Users).Include(r => r.Groups).ToList();
             return PartialView(roles);
         }
 
-        // Редактор роли
+        // Р РµРґР°РєС‚РѕСЂ СЂРѕР»Рё
         public IActionResult RoleEdit(int roleId)
         {
             var roleSettings = new RoleSettings();
@@ -627,7 +1199,7 @@ namespace Portal.Controllers
             return PartialView(roleSettings);
         }
 
-        // Сохранение роли
+        // РЎРѕС…СЂР°РЅРµРЅРёРµ СЂРѕР»Рё
         public IActionResult RoleSave(string rolejsn)
         {
             var result = new RKNet_Model.Result<string>();
@@ -636,7 +1208,7 @@ namespace Portal.Controllers
                 rolejsn = rolejsn.Replace("%bkspc%", " ");
                 var roleJsn = JsonConvert.DeserializeObject<ViewModels.Settings_Access.json.role>(rolejsn);
 
-                // существующая роль
+                // СЃСѓС‰РµСЃС‚РІСѓСЋС‰Р°СЏ СЂРѕР»СЊ
                 if (roleJsn.id != 0)
                 {
                     var role = db.Roles
@@ -654,7 +1226,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Название роли заполнено некорректно.";
+                                result.Data = "РќР°Р·РІР°РЅРёРµ СЂРѕР»Рё Р·Р°РїРѕР»РЅРµРЅРѕ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
 
@@ -662,7 +1234,7 @@ namespace Portal.Controllers
                             if (existName != null)
                             {
                                 result.Ok = false;
-                                result.Data = "Роль с названием \"" + existName.Name + "\" уже существует, введите другое имя.";
+                                result.Data = "Р РѕР»СЊ СЃ РЅР°Р·РІР°РЅРёРµРј \"" + existName.Name + "\" СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, РІРІРµРґРёС‚Рµ РґСЂСѓРіРѕРµ РёРјСЏ.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -675,14 +1247,14 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Код роли заполнен некорректно.";
+                                result.Data = "РљРѕРґ СЂРѕР»Рё Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                                 return new ObjectResult(result);
                             }
                             var existCode = db.Roles.FirstOrDefault(r => r.Code == role.Code);
                             if (existCode != null)
                             {
                                 result.Ok = false;
-                                result.Data = "Код роли \"" + existCode.Code + "\" уже существует, введите другой код";
+                                result.Data = "РљРѕРґ СЂРѕР»Рё \"" + existCode.Code + "\" СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, РІРІРµРґРёС‚Рµ РґСЂСѓРіРѕР№ РєРѕРґ";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -710,7 +1282,7 @@ namespace Portal.Controllers
 
                     db.Roles.Update(role);
                 }
-                // новая роль
+                // РЅРѕРІР°СЏ СЂРѕР»СЊ
                 else
                 {
                     var role = new Role();
@@ -734,7 +1306,7 @@ namespace Portal.Controllers
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Название роли заполнено некорректно.";
+                        result.Data = "РќР°Р·РІР°РЅРёРµ СЂРѕР»Рё Р·Р°РїРѕР»РЅРµРЅРѕ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                         return new ObjectResult(result);
                     }
 
@@ -742,7 +1314,7 @@ namespace Portal.Controllers
                     if (existName != null)
                     {
                         result.Ok = false;
-                        result.Data = "Роль с названием \"" + existName.Name + "\" уже существует, введите другое имя.";
+                        result.Data = "Р РѕР»СЊ СЃ РЅР°Р·РІР°РЅРёРµРј \"" + existName.Name + "\" СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, РІРІРµРґРёС‚Рµ РґСЂСѓРіРѕРµ РёРјСЏ.";
                         return new ObjectResult(result);
                     }
 
@@ -753,7 +1325,7 @@ namespace Portal.Controllers
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Код роли заполнен некорректно.";
+                        result.Data = "РљРѕРґ СЂРѕР»Рё Р·Р°РїРѕР»РЅРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.";
                         return new ObjectResult(result);
                     }
 
@@ -761,7 +1333,7 @@ namespace Portal.Controllers
                     if (existCode != null)
                     {
                         result.Ok = false;
-                        result.Data = "Код роли \"" + existCode.Code + "\" уже существует, введите другой код";
+                        result.Data = "РљРѕРґ СЂРѕР»Рё \"" + existCode.Code + "\" СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, РІРІРµРґРёС‚Рµ РґСЂСѓРіРѕР№ РєРѕРґ";
                         return new ObjectResult(result);
                     }
 
@@ -784,7 +1356,7 @@ namespace Portal.Controllers
             return new ObjectResult(result);
         }
 
-        // Удаление роли
+        // РЈРґР°Р»РµРЅРёРµ СЂРѕР»Рё
         public IActionResult RoleDelete(int roleId)
         {
             try
@@ -805,7 +1377,7 @@ namespace Portal.Controllers
             }
         }
 
-        // Выбранные элементы коллекций на роли
+        // Р’С‹Р±СЂР°РЅРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ РєРѕР»Р»РµРєС†РёР№ РЅР° СЂРѕР»Рё
         public IActionResult GetRoleItems(int roleId, string selectId)
         {
             var role = db.Roles
@@ -824,7 +1396,7 @@ namespace Portal.Controllers
             }
         }
 
-        // Id роли по имени
+        // Id СЂРѕР»Рё РїРѕ РёРјРµРЅРё
         public IActionResult GetRoleId(string roleName)
         {
             var roleId = db.Roles.FirstOrDefault(r => r.Name == roleName).Id;
