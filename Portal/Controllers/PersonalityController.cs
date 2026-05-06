@@ -58,6 +58,11 @@ namespace Portal
                 version.Actual = 0;
             }
         }
+
+        private static int NormalizeActualValue(int actual, DateTime? dismissalsDate)
+        {
+            return dismissalsDate != null ? 0 : actual;
+        }
         /* Проверка дат на пересечение и прочие ошибки */
         public bool HasErrors(List<PersonalityVersion> versions)
         {
@@ -163,18 +168,18 @@ namespace Portal
                 {
                     selectedVersionIdsQuery = dbSql.PersonalityVersions
                         .AsNoTracking()
-                        .Where(v => v.Actual == 1)
+                        .Where(v => v.Actual == 1 && v.VersionEndDate == null)
                         .Select(v => v.Guid);
                 }
                 else
                 {
-                    var actualPersonalityIds = dbSql.PersonalityVersions
+                    var openPersonalityIds = dbSql.PersonalityVersions
                         .AsNoTracking()
-                        .Where(v => v.Actual == 1)
+                        .Where(v => v.VersionEndDate == null)
                         .Select(v => v.Personalities.Guid);
                     var latestNonActualPerPerson = dbSql.PersonalityVersions
                         .AsNoTracking()
-                        .Where(v => v.Actual != 1 && !actualPersonalityIds.Contains(v.Personalities.Guid))
+                        .Where(v => v.VersionEndDate != null && !openPersonalityIds.Contains(v.Personalities.Guid))
                         .GroupBy(v => v.Personalities.Guid)
                         .Select(g => new
                         {
@@ -194,13 +199,13 @@ namespace Portal
                                 PersonalityGuid = m.PersonalityGuid,
                                 MaxDate = m.MaxDate
                             }
-                        where v.Actual != 1 && !actualPersonalityIds.Contains(v.Personalities.Guid)
+                        where v.VersionEndDate != null && !openPersonalityIds.Contains(v.Personalities.Guid)
                         select v.Guid;
-                    var actualVersionIds = dbSql.PersonalityVersions
+                    var openVersionIds = dbSql.PersonalityVersions
                         .AsNoTracking()
-                        .Where(v => v.Actual == 1)
+                        .Where(v => v.VersionEndDate == null)
                         .Select(v => v.Guid);
-                    selectedVersionIdsQuery = actualVersionIds.Union(latestNonActualIds);
+                    selectedVersionIdsQuery = openVersionIds.Union(latestNonActualIds);
                 }
                 // ------------------------------------------------------------
                 // baseQuery: добавили Guid-поля для дешёвой сортировки (ВАЖНО!)
@@ -359,7 +364,7 @@ namespace Portal
                                                               .Include(c => c.Schedule)
                                                               .Include(c => c.Personalities)
                                                               .Include(c => c.Entity)
-                                                              .FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(typeGuid) && c.Actual == 1);
+                                                              .FirstOrDefault(c => c.Personalities.Guid == Guid.Parse(typeGuid) && c.VersionEndDate == null);
                 if (personalityVersion != null)
                 {
                     model.PersonalitiesVersions = personalityVersion;
@@ -495,7 +500,7 @@ namespace Portal
                     DateTime now = DateTime.Now;
                     personalityVersion.VersionStartDate = personalityJson.HireDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == newPersonalityGuid);
-                    personalityVersion.Actual = personalityJson.Actual;
+                    personalityVersion.Actual = NormalizeActualValue(personalityJson.Actual, personalityJson.DismissalsDate);
                     personalityVersion.ModifiedBy = User.Identity.Name;
                     personalityVersion.ModifiedDate = DateTime.Now;
                     personalityVersion.Personalities.INN = personalityJson.INN;
@@ -572,7 +577,7 @@ namespace Portal
                     personalityVersion.VersionStartDate = personalityJson.VersionStartDate;
                     personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
                     personalityVersion.Personalities.Phone = personalityJson.Tel;
-                    personalityVersion.Actual = personalityJson.Actual;
+                    personalityVersion.Actual = NormalizeActualValue(personalityJson.Actual, personalityJson.DismissalsDate);
                     personalityVersion.ModifiedBy = User.Identity.Name;
                     personalityVersion.ModifiedDate = DateTime.Now;
                     personalityVersion.Personalities.INN = personalityJson.INN;
@@ -684,7 +689,7 @@ namespace Portal
                 personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                 personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
                 personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
-                personalityVersion.Actual = personalityJson.Actual;
+                personalityVersion.Actual = NormalizeActualValue(personalityJson.Actual, personalityJson.DismissalsDate);
                 personalityVersion.Personalities.Phone = personalityJson.Tel;
                 personalityVersion.Personalities.BirthDate = personalityJson.BirthDate;
                 personalityVersion.ModifiedBy = User.Identity.Name;
@@ -720,6 +725,8 @@ namespace Portal
                     {
                         personalityVersion.VersionEndDate = personalityJson.VersionEndDate.Value.AddSeconds(86399);
                     }
+
+                    personalityVersion.Actual = NormalizeActualValue(personalityVersion.Actual, personalityVersion.DismissalsDate);
 
                     dbSql.SaveChanges();
                     return new OkObjectResult(result);
