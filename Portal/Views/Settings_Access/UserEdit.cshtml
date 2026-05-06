@@ -512,7 +512,7 @@
 
     function LogNxWarnings(result) {
         if (result && result.warnings && result.warnings.length) {
-            console.log('NX TT warnings', result.warnings);
+            ShowModal('Предупреждение', result.warnings.join('\n'));
         }
     }
 </script>

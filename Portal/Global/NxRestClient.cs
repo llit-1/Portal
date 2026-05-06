@@ -27,8 +27,7 @@ namespace Portal.Global
 
             _baseUrls = new[]
             {
-                $"https://{_host}:{_port}",
-                $"http://{_host}:{_port}"
+                $"https://{_host}:{_port}"
             };
         }
 
@@ -285,7 +284,7 @@ namespace Portal.Global
                 }
                 catch (Exception ex)
                 {
-                    lastException = ex;
+                    lastException = WrapNxException(ex, "GET", baseUrl, path);
                 }
             }
 
@@ -316,7 +315,7 @@ namespace Portal.Global
                 }
                 catch (Exception ex)
                 {
-                    lastException = ex;
+                    lastException = WrapNxException(ex, "GET", baseUrl, path);
                 }
             }
 
@@ -357,7 +356,7 @@ namespace Portal.Global
                 }
                 catch (Exception ex)
                 {
-                    lastException = ex;
+                    lastException = WrapNxException(ex, "PATCH", baseUrl, path, body);
                 }
             }
 
@@ -409,15 +408,56 @@ namespace Portal.Global
                 }
                 catch (Exception ex)
                 {
-                    lastException = ex;
+                    lastException = WrapNxException(ex, "POST", baseUrl, path, body);
                 }
             }
 
             throw lastException ?? new Exception("NX request failed.");
         }
 
+        private Exception WrapNxException(Exception ex, string method, string baseUrl, string path, JObject body = null)
+        {
+            if (ex is WebException webException)
+            {
+                var responseText = TryReadWebExceptionResponse(webException);
+                var bodyText = body == null ? string.Empty : $"\nRequest body: {body.ToString(Formatting.None)}";
+                var responsePart = string.IsNullOrWhiteSpace(responseText) ? string.Empty : $"\nResponse: {responseText}";
+
+                return new Exception(
+                    $"NX {method} {baseUrl}{path} failed: {webException.Message}{bodyText}{responsePart}",
+                    ex);
+            }
+
+            return new Exception($"NX {method} {baseUrl}{path} failed: {ex.Message}", ex);
+        }
+
+        private string TryReadWebExceptionResponse(WebException ex)
+        {
+            try
+            {
+                using (var responseStream = ex.Response?.GetResponseStream())
+                {
+                    if (responseStream == null)
+                    {
+                        return string.Empty;
+                    }
+
+                    using (var reader = new StreamReader(responseStream))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         private string Login(string baseUrl)
         {
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
             var request = (HttpWebRequest)WebRequest.Create(baseUrl + "/rest/v1/login/sessions");
             request.Method = "POST";
             request.Accept = "application/json";

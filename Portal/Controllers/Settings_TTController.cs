@@ -1,4 +1,4 @@
-using DocumentFormat.OpenXml.Spreadsheet;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +37,48 @@ namespace Portal.Controllers
         {
             db = context;
             dbSql = dbSqlContext;
+        }
+
+
+        private string TryResolveNxLayoutForNewTt(string ttName, out Guid? nxLayoutId)
+        {
+            nxLayoutId = null;
+
+            if (string.IsNullOrWhiteSpace(ttName))
+            {
+                return "NX group name is empty.";
+            }
+
+            var nxClient = new NxRestClient();
+            var normalizedName = ttName.Trim();
+            var existingGroup = nxClient.GetUserGroups()
+                .FirstOrDefault(item => string.Equals(item.Name?.Trim(), normalizedName, StringComparison.OrdinalIgnoreCase));
+
+            if (existingGroup == null)
+            {
+                var createdGroup = nxClient.GetOrCreateUserGroup(normalizedName);
+                if (!Guid.TryParse(createdGroup.Id, out var createdGroupId))
+                {
+                    return "NX group id is invalid.";
+                }
+
+                nxLayoutId = createdGroupId;
+                return null;
+            }
+
+            if (!Guid.TryParse(existingGroup.Id, out var existingGroupId))
+            {
+                return "NX group id is invalid.";
+            }
+
+            var linkedLocation = dbSql.Locations.FirstOrDefault(location => location.NXLayout == existingGroupId);
+            if (linkedLocation != null)
+            {
+                return $"NX group '{normalizedName}' is already attached to TT '{linkedLocation.Name}'. Select NX group manually or rename TT.";
+            }
+
+            nxLayoutId = existingGroupId;
+            return null;
         }
 
 
@@ -780,7 +822,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Название торговой точки заполненно некорректно.";
+                                result.Data = "Название торговой точки заполнено некорректно.";
                                 return new ObjectResult(result);
                             }
 
@@ -819,7 +861,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Код торговой точки заполненно некорректно.";
+                                result.Data = "Код торговой точки заполнен некорректно.";
                                 return new ObjectResult(result);
                             }
 
@@ -842,7 +884,7 @@ namespace Portal.Controllers
                             else
                             {
                                 result.Ok = false;
-                                result.Data = "Код ОБД заполненно некорректно.";
+                                result.Data = "Код OBD заполнен некорректно.";
                                 return new ObjectResult(result);
                             }
 
@@ -851,7 +893,7 @@ namespace Portal.Controllers
                             if (existObd != null && existNewBaseObd != null)
                             {
                                 result.Ok = false;
-                                result.Data = "Код ОБД \"" + existObd.Obd + "\" уже существует, введите другой код.";
+                                result.Data = "Код OBD \"" + existObd.Obd + "\" уже существует, введите другой код.";
                                 return new ObjectResult(result);
                             }
                             break;
@@ -971,14 +1013,14 @@ namespace Portal.Controllers
                                 if (!correctIp)
                                 {
                                     result.Ok = false;
-                                    result.Data = "для кассы " + item.Name + " указан некорректный ip адрес";
+                                    result.Data = "Для кассы " + item.Name + " указан некорректный IP-адрес.";
                                     return new ObjectResult(result);
                                 }
 
                                 if (string.IsNullOrEmpty(item.Name))
                                 {
                                     result.Ok = false;
-                                    result.Data = "Имя кассы не можеть быть пустым";
+                                    result.Data = "Имя кассы не может быть пустым.";
                                     return new ObjectResult(result);
                                 }
 
@@ -991,7 +1033,7 @@ namespace Portal.Controllers
                                     {
                                         var existCash = db.CashStations.Include(t => t.TT).FirstOrDefault(c => c.Ip == ip.ToString());
                                         result.Ok = false;
-                                        result.Data = "Касса с данным ip-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
+                                        result.Data = "Касса с данным IP-адресом уже привязана к точке " + existCash.TT.Name + ", изменения не будут сохранены.";
                                         return new ObjectResult(result);
                                     }
 
@@ -1062,15 +1104,20 @@ namespace Portal.Controllers
                         var helper = locVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid)).Name;
                         ttFromOldBD = db.TTs.FirstOrDefault(x => x.Name == helper);
                     }
-                    
-                    if(ttJsn.original == null)
+
+                    if (ttJsn.original == null && ttJsn.users != null)
                     {
+                        tt.Users ??= new List<User>();
+
                         foreach (var item in ttJsn.users)
                         {
-                            tt.Users.Add(db.Users.First(u => u.Id == item.id));
+                            var user = db.Users.FirstOrDefault(u => u.Id == item.id);
+                            if (user != null)
+                            {
+                                tt.Users.Add(user);
+                            }
                         }
                     }
-                    
                     // тип новой тт
                     if (!string.IsNullOrEmpty(ttJsn.type))
                     {
@@ -1083,15 +1130,9 @@ namespace Portal.Controllers
                             ttFromOldBD.Type = db.TTtypes.FirstOrDefault(t => t.Name == location.LocationType.Name);
                         }
 
-                        if(location.Latitude != null)
-                        {
-                            location.Latitude = ttJsn.latitude;
-                        }
+                        location.Latitude = ttJsn.latitude;
 
-                        if (location.Longitude != null)
-                        {
-                            location.Longitude = ttJsn.longitude;
-                        }
+                        location.Longitude = ttJsn.longitude;
 
                         
                     }
@@ -1115,11 +1156,23 @@ namespace Portal.Controllers
                             tt.Name = ttJsn.name;
                         }
                         location.Name = ttJsn.name;
+
+                        if (ttJsn?.original == null)
+                        {
+                            var duplicateTtByName = db.TTs.FirstOrDefault(t => t.Name != null && t.Name.ToLower() == tt.Name.ToLower());
+                            var duplicateLocationByName = dbSql.Locations.FirstOrDefault(l => l.Name != null && l.Name.ToLower() == location.Name.ToLower());
+                            if (duplicateTtByName != null || duplicateLocationByName != null)
+                            {
+                                result.Ok = false;
+                                result.Data = "TT with the same name already exists.";
+                                return new ObjectResult(result);
+                            }
+                        }
                     }
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Название тороговой точки заполненно некорректно.";
+                        result.Data = "Название торговой точки заполнено некорректно.";
                         return new ObjectResult(result);
                     }
 
@@ -1133,6 +1186,18 @@ namespace Portal.Controllers
                         tt.Restaurant_Sifr = ttJsn.restaurant_Sifr;
                     }
                     location.RKCode = ttJsn.restaurant_Sifr;
+
+                    if (ttJsn?.original == null && ttJsn.restaurant_Sifr > 0)
+                    {
+                        var duplicateRestaurantSifrTt = db.TTs.FirstOrDefault(t => t.Restaurant_Sifr == tt.Restaurant_Sifr);
+                        var duplicateRestaurantSifrLocation = dbSql.Locations.FirstOrDefault(l => l.RKCode == location.RKCode);
+                        if (duplicateRestaurantSifrTt != null || duplicateRestaurantSifrLocation != null)
+                        {
+                            result.Ok = false;
+                            result.Data = $"Restaurant_Sifr '{ttJsn.restaurant_Sifr}' already exists.";
+                            return new ObjectResult(result);
+                        }
+                    }
 
                     // Адрес ТТ
                     if (!string.IsNullOrEmpty(ttJsn.address))
@@ -1154,59 +1219,61 @@ namespace Portal.Controllers
                     }
 
                     // код ТТ
-                    if (!string.IsNullOrEmpty(ttJsn.code))
+                    if (!string.IsNullOrEmpty(ttJsn.code) && int.TryParse(ttJsn.code, out var parsedCode))
                     {
                         if(ttJsn?.original != null)
                         {
-                            ttFromOldBD.Code = int.Parse(ttJsn.code);
-                            location.AggregatorsCode = int.Parse(ttJsn.code);
+                            ttFromOldBD.Code = parsedCode;
+                            location.AggregatorsCode = parsedCode;
                         }
                         else
                         {
-                            tt.Code = int.Parse(ttJsn.code);
-                            location.AggregatorsCode = int.Parse(ttJsn.code);
+                            tt.Code = parsedCode;
+                            location.AggregatorsCode = parsedCode;
                         }
                     }
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Код торговой точки заполненно некорректно.";
+                        result.Data = "Код торговой точки заполнен некорректно.";
                         return new ObjectResult(result);
                     }
 
                     var existCode = db.TTs.FirstOrDefault(t => t.Code == tt.Code);
-                    if (existCode != null && ttJsn?.original == null)
+                    var existLocationCode = dbSql.Locations.FirstOrDefault(l => l.AggregatorsCode == location.AggregatorsCode);
+                    if ((existCode != null || existLocationCode != null) && ttJsn?.original == null)
                     {
                         result.Ok = false;
-                        result.Data = "Торговая точка с кодом \"" + existCode.Code + "\" уже существует, введите другой код.";
+                        result.Data = "Торговая точка с кодом \"" + tt.Code + "\" уже существует, введите другой код.";
                         return new ObjectResult(result);
                     }
 
                     // Код ОБД
-                    if (!string.IsNullOrEmpty(ttJsn.obd))
+                    if (!string.IsNullOrEmpty(ttJsn.obd) && int.TryParse(ttJsn.obd, out var parsedObd))
                     {
                         if(ttJsn?.original != null)
                         {
-                            ttFromOldBD.Obd = int.Parse(ttJsn.obd);
+                            ttFromOldBD.Obd = parsedObd;
                         }
                         else
                         {
-                            tt.Obd = int.Parse(ttJsn.obd);
+                            tt.Obd = parsedObd;
                         }
-                        locversion.OBD = int.Parse(ttJsn.obd);
+                        locversion.OBD = parsedObd;
                     }
                     else
                     {
                         result.Ok = false;
-                        result.Data = "Код ОБД заполненно некорректно.";
+                        result.Data = "Код OBD заполнен некорректно.";
                         return new ObjectResult(result);
                     }
 
                     var existObd = db.TTs.FirstOrDefault(t => t.Obd == tt.Obd);
-                    if (existObd != null && ttJsn?.original == null)
+                    var existLocationObd = dbSql.LocationVersions.FirstOrDefault(t => t.OBD == locversion.OBD);
+                    if ((existObd != null || existLocationObd != null) && ttJsn?.original == null)
                     {
                         result.Ok = false;
-                        result.Data = "Код ОБД \"" + existObd.Obd + "\" уже существует, введите другой код.";
+                        result.Data = "Код OBD \"" + tt.Obd + "\" уже существует, введите другой код.";
                         return new ObjectResult(result);
                     }
 
@@ -1280,15 +1347,15 @@ namespace Portal.Controllers
                     {
                         if (isNewTt)
                         {
-                            var nxGroup = new NxRestClient().GetOrCreateUserGroup(ttJsn.name);
-                            if (!Guid.TryParse(nxGroup.Id, out var createdNxLayout))
+                            var nxResolveError = TryResolveNxLayoutForNewTt(ttJsn.name, out var createdNxLayout);
+                            if (!string.IsNullOrWhiteSpace(nxResolveError) || !createdNxLayout.HasValue)
                             {
                                 result.Ok = false;
-                                result.Data = "NX group id is invalid.";
+                                result.Data = nxResolveError ?? "NX group id is invalid.";
                                 return new ObjectResult(result);
                             }
 
-                            location.NXLayout = createdNxLayout;
+                            location.NXLayout = createdNxLayout.Value;
                         }
                         else
                         {
@@ -1317,30 +1384,49 @@ namespace Portal.Controllers
                             if (!correctIp)
                             {
                                 result.Ok = false;
-                                result.Data = "для кассы " + item.Name + " указан некорректный ip адрес";
+                                result.Data = "Для кассы " + item.Name + " указан некорректный IP-адрес.";
                                 return new ObjectResult(result);
                             }
 
                             if (string.IsNullOrEmpty(item.Name))
                             {
                                 result.Ok = false;
-                                result.Data = "Имя кассы не можеть быть пустым";
+                                result.Data = "Имя кассы не может быть пустым.";
                                 return new ObjectResult(result);
                             }
 
                             // новая касса
                             if (item.Id == 0)
                             {
-                                // добавляем кассу в бд
+                                var existingCash = db.CashStations
+                                    .Include(c => c.TT)
+                                    .FirstOrDefault(c => c.Ip == ip.ToString());
+                                if (existingCash != null)
+                                {
+                                    result.Ok = false;
+                                    result.Data = "Касса с данным ip-адресом уже привязана к точке " + existingCash.TT?.Name + ".";
+                                    return new ObjectResult(result);
+                                }
+
                                 cash.Name = item.Name;
                                 cash.Ip = item.Ip.ToString();
-                                cash.TT = ttFromOldBD;
+                                cash.TT = ttJsn.original == null ? tt : ttFromOldBD;
                                 cash.Midserver = item.Midserver;
                                 db.CashStations.Add(cash);
                             }
                             // существующая касса
                             else
                             {
+                                var existingCash = db.CashStations
+                                    .Include(c => c.TT)
+                                    .FirstOrDefault(c => c.Ip == ip.ToString() && c.Id != item.Id);
+                                if (existingCash != null)
+                                {
+                                    result.Ok = false;
+                                    result.Data = "Касса с данным ip-адресом уже привязана к точке " + existingCash.TT?.Name + ".";
+                                    return new ObjectResult(result);
+                                }
+
                                 cash = db.CashStations.FirstOrDefault(c => c.Id == item.Id);
                                 cash.Name = item.Name;
                                 cash.Midserver = item.Midserver;

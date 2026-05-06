@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +29,6 @@ namespace Portal.Controllers
         // Горизонтальное меню        
         public IActionResult TabMenu()
         {
-            MigratePortalUsersToNxGroups();
             return PartialView();
         }
 
@@ -444,7 +443,7 @@ namespace Portal.Controllers
 
             if (string.IsNullOrWhiteSpace(user.Login))
             {
-                throw new Exception("Р›РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїСѓСЃС‚РѕР№. РќРµРІРѕР·РјРѕР¶РЅРѕ СЃРёРЅС…СЂРѕРЅРёР·РёСЂРѕРІР°С‚СЊ NX.");
+                throw new Exception("Логин пользователя пустой. Невозможно синхронизировать NX.");
             }
 
             var nxClient = new NxRestClient();
@@ -457,49 +456,84 @@ namespace Portal.Controllers
                     return new List<string>();
                 }
 
-                return ClearManagedNxGroupsForUser(user.Login);
+                return ExecuteNxUserSyncWithWarnings(user.Login, () => ClearManagedNxGroupsForUser(user.Login));
             }
 
             if (!nxClient.UserExists(user.Login, nxUsers))
             {
-                throw new Exception($"Р’ NX РЅРµ РЅР°Р№РґРµРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ Р»РѕРіРёРЅРѕРј {user.Login}.");
+                return new List<string> { GetNxUserNotFoundWarning(user.Login) };
             }
 
             if (HasNxRole(user))
             {
-                return SyncNxGroupsForUser(user.Login, user.TTs?.ToList(), user.AllTT);
+                return ExecuteNxUserSyncWithWarnings(user.Login, () => SyncNxGroupsForUser(user.Login, user.TTs?.ToList(), user.AllTT));
             }
 
-            return ClearManagedNxGroupsForUser(user.Login);
+            return ExecuteNxUserSyncWithWarnings(user.Login, () => ClearManagedNxGroupsForUser(user.Login));
         }
 
         private List<string> SyncNxGroupsIfAllowed(User user, bool hadNxRoleBefore)
         {
             if (user != null && !user.Enabled)
             {
-                return ClearManagedNxGroupsForUser(user.Login);
+                return ExecuteNxUserSyncWithWarnings(user.Login, () => ClearManagedNxGroupsForUser(user.Login));
             }
 
             var hasNxRoleNow = HasNxRole(user);
 
             if (hasNxRoleNow)
             {
-                return SyncNxGroupsForUser(user.Login, user.TTs?.ToList(), user.AllTT);
+                var nxClient = new NxRestClient();
+                if (!nxClient.UserExists(user.Login, nxClient.GetUsers()))
+                {
+                    return new List<string> { GetNxUserNotFoundWarning(user.Login) };
+                }
+
+                return ExecuteNxUserSyncWithWarnings(user.Login, () => SyncNxGroupsForUser(user.Login, user.TTs?.ToList(), user.AllTT));
             }
 
             if (hadNxRoleBefore || !string.IsNullOrWhiteSpace(user?.Login))
             {
-                return ClearManagedNxGroupsForUser(user.Login);
+                return ExecuteNxUserSyncWithWarnings(user.Login, () => ClearManagedNxGroupsForUser(user.Login));
             }
 
             return new List<string>();
+        }
+
+        private List<string> ExecuteNxUserSyncWithWarnings(string login, Func<List<string>> action)
+        {
+            try
+            {
+                return action();
+            }
+            catch (Exception ex) when (IsNxAdministratorRightsForbidden(ex))
+            {
+                return new List<string> { GetNxAdminRightsWarning(login) };
+            }
+        }
+
+        private bool IsNxAdministratorRightsForbidden(Exception ex)
+        {
+            var message = ex?.ToString() ?? string.Empty;
+            return message.IndexOf("is not permitted to modify User", StringComparison.OrdinalIgnoreCase) >= 0
+                && message.IndexOf("administrator", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private string GetNxUserNotFoundWarning(string login)
+        {
+            return $"Пользователь '{login}' не найден в NX, изменения применены только для портала.";
+        }
+
+        private string GetNxAdminRightsWarning(string login)
+        {
+            return $"Пользователь '{login}' имеет администраторские права в NX, изменения применены только для портала.";
         }
 
         private List<string> ClearManagedNxGroupsForUser(string login)
         {
             if (string.IsNullOrWhiteSpace(login))
             {
-                throw new Exception("Р›РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїСѓСЃС‚РѕР№. РќРµРІРѕР·РјРѕР¶РЅРѕ РѕС‡РёСЃС‚РёС‚СЊ РіСЂСѓРїРїС‹ NX.");
+                throw new Exception("Логин пользователя пустой. Невозможно очистить группы NX.");
             }
 
             var nxClient = new NxRestClient();
@@ -583,6 +617,7 @@ namespace Portal.Controllers
             var nxClient = new NxRestClient();
             User currentUser = null;
             NxMigrationAction? currentAction = null;
+            var skippedUsers403 = new List<object>();
 
             try
             {
@@ -611,25 +646,39 @@ namespace Portal.Controllers
                     currentUser = item.User;
                     currentAction = item.Plan.Action;
 
-                    if (item.Plan.Action == NxMigrationAction.Skip)
+                    try
                     {
-                        continue;
-                    }
+                        if (item.Plan.Action == NxMigrationAction.Skip)
+                        {
+                            continue;
+                        }
 
-                    if (item.Plan.Action == NxMigrationAction.ClearManagedGroups)
+                        if (item.Plan.Action == NxMigrationAction.ClearManagedGroups)
+                        {
+                            nxClient.SyncUserGroups(item.Login, Array.Empty<Guid>(), item.Plan.ManagedNxGroupIds);
+                            continue;
+                        }
+
+                        nxClient.SyncUserGroups(item.Login, item.Plan.RequiredNxGroupIds, item.Plan.ManagedNxGroupIds);
+                    }
+                    catch (Exception ex) when (IsNxForbiddenError(ex))
                     {
-                        nxClient.SyncUserGroups(item.Login, Array.Empty<Guid>(), item.Plan.ManagedNxGroupIds);
-                        continue;
+                        skippedUsers403.Add(new
+                        {
+                            login = item.Login,
+                            name = item.User?.Name,
+                            action = item.Plan.Action.ToString(),
+                            error = ex.Message
+                        });
                     }
-
-                    nxClient.SyncUserGroups(item.Login, item.Plan.RequiredNxGroupIds, item.Plan.ManagedNxGroupIds);
                 }
 
                 result.Ok = true;
                 result.Data = new
                 {
                     migratedUsers = plans.Count,
-                    logins = plans.Select(item => item.Login).ToList()
+                    logins = plans.Select(item => item.Login).ToList(),
+                    skippedUsers403
                 };
             }
             catch (Exception ex)
@@ -639,6 +688,12 @@ namespace Portal.Controllers
             }
 
             return new ObjectResult(result);
+        }
+
+        private bool IsNxForbiddenError(Exception ex)
+        {
+            return ex != null &&
+                ex.ToString().IndexOf("403", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private string BuildNxMigrationErrorMessage(Exception ex, User currentUser, NxMigrationAction? currentAction)
@@ -789,7 +844,7 @@ namespace Portal.Controllers
 
             if (string.IsNullOrWhiteSpace(login))
             {
-                throw new Exception("Р›РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїСѓСЃС‚РѕР№. РќРµРІРѕР·РјРѕР¶РЅРѕ СЃРёРЅС…СЂРѕРЅРёР·РёСЂРѕРІР°С‚СЊ РіСЂСѓРїРїС‹ NX.");
+                throw new Exception("Логин пользователя пустой. Невозможно синхронизировать группы NX.");
             }
 
             var tts = userTTs?
@@ -820,7 +875,7 @@ namespace Portal.Controllers
             {
                 if (allTtGroup == null || !Guid.TryParse(allTtGroup.Id, out var parsedAllTtGroupId))
                 {
-                    throw new Exception("Р’ NX РЅРµ РЅР°Р№РґРµРЅР° РіСЂСѓРїРїР° ALLTT. РР·РјРµРЅРµРЅРёСЏ РЅРµ РїСЂРёРјРµРЅРµРЅС‹.");
+                    throw new Exception("В NX не найдена группа ALLTT. Изменения не применены.");
                 }
 
                 requiredNxGroupIds.Add(parsedAllTtGroupId);
@@ -835,7 +890,7 @@ namespace Portal.Controllers
 
                     if (location == null)
                     {
-                        throw new Exception($"Р”Р»СЏ РўРў {tt.Name} СЃ Restaurant_Sifr {tt.Restaurant_Sifr} РЅРµ РЅР°Р№РґРµРЅ Location. РР·РјРµРЅРµРЅРёСЏ РЅРµ РїСЂРёРјРµРЅРµРЅС‹.");
+                        throw new Exception($"Для ТТ {tt.Name} с Restaurant_Sifr {tt.Restaurant_Sifr} не найден Location. Изменения не применены.");
                     }
 
                     if (location.NXLayout == null)
@@ -848,7 +903,7 @@ namespace Portal.Controllers
 
                         if (shouldThrowNxLayoutError)
                         {
-                            throw new Exception($"Р”Р»СЏ РўРў {tt.Name} РЅРµ РЅР°Р№РґРµРЅ NXLayout. РР·РјРµРЅРµРЅРёСЏ РЅРµ РїСЂРёРјРµРЅРµРЅС‹.");
+                            throw new Exception($"Для ТТ {tt.Name} не найден NXLayout. Изменения не применены.");
                         }
 
                         continue;

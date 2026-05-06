@@ -282,9 +282,25 @@
             data: { json: jsn },
             datatype: "text",
             success: function (result) {
-                alert(result);                
+                var response = result || {};
+                var warnings = Array.isArray(response.warnings) ? response.warnings.filter(function (item) { return !!item; }) : [];
+                var errorMessage = response.data || response.errorMessage || 'Ошибка сохранения пользователя.';
+
+                if (response.ok === false) {
+                    ShowModal('Ошибка', errorMessage, 0);
+                    return;
+                }
+
+                if (warnings.length > 0) {
+                    ShowModal('Предупреждение', warnings.join('\n'), 0);
+                    return;
+                }
+
+                ShowModal('Сохранено', 'Изменения пользователя сохранены.', 0);
             },
-            error: function (error) { alert(error.responseText); }
+            error: function (error) {
+                ShowModal('Ошибка', error.responseText || 'Ошибка сохранения пользователя.', 0);
+            }
         });
     }
 </script>

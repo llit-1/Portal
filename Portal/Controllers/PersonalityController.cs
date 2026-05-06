@@ -42,6 +42,22 @@ namespace Portal
         {
             return PartialView();
         }
+        private void ResetOtherActualVersions(Guid personalityGuid, Guid? currentVersionGuid = null)
+        {
+            var versionsToDeactivate = dbSql.PersonalityVersions
+                .Include(x => x.Personalities)
+                .Where(x => x.Personalities.Guid == personalityGuid && x.Actual == 1);
+
+            if (currentVersionGuid.HasValue && currentVersionGuid.Value != Guid.Empty)
+            {
+                versionsToDeactivate = versionsToDeactivate.Where(x => x.Guid != currentVersionGuid.Value);
+            }
+
+            foreach (var version in versionsToDeactivate.ToList())
+            {
+                version.Actual = 0;
+            }
+        }
         /* Проверка дат на пересечение и прочие ошибки */
         public bool HasErrors(List<PersonalityVersion> versions)
         {
@@ -487,6 +503,10 @@ namespace Portal
                     personalityVersion.Personalities.PersonalityCitizenship = personalityJson.PersonalityCitizenship;
                     personalityVersion.PartTimer = personalityJson.PartTimer;
                     personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
+                    if (personalityVersion.Actual == 1)
+                    {
+                        ResetOtherActualVersions(newPersonalityGuid);
+                    }
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
@@ -560,6 +580,10 @@ namespace Portal
                     personalityVersion.Personalities.PersonalityCitizenship = personalityJson.PersonalityCitizenship;
                     personalityVersion.PartTimer = personalityJson.PartTimer;
                     personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
+                    if (personalityVersion.Actual == 1)
+                    {
+                        ResetOtherActualVersions(Guid.Parse(personalityJson.personGUID));
+                    }
                     dbSql.Add(personalityVersion);
                     dbSql.SaveChanges();
                 }
@@ -670,6 +694,10 @@ namespace Portal
                 personalityVersion.Personalities.SNILS = personalityJson.SNILS;
                 personalityVersion.PartTimer = personalityJson.PartTimer;
                 personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
+                if (personalityVersion.Actual == 1)
+                {
+                    ResetOtherActualVersions(Guid.Parse(personalityJson.personGUID), personalityVersion.Guid);
+                }
                 List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
                                                                              .ToList();
                 List<PersonalityVersion> allPersonalityVersions = dbSql.PersonalityVersions.Where(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)

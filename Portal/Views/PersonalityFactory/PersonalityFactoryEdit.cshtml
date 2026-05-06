@@ -388,6 +388,34 @@
     const passcardnumberfactory = document.getElementById('PassCardNumberFactory');
     const groupFactory = document.getElementById('groupFactory');
 
+    function normalizePassCardNumber(value) {
+        const upperValue = (value || '').toUpperCase();
+        const ruToEnHexMap = {
+            'Ф': 'A',
+            'И': 'B',
+            'С': 'C',
+            'В': 'D',
+            'У': 'E',
+            'А': 'F'
+        };
+
+        const normalizedValue = upperValue
+            .split('')
+            .map(char => ruToEnHexMap[char] ?? char)
+            .join('');
+
+        return normalizedValue.replace(/[^0-9A-F]/g, '');
+    }
+
+    if (passcardnumberfactory) {
+        passcardnumberfactory.addEventListener('input', function () {
+            const normalizedValue = normalizePassCardNumber(this.value);
+            if (this.value !== normalizedValue) {
+                this.value = normalizedValue;
+            }
+        });
+    }
+
 
     $("#PageHeader").text("Учет сотрудников (Завод)")
     $('#back').unbind('click');
@@ -443,7 +471,7 @@
                 // Если хочешь где-то показать hex — например, в элементе с id="hexWrapper"
                 const hexElement = document.getElementById("PassCardNumberFactory");
                 if (hexElement) {
-                    hexElement.value = hexStr;
+                    hexElement.value = normalizePassCardNumber(hexStr);
                 }
             };
 
@@ -632,6 +660,8 @@
             passcardnumberfactory.value = passcardnumberfactory.value.slice(2);
         }
 
+        passcardnumberfactory.value = normalizePassCardNumber(passcardnumberfactory.value);
+
         const person = {
             Id: "@Model.FactoryPerson.Id".trim(),
             Surname: surnameFactory.value.trim().replace(/\s+/g, ' '),
@@ -654,7 +684,7 @@
             HiringDate: hireDateFactory.value.trim(),
             DismissedDate: dismissalDateFactory.value.trim() || null,
             Photo: isDefaultImage ? null : photoDataUrl,
-            PassCardNumber: passcardnumberfactory.value.trim() || null,
+            PassCardNumber: normalizePassCardNumber(passcardnumberfactory.value.trim()) || null,
             SKUDGroupId: parseInt(groupFactory.value.trim()),
         };
 
