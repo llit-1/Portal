@@ -1045,7 +1045,7 @@ namespace Portal.Controllers
         {
             ItemsBlocksProps ItemsBlocksProps = new ItemsBlocksProps();
             ItemsBlocksProps.itemBlocks = CalculatorDb.itemBlocks.Where(x => x.End > DateTime.Now.AddMonths(-1)).ToList();
-            ItemsBlocksProps.tts = db.TTs.ToList();
+            ItemsBlocksProps.tts = CalculatorDb.TT.ToList();
             ItemsBlocksProps.items = CalculatorDb.Items.ToList();
 
             return PartialView(ItemsBlocksProps);
@@ -1054,7 +1054,7 @@ namespace Portal.Controllers
         public class ItemsBlocksProps
         {
             public List<ItemBlock> itemBlocks { get; set; }
-            public List<RKNet_Model.TT.TT> tts { get; set; }
+            public List<Models.MSSQL.Calculator.TT> tts { get; set; }
             public List<Items> items { get; set; }
         }
 
@@ -1066,6 +1066,17 @@ namespace Portal.Controllers
             public DateTime Begin { get; set; }
             public DateTime End { get; set; }
             public int? Type { get; set; }
+        }
+
+        public class SaveReplacementRequest
+        {
+            public int? Id { get; set; }
+            public int? ItemCode { get; set; }
+            public int? ReplacementItemCode { get; set; }
+            public int? TTCode { get; set; }
+            public int? ReplacementTTCode { get; set; }
+            public DateTime Begin { get; set; }
+            public DateTime End { get; set; }
         }
 
         [HttpPost]
@@ -1158,6 +1169,109 @@ namespace Portal.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult SaveReplacement([FromBody] SaveReplacementRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { Message = "invalid request" });
+            }
+
+            if (request.Begin == default || request.End == default)
+            {
+                return BadRequest(new { Message = "invalid dates" });
+            }
+
+            if (request.Begin.Date > request.End.Date)
+            {
+                return BadRequest(new { Message = "begin date must be before end date" });
+            }
+
+            bool hasItemPair = request.ItemCode.HasValue || request.ReplacementItemCode.HasValue;
+            bool hasTTPair = request.TTCode.HasValue || request.ReplacementTTCode.HasValue;
+
+            if (hasItemPair == hasTTPair)
+            {
+                return BadRequest(new { Message = "choose either item pair or TT pair" });
+            }
+
+            if (hasItemPair)
+            {
+                if (!request.ItemCode.HasValue || !request.ReplacementItemCode.HasValue)
+                {
+                    return BadRequest(new { Message = "item pair is incomplete" });
+                }
+
+                Items sourceItem = CalculatorDb.Items.FirstOrDefault(x => x.RkCode == request.ItemCode.Value);
+                Items replacementItem = CalculatorDb.Items.FirstOrDefault(x => x.RkCode == request.ReplacementItemCode.Value);
+
+                if (sourceItem == null || replacementItem == null)
+                {
+                    return NotFound(new { Message = "item not found" });
+                }
+
+                if (sourceItem.ItemsGroup != replacementItem.ItemsGroup)
+                {
+                    return BadRequest(new { Message = "replacement item must have the same items group" });
+                }
+            }
+
+            if (hasTTPair)
+            {
+                if (!request.TTCode.HasValue || !request.ReplacementTTCode.HasValue)
+                {
+                    return BadRequest(new { Message = "TT pair is incomplete" });
+                }
+
+                if (!CalculatorDb.TT.Any(x => x.TTCode == request.TTCode.Value) ||
+                    !CalculatorDb.TT.Any(x => x.TTCode == request.ReplacementTTCode.Value))
+                {
+                    return NotFound(new { Message = "TT not found" });
+                }
+            }
+
+            Replacement replacement;
+            if (request.Id.HasValue && request.Id.Value > 0)
+            {
+                replacement = CalculatorDb.Replacements.FirstOrDefault(x => x.Id == request.Id.Value);
+                if (replacement == null)
+                {
+                    return NotFound(new { Message = "replacement not found" });
+                }
+            }
+            else
+            {
+                replacement = new Replacement();
+                CalculatorDb.Replacements.Add(replacement);
+            }
+
+            replacement.ItemCode = hasItemPair ? request.ItemCode : null;
+            replacement.ReplacementItemCode = hasItemPair ? request.ReplacementItemCode : null;
+            replacement.TTCode = hasTTPair ? request.TTCode : null;
+            replacement.ReplacementTTCode = hasTTPair ? request.ReplacementTTCode : null;
+            replacement.Begin = request.Begin.Date;
+            replacement.End = request.End.Date;
+
+            CalculatorDb.SaveChanges();
+            return Ok();
+        }
+
+        [HttpDelete]
+        public IActionResult DeleteReplacement(int id)
+        {
+            Replacement replacement = CalculatorDb.Replacements.FirstOrDefault(x => x.Id == id);
+
+            if (replacement == null)
+            {
+                return NotFound(new { Message = "replacement not found" });
+            }
+
+            CalculatorDb.Replacements.Remove(replacement);
+            CalculatorDb.SaveChanges();
+
+            return Ok();
+        }
+
         [HttpDelete]
         public IActionResult DeleteGroup(int id)
         {
@@ -1187,8 +1301,6 @@ namespace Portal.Controllers
             CalculatorDb.SaveChanges();
             return Ok();
         }
-
-
 
         [HttpDelete]
         public IActionResult DeleteSpesialDay(string Id)
@@ -1282,6 +1394,23 @@ namespace Portal.Controllers
             Console.WriteLine("Информация об ошибке успешно записана в файл.");
         }
 
+        public IActionResult AnalogWork()
+        {
+            AnalogWorkModel analogWorkModel = new();
+            analogWorkModel.Items = CalculatorDb.Items.ToList();
+            analogWorkModel.TTs = CalculatorDb.TT.ToList();
+            analogWorkModel.Replacements = CalculatorDb.Replacements.ToList();
+
+            return PartialView(analogWorkModel);
+        }
+
+    }
+
+    public class AnalogWorkModel
+    {
+        public List<Models.MSSQL.Calculator.Items> Items { get; set; }
+        public List<Models.MSSQL.Calculator.TT> TTs { get; set; }
+        public List<Models.MSSQL.Calculator.Replacement> Replacements { get; set; }
     }
 
     public class CalculateCoefficientModel

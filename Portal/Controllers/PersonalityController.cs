@@ -41,7 +41,9 @@ namespace Portal
         public IActionResult Personality()
         {
             return PartialView();
+
         }
+
         private void ResetOtherActualVersions(Guid personalityGuid, Guid? currentVersionGuid = null)
         {
             var versionsToDeactivate = dbSql.PersonalityVersions

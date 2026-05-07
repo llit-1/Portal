@@ -19,11 +19,9 @@ namespace Portal.Models.MSSQL.Calculator
         public int? ReplacementTTCode { get; set; }
 
         [Required]
-        [Column(TypeName = "date")]
         public DateTime Begin { get; set; }
 
         [Required]
-        [Column(TypeName = "date")]
         public DateTime End { get; set; }
     }
 }

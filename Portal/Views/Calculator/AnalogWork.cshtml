@@ -1,0 +1,522 @@
+﻿@model Portal.Controllers.AnalogWorkModel
+
+@using System.Text.Json
+
+<!--шапка-->
+<div id="headMenu" class="row" style="margin:0px">
+    <div class="col-12">
+        <div class="row" style="margin-top: 0px; margin-bottom:10px">
+            <!--Назад-->
+            <a id="back" href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
+                <img src="~/themes/clearmin/img/md/dark/keyboard-backspace.svg" height="38" width="24"><label style="margin-left:10px; cursor:pointer">назад</label>
+            </a>
+        </div>
+
+        <!--меню таблицы-->
+        <div id="tableMenu" class="col-md-12" style="padding:0px">
+            <input class="form-control-sm" placeholder="Поиск" id="searchDatatable">
+            <a href="#AddReplacement" class="btn btn-sm btn-success" onclick="AddItem(); return false;" style="margin-left:20px">добавить</a>
+        </div>
+    </div>
+</div>
+
+<div id="page" style="margin-top:15px">
+    <div class="panel panel-default" style="margin-bottom:0px">
+        <div class="panel-body">
+            <div class="row mb-4 mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <table class="data-table nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Тип замены</th>
+                                        <th>Наименование позиции</th>
+                                        <th>Позиция для замены</th>
+                                        <th>ТТ</th>
+                                        <th>ТТ для замены</th>
+                                        <th>Дата начала</th>
+                                        <th>Дата окончания</th>
+                                        <th>Действие</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Replacements.OrderBy(x => x.ItemCode.HasValue ? 0 : 1).ThenBy(x => x.ItemCode ?? x.TTCode).ThenBy(x => x.ReplacementItemCode ?? x.ReplacementTTCode))
+                                    {
+                                        bool isItemReplacement = item.ItemCode.HasValue;
+                                        <tr class="analog-work-row"
+                                            data-id="@item.Id"
+                                            data-item-code="@(item.ItemCode?.ToString() ?? string.Empty)"
+                                            data-replacement-item-code="@(item.ReplacementItemCode?.ToString() ?? string.Empty)"
+                                            data-tt-code="@(item.TTCode?.ToString() ?? string.Empty)"
+                                            data-replacement-tt-code="@(item.ReplacementTTCode?.ToString() ?? string.Empty)"
+                                            data-begin="@item.Begin.ToString("yyyy-MM-dd")"
+                                            data-end="@item.End.ToString("yyyy-MM-dd")"
+                                            onclick="EditItem(this)">
+                                            <td>@(isItemReplacement ? "Позиция" : "ТТ")</td>
+                                            <td>@Model.Items.FirstOrDefault(x => x.RkCode == item.ItemCode)?.Name</td>
+                                            <td>@Model.Items.FirstOrDefault(x => x.RkCode == item.ReplacementItemCode)?.Name</td>
+                                            <td>@Model.TTs.FirstOrDefault(x => x.TTCode == item.TTCode)?.TTName</td>
+                                            <td>@Model.TTs.FirstOrDefault(x => x.TTCode == item.ReplacementTTCode)?.TTName</td>
+                                            <td>@item.Begin.ToString("dd.MM.yyyy")</td>
+                                            <td>@item.End.ToString("dd.MM.yyyy")</td>
+                                            <td>
+                                                <button class="btn btn-danger button-table" onclick="event.stopPropagation(); confirmDeleteReplacement(@item.Id)">Удалить</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="replacementDeleteModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeDeleteModal()"></label>
+                </div>
+                <h4 class="modal-title">Подтверждение удаления</h4>
+            </div>
+            <div class="modal-body">
+                <p style="margin: 0;">Удалить запись?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-danger" onclick="deleteReplacement()">Удалить</button>
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeDeleteModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="replacementModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pull-right" style="margin-right:10px; height:10px">
+                    <label class="ico md-close" style="margin-top: -2px" data-dismiss="modal" onclick="closeReplacementModal()"></label>
+                </div>
+                <h4 class="modal-title" id="replacementModalTitle">Добавление записи</h4>
+            </div>
+            <div class="modal-body">
+                <div class="item-block-form">
+                    <input id="ReplacementId" type="hidden" value="" />
+                    <div class="item-block-form__field">
+                        <label for="replacementMode">Тип замены</label>
+                        <select id="replacementMode" class="form-control" onchange="handleModeChange()">
+                            <option value="item">Позиция</option>
+                            <option value="tt">ТТ</option>
+                        </select>
+                    </div>
+
+                    <div id="itemReplacementFields">
+                        <div class="item-block-form__field">
+                            <label for="ItemCode">Наименование позиции</label>
+                            <select id="ItemCode" class="form-control replacement-select">
+                                <option value="">Выберите позицию</option>
+                                @foreach (var item in Model.Items.OrderBy(x => x.Name))
+                                {
+                                    <option value="@item.RkCode" data-items-group="@item.ItemsGroup">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="item-block-form__field">
+                            <label for="ReplacementItemCode">Позиция для замены</label>
+                            <select id="ReplacementItemCode" class="form-control replacement-select">
+                                <option value="">Сначала выберите позицию</option>
+                            </select>
+                        </div>
+                        <select id="ReplacementItemSource" hidden>
+                            @foreach (var item in Model.Items.OrderBy(x => x.Name))
+                            {
+                                <option value="@item.RkCode" data-items-group="@item.ItemsGroup">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div id="ttReplacementFields" style="display:none">
+                        <div class="item-block-form__field">
+                            <label for="TTCode">ТТ</label>
+                            <select id="TTCode" class="form-control replacement-select">
+                                <option value="">Выберите ТТ</option>
+                                @foreach (var item in Model.TTs.OrderBy(x => x.TTName))
+                                {
+                                    <option value="@item.TTCode">@item.TTName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="item-block-form__field">
+                            <label for="ReplacementTTCode">ТТ для замены</label>
+                            <select id="ReplacementTTCode" class="form-control replacement-select">
+                                <option value="">Выберите ТТ для замены</option>
+                                @foreach (var item in Model.TTs.OrderBy(x => x.TTName))
+                                {
+                                    <option value="@item.TTCode">@item.TTName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="item-block-form__field">
+                        <label for="ReplacementBegin">Дата начала</label>
+                        <input id="ReplacementBegin" type="date" class="form-control" required />
+                    </div>
+                    <div class="item-block-form__field">
+                        <label for="ReplacementEnd">Дата окончания</label>
+                        <input id="ReplacementEnd" type="date" class="form-control" required />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-between">
+                <div>
+                    <button type="button" class="btn btn-sm btn-success" id="replacementSubmitButton" onclick="saveReplacement()">Добавить</button>
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="closeReplacementModal()">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var height = $('#global').height();
+    height -= $('#cm-header').height();
+    height -= $('#headMenu').height();
+
+    let replacementIdToDelete = null;
+    const replacementItemsSource = @Html.Raw(JsonSerializer.Serialize(
+        Model.Items.OrderBy(x => x.Name).Select(x => new
+        {
+            value = x.RkCode,
+            text = x.Name,
+            itemsGroup = x.ItemsGroup.ToString()
+        })));
+
+    const table = $(".data-table").DataTable({
+        ordering: true,
+        order: [0, 'asc'],
+        searching: true,
+        bLengthChange: false,
+        destroy: true,
+        info: false,
+        paging: false,
+        sDom: '<"row view-filter"<"col-sm-12"<"float-left"l><"float-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
+        responsive: true,
+        deferRender: true,
+        scrollY: height,
+        scrollCollapse: true
+    });
+
+    table.order([0, 'asc']).draw();
+
+    $("#searchDatatable").on("keyup", function () {
+        table.search($(this).val()).draw();
+    });
+
+    $('.view-filter').hide();
+
+    if ($.fn.select2) {
+        $('.replacement-select').select2({
+            theme: "bootstrap4",
+            language: "ru",
+            width: '100%',
+            dropdownParent: $('#replacementModal')
+        });
+    }
+
+    function initReplacementItemSelect2() {
+        if (!$.fn.select2) {
+            return;
+        }
+
+        const replacementSelect = $('#ReplacementItemCode');
+        if (replacementSelect.hasClass('select2-hidden-accessible')) {
+            replacementSelect.select2('destroy');
+        }
+
+        replacementSelect.select2({
+            theme: "bootstrap4",
+            language: "ru",
+            width: '100%',
+            dropdownParent: $('#replacementModal')
+        });
+    }
+
+    function getTodayValue() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function getNextDayValue(dateValue) {
+        const date = new Date(dateValue);
+        date.setDate(date.getDate() + 1);
+        return date.toISOString().split('T')[0];
+    }
+
+    function reloadAnalogWork() {
+        $("#container-fluid").load('/Calculator/AnalogWork');
+    }
+
+    function resetSelectValue(id) {
+        const element = $('#' + id);
+        element.val('').trigger('change.select2');
+    }
+
+    function setSelectValue(id, value) {
+        const element = $('#' + id);
+        element.val(value ? String(value) : '').trigger('change.select2');
+    }
+
+    function syncReplacementItemOptions(selectedReplacementValue) {
+        const itemCodeSelect = document.getElementById('ItemCode');
+        const replacementSelect = $('#ReplacementItemCode');
+        const selectedItem = replacementItemsSource.find(x => String(x.value) === String(itemCodeSelect.value));
+        const itemsGroup = selectedItem ? String(selectedItem.itemsGroup) : '';
+
+        replacementSelect.empty();
+        replacementSelect.append(new Option(
+            itemsGroup ? 'Выберите позицию для замены' : 'Сначала выберите позицию',
+            ''
+        ));
+
+        if (itemsGroup) {
+            replacementItemsSource
+                .filter(x => String(x.itemsGroup) === itemsGroup)
+                .forEach(item => {
+                    replacementSelect.append(new Option(item.text, item.value));
+                });
+        }
+
+        initReplacementItemSelect2();
+
+        if (selectedReplacementValue) {
+            setSelectValue('ReplacementItemCode', selectedReplacementValue);
+        } else {
+            resetSelectValue('ReplacementItemCode');
+        }
+    }
+
+    function handleModeChange() {
+        const mode = document.getElementById('replacementMode').value;
+        const itemFields = document.getElementById('itemReplacementFields');
+        const ttFields = document.getElementById('ttReplacementFields');
+
+        itemFields.style.display = mode === 'item' ? '' : 'none';
+        ttFields.style.display = mode === 'tt' ? '' : 'none';
+
+        if (mode === 'item') {
+            resetSelectValue('TTCode');
+            resetSelectValue('ReplacementTTCode');
+            syncReplacementItemOptions();
+        } else {
+            resetSelectValue('ItemCode');
+            resetSelectValue('ReplacementItemCode');
+        }
+    }
+
+    function AddItem() {
+        document.getElementById('ReplacementId').value = '';
+        document.getElementById('replacementMode').value = 'item';
+        resetSelectValue('ItemCode');
+        resetSelectValue('ReplacementItemCode');
+        resetSelectValue('TTCode');
+        resetSelectValue('ReplacementTTCode');
+
+        const today = getTodayValue();
+        document.getElementById('ReplacementBegin').value = today;
+        document.getElementById('ReplacementEnd').value = getNextDayValue(today);
+        document.getElementById('replacementModalTitle').textContent = 'Добавление записи';
+        document.getElementById('replacementSubmitButton').textContent = 'Добавить';
+
+        handleModeChange();
+        $("#replacementModal").modal("show");
+    }
+
+    function EditItem(row) {
+        document.getElementById('ReplacementId').value = row.dataset.id;
+
+        const isItemMode = row.dataset.itemCode !== '';
+        document.getElementById('replacementMode').value = isItemMode ? 'item' : 'tt';
+        handleModeChange();
+
+        setSelectValue('ItemCode', row.dataset.itemCode);
+        syncReplacementItemOptions(row.dataset.replacementItemCode);
+        setSelectValue('TTCode', row.dataset.ttCode);
+        setSelectValue('ReplacementTTCode', row.dataset.replacementTtCode);
+
+        document.getElementById('ReplacementBegin').value = row.dataset.begin;
+        document.getElementById('ReplacementEnd').value = row.dataset.end;
+        document.getElementById('replacementModalTitle').textContent = 'Редактирование записи';
+        document.getElementById('replacementSubmitButton').textContent = 'Сохранить';
+
+        $("#replacementModal").modal("show");
+    }
+
+    function closeReplacementModal() {
+        $("#replacementModal").modal("hide");
+    }
+
+    function confirmDeleteReplacement(id) {
+        replacementIdToDelete = id;
+        $("#replacementDeleteModal").modal("show");
+    }
+
+    function deleteReplacementFromEdit() {
+        const id = document.getElementById('ReplacementId').value;
+        if (!id) {
+            return;
+        }
+
+        closeReplacementModal();
+        confirmDeleteReplacement(parseInt(id, 10));
+    }
+
+    function closeDeleteModal() {
+        $("#replacementDeleteModal").modal("hide");
+    }
+
+    async function deleteReplacement() {
+        if (!replacementIdToDelete) {
+            return;
+        }
+
+        const response = await fetch('/Calculator/DeleteReplacement?id=' + replacementIdToDelete, {
+            method: 'DELETE'
+        });
+
+        closeDeleteModal();
+
+        if (!response.ok) {
+            return alert('Произошла ошибка при удалении');
+        }
+
+        reloadAnalogWork();
+    }
+
+    async function saveReplacement() {
+        const id = document.getElementById('ReplacementId').value;
+        const mode = document.getElementById('replacementMode').value;
+        const begin = document.getElementById('ReplacementBegin').value;
+        const end = document.getElementById('ReplacementEnd').value;
+
+        if (!begin || !end) {
+            return alert('Заполните даты');
+        }
+
+        if (begin > end) {
+            return alert('Дата начала не может быть позже даты окончания');
+        }
+
+        const request = {
+            Id: id ? parseInt(id, 10) : null,
+            ItemCode: null,
+            ReplacementItemCode: null,
+            TTCode: null,
+            ReplacementTTCode: null,
+            Begin: begin,
+            End: end
+        };
+
+        if (mode === 'item') {
+            const itemCode = document.getElementById('ItemCode').value;
+            const replacementItemCode = document.getElementById('ReplacementItemCode').value;
+
+            if (!itemCode || !replacementItemCode) {
+                return alert('Выберите обе позиции');
+            }
+
+            request.ItemCode = parseInt(itemCode, 10);
+            request.ReplacementItemCode = parseInt(replacementItemCode, 10);
+        } else {
+            const ttCode = document.getElementById('TTCode').value;
+            const replacementTTCode = document.getElementById('ReplacementTTCode').value;
+
+            if (!ttCode || !replacementTTCode) {
+                return alert('Выберите обе ТТ');
+            }
+
+            request.TTCode = parseInt(ttCode, 10);
+            request.ReplacementTTCode = parseInt(replacementTTCode, 10);
+        }
+
+        const response = await fetch('/Calculator/SaveReplacement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request)
+        });
+
+        if (!response.ok) {
+            let message = 'Произошла ошибка при сохранении';
+
+            try {
+                const error = await response.json();
+                if (error && (error.Message || error.message)) {
+                    message = error.Message || error.message;
+                }
+            } catch (e) {
+            }
+
+            return alert(message);
+        }
+
+        closeReplacementModal();
+        reloadAnalogWork();
+    }
+
+    $('#ItemCode').on('change select2:select', function () {
+        syncReplacementItemOptions();
+    });
+</script>
+
+<style>
+    .button-table {
+        width: 70px;
+        height: 25px;
+        margin: 0;
+        padding: 0;
+        font-size: 10px;
+    }
+
+    .analog-work-row {
+        cursor: pointer;
+    }
+
+    .analog-work-row:hover {
+        background-color: #f5f5f5;
+    }
+
+    .item-block-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .item-block-form__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .item-block-form__field > label {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .modal-footer-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #itemReplacementFields, #ttReplacementFields {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+</style>

@@ -55,7 +55,7 @@
                                     {
                                         <tr class="item-block-row" onclick="editItemBlock(@item.Id, @item.ItemRkCode, @(item.TTCode.HasValue ? item.TTCode.Value.ToString() : "null"), '@item.Begin.ToString("yyyy-MM-dd")', '@item.End.ToString("yyyy-MM-dd")', @item.Type)">
                                             <td>@Model.items.FirstOrDefault(x => x.RkCode == item.ItemRkCode)?.Name</td>
-                                            <td>@Model.tts.FirstOrDefault(x => x.Restaurant_Sifr == item.TTCode)?.Name </td>
+                                            <td>@Model.tts.FirstOrDefault(x => x.TTCode == item.TTCode)?.TTName </td>
                                             <td>@item.Begin.ToString("dd.MM.yyyy")</td>
                                             <td>@item.End.ToString("dd.MM.yyyy")</td>
                                             <td>@blockTypes[item.Type]</td>
@@ -93,7 +93,6 @@
     </div>
 </div>
 
-<!--вычисление высоты таблицы-->
 <div id="addItemBlockModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
     <div class="modal-dialog">
         <div class="modal-content">
