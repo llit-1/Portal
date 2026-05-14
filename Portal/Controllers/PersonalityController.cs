@@ -31,6 +31,7 @@ namespace Portal
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
         private readonly IMemoryCache _cache;
+        private const string PersonalityErrorPersonGuidsCacheKey = "personality_error_person_guids";
         public PersonalityController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext, IMemoryCache cache)
 {
             db = context;
@@ -99,6 +100,84 @@ namespace Portal
             }
             return temp.Count > 0 || count > 1;
         }
+
+        private HashSet<Guid> GetCachedErrorPersonGuids()
+        {
+            return _cache.GetOrCreate(PersonalityErrorPersonGuidsCacheKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2);
+                return GetErrorPersonGuids();
+            });
+        }
+
+        private HashSet<Guid> GetErrorPersonGuids(HashSet<Guid> onlyPersonGuids = null)
+        {
+            var query = dbSql.PersonalityVersions
+                .AsNoTracking()
+                .Select(x => new
+                {
+                    PersonGuid = x.Personalities.Guid,
+                    x.Guid,
+                    x.VersionStartDate,
+                    x.VersionEndDate,
+                    x.Actual
+                });
+
+            if (onlyPersonGuids != null)
+            {
+                query = query.Where(x => onlyPersonGuids.Contains(x.PersonGuid));
+            }
+
+            return query
+                .AsEnumerable()
+                .GroupBy(x => x.PersonGuid)
+                .Where(g =>
+                {
+                    var versions = g.OrderBy(x => x.VersionStartDate).ToList();
+                    var activeOpenCount = 0;
+
+                    for (var i = 0; i < versions.Count; i++)
+                    {
+                        var current = versions[i];
+
+                        if (current.Actual == 1 && current.VersionEndDate == null)
+                        {
+                            activeOpenCount++;
+                        }
+
+                        if (i >= versions.Count - 1 || current.VersionEndDate == null)
+                        {
+                            continue;
+                        }
+
+                        if (current.VersionStartDate == null)
+                        {
+                            return true;
+                        }
+
+                        var next = versions[i + 1];
+
+                        if (next.VersionStartDate == null)
+                        {
+                            return true;
+                        }
+
+                        var nextStartEndOfDay = next.VersionStartDate.Value.AddSeconds(86399);
+
+                        if (current.VersionEndDate.Value.AddDays(1) != nextStartEndOfDay ||
+                            current.VersionEndDate.Value >= nextStartEndOfDay ||
+                            current.VersionStartDate.Value.AddSeconds(86399) > current.VersionEndDate.Value)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return activeOpenCount > 1;
+                })
+                .Select(g => g.Key)
+                .ToHashSet();
+        }
+
         [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public IActionResult PersonalityTable(int showUnActual, int checkErrors)
         {
@@ -108,148 +187,57 @@ namespace Portal
         }
         [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         [HttpPost]
-        public IActionResult PersonalityTableData(int showUnActual, int checkErrors)
+        public IActionResult PersonalityTableData(int? showUnActual = null, int checkErrors = 0)
         {
             try
             {
                 dbSql.Database.SetCommandTimeout(120);
+
                 var draw = Convert.ToInt32(Request.Form["draw"].FirstOrDefault() ?? "1");
                 var start = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
                 var length = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "18");
                 var searchValue = (Request.Form["search[value]"].FirstOrDefault() ?? string.Empty).Trim();
                 var orderColumnIndex = Convert.ToInt32(Request.Form["order[0][column]"].FirstOrDefault() ?? "0");
                 var orderDir = (Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc").ToLowerInvariant();
-                var minDate = new DateTime(1753, 1, 1);
-                // -------------------------
-                // errors cache (как у тебя)
-                // -------------------------
-                HashSet<Guid> errorGuidsSet = null;
-                if (checkErrors == 1)
-                {
-                    const string errorsCacheKey = "personality:errors";
-                    if (!_cache.TryGetValue(errorsCacheKey, out errorGuidsSet))
-                    {
-                        var versionsMin = dbSql.PersonalityVersions
-                            .AsNoTracking()
-                            .Select(x => new
-                            {
-                                x.Guid,
-                                PersonalityGuid = x.Personalities.Guid,
-                                x.Actual,
-                                x.VersionStartDate,
-                                x.VersionEndDate
-                            })
-                            .ToList();
-                        var versionsByPersonality = versionsMin
-                            .GroupBy(x => x.PersonalityGuid)
-                            .ToDictionary(g => g.Key, g => g.OrderBy(x => x.VersionStartDate).ToList());
-                        var errorGuids = new List<Guid>(versionsByPersonality.Count);
-                        foreach (var kv in versionsByPersonality)
-                        {
-                            var versions = kv.Value
-                                .Select(x => new PersonalityVersion
-                                {
-                                    Guid = x.Guid,
-                                    VersionStartDate = x.VersionStartDate,
-                                    VersionEndDate = x.VersionEndDate,
-                                    Actual = x.Actual
-                                })
-                                .ToList();
-                            if (HasErrors(versions))
-                                errorGuids.Add(kv.Key);
-                        }
-                        errorGuidsSet = new HashSet<Guid>(errorGuids);
-                        _cache.Set(errorsCacheKey, errorGuidsSet, TimeSpan.FromMinutes(5));
-                    }
-                }
-                // ------------------------------------------------
-                // selectedVersionIdsQuery (как у тебя, но аккуратно)
-                // ------------------------------------------------
-                IQueryable<Guid> selectedVersionIdsQuery;
-                if (showUnActual == 1)
-                {
-                    selectedVersionIdsQuery = dbSql.PersonalityVersions
-                        .AsNoTracking()
-                        .Where(v => v.Actual == 1 && v.VersionEndDate == null)
-                        .Select(v => v.Guid);
-                }
-                else
-                {
-                    var openPersonalityIds = dbSql.PersonalityVersions
-                        .AsNoTracking()
-                        .Where(v => v.VersionEndDate == null)
-                        .Select(v => v.Personalities.Guid);
-                    var latestNonActualPerPerson = dbSql.PersonalityVersions
-                        .AsNoTracking()
-                        .Where(v => v.VersionEndDate != null && !openPersonalityIds.Contains(v.Personalities.Guid))
-                        .GroupBy(v => v.Personalities.Guid)
-                        .Select(g => new
-                        {
-                            PersonalityGuid = g.Key,
-                            MaxDate = g.Max(v => (v.VersionStartDate ?? minDate))
-                        });
-                    var latestNonActualIds =
-                        from v in dbSql.PersonalityVersions.AsNoTracking()
-                        join m in latestNonActualPerPerson
-                            on new
-                            {
-                                PersonalityGuid = v.Personalities.Guid,
-                                MaxDate = (v.VersionStartDate ?? minDate)
-                            }
-                            equals new
-                            {
-                                PersonalityGuid = m.PersonalityGuid,
-                                MaxDate = m.MaxDate
-                            }
-                        where v.VersionEndDate != null && !openPersonalityIds.Contains(v.Personalities.Guid)
-                        select v.Guid;
-                    var openVersionIds = dbSql.PersonalityVersions
-                        .AsNoTracking()
-                        .Where(v => v.VersionEndDate == null)
-                        .Select(v => v.Guid);
-                    selectedVersionIdsQuery = openVersionIds.Union(latestNonActualIds);
-                }
-                // ------------------------------------------------------------
-                // baseQuery: добавили Guid-поля для дешёвой сортировки (ВАЖНО!)
-                // ------------------------------------------------------------
+
+                var errorPersonGuids = new HashSet<Guid>();
+
                 var baseQuery =
                     from v in dbSql.PersonalityVersions.AsNoTracking()
                     join cost in dbSql.Entity.AsNoTracking()
                         on v.EntityCostGuid equals cost.Guid into costJoin
                     from cost in costJoin.DefaultIfEmpty()
-                    where selectedVersionIdsQuery.Contains(v.Guid)
+                    where v.VersionEndDate == null && (showUnActual != 1 || v.Actual == 1)
                     select new
                     {
-                        v.Guid,
                         PersonGuid = v.Personalities.Guid,
                         v.Surname,
                         v.Name,
                         v.Patronymic,
-                        JobTitleGuid = v.JobTitle != null ? (Guid?)v.JobTitle.Guid : null,
                         JobTitleName = v.JobTitle != null ? v.JobTitle.Name : "Парт-таймер",
-                        LocationGuid = v.Location.Guid,
                         LocationName = v.Location.Name,
                         v.HireDate,
                         v.DismissalsDate,
-                        EntityGuid = v.Entity != null ? (Guid?)v.Entity.Guid : null,
                         EntityName = v.Entity != null ? v.Entity.Name : "",
                         v.EntityCostGuid,
                         EntityCostName = cost != null ? cost.Name : "",
                         v.Actual
                     };
-                // фильтр по роли
+
                 if (User.IsInRole("employee_control_ukvh"))
                 {
                     var roleGuid = Guid.Parse("27DF2DD0-2EBE-4CDE-A46C-08DBF1826A1F");
                     baseQuery = baseQuery.Where(x => x.EntityCostGuid == roleGuid);
                 }
-                // фильтр "только с ошибками"
-                if (checkErrors == 1 && errorGuidsSet != null)
+
+                if (checkErrors == 1)
                 {
-                    baseQuery = baseQuery.Where(x => errorGuidsSet.Contains(x.PersonGuid));
+                    errorPersonGuids = GetCachedErrorPersonGuids();
+                    baseQuery = baseQuery.Where(x => errorPersonGuids.Contains(x.PersonGuid));
                 }
+
                 var recordsTotal = baseQuery.Count();
-                // поиск
+
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
                     baseQuery = baseQuery.Where(x =>
@@ -264,47 +252,31 @@ namespace Portal
                         (x.EntityCostName ?? "").Contains(searchValue)
                     );
                 }
+
                 var recordsFiltered = baseQuery.Count();
-                // ---------------------------------------------------------
-                // СОРТИРОВКА: для 3/4/7/8 сортируем по GUID (быстрее),
-                // и везде добавляем ThenBy(PersonGuid) как tie-breaker
-                // ---------------------------------------------------------
-                bool desc = orderDir == "desc";
+
+                var desc = orderDir == "desc";
                 baseQuery = orderColumnIndex switch
                 {
-                    0 => desc
-                        ? baseQuery.OrderByDescending(x => x.Surname).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.Surname).ThenBy(x => x.PersonGuid),
-                    1 => desc
-                        ? baseQuery.OrderByDescending(x => x.Name).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.Name).ThenBy(x => x.PersonGuid),
-                    2 => desc
-                        ? baseQuery.OrderByDescending(x => x.Patronymic).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.Patronymic).ThenBy(x => x.PersonGuid),
-                    // ДЁШЕВО: сортировка по ключам вместо строк
-                    3 => desc
-                        ? baseQuery.OrderByDescending(x => x.JobTitleGuid).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.JobTitleGuid).ThenBy(x => x.PersonGuid),
-                    4 => desc
-                        ? baseQuery.OrderByDescending(x => x.LocationGuid).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.LocationGuid).ThenBy(x => x.PersonGuid),
-                    5 => desc
-                        ? baseQuery.OrderByDescending(x => x.HireDate).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.HireDate).ThenBy(x => x.PersonGuid),
-                    6 => desc
-                        ? baseQuery.OrderByDescending(x => x.DismissalsDate).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.DismissalsDate).ThenBy(x => x.PersonGuid),
-                    7 => desc
-                        ? baseQuery.OrderByDescending(x => x.EntityGuid).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.EntityGuid).ThenBy(x => x.PersonGuid),
-                    8 => desc
-                        ? baseQuery.OrderByDescending(x => x.EntityCostGuid).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.EntityCostGuid).ThenBy(x => x.PersonGuid),
-                    _ => desc
-                        ? baseQuery.OrderByDescending(x => x.Surname).ThenBy(x => x.PersonGuid)
-                        : baseQuery.OrderBy(x => x.Surname).ThenBy(x => x.PersonGuid)
+                    0 => desc ? baseQuery.OrderByDescending(x => x.Surname).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.Surname).ThenBy(x => x.PersonGuid),
+                    1 => desc ? baseQuery.OrderByDescending(x => x.Name).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.Name).ThenBy(x => x.PersonGuid),
+                    2 => desc ? baseQuery.OrderByDescending(x => x.Patronymic).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.Patronymic).ThenBy(x => x.PersonGuid),
+                    3 => desc ? baseQuery.OrderByDescending(x => x.JobTitleName).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.JobTitleName).ThenBy(x => x.PersonGuid),
+                    4 => desc ? baseQuery.OrderByDescending(x => x.LocationName).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.LocationName).ThenBy(x => x.PersonGuid),
+                    5 => desc ? baseQuery.OrderByDescending(x => x.HireDate).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.HireDate).ThenBy(x => x.PersonGuid),
+                    6 => desc ? baseQuery.OrderByDescending(x => x.DismissalsDate).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.DismissalsDate).ThenBy(x => x.PersonGuid),
+                    7 => desc ? baseQuery.OrderByDescending(x => x.EntityName).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.EntityName).ThenBy(x => x.PersonGuid),
+                    8 => desc ? baseQuery.OrderByDescending(x => x.EntityCostGuid).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.EntityCostGuid).ThenBy(x => x.PersonGuid),
+                    _ => desc ? baseQuery.OrderByDescending(x => x.Surname).ThenBy(x => x.PersonGuid) : baseQuery.OrderBy(x => x.Surname).ThenBy(x => x.PersonGuid)
                 };
+
                 var page = baseQuery.Skip(start).Take(length).ToList();
+
+                if (checkErrors != 1 && page.Count > 0)
+                {
+                    errorPersonGuids = GetErrorPersonGuids(page.Select(x => x.PersonGuid).ToHashSet());
+                }
+
                 var data = page.Select(x => new
                 {
                     personGuid = x.PersonGuid,
@@ -321,10 +293,11 @@ namespace Portal
                     entityName = x.EntityName,
                     entityCost = x.EntityCostName,
                     entityCostName = x.EntityCostName,
-                    status = x.Actual == 0 ? "Уволен" : x.Actual == 1 ? "Активен" : "Отстранен",
+                    status = x.Actual == 0 ? "Уволен" : x.Actual == 1 ? "Активен" : "Отстранён",
                     actual = x.Actual,
-                    hasErrors = errorGuidsSet != null && errorGuidsSet.Contains(x.PersonGuid)
+                    hasErrors = errorPersonGuids.Contains(x.PersonGuid)
                 });
+
                 return Json(new
                 {
                     draw,
@@ -338,6 +311,7 @@ namespace Portal
                 return StatusCode(500, ex.Message);
             }
         }
+
         [Authorize(Roles = "HR, employee_control_ukvh, settings")]
         public IActionResult PersonalityEdit(string typeGuid, string newPerson)
         {
@@ -596,6 +570,7 @@ namespace Portal
                 }
                 _cache.Remove("personality:selectedIds");
                 _cache.Remove("personality:errors");
+                _cache.Remove(PersonalityErrorPersonGuidsCacheKey);
                 return new OkObjectResult(result);
             }
             catch (Exception ex)
@@ -676,6 +651,20 @@ namespace Portal
                         personalityVersion.Personalities.LMKID = personalityLMK.Id;
                     }
                 }
+                var personalityGuid = Guid.Parse(personalityJson.personGUID);
+                var hasAnotherOpenVersion = personalityJson.VersionEndDate == null &&
+                    dbSql.PersonalityVersions.Any(c =>
+                        c.Personalities.Guid == personalityGuid &&
+                        c.VersionEndDate == null &&
+                        c.Guid != personalityJson.Guid);
+
+                if (hasAnotherOpenVersion)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = "\u0423 \u0441\u043E\u0442\u0440\u0443\u0434\u043D\u0438\u043A\u0430 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C 2 \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0435 \u0432\u0435\u0440\u0441\u0438\u0438";
+                    return new ObjectResult(result);
+                }
+
                 personalityVersion.Name = personalityJson.Name;
                 personalityVersion.Surname = personalityJson.Surname;
                 personalityVersion.Patronymic = personalityJson.Patronymic;
@@ -690,7 +679,7 @@ namespace Portal
                                                                                 : null;
                 personalityVersion.Entity = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.Entity);
                 personalityVersion.EntityCostGuid = dbSql.Entity.FirstOrDefault(c => c.Guid == personalityJson.EntityCost).Guid;
-                personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == Guid.Parse(personalityJson.personGUID));
+                personalityVersion.Personalities = dbSql.Personalities.FirstOrDefault(c => c.Guid == personalityGuid);
                 personalityVersion.Actual = NormalizeActualValue(personalityJson.Actual, personalityJson.DismissalsDate);
                 personalityVersion.Personalities.Phone = personalityJson.Tel;
                 personalityVersion.Personalities.BirthDate = personalityJson.BirthDate;
@@ -703,14 +692,15 @@ namespace Portal
                 personalityVersion.EntityCostDMSGuid = personalityJson.EntityCostDMS;
                 if (personalityVersion.Actual == 1)
                 {
-                    ResetOtherActualVersions(Guid.Parse(personalityJson.personGUID), personalityVersion.Guid);
+                    ResetOtherActualVersions(personalityGuid, personalityVersion.Guid);
                 }
-                List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
+                List<PersonalityVersion> avalible = dbSql.PersonalityVersions.Where(c => c.Guid == personalityGuid && c.VersionEndDate == null)
                                                                              .ToList();
-                List<PersonalityVersion> allPersonalityVersions = dbSql.PersonalityVersions.Where(c => c.Personalities.Guid == Guid.Parse(personalityJson.personGUID) && c.VersionEndDate == null)
+                List<PersonalityVersion> allPersonalityVersions = dbSql.PersonalityVersions.Where(c => c.Personalities.Guid == personalityGuid && c.VersionEndDate == null)
                                                                                            .ToList();
                 _cache.Remove("personality:selectedIds");
                 _cache.Remove("personality:errors");
+                _cache.Remove(PersonalityErrorPersonGuidsCacheKey);
                 if (allPersonalityVersions.Count <= 1 && personalityJson.VersionEndDate != null && allPersonalityVersions[0].Guid == personalityJson.Guid)
                 {
                     result.Ok = false;

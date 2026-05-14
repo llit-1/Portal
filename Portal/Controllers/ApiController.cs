@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using IdentityModel;
 using DocumentFormat.OpenXml.Math;
+using System.Security.Claims;
 
 
 namespace Portal.Controllers
@@ -328,8 +329,16 @@ namespace Portal.Controllers
         [HttpGet("GetSessionTime")]
         public IActionResult GetSessionTime()
         {
-            // Получаем id пользователя из файловой БД
-            var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
+            var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            int idFromSql;
+
+            if (!int.TryParse(idClaim, out idFromSql))
+            {
+                // Fallback для старых cookie без id в claims.
+                var login = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName)?.Value;
+                idFromSql = db.Users.FirstOrDefault(x => x.Login.ToLower() == login.ToLower())?.Id ?? 0;
+            }
+
             var sessionStartFromDBSQL = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
             var sessionTime = db.PortalSettings.FirstOrDefault().SessionTime;
 

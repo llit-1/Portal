@@ -1336,7 +1336,16 @@ namespace Portal.Controllers
                 //    throw new Exception("401");
                 //}
 
-                var idFromSql = db.Users.FirstOrDefault(x => x.Name == User.Identity.Name).Id;
+                var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                int idFromSql;
+
+                if (!int.TryParse(idClaim, out idFromSql))
+                {
+                    // Fallback для старых cookie без id в claims.
+                    var login = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.WindowsAccountName)?.Value;
+                    idFromSql = db.Users.FirstOrDefault(x => x.Login.ToLower() == login.ToLower())?.Id ?? 0;
+                }
+
                 var oldSession = dbSql.UserSessions.FirstOrDefault(x => x.Id == idFromSql);
 
 

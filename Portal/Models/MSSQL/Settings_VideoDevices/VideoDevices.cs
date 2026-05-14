@@ -17,5 +17,6 @@ namespace Portal.Models.MSSQL
         public VideoOrientation Orientation { get; set; }
         public int? OnlyMusic { get; set; } // null=video, 1=music, 0=both
         public string Version { get; set; }
+        public string? CustomADS { get; set; } // null=default, 1=custom
     }
 }

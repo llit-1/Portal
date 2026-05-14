@@ -617,10 +617,22 @@ namespace Portal.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetAllAdsNEW()
+        public IActionResult GetAllAdsNEW(string? ip = null)
         {
+            VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Ip == ip);
+
+            var dirName = "Реклама";
             // Корневая папка с рекламой на файловом сервере
-            var adsRoot = Path.Combine(VideoTvRootPath, "Реклама");
+            var adsRoot = Path.Combine(VideoTvRootPath, dirName);
+
+            if (videoDevices != null && videoDevices.CustomADS != null)
+            {
+                if(Directory.Exists(Path.Combine(VideoTvRootPath, videoDevices?.CustomADS)))
+                {
+                    adsRoot = Path.Combine(VideoTvRootPath, videoDevices?.CustomADS);
+                    dirName = videoDevices.CustomADS;
+                }
+            }
 
             if (!Directory.Exists(adsRoot))
             {

@@ -191,6 +191,7 @@ namespace Portal.Controllers
             // создаем один claim
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name),
                 new Claim(ClaimTypes.WindowsAccountName, user.Login)
             };
