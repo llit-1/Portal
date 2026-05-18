@@ -139,6 +139,80 @@ namespace Portal.Controllers
             NormalizeVideoPositions(dbSql.VideoInfo.ToList());
         }
 
+        private List<string> GetCustomAdsDirectoryNames()
+        {
+            if (!Directory.Exists(VideoTvRootPath))
+            {
+                return new List<string>();
+            }
+
+            return Directory
+                .EnumerateDirectories(VideoTvRootPath, "*", SearchOption.TopDirectoryOnly)
+                .Select(Path.GetFileName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .OrderBy(name => name)
+                .ToList();
+        }
+
+        private static string NormalizeOptionalValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || string.Equals(value, "null", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return value.Trim();
+        }
+
+        private static bool IsValidTimeValue(string value)
+        {
+            return TimeSpan.TryParse(value, out _);
+        }
+
+        private Result<string> ValidateDeviceSettings(string muteStartTime, string muteEndTime, string customAds)
+        {
+            var result = new Result<string> { Ok = false };
+
+            var normalizedMuteStartTime = NormalizeOptionalValue(muteStartTime);
+            var normalizedMuteEndTime = NormalizeOptionalValue(muteEndTime);
+            var normalizedCustomAds = NormalizeOptionalValue(customAds);
+
+            var onlyOneTimeProvided =
+                (normalizedMuteStartTime == null && normalizedMuteEndTime != null) ||
+                (normalizedMuteStartTime != null && normalizedMuteEndTime == null);
+
+            if (onlyOneTimeProvided)
+            {
+                result.ErrorMessage = "Необходимо указать и время начала, и время окончания.";
+                return result;
+            }
+
+            if (normalizedMuteStartTime != null && !IsValidTimeValue(normalizedMuteStartTime))
+            {
+                result.ErrorMessage = "Некорректное время начала.";
+                return result;
+            }
+
+            if (normalizedMuteEndTime != null && !IsValidTimeValue(normalizedMuteEndTime))
+            {
+                result.ErrorMessage = "Некорректное время окончания.";
+                return result;
+            }
+
+            if (normalizedCustomAds != null)
+            {
+                var allowedDirectories = new HashSet<string>(GetCustomAdsDirectoryNames(), StringComparer.OrdinalIgnoreCase);
+                if (!allowedDirectories.Contains(normalizedCustomAds))
+                {
+                    result.ErrorMessage = "Выбранная папка рекламы не найдена.";
+                    return result;
+                }
+            }
+
+            result.Ok = true;
+            return result;
+        }
+
         public IActionResult TabMenu()
         {
             return PartialView();
@@ -172,7 +246,8 @@ namespace Portal.Controllers
             SyncVideoLibraryWithDisk();
             List<VideoInfo> videoInfos = dbSql.VideoInfo.OrderBy(x => x.Name).ToList();
             List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
-            var model = Tuple.Create(videoInfos, locations);
+            var customAdsDirectories = GetCustomAdsDirectoryNames();
+            var model = Tuple.Create(videoInfos, locations, customAdsDirectories);
             return Json(model);
         }
 
@@ -290,11 +365,19 @@ namespace Portal.Controllers
         }
 
 
-        public IActionResult AddDevice(string locationGuid, string ip, string arr, string? contentType)
+        public IActionResult AddDevice(string locationGuid, string ip, string arr, string? contentType, string? customAds, string? muteStartTime, string? muteEndTime)
         {
             var result = new Result<string>();
             try
             {
+                var validationResult = ValidateDeviceSettings(muteStartTime, muteEndTime, customAds);
+                if (!validationResult.Ok)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = validationResult.ErrorMessage;
+                    return new ObjectResult(result);
+                }
+
                 VideoDevices videoDevices = new VideoDevices();
                 videoDevices.Location = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(locationGuid));
                 videoDevices.Status = 1;
@@ -302,6 +385,9 @@ namespace Portal.Controllers
                 videoDevices.Orientation = dbSql.VideoOrientation.FirstOrDefault(x => x.Number == 0);
                 videoDevices.VideoList = arr.Trim();
                 videoDevices.OnlyMusic = contentType != "null" ? int.Parse(contentType) : null;
+                videoDevices.CustomADS = NormalizeOptionalValue(customAds);
+                videoDevices.muteStartTime = NormalizeOptionalValue(muteStartTime);
+                videoDevices.muteEndTime = NormalizeOptionalValue(muteEndTime);
                 dbSql.Add(videoDevices);
                 dbSql.SaveChanges();
                 result.Ok = true;
@@ -987,21 +1073,33 @@ namespace Portal.Controllers
             SyncVideoLibraryWithDisk();
             List<VideoInfo> videoInfos = dbSql.VideoInfo.OrderBy(x => x.Name).ToList();
             List<Location> locations = dbSql.Locations.OrderBy(x => x.Name).ToList();
+            List<string> customAdsDirectories = GetCustomAdsDirectoryNames();
             VideoDevices videoDevices = dbSql.VideoDevices.FirstOrDefault(x => x.Guid == Guid.Parse(guid));
-            var model = Tuple.Create(videoInfos, locations, videoDevices);
+            var model = Tuple.Create(videoInfos, locations, customAdsDirectories, videoDevices);
             return Json(model);
         }
-        public IActionResult SaveDevice(string locationGuid, string ip, string arr, string guid, string? contentType)
+        public IActionResult SaveDevice(string locationGuid, string ip, string arr, string guid, string? contentType, string? customAds, string? muteStartTime, string? muteEndTime)
         {
             var result = new Result<string>();
             try
             {
+                var validationResult = ValidateDeviceSettings(muteStartTime, muteEndTime, customAds);
+                if (!validationResult.Ok)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = validationResult.ErrorMessage;
+                    return new ObjectResult(result);
+                }
+
                 VideoDevices videoDevices = dbSql.VideoDevices.Include(x => x.Location).Include(x => x.Orientation).FirstOrDefault(x => x.Guid == Guid.Parse(guid));
                 videoDevices.Location = dbSql.Locations.FirstOrDefault(x => x.Guid == Guid.Parse(locationGuid));
                 videoDevices.Status = 1;
                 videoDevices.Ip = ip.Trim();
                 videoDevices.VideoList = arr.Trim();
                 videoDevices.OnlyMusic = contentType != "null" ? int.Parse(contentType) : null;
+                videoDevices.CustomADS = NormalizeOptionalValue(customAds);
+                videoDevices.muteStartTime = NormalizeOptionalValue(muteStartTime);
+                videoDevices.muteEndTime = NormalizeOptionalValue(muteEndTime);
                 dbSql.SaveChanges();
                 result.Ok = true;
                 return new OkObjectResult(result);

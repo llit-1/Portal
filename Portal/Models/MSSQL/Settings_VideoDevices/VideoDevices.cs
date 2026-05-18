@@ -18,5 +18,7 @@ namespace Portal.Models.MSSQL
         public int? OnlyMusic { get; set; } // null=video, 1=music, 0=both
         public string Version { get; set; }
         public string? CustomADS { get; set; } // null=default, 1=custom
+        public string? muteStartTime { get; set; }
+        public string? muteEndTime { get; set; }
     }
 }

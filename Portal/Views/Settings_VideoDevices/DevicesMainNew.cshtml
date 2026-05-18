@@ -834,6 +834,45 @@
             .join("");
     }
 
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function buildCustomAdsOptions(directoryNames, selectedValue) {
+        const normalizedSelectedValue = (selectedValue || "").trim().toLowerCase();
+        let options = `<option value="">По умолчанию</option>`;
+
+        (directoryNames || []).forEach(name => {
+            const safeName = (name || "").trim();
+            const isSelected = safeName.toLowerCase() === normalizedSelectedValue ? "selected" : "";
+            options += `<option value="${escapeHtml(safeName)}" ${isSelected}>${escapeHtml(safeName)}</option>`;
+        });
+
+        return options;
+    }
+
+    function collectDeviceFormSettings() {
+        const muteStartTime = (document.getElementById("muteStartTimeInputVideo")?.value || "").trim();
+        const muteEndTime = (document.getElementById("muteEndTimeInputVideo")?.value || "").trim();
+        const customAds = (document.getElementById("customAdsSelectVideo")?.value || "").trim();
+
+        if ((muteStartTime && !muteEndTime) || (!muteStartTime && muteEndTime)) {
+            showError("Если указано время, нужно заполнить и начало, и конец.");
+            return null;
+        }
+
+        return {
+            muteStartTime,
+            muteEndTime,
+            customAds
+        };
+    }
+
     function openReplaceVideoModal() {
         $.ajax({
             type: 'GET',
@@ -928,6 +967,7 @@
             success: function (result) {
                 if (result) {
                     const global = document.getElementById('global');
+                    const customAdsOptions = buildCustomAdsOptions(result.item3, "");
                     let videoList = ""
                     result.item1.forEach(x => {
                         videoList += `<option>${x.name.trim()}</option>`.trim()
@@ -940,6 +980,12 @@
                                         <select id="addressSelectVideo" name="address" required></select>
                                         <label for="ipInputVideo" class="label-light">Укажите IP:</label>
                                         <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required>
+                                        <label for="muteStartTimeInputVideo" class="label-light">Время выключения звука:</label>
+                                        <input type="time" id="muteStartTimeInputVideo" name="muteStartTime">
+                                        <label for="muteEndTimeInputVideo" class="label-light">Время включения звука:</label>
+                                        <input type="time" id="muteEndTimeInputVideo" name="muteEndTime">
+                                        <label for="customAdsSelectVideo" class="label-light">Папка рекламы:</label>
+                                        <select id="customAdsSelectVideo" name="customAds">${customAdsOptions}</select>
 
                                         <div class="checkboxesContainer">
                                             <div class="onlyVideo active" onClick=switchVideoMode(null)>Только видео</div>
@@ -978,6 +1024,10 @@
                             }
                         })
                         const result = "[" + arrPosition.toString() + "]"
+                        const formSettings = collectDeviceFormSettings();
+                        if (!formSettings) {
+                            return;
+                        }
 
                         const onlyMusic = document.querySelector(".onlyMusic").classList.contains("active");
 
@@ -986,12 +1036,15 @@
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
-                            url: `/Settings_VideoDevices/AddDevice?locationGuid=${address}&ip=${ip}&arr=${result}&contentType=${contentType}`,
+                            url: `/Settings_VideoDevices/AddDevice?locationGuid=${encodeURIComponent(address)}&ip=${encodeURIComponent(ip)}&arr=${encodeURIComponent(result)}&contentType=${contentType}&customAds=${encodeURIComponent(formSettings.customAds)}&muteStartTime=${encodeURIComponent(formSettings.muteStartTime)}&muteEndTime=${encodeURIComponent(formSettings.muteEndTime)}`,
                             success: function (result) {
                                 if (result.ok) {
                                     location.reload()
                                     $('#back').unbind('click');
                                     $('#back').click(function () { location.hash = "#settings" });
+                                } else {
+                                    SpinnerHide();
+                                    showError(result.errorMessage || "Не удалось сохранить устройство.");
                                 }
                             },
                             error: function () {
@@ -1059,13 +1112,15 @@
             success: function (result) {
                 if (result) {
                     const global = document.getElementById('global');
+                    const device = result.item4;
+                    const customAdsOptions = buildCustomAdsOptions(result.item3, device.customADS || "");
                     let videoList = ""
                     result.item1.forEach(x => {
                         videoList += `<option>${x.name.trim()}</option>`.trim()
                     })
 
-                    const onlyMusicClass = result.item3.onlyMusic == 1 ? "onlyMusic active" : "onlyMusic";
-                    const onlyVideoClass = result.item3.onlyMusic == 1 ? "onlyVideo" : "onlyVideo  active";
+                    const onlyMusicClass = device.onlyMusic == 1 ? "onlyMusic active" : "onlyMusic";
+                    const onlyVideoClass = device.onlyMusic == 1 ? "onlyVideo" : "onlyVideo  active";
 
                     global.insertAdjacentHTML('beforeend', `
                             <div id="myModalVideo" class="modalVideo">
@@ -1074,7 +1129,13 @@
                                         <label for="addressSelectVideo" class="label-light">Выберите ТТ:</label>
                                         <select id="addressSelectVideo" name="address" required></select>
                                         <label for="ipInputVideo" class="label-light">Укажите IP:</label>
-                                        <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required value="${result.item3.ip.trim()}">
+                                        <input type="text" id="ipInputVideo" name="ip" placeholder="Enter IP address" required value="${device.ip.trim()}">
+                                        <label for="muteStartTimeInputVideo" class="label-light">Время выключения звука:</label>
+                                        <input type="time" id="muteStartTimeInputVideo" name="muteStartTime" value="${device.muteStartTime || ""}">
+                                        <label for="muteEndTimeInputVideo" class="label-light">Время включения звука:</label>
+                                        <input type="time" id="muteEndTimeInputVideo" name="muteEndTime" value="${device.muteEndTime || ""}">
+                                        <label for="customAdsSelectVideo" class="label-light">Папка рекламы:</label>
+                                        <select id="customAdsSelectVideo" name="customAds">${customAdsOptions}</select>
 
                                         <div class="checkboxesContainer">
                                             <div class="${onlyVideoClass}" onClick=switchVideoMode(null)>Только видео</div>
@@ -1096,7 +1157,7 @@
 
                     const addressSelect = document.getElementById('addressSelectVideo');
                     result.item2.forEach(x => {
-                        if (x.guid == result.item3.location.guid) {
+                        if (x.guid == device.location.guid) {
                             addressSelect.innerHTML += `<option value="${x.guid}" selected>${x.name}</option>`;
                         } else {
                             addressSelect.innerHTML += `<option value="${x.guid}">${x.name}</option>`;
@@ -1104,8 +1165,8 @@
 
                     });
 
-                    if (result.item3.videoList !== "[]") {
-                        let arr = result.item3.videoList.replace(/[\[\]]/g, '').split(',').map(item => item.trim());
+                    if (device.videoList !== "[]") {
+                        let arr = device.videoList.replace(/[\[\]]/g, '').split(',').map(item => item.trim());
                         arr.forEach(x => {
                             addInputWithPositionFromBD(videoList, x)
                         })
@@ -1125,6 +1186,10 @@
                             }
                         })
                         const result = "[" + arrPosition.toString() + "]"
+                        const formSettings = collectDeviceFormSettings();
+                        if (!formSettings) {
+                            return;
+                        }
 
                         const onlyMusic = document.querySelector(".onlyMusic").classList.contains("active");
                         const contentType = onlyMusic ? 1 : null;
@@ -1133,13 +1198,16 @@
                         SpinnerShow();
                         $.ajax({
                             type: 'POST',
-                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${address}&ip=${ip}&arr=${result}&guid=${guid}&contentType=${contentType}`,
+                            url: `/Settings_VideoDevices/SaveDevice?locationGuid=${encodeURIComponent(address)}&ip=${encodeURIComponent(ip)}&arr=${encodeURIComponent(result)}&guid=${encodeURIComponent(guid)}&contentType=${contentType}&customAds=${encodeURIComponent(formSettings.customAds)}&muteStartTime=${encodeURIComponent(formSettings.muteStartTime)}&muteEndTime=${encodeURIComponent(formSettings.muteEndTime)}`,
                             success: function (result) {
                                 if (result.ok) {
                                     SpinnerHide();
                                     location.reload()
                                     $('#back').unbind('click');
                                     $('#back').click(function () { location.hash = "#settings" });
+                                } else {
+                                    SpinnerHide();
+                                    showError(result.errorMessage || "Не удалось сохранить устройство.");
                                 }
                             },
                             error: function () {
