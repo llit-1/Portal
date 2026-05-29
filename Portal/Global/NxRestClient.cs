@@ -153,12 +153,6 @@ namespace Portal.Global
                 throw new Exception($"NX user '{login}' does not have id.");
             }
 
-            Console.WriteLine($"NX sync. Service user: {_username}");
-            Console.WriteLine($"NX sync. Target login: {login}");
-            Console.WriteLine($"NX sync. Target user id: {userId}");
-            Console.WriteLine($"NX sync. Current groups: {string.Join(", ", currentGroupIds)}");
-            Console.WriteLine($"NX sync. New groups: {string.Join(", ", newGroupIds)}");
-
             PatchObjectToNx($"/rest/v4/users/{Uri.EscapeDataString(userId)}", new JObject
             {
                 ["groupIds"] = new JArray(newGroupIds)

@@ -1,0 +1,856 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically. For more information, see https://aka.ms/lscache
+#
+# To control where cache files are stored, use the following VS Code setting:
+#   "dotnet.projectsystem.cacheInProjectFolder": true
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Portal
+CommandLineArgsForDesignTimeEvaluation=-langversion:9.0 -define:TRACE
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=9.0
+ProjectAssetsFile=<PATH>obj/project.assets.json
+RootNamespace=Portal
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../Portal.sln
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>bin/Debug/net5.0/Portal.dll
+TargetRefPath=<PATH>obj/Debug/net5.0/ref/Portal.dll
+TemporaryDependencyNodeTargetIdentifier=net5.0
+
+[commandLineArguments]
+/noconfig
+/unsafe-
+/checked-
+/nowarn:1701,1702,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:5
+/define:TRACE;DEBUG;NET;NET5_0;NETCOREAPP;NET5_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/debug+
+/debug:portable
+/filealign:512
+/optimize-
+/out:obj\Debug\net5.0\Portal.dll
+/refout:obj\Debug\net5.0\refint\Portal.dll
+/target:exe
+/warnaserror-
+/utf8output
+/deterministic+
+/langversion:9.0
+/warnaserror+:NU1605
+
+[sourceFiles]
+Areas/Audits/Controllers/HomeController.cs
+Controllers/
+ AccessController.cs
+ AccountController.cs
+ ApiController.cs
+ AuditController.cs
+ CalculatorController.cs
+ CashBookController.cs
+ CashMessagesController.cs
+ ExcellController.cs
+ HelpController.cs
+ HomeController.cs
+ KnowledgeController.cs
+ LibraryController.cs
+ LogController.cs
+ MenuController.cs
+ PersonalityController.cs
+ PersonalityFactoryController.cs
+ QlikController.cs
+ ReportsController.cs
+ SalaryController.cs
+ SalesPredictionController.cs
+ SettingsController.cs
+ Settings_AccessController.cs
+ Settings_TTController.cs
+ Settings_VideoDevicesController.cs
+ Settings_VKBOTController.cs
+ SkuStopController.cs
+ StockController.cs
+ TimesheetsFactoryController.cs
+ TimeTrackingController.cs
+ ttOrdersController.cs
+ UserListController.cs
+ UserRequestsController.cs
+ VideoController.cs
+DB/
+ CalculatorDBContext.cs
+ MSSQLDBContext.cs
+ Reports1CDBContext.cs
+ RK7DBContext.cs
+ SQLiteDBContext.cs
+Global/
+ Functions.cs
+ NxRestClient.cs
+Helpers/RecursiveDirectoryMenu.cs
+HostedServices/
+ AIShocaseService.cs
+ CashMessagesService.cs
+ NxApiService.cs
+ PhotoCamService.cs
+ SkuStopService.cs
+Models/
+ ApiRequest.cs
+ Calculator/
+  CalculatorInformation.cs
+  CalculatorItem.cs
+ ErrorViewModel.cs
+ FOrderXLS.cs
+ FranchiseeReportsModel.cs
+ JsonModels/
+  DeviceMainJson.cs
+  PersonalityJson.cs
+  TimeSheetJson.cs
+  TTsFactoryAdd.cs
+  TTsFactoryEdit.cs
+  TTsFactoryEditData.cs
+ LogEvent.cs
+ LoginViewModel.cs
+ Message.cs
+ MessageOrder.cs
+ MSSQL/
+  AIShocase.cs
+  BindingLocationToUsers.cs
+  Calculator/
+   AverageSalesPerHour.cs
+   CalculatorReaction.cs
+   DayGroups.cs
+   ItemBlock.cs
+   ItemOnTT.cs
+   Items.cs
+   ItemsGroups.cs
+   ItemsGroupTimeTT_Coefficient.cs
+   NumberOfSales.cs
+   Replacement.cs
+   ReplacementGroups.cs
+   SpecialDay.cs
+   TimeDayGroups.cs
+   TimeGroups.cs
+   TT.cs
+  CalculatorCoefficientLog.cs
+  CalculatorLog.cs
+  CalculatorLogTest.cs
+  CashBook.cs
+  CashMessage.cs
+  CashMsgState.cs
+  CurrencyType.cs
+  Factory/
+   FactoryBanks.cs
+   FactoryCitizenship.cs
+   FactoryCitizenshipType.cs
+   FactoryDepartment.cs
+   FactoryDepartmentFactoryWorkshop.cs
+   FactoryDepartmentWorkshopJobTitle.cs
+   FactoryDocumentType.cs
+   FactoryEntity.cs
+   FactoryJobTitle.cs
+   FactoryJobTitleFactoryWorkshop.cs
+   FactoryPerson.cs
+   FactorySKUDController.cs
+   FactorySKUDReader.cs
+   FactorySKUDResultTypes.cs
+   FactorySKUDWorkLog.cs
+   FactoryWorkshop.cs
+  FactorySKUDGroup.cs
+  FranchOrder.cs
+  LastUser.cs
+  Location/
+   EntityLocation.cs
+   Location.cs
+   LocationType.cs
+   LocationTypeAndCountLocation.cs
+   LocationVersions.cs
+  Personality/
+   BindingPersonalityToLocation.cs
+   Entity.cs
+   EntityCost.cs
+   JobTitle.cs
+   Personality.cs
+   Schedule.cs
+  PersonalityCitizenship.cs
+  PersonalityDocumentType.cs
+  PersonalityLMK.cs
+  PersonalityVersions/PersonalityVersion.cs
+  PhotoCam.cs
+  PromocodesVK.cs
+  ReceivedPromocodesVK.cs
+  Reports1C/
+   MarriageOnTT.cs
+   ShipmentByGP.cs
+   ShipmentByGPStrikeItOut.cs
+   StrikeItOut.cs
+  RK7/
+   Currency.cs
+   MenuItem.cs
+  SaleObject.cs
+  SaleObjectsAgregators.cs
+  SalesPrediction.cs
+  SettingsVariables.cs
+  Settings_TT/
+   TT.cs
+   TTEdit.cs
+  Settings_VideoDevices/
+   VideoDevices.cs
+   VideoInfo.cs
+   VideoOrientation.cs
+  TimeSheet.cs
+  TimeSheetsFactory.cs
+  TimeSheetsLogs.cs
+  UserRequest.cs
+  UserSessions.cs
+  WarehouseCategories.cs
+  WarehouseHolder.cs
+  WorkingSlots.cs
+ OAuth2Client.cs
+ PersonalityEditModel.cs
+ PersonalityModel.cs
+ PersonalityVersionModel.cs
+ PortalSettings.cs
+ PowerBi/
+  PBIAppIntegration.cs
+  PowerBIEmbedConfig.cs
+  Report.cs
+ Settings/Module.cs
+ SettingsInternal.cs
+ TrackingDataEditModel.cs
+ TrackingDataTableModel.cs
+obj/Debug/net5.0/
+ .NETCoreApp,Version=v5.0.AssemblyAttributes.cs
+ Portal.AssemblyInfo.cs
+ Portal.RazorAssemblyInfo.cs
+Program.cs
+Services/
+ IStreamVideoService.cs
+ StreamVideoService.cs
+Startup.cs
+ViewModels/
+ Access/TTEditView.cs
+ CameraView.cs
+ CamSettingsView.cs
+ CashMessages/
+  CashMessageView.cs
+  IndexView.cs
+ FranchOrdersView.cs
+ Home/IndexView.cs
+ Library/
+  FileView.cs
+  FolderView.cs
+ Logs/LogsView.cs
+ Menu/
+  MenuViewModel.cs
+  treeMenuItem.cs
+ PredictionsViewModel.cs
+ Reports/ReportsView.cs
+ Salary/PersonMonthSalaryViewModel.cs
+ Settings/RkRequestsView.cs
+ Settings_Access/
+  GroupSettings.cs
+  json/
+   company.cs
+   group.cs
+   item.cs
+   role.cs
+   user.cs
+  RoleSettings.cs
+  UserSettings.cs
+ Settings_TT/
+  CamerasView.cs
+  CashClientsView.cs
+  json/
+   organization.cs
+   tt.cs
+   ttcams.cs
+   type.cs
+  OrganizationSettings.cs
+  TTSettings.cs
+  TTTypeSettings.cs
+ SkuStop/
+  AddBlockView.cs
+  IndexView.cs
+  MenuItem.cs
+ TTCamsView.cs
+ TTZone.cs
+ UserRequests/RequestsListView.cs
+ UserRights.cs
+ UserTTs.cs
+ ZoneView.cs
+
+[metadataReferences]
+../
+ Interfaces/bin/Debug/netstandard2.0/Interfaces.dll
+ module_NX/bin/Debug/netstandard2.0/module_NX.dll
+ RKNet_Model.dll
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/5.0.0/ref/net5.0/
+ Microsoft.AspNetCore.Antiforgery.dll
+ Microsoft.AspNetCore.Authentication.Abstractions.dll
+ Microsoft.AspNetCore.Authentication.Cookies.dll
+ Microsoft.AspNetCore.Authentication.Core.dll
+ Microsoft.AspNetCore.Authentication.dll
+ Microsoft.AspNetCore.Authentication.OAuth.dll
+ Microsoft.AspNetCore.Authorization.dll
+ Microsoft.AspNetCore.Authorization.Policy.dll
+ Microsoft.AspNetCore.Components.Authorization.dll
+ Microsoft.AspNetCore.Components.dll
+ Microsoft.AspNetCore.Components.Forms.dll
+ Microsoft.AspNetCore.Components.Server.dll
+ Microsoft.AspNetCore.Components.Web.dll
+ Microsoft.AspNetCore.Connections.Abstractions.dll
+ Microsoft.AspNetCore.CookiePolicy.dll
+ Microsoft.AspNetCore.Cors.dll
+ Microsoft.AspNetCore.Cryptography.Internal.dll
+ Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+ Microsoft.AspNetCore.DataProtection.Abstractions.dll
+ Microsoft.AspNetCore.DataProtection.dll
+ Microsoft.AspNetCore.DataProtection.Extensions.dll
+ Microsoft.AspNetCore.Diagnostics.Abstractions.dll
+ Microsoft.AspNetCore.Diagnostics.dll
+ Microsoft.AspNetCore.Diagnostics.HealthChecks.dll
+ Microsoft.AspNetCore.dll
+ Microsoft.AspNetCore.HostFiltering.dll
+ Microsoft.AspNetCore.Hosting.Abstractions.dll
+ Microsoft.AspNetCore.Hosting.dll
+ Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+ Microsoft.AspNetCore.Html.Abstractions.dll
+ Microsoft.AspNetCore.Http.Abstractions.dll
+ Microsoft.AspNetCore.Http.Connections.Common.dll
+ Microsoft.AspNetCore.Http.Connections.dll
+ Microsoft.AspNetCore.Http.dll
+ Microsoft.AspNetCore.Http.Extensions.dll
+ Microsoft.AspNetCore.Http.Features.dll
+ Microsoft.AspNetCore.HttpOverrides.dll
+ Microsoft.AspNetCore.HttpsPolicy.dll
+ Microsoft.AspNetCore.Identity.dll
+ Microsoft.AspNetCore.Localization.dll
+ Microsoft.AspNetCore.Localization.Routing.dll
+ Microsoft.AspNetCore.Metadata.dll
+ Microsoft.AspNetCore.Mvc.Abstractions.dll
+ Microsoft.AspNetCore.Mvc.ApiExplorer.dll
+ Microsoft.AspNetCore.Mvc.Core.dll
+ Microsoft.AspNetCore.Mvc.Cors.dll
+ Microsoft.AspNetCore.Mvc.DataAnnotations.dll
+ Microsoft.AspNetCore.Mvc.dll
+ Microsoft.AspNetCore.Mvc.Formatters.Json.dll
+ Microsoft.AspNetCore.Mvc.Formatters.Xml.dll
+ Microsoft.AspNetCore.Mvc.Localization.dll
+ Microsoft.AspNetCore.Mvc.Razor.dll
+ Microsoft.AspNetCore.Mvc.RazorPages.dll
+ Microsoft.AspNetCore.Mvc.TagHelpers.dll
+ Microsoft.AspNetCore.Mvc.ViewFeatures.dll
+ Microsoft.AspNetCore.Razor.dll
+ Microsoft.AspNetCore.Razor.Runtime.dll
+ Microsoft.AspNetCore.ResponseCaching.Abstractions.dll
+ Microsoft.AspNetCore.ResponseCaching.dll
+ Microsoft.AspNetCore.ResponseCompression.dll
+ Microsoft.AspNetCore.Rewrite.dll
+ Microsoft.AspNetCore.Routing.Abstractions.dll
+ Microsoft.AspNetCore.Routing.dll
+ Microsoft.AspNetCore.Server.HttpSys.dll
+ Microsoft.AspNetCore.Server.IIS.dll
+ Microsoft.AspNetCore.Server.IISIntegration.dll
+ Microsoft.AspNetCore.Server.Kestrel.Core.dll
+ Microsoft.AspNetCore.Server.Kestrel.dll
+ Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll
+ Microsoft.AspNetCore.Session.dll
+ Microsoft.AspNetCore.SignalR.Common.dll
+ Microsoft.AspNetCore.SignalR.Core.dll
+ Microsoft.AspNetCore.SignalR.dll
+ Microsoft.AspNetCore.SignalR.Protocols.Json.dll
+ Microsoft.AspNetCore.StaticFiles.dll
+ Microsoft.AspNetCore.WebSockets.dll
+ Microsoft.AspNetCore.WebUtilities.dll
+ Microsoft.Extensions.Caching.Abstractions.dll
+ Microsoft.Extensions.Caching.Memory.dll
+ Microsoft.Extensions.Configuration.Abstractions.dll
+ Microsoft.Extensions.Configuration.Binder.dll
+ Microsoft.Extensions.Configuration.CommandLine.dll
+ Microsoft.Extensions.Configuration.dll
+ Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ Microsoft.Extensions.Configuration.FileExtensions.dll
+ Microsoft.Extensions.Configuration.Ini.dll
+ Microsoft.Extensions.Configuration.Json.dll
+ Microsoft.Extensions.Configuration.KeyPerFile.dll
+ Microsoft.Extensions.Configuration.UserSecrets.dll
+ Microsoft.Extensions.Configuration.Xml.dll
+ Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions.dll
+ Microsoft.Extensions.Diagnostics.HealthChecks.dll
+ Microsoft.Extensions.FileProviders.Abstractions.dll
+ Microsoft.Extensions.FileProviders.Composite.dll
+ Microsoft.Extensions.FileProviders.Embedded.dll
+ Microsoft.Extensions.FileProviders.Physical.dll
+ Microsoft.Extensions.FileSystemGlobbing.dll
+ Microsoft.Extensions.Hosting.Abstractions.dll
+ Microsoft.Extensions.Hosting.dll
+ Microsoft.Extensions.Http.dll
+ Microsoft.Extensions.Identity.Core.dll
+ Microsoft.Extensions.Identity.Stores.dll
+ Microsoft.Extensions.Localization.Abstractions.dll
+ Microsoft.Extensions.Localization.dll
+ Microsoft.Extensions.Logging.Abstractions.dll
+ Microsoft.Extensions.Logging.Configuration.dll
+ Microsoft.Extensions.Logging.Console.dll
+ Microsoft.Extensions.Logging.Debug.dll
+ Microsoft.Extensions.Logging.dll
+ Microsoft.Extensions.Logging.EventLog.dll
+ Microsoft.Extensions.Logging.EventSource.dll
+ Microsoft.Extensions.Logging.TraceSource.dll
+ Microsoft.Extensions.ObjectPool.dll
+ Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ Microsoft.Extensions.Options.DataAnnotations.dll
+ Microsoft.Extensions.Options.dll
+ Microsoft.Extensions.Primitives.dll
+ Microsoft.Extensions.WebEncoders.dll
+ Microsoft.JSInterop.dll
+ Microsoft.Net.Http.Headers.dll
+ Microsoft.Win32.Registry.dll
+ System.Diagnostics.EventLog.dll
+ System.IO.Pipelines.dll
+ System.Security.AccessControl.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Xml.dll
+ System.Security.Permissions.dll
+ System.Security.Principal.Windows.dll
+ System.Windows.Extensions.dll
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/5.0.0/ref/net5.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.Immutable.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Metadata.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+<NUGET>/
+ closedxml/0.102.1/lib/netstandard2.1/ClosedXML.dll
+ documentformat.openxml/2.16.0/lib/netstandard2.0/DocumentFormat.OpenXml.dll
+ epplus/4.5.2.1/lib/netstandard2.0/EPPlus.dll
+ excelnumberformat/1.1.0/lib/netstandard2.0/ExcelNumberFormat.dll
+ identitymodel/6.0.0/lib/net5.0/IdentityModel.dll
+ irony.netcore/1.0.11/lib/netstandard1.6/Irony.dll
+ microsoft.aspnetcore.jsonpatch/5.0.5/lib/netstandard2.0/Microsoft.AspNetCore.JsonPatch.dll
+ microsoft.aspnetcore.mvc.newtonsoftjson/5.0.5/lib/net5.0/Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+ microsoft.aspnetcore.mvc.razor.extensions/5.0.3/lib/netstandard2.0/Microsoft.AspNetCore.Mvc.Razor.Extensions.dll
+ microsoft.aspnetcore.mvc.razor.runtimecompilation/5.0.3/lib/net5.0/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation.dll
+ microsoft.aspnetcore.razor.language/5.0.3/lib/netstandard2.0/Microsoft.AspNetCore.Razor.Language.dll
+ microsoft.codeanalysis.common/3.8.0/lib/netcoreapp3.1/Microsoft.CodeAnalysis.dll
+ microsoft.codeanalysis.csharp/3.8.0/lib/netcoreapp3.1/Microsoft.CodeAnalysis.CSharp.dll
+ microsoft.codeanalysis.razor/5.0.3/lib/netstandard2.0/Microsoft.CodeAnalysis.Razor.dll
+ microsoft.data.sqlclient/2.0.1/ref/netcoreapp3.1/Microsoft.Data.SqlClient.dll
+ microsoft.data.sqlite.core/5.0.3/lib/netstandard2.0/Microsoft.Data.Sqlite.dll
+ microsoft.dotnet.platformabstractions/3.1.6/lib/netstandard2.0/Microsoft.DotNet.PlatformAbstractions.dll
+ microsoft.entityframeworkcore.abstractions/5.0.3/lib/netstandard2.1/Microsoft.EntityFrameworkCore.Abstractions.dll
+ microsoft.entityframeworkcore.relational/5.0.3/lib/netstandard2.1/Microsoft.EntityFrameworkCore.Relational.dll
+ microsoft.entityframeworkcore.sqlite.core/5.0.3/lib/netstandard2.1/Microsoft.EntityFrameworkCore.Sqlite.dll
+ microsoft.entityframeworkcore.sqlserver/5.0.3/lib/netstandard2.1/Microsoft.EntityFrameworkCore.SqlServer.dll
+ microsoft.entityframeworkcore/5.0.3/lib/netstandard2.1/Microsoft.EntityFrameworkCore.dll
+ microsoft.extensions.dependencyinjection/5.0.1/lib/net5.0/Microsoft.Extensions.DependencyInjection.dll
+ microsoft.extensions.dependencymodel/5.0.0/lib/netstandard2.0/Microsoft.Extensions.DependencyModel.dll
+ microsoft.identitymodel.jsonwebtokens/5.6.0/lib/netstandard2.0/Microsoft.IdentityModel.JsonWebTokens.dll
+ microsoft.identitymodel.logging/5.6.0/lib/netstandard2.0/Microsoft.IdentityModel.Logging.dll
+ microsoft.identitymodel.protocols.openidconnect/5.6.0/lib/netstandard2.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+ microsoft.identitymodel.protocols/5.6.0/lib/netstandard2.0/Microsoft.IdentityModel.Protocols.dll
+ microsoft.identitymodel.tokens/5.6.0/lib/netstandard2.0/Microsoft.IdentityModel.Tokens.dll
+ microsoft.powerbi.api/3.21.0/lib/netstandard2.0/Microsoft.PowerBI.Api.dll
+ microsoft.rest.clientruntime/2.3.21/lib/netstandard2.0/Microsoft.Rest.ClientRuntime.dll
+ newtonsoft.json.bson/1.0.2/lib/netstandard2.0/Newtonsoft.Json.Bson.dll
+ newtonsoft.json/12.0.3/lib/netstandard2.0/Newtonsoft.Json.dll
+ sixlabors.fonts/1.0.0/lib/netcoreapp3.1/SixLabors.Fonts.dll
+ sqlitepclraw.bundle_e_sqlite3/2.0.4/lib/netcoreapp3.1/
+  SQLitePCLRaw.batteries_v2.dll
+  SQLitePCLRaw.nativelibrary.dll
+ sqlitepclraw.core/2.0.4/lib/netstandard2.0/SQLitePCLRaw.core.dll
+ sqlitepclraw.provider.dynamic_cdecl/2.0.4/lib/netstandard2.0/SQLitePCLRaw.provider.dynamic_cdecl.dll
+ system.diagnostics.diagnosticsource/5.0.1/lib/net5.0/System.Diagnostics.DiagnosticSource.dll
+ system.directoryservices/5.0.0/ref/netstandard2.0/System.DirectoryServices.dll
+ system.drawing.common/5.0.1/ref/netcoreapp3.0/System.Drawing.Common.dll
+ system.identitymodel.tokens.jwt/5.6.0/lib/netstandard2.0/System.IdentityModel.Tokens.Jwt.dll
+ system.io.filesystem.accesscontrol/5.0.0/ref/netstandard2.0/System.IO.FileSystem.AccessControl.dll
+ system.io.packaging/6.0.0/lib/netstandard2.0/System.IO.Packaging.dll
+ system.security.cryptography.pkcs/4.4.0/ref/netstandard2.0/System.Security.Cryptography.Pkcs.dll
+ system.xml.xpath.xmldocument/4.3.0/ref/netstandard1.3/System.Xml.XPath.XmlDocument.dll
+ xlparser/1.5.2/lib/netstandard1.6/XLParser.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/9.0.101/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
+ Microsoft.AspNetCore.Analyzers.dll
+ Microsoft.AspNetCore.Components.SdkAnalyzers.dll
+ Microsoft.AspNetCore.Mvc.Analyzers.dll
+<DOTNET>/sdk/9.0.101/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.analyzers/3.0.0/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+<NUGET>/microsoft.entityframeworkcore.analyzers/5.0.3/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
+
+[analyzerConfigFiles]
+<DOTNET>/sdk/9.0.101/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_5_default.globalconfig
+obj/Debug/net5.0/Portal.GeneratedMSBuildEditorConfig.editorconfig
+
+[dynamicFiles]
+Areas/Audits/Views/Home/Index.cshtml
+Views/Access/
+ AddGroup.cshtml
+ AddUser.cshtml
+ GroupEdit.cshtml
+ Groups.cshtml
+ TTEdit.cshtml
+ TTs.cshtml
+ UserEdit.cshtml
+ Users.cshtml
+Views/
+ Account/Login.cshtml
+ Audit/
+  Index.cshtml
+  Settings.cshtml
+ Calculator/
+  AnalogWork.cshtml
+  Calculate.cshtml
+  CalculateCoefficient.cshtml
+  CalculateCoefficientModal.cshtml
+  CalculateCoefficientTable.cshtml
+  CalculateSKU.cshtml
+  CalculateSKUEdit.cshtml
+  CalculateSKUTable.cshtml
+  CalculateSpesialDays.cshtml
+  CalculateWithButtons.cshtml
+  Conditerka.cshtml
+  ItemBlocks.cshtml
+  ReplacementGroups.cshtml
+  Sandwitches.cshtml
+  TabMenu.cshtml
+  Vipechka.cshtml
+ CashBook/CashBook.cshtml
+ CashMessages/
+  Index.cshtml
+  InputMessage.cshtml
+ Excell/Demo.cshtml
+ Help/Index.cshtml
+ Home/
+  C1.cshtml
+  Calculators.cshtml
+  Index.cshtml
+  Knowledge.cshtml
+  Reports.cshtml
+  RotateToHorizontal.cshtml
+  SalesPrediction.cshtml
+  ServiceDesk_1C.cshtml
+  Settings.cshtml
+  Staff.cshtml
+  TTOrders.cshtml
+  Unavailable.cshtml
+  Video.cshtml
+  Yammer.cshtml
+ Knowledge/
+  Franch.cshtml
+  Welcome.cshtml
+ Library/
+  File.cshtml
+  Folder.cshtml
+  Index.cshtml
+  InternalDocs.cshtml
+ Menu/
+  CategoryEditor.cshtml
+  Index.cshtml
+  ItemEditor.cshtml
+  MenuCategory.cshtml
+ Personality/
+  Personality.cshtml
+  PersonalityEdit.cshtml
+  PersonalityTable.cshtml
+  PersonalityVersions.cshtml
+ PersonalityFactory/
+  PersonalityFactoryAdd.cshtml
+  PersonalityFactoryEdit.cshtml
+  PersonalityFactoryTable.cshtml
+  TabMenu.cshtml
+ Qlik/Index.cshtml
+ Reports/
+  CalcUsage.cshtml
+  CashOperations.cshtml
+  ChecksTime.cshtml
+  FranchiseeReports.cshtml
+  GPT.cshtml
+  ItsmEmbedded.cshtml
+  ItsmFree.cshtml
+  Other.cshtml
+  ProfitAll.cshtml
+  ProfitEmbedded.cshtml
+  ProfitFree.cshtml
+  ProfitPlan.cshtml
+  ProfitPro.cshtml
+  Report1C.cshtml
+  TemperatureSensors.cshtml
+  WorkReports.cshtml
+ Salary/
+  Salary.cshtml
+  SalarySettings.cshtml
+  _PersonMonthSalary.cshtml
+  _SalarySettingsExperienceLocations.cshtml
+  _SalarySettingsProductionLocations.cshtml
+  _SalarySettingsRuleCreate.cshtml
+  _SalarySettingsSpecialLocations.cshtml
+ SalesPrediction/PredictionTable.cshtml
+ Settings/
+  Access.cshtml
+  Main.cshtml
+  Modules.cshtml
+  Rk.cshtml
+  Rk_Requests.cshtml
+  Rk_Settings.cshtml
+  Showcase.cshtml
+  ShowcaseAddCamera01.cshtml
+  ShowcaseAddCamera02.cshtml
+  ShowcaseAddCamera03.cshtml
+  ShowcaseAddCamera03_zoneAdd.cshtml
+  ShowcaseAddCamera03_zoneList.cshtml
+  Video.cshtml
+  Video_AddNxSystem.cshtml
+  Video_DefaultShedule.cshtml
+  Video_Systems.cshtml
+ Settings_Access/
+  GroupEdit.cshtml
+  Groups.cshtml
+  GroupsTable.cshtml
+  RoleEdit.cshtml
+  Roles.cshtml
+  RolesTable.cshtml
+  TabMenu.cshtml
+  UserEdit.cshtml
+  Users.cshtml
+  UsersTable.cshtml
+ Settings_TT/
+  AddTTCam.cshtml
+  CashClients.cshtml
+  ClientsTable.cshtml
+  JobTitles.cshtml
+  JobTitlesAdd.cshtml
+  JobTitlesEdit.cshtml
+  JobTitlesTable.cshtml
+  OrganizationEdit.cshtml
+  Organizations.cshtml
+  OrganizationsTable.cshtml
+  ServerCamsPreview.cshtml
+  TabMenu.cshtml
+  TTCamsPreview.cshtml
+  TTEdit.cshtml
+  TTFactoryAdd.cshtml
+  TTFactoryEdit.cshtml
+  TTLayoutsPreview.cshtml
+  TTOfficeAdd.cshtml
+  TTOfficeEdit.cshtml
+  TTs.cshtml
+  TTsFactory.cshtml
+  TTsFactoryTable.cshtml
+  TTsOffice.cshtml
+  TTsOfficeTable.cshtml
+  TTsTable.cshtml
+  TTsTableVersion.cshtml
+  TypeEdit.cshtml
+  Types.cshtml
+  TypesTable.cshtml
+ Settings_VideoDevices/
+  DevicesMain.cshtml
+  DevicesMainNew.cshtml
+  TabMenu.cshtml
+  VideoList.cshtml
+ Settings_VKBOT/
+  HistoryCoupon.cshtml
+  TabMenu.cshtml
+  VKBOT.cshtml
+  VKBOTStatistics.cshtml
+ Shared/
+  ClearminLayout.cshtml
+  Error.cshtml
+  LoginLayout.cshtml
+  ModalWindows.cshtml
+  PortalLayout.cshtml
+  _ValidationScriptsPartial.cshtml
+ SkuStop/
+  AddBlock.cshtml
+  CashUnlock.cshtml
+  Index.cshtml
+ Stock/
+  LoadModalStock.cshtml
+  LoadModalStockCategory.cshtml
+  LoadModalStockTable.cshtml
+  Stock.cshtml
+  StockSearch.cshtml
+  StockSearchCard.cshtml
+  StockTable.cshtml
+  StockTransfer.cshtml
+  StockTransferMobile.cshtml
+  TabMenu.cshtml
+ TimesheetsFactory/TimesheetsMain.cshtml
+ TimeTracking/
+  TrackingChart.cshtml
+  TrackingData.cshtml
+  TrackingDataEdit.cshtml
+  TrackingDataTable.cshtml
+ ttOrders/
+  OrderEdit.cshtml
+  OrdersList.cshtml
+  SkuList.cshtml
+ UserRequests/ReqList.cshtml
+ Video/
+  PhotoByFilters.cshtml
+  Photocam.cshtml
+ _ViewImports.cshtml
+ _ViewStart.cshtml

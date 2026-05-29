@@ -259,7 +259,7 @@ namespace Portal.Controllers
             Error = string.Empty;
 
             var domainAndUsername = string.Format("{0}\\{1}", domain, username);
-            var ldapPath = "LDAP://dc1.shzhleb.ru";
+            var ldapPath = "LDAP://dcn1.shzhleb.ru";
 
             try
             {

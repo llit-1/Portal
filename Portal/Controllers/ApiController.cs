@@ -65,7 +65,6 @@ namespace Portal.Controllers
                 if (fullInfo.Ok)
                 {
                     var servers = fullInfo.Data.servers.OrderBy(s => s.name).ToList();
-                    // Убираем NX-Abramova21 из списка
                     try
                     {
                         var servToRemove = servers.First(s => s.name == "NX-Abramova21");
