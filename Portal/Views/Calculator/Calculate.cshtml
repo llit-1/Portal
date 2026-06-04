@@ -455,12 +455,11 @@
         if (resp < 0) {resp = 0}
 
         resp = getResultWithMinShowCase(inputObject.value, resp, itemMinShowCase);
-
+        console.log(resp)
         // корректировка по булкам для сэндвичей
         if(isSandvichObject.value === 'true'){
-                resp = bunsCorrect(trObject, resp);
-        }
-
+                resp = bunsCorrect(trObject, resp, itemCode);
+        }        
         answerObject.textContent = resp;
         var log = {};
         log.UserName = '@Html.Raw(Model.User)';
@@ -631,13 +630,19 @@
 
 <script>
     // корректировка по булкам для сэндвичей
-    function bunsCorrect(trObject, resp) {
+    function bunsCorrect(trObject, resp, itemCode) {
                     let bunsObject = trObject.querySelector('.SandwichOnBuns');
                     let buns = trObject.querySelector('.Buns');
                     let bunscount = +bunsObject.value;
-                    if(bunscount !== 0){
-                     resp = +resp + resp%bunscount;
-                     buns.textContent = +resp/bunscount;
+                    if(bunscount !== 0){      
+                        let ostatokotdelenia = resp%bunscount;
+                        resp = +resp - ostatokotdelenia;
+                        console.log(ostatokotdelenia)
+                        if(ostatokotdelenia/bunscount>=0.3)
+                        {resp = +resp + bunscount}
+                        buns.textContent = +resp/bunscount;
+                        if(+itemCode === 850037) buns.textContent = +resp
+                        
                     }
                     return resp;
     }
