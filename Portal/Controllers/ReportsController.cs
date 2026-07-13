@@ -95,20 +95,6 @@ namespace Portal.Controllers
             return PartialView(reportsView);
         }
 
-        // Использование калькуляторов
-        [Authorize(Roles = "reports_calcusage")]
-        public IActionResult CalcUsage()
-        {
-            // логируем
-            var log = new LogEvent<string>(User);
-            log.Name = "Отчёт по калькуляторам";
-            log.Description = "/Reports/CalcReport";
-            log.IpAdress = HttpContext.Session.GetString("ip");
-            log.Save();
-
-            return PartialView();
-        }
-
         // Время чеков
         [Authorize(Roles = "reports_checkstime")]
         public IActionResult ChecksTime()

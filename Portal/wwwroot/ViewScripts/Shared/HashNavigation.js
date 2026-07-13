@@ -15,7 +15,6 @@ $(function () {
         if (hash == '#profitall') loadContent(hash.replace('#', ''), '/Reports/ProfitAll');                   // отчёты -> выручка all
         if (hash == '#profitplan') loadContent(hash.replace('#', ''), '/Reports/ProfitPlan');                 // отчёты -> план продаж по тт
         if (hash == '#sdreport') loadContent(hash.replace('#', ''), '/Reports/ItsmFree');                     // отчёты -> сервис-деск
-        if (hash == '#calcusage') loadContent(hash.replace('#', ''), '/Reports/CalcUsage');                   // отчёты -> использование калькуляторов
         if (hash == '#checkstime') loadContent(hash.replace('#', ''), '/Reports/ChecksTime');                 // отчёты -> время чеков
         if (hash == '#cashoperations') loadContent(hash.replace('#', ''), '/Reports/CashOperations');         // отчёты -> кассовые опреации
         if (hash == '#Other') loadContent(hash.replace('#', ''), '/Reports/Other');                           // отчёты -> другие отчёты
