@@ -502,9 +502,18 @@ namespace Portal.Controllers
 
         private List<string> ExecuteNxUserSyncWithWarnings(string login, Func<List<string>> action)
         {
+            if (NxRestClient.TryGetConfigurationError(out var configurationError))
+            {
+                return new List<string> { GetNxConfigurationWarning(configurationError) };
+            }
+
             try
             {
                 return action();
+            }
+            catch (Exception ex) when (NxRestClient.IsConfigurationError(ex))
+            {
+                return new List<string> { GetNxConfigurationWarning(ex.Message) };
             }
             catch (Exception ex) when (IsNxAdministratorRightsForbidden(ex))
             {
@@ -527,6 +536,11 @@ namespace Portal.Controllers
         private string GetNxAdminRightsWarning(string login)
         {
             return $"Пользователь '{login}' имеет администраторские права в NX, изменения применены только для портала.";
+        }
+
+        private string GetNxConfigurationWarning(string configurationError)
+        {
+            return $"NX не настроен ({configurationError}). Изменения применены только для портала.";
         }
 
         private List<string> ClearManagedNxGroupsForUser(string login)

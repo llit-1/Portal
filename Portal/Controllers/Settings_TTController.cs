@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Portal.Models.JsonModels;
 using Portal.Models.MSSQL;
@@ -31,10 +32,12 @@ namespace Portal.Controllers
     [Authorize(Roles = "settings,TTSettings")]
     public class Settings_TTController : Controller
     {
+        private readonly ILogger<Settings_TTController> _logger;
         private DB.SQLiteDBContext db;
         private DB.MSSQLDBContext dbSql;
-        public Settings_TTController(DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
+        public Settings_TTController(ILogger<Settings_TTController> logger, DB.SQLiteDBContext context, DB.MSSQLDBContext dbSqlContext)
         {
+            _logger = logger;
             db = context;
             dbSql = dbSqlContext;
         }
@@ -208,85 +211,148 @@ namespace Portal.Controllers
         }
         // Редактор ТТ
         public IActionResult TTEdit(string ttGuid, string original)
-         {
-            TTVersionsEdit ttSettings = new();
-            
-            // Проверка на тип добавления записи (оригинал или версия)
-            if(original == "1")
+        {
+            var debugStep = "init";
+            try
             {
-                if (ttGuid != null && ttGuid != "undefined")
+                TTVersionsEdit ttSettings = new();
+                Guid parsedTtGuid;
+
+                // Проверка на тип добавления записи (оригинал или версия)
+                debugStep = "load edit data";
+                if (original == "1")
                 {
+                    if (!string.IsNullOrWhiteSpace(ttGuid) && !string.Equals(ttGuid, "undefined", StringComparison.OrdinalIgnoreCase))
+                    {
+                        debugStep = "parse ttGuid for original=1";
+                        if (!Guid.TryParse(ttGuid, out parsedTtGuid))
+                        {
+                            throw new ArgumentException($"Invalid ttGuid value: '{ttGuid}'", nameof(ttGuid));
+                        }
+
+                        debugStep = "query LocationVersions for original=1";
+                        ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                           .Include(x => x.Location.LocationType)
+                                                                           .Include(x => x.Entity)
+                                                                           .Where(x => x.Guid == parsedTtGuid)
+                                                                           .ToList();
+
+                        if (ttSettings.LocationVersion == null || ttSettings.LocationVersion.Count == 0)
+                        {
+                            throw new InvalidOperationException($"LocationVersion not found for ttGuid '{ttGuid}' and original '{original}'.");
+                        }
+
+                        debugStep = "query OldTT by RKCode";
+                        int helper = (int)ttSettings.LocationVersion[0].Location.RKCode;
+
+                        ttSettings.OldTT = db.TTs
+                        .Include(t => t.Users)
+                        .Include(t => t.CashStations)
+                        .Include(t => t.NxCameras)
+                        .Where(t => t.Restaurant_Sifr == helper)
+                        .ToList();
+                    }
+                    else
+                    {
+                        ttSettings.TTNew = true;
+                        ttSettings.OldTT = db.TTs
+                                             .Include(x => x.Users)
+                                             .ToList();
+                    }
+                } // Получаем информацию о точке, если создаем новую версию
+                else if (original == "2")
+                {
+                    debugStep = "parse ttGuid for original=2";
+                    if (!Guid.TryParse(ttGuid, out parsedTtGuid))
+                    {
+                        throw new ArgumentException($"Invalid ttGuid value: '{ttGuid}'", nameof(ttGuid));
+                    }
+
+                    debugStep = "query LocationVersions for original=2";
                     ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
                                                                        .Include(x => x.Location.LocationType)
                                                                        .Include(x => x.Entity)
-                                                                       .Where(x => x.Guid == Guid.Parse(ttGuid))
+                                                                       .Where(x => x.Location.Guid == parsedTtGuid && x.Actual == 1)
                                                                        .ToList();
 
-                    int helper = (int)ttSettings.LocationVersion[0].Location.RKCode;
+                    if (ttSettings.LocationVersion == null || ttSettings.LocationVersion.Count == 0)
+                    {
+                        throw new InvalidOperationException($"Actual LocationVersion not found for ttGuid '{ttGuid}' and original '{original}'.");
+                    }
 
+                    debugStep = "query OldTT by OBD for original=2";
                     ttSettings.OldTT = db.TTs
-                    .Include(t => t.Users)
-                    .Include(t => t.CashStations)
-                    .Include(t => t.NxCameras)
-                    .Where(t => t.Restaurant_Sifr == helper)
-                    .ToList();
+                        .Include(t => t.Users)
+                        .Include(t => t.CashStations)
+                        .Include(t => t.NxCameras)
+                        .Where(t => t.Obd == ttSettings.LocationVersion[0].OBD)
+                        .ToList();
+
+                    ttSettings.TTNew = true;
                 }
                 else
                 {
-                    ttSettings.TTNew = true;
+                    debugStep = "parse ttGuid for default branch";
+                    if (!Guid.TryParse(ttGuid, out parsedTtGuid))
+                    {
+                        throw new ArgumentException($"Invalid ttGuid value: '{ttGuid}'", nameof(ttGuid));
+                    }
+
+                    debugStep = "query LocationVersions for default branch";
+                    ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
+                                                                       .Include(x => x.Location.LocationType)
+                                                                       .Include(x => x.Entity)
+                                                                       .Where(x => x.Location.Guid == parsedTtGuid && x.Actual == 1)
+                                                                       .ToList();
+
+                    if (ttSettings.LocationVersion == null || ttSettings.LocationVersion.Count == 0)
+                    {
+                        throw new InvalidOperationException($"Actual LocationVersion not found for ttGuid '{ttGuid}' and original '{original}'.");
+                    }
+
+                    debugStep = "query OldTT by OBD for default branch";
                     ttSettings.OldTT = db.TTs
-                                         .Include(x => x.Users)
-                                         .ToList();
+                        .Include(t => t.Users)
+                        .Include(t => t.CashStations)
+                        .Include(t => t.NxCameras)
+                        .Where(t => t.Obd == ttSettings.LocationVersion[0].OBD)
+                        .ToList();
 
+                    ttSettings.TTNew = true;
                 }
-            } // Получаем информацию о точке, если создаем новую версию
-            else if(original == "2")
-            {
-                ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
-                                                                   .Include(x => x.Location.LocationType)
-                                                                   .Include(x => x.Entity)
-                                                                   .Where(x => x.Location.Guid == Guid.Parse(ttGuid) && x.Actual == 1)
-                                                                   .ToList();
 
-                ttSettings.OldTT = db.TTs
-                    .Include(t => t.Users)
-                    .Include(t => t.CashStations)
-                    .Include(t => t.NxCameras)
-                    .Where(t => t.Obd == ttSettings.LocationVersion[0].OBD)
-                    .ToList();
+                debugStep = "load common lists";
+                ttSettings.Users = db.Users.ToList();
+                ttSettings.locationTypes = dbSql.LocationTypes.ToList();
+                ttSettings.Entities = dbSql.Entity.ToList();
+                ttSettings.original = original;
 
-                ttSettings.TTNew = true;
+                debugStep = "resolve NX layout name";
+                var nxLayout = ttSettings.LocationVersion?.FirstOrDefault()?.Location?.NXLayout;
+                if (nxLayout.HasValue)
+                {
+                    ttSettings.NXLayoutName = new NxRestClient().GetUserGroupName(nxLayout.Value) ?? nxLayout.Value.ToString();
+                }
+
+                debugStep = "render partial view";
+                return PartialView(ttSettings);
             }
-            else
+            catch (Exception ex)
             {
-                ttSettings.LocationVersion = dbSql.LocationVersions.Include(x => x.Location)
-                                                                   .Include(x => x.Location.LocationType)
-                                                                   .Include(x => x.Entity)
-                                                                   .Where(x => x.Location.Guid == Guid.Parse(ttGuid) && x.Actual == 1)
-                                                                   .ToList();
+                _logger.LogError(ex, "TTEdit failed. Step: {Step}. ttGuid: {TtGuid}. original: {Original}.", debugStep, ttGuid, original);
 
-                ttSettings.OldTT = db.TTs
-                    .Include(t => t.Users)
-                    .Include(t => t.CashStations)
-                    .Include(t => t.NxCameras)
-                    .Where(t => t.Obd == ttSettings.LocationVersion[0].OBD)
-                    .ToList();
+                var errorHtml =
+                    "<div class='alert alert-danger' style='margin:15px'>" +
+                    "<strong>TTEdit error</strong><br/>" +
+                    $"Step: {WebUtility.HtmlEncode(debugStep)}<br/>" +
+                    $"ttGuid: {WebUtility.HtmlEncode(ttGuid ?? "null")}<br/>" +
+                    $"original: {WebUtility.HtmlEncode(original ?? "null")}<br/>" +
+                    $"Message: {WebUtility.HtmlEncode(ex.Message)}<br/>" +
+                    $"Type: {WebUtility.HtmlEncode(ex.GetType().FullName)}" +
+                    "</div>";
 
-                ttSettings.TTNew = true;
+                return Content(errorHtml, "text/html");
             }
-
-            ttSettings.Users = db.Users.ToList();
-            ttSettings.locationTypes = dbSql.LocationTypes.ToList();
-            ttSettings.Entities = dbSql.Entity.ToList();
-            ttSettings.original = original;
-
-            var nxLayout = ttSettings.LocationVersion?.FirstOrDefault()?.Location?.NXLayout;
-            if (nxLayout.HasValue)
-            {
-                ttSettings.NXLayoutName = new NxRestClient().GetUserGroupName(nxLayout.Value) ?? nxLayout.Value.ToString();
-            }
-
-            return PartialView(ttSettings);
         }
 
         public IActionResult TTFactoryAdd()
@@ -839,6 +905,18 @@ namespace Portal.Controllers
                             ttNewBase.Location.RKCode = ttJsn.restaurant_Sifr;
                             break;
 
+                        case "ttPhone":
+                            var editedPhone = ttJsn.phone?.Trim();
+                            if (!IsValidPhone(editedPhone))
+                            {
+                                result.Ok = false;
+                                result.Data = "Номер телефона должен содержать ровно 10 цифр без 8 или +7.";
+                                return new ObjectResult(result);
+                            }
+
+                            ttNewBase.Location.Phone = string.IsNullOrEmpty(editedPhone) ? null : editedPhone;
+                            break;
+
                         case "ttAddress":
                             if (!string.IsNullOrEmpty(ttJsn.address))
                             {
@@ -1093,6 +1171,16 @@ namespace Portal.Controllers
 
                     LocationVersions locversion = new();
                     Models.MSSQL.Location.Location location = new();
+                    var versionChangeDate = DateTime.Now;
+
+                    var phone = ttJsn.phone?.Trim();
+                    if (!IsValidPhone(phone))
+                    {
+                        result.Ok = false;
+                        result.Data = "Номер телефона должен содержать ровно 10 цифр без 8 или +7.";
+                        return new ObjectResult(result);
+                    }
+
                     if (ttJsn.original != null)
                     {
                         location = dbSql.LocationVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid)).Location;
@@ -1101,8 +1189,25 @@ namespace Portal.Controllers
                     TT ttFromOldBD = new();
                     if (ttJsn?.original != null && ttJsn.Guid != "0")
                     {
-                        var helper = locVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid)).Name;
-                        ttFromOldBD = db.TTs.FirstOrDefault(x => x.Name == helper);
+                        var sourceLocationVersion = locVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid));
+                        ttFromOldBD = db.TTs.FirstOrDefault(x => x.Id == ttJsn.id);
+
+                        if (ttFromOldBD == null && sourceLocationVersion?.Location?.RKCode != null)
+                        {
+                            ttFromOldBD = db.TTs.FirstOrDefault(x => x.Restaurant_Sifr == sourceLocationVersion.Location.RKCode);
+                        }
+
+                        if (ttFromOldBD == null && sourceLocationVersion?.OBD != null)
+                        {
+                            ttFromOldBD = db.TTs.FirstOrDefault(x => x.Obd == sourceLocationVersion.OBD);
+                        }
+
+                        if (ttFromOldBD == null)
+                        {
+                            result.Ok = false;
+                            result.Data = "Торговая точка из старой базы не найдена.";
+                            return new ObjectResult(result);
+                        }
                     }
 
                     if (ttJsn.original == null && ttJsn.users != null)
@@ -1214,7 +1319,14 @@ namespace Portal.Controllers
                     }
                     else
                     {
-                        tt.Address = null;
+                        if (ttJsn?.original != null)
+                        {
+                            ttFromOldBD.Address = null;
+                        }
+                        else
+                        {
+                            tt.Address = null;
+                        }
                         locversion.Address = null;
                     }
 
@@ -1292,12 +1404,30 @@ namespace Portal.Controllers
                             tt.OpenDate = open.Date;
                         }
                         location.Actual = 1;
-                        locversion.VersionStartDate = open.Date;
+                        if (ttJsn.original == null)
+                        {
+                            locversion.VersionStartDate = open.Date;
+                        }
                     }
                     else
                     {
-                        tt.OpenDate = null;
-                        locversion.VersionStartDate = null;
+                        if (ttJsn?.original != null)
+                        {
+                            ttFromOldBD.OpenDate = null;
+                        }
+                        else
+                        {
+                            tt.OpenDate = null;
+                        }
+                        if (ttJsn.original == null)
+                        {
+                            locversion.VersionStartDate = null;
+                        }
+                    }
+
+                    if (ttJsn.original != null)
+                    {
+                        locversion.VersionStartDate = versionChangeDate;
                     }
 
                     // Дата закрытия
@@ -1322,7 +1452,14 @@ namespace Portal.Controllers
                     else
                     {
                         location.Actual = 1;
-                        tt.CloseDate = null;
+                        if (ttJsn?.original != null)
+                        {
+                            ttFromOldBD.CloseDate = null;
+                        }
+                        else
+                        {
+                            tt.CloseDate = null;
+                        }
                         locversion.VersionEndDate = null;
                     }
 
@@ -1373,7 +1510,7 @@ namespace Portal.Controllers
                         return new ObjectResult(result);
                     }
 
-                        if (ttJsn.cashes != null)
+                    if (ttJsn.cashes != null)
                     {
                         foreach (var item in ttJsn.cashes)
                         {
@@ -1403,13 +1540,28 @@ namespace Portal.Controllers
                                     .FirstOrDefault(c => c.Ip == ip.ToString());
                                 if (existingCash != null)
                                 {
-                                    result.Ok = false;
-                                    result.Data = "Касса с данным ip-адресом уже привязана к точке " + existingCash.TT?.Name + ".";
-                                    return new ObjectResult(result);
+                                    var belongsToEditedTt = ttJsn.original != null
+                                        && existingCash.TT?.Id == ttFromOldBD.Id;
+
+                                    if (!belongsToEditedTt)
+                                    {
+                                        result.Ok = false;
+                                        result.Data = "Касса с данным ip-адресом уже привязана к точке " + existingCash.TT?.Name + ".";
+                                        return new ObjectResult(result);
+                                    }
+
+                                    // При создании версии форма иногда присылает Id = 0
+                                    // для уже существующей кассы. IP той же ТТ не является
+                                    // конфликтом: обновляем найденную кассу вместо добавления.
+                                    existingCash.Name = item.Name;
+                                    existingCash.Midserver = item.Midserver;
+                                    existingCash.Ip = ip.ToString();
+                                    db.CashStations.Update(existingCash);
+                                    continue;
                                 }
 
                                 cash.Name = item.Name;
-                                cash.Ip = item.Ip.ToString();
+                                cash.Ip = ip.ToString();
                                 cash.TT = ttJsn.original == null ? tt : ttFromOldBD;
                                 cash.Midserver = item.Midserver;
                                 db.CashStations.Add(cash);
@@ -1428,6 +1580,13 @@ namespace Portal.Controllers
                                 }
 
                                 cash = db.CashStations.FirstOrDefault(c => c.Id == item.Id);
+                                if (cash == null)
+                                {
+                                    result.Ok = false;
+                                    result.Data = "Касса не найдена в старой базе.";
+                                    return new ObjectResult(result);
+                                }
+
                                 cash.Name = item.Name;
                                 cash.Midserver = item.Midserver;
                                 cash.Ip = ip.ToString();
@@ -1454,8 +1613,8 @@ namespace Portal.Controllers
                             }
                             tt.NxCameras = ttCameras;
                     }
-
-                    locversion.Location = location;
+                        location.Phone = string.IsNullOrEmpty(phone) ? null : phone;
+                        locversion.Location = location;
                         locversion.Actual = 1;
                         if (ttJsn.original == null)
                         {
@@ -1468,6 +1627,7 @@ namespace Portal.Controllers
                             foreach (var item in dbSql.LocationVersions.Where(x => x.Location.Guid == helper.Location.Guid && x.Actual == 1))
                             {
                                 item.Actual = 0;
+                                item.VersionEndDate = versionChangeDate;
                             }
                         }
                         
@@ -1487,6 +1647,13 @@ namespace Portal.Controllers
             }
             return new ObjectResult(result);
         }
+
+        private static bool IsValidPhone(string phone)
+        {
+            return string.IsNullOrEmpty(phone)
+                || (phone.Length == 10 && phone.All(character => character >= '0' && character <= '9'));
+        }
+
         // Выбранные элементы коллекций на ТТ
         public IActionResult GetTTItems(int ttId, string selectId, string ttGuid)
         {

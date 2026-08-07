@@ -11,6 +11,7 @@ namespace Portal.ViewModels.Settings_Access.json
         public int Midserver;
         public string name;
         public string address;
+        public string phone;
         public string code;
         public string obd;
         public string type;

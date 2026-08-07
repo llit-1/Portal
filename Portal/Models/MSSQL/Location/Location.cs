@@ -20,5 +20,7 @@ namespace Portal.Models.MSSQL.Location
         public Double? Longitude { get; set; }
         public Guid? NXLayout { get; set; }
         public int Actual {  get; set; }
+        [MaxLength(10)]
+        public string? Phone { get; set; }
     }
 }

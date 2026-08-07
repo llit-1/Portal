@@ -487,6 +487,36 @@ namespace Portal.Global
             }
         }
 
+        public static bool TryGetConfigurationError(out string errorMessage)
+        {
+            errorMessage = null;
+
+            var section = SettingsInternal.Configuration?.GetSection("NxRest");
+            var requiredSettings = new Dictionary<string, string>
+            {
+                ["NxRest:Host"] = section?["Host"],
+                ["NxRest:Port"] = section?["Port"],
+                ["NxRest:Username"] = section?["Username"],
+                ["NxRest:Password"] = section?["Password"]
+            };
+
+            foreach (var setting in requiredSettings)
+            {
+                if (string.IsNullOrWhiteSpace(setting.Value))
+                {
+                    errorMessage = $"Missing NX setting: {setting.Key}.";
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsConfigurationError(Exception ex)
+        {
+            return ex?.Message?.StartsWith("Missing NX setting:", StringComparison.OrdinalIgnoreCase) == true;
+        }
+
         private static string GetRequiredSetting(string value, string key)
         {
             if (string.IsNullOrWhiteSpace(value))

@@ -12,6 +12,7 @@
     var ttCode = "";
     var locVerName = "";
     var locVerRKCode = 0;
+    var locVerPhone = "";
     var oldAddress = "";
     Portal.Models.MSSQL.Personality.Entity locVerEntity = null;
     var locVerOBD = "";
@@ -41,6 +42,7 @@
 
         locVerName = Model.LocationVersion[0].Name;
         locVerRKCode = (int)Model.LocationVersion[0].Location.RKCode;
+        locVerPhone = Model.LocationVersion[0].Location.Phone ?? "";
         oldAddress = oldTt?.Address;
         newAddress = Model.LocationVersion[0].Address;
         locVerEntity = Model.LocationVersion[0].Entity;
@@ -94,20 +96,42 @@
             </span>
         </div>
 
-        <!--код RK тт-->
-        <label class="label-light">код RK</label>
-        <div class="form-group" style="margin-bottom:15px">
-            <input id="ttRestaurantSifr" type="number" class="form-control" value="@locVerRKCode" style="font-weight:bold" disabled>
-            <span class="input-group-btn d-none">
-                <!--редактировать-->
-                <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
-                <!--сохранить-->
-                <button type="button" class="save btn btn-default d-none" onclick="Save(this)" id="saveRestSifrButton"><i class="fa fa-fw fa-save"></i></button>
-                <!--сохранение...-->
-                <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
-                <!--отменить-->
-                <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
-            </span>
+        <div class="row" style="margin-right:-10px">
+            <!--код RK тт-->
+            <div class="col-xs-6">
+                <label class="label-light">код RK</label>
+                <div class="form-group" style="margin-bottom:15px">
+                    <input id="ttRestaurantSifr" type="number" class="form-control" value="@locVerRKCode" style="font-weight:bold" disabled>
+                    <span class="input-group-btn d-none">
+                        <!--редактировать-->
+                        <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                        <!--сохранить-->
+                        <button type="button" class="save btn btn-default d-none" onclick="Save(this)" id="saveRestSifrButton"><i class="fa fa-fw fa-save"></i></button>
+                        <!--сохранение...-->
+                        <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                        <!--отменить-->
+                        <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+                    </span>
+                </div>
+            </div>
+
+            <!--номер телефона-->
+            <div class="col-xs-6">
+                <label class="label-light">номер телефона</label>
+                <div class="@formClass" style="margin-bottom:15px">
+                    <input id="ttPhone" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="9111111111" class="form-control" value="@locVerPhone" style="font-weight:bold" oninput="this.value = this.value.replace(/[^0-9]/g, '')" @disabled>
+                    <span class="input-group-btn @display">
+                        <!--редактировать-->
+                        <button type="button" class="edit btn btn-default" onclick="Edit(this)"><i class="fa fa-fw fa-pencil"></i></button>
+                        <!--сохранить-->
+                        <button type="button" class="save btn btn-default d-none" onclick="Save(this)"><i class="fa fa-fw fa-save"></i></button>
+                        <!--сохранение...-->
+                        <button type="button" class="saving btn btn-default d-none"><i class="fa fa-fw fa-circle-o-notch rotating"></i></button>
+                        <!--отменить-->
+                        <button type="button" class="cancel btn btn-default d-none" onclick="Cancel(this)"><i class="fa fa-fw fa-close"></i></button>
+                    </span>
+                </div>
+            </div>
         </div>
 
         <!--адрес тт-->
@@ -1016,6 +1040,7 @@
         tt.Organization = $('#ttOrganization').val();
         tt.name = $('#ttName').val();
         tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
+        tt.phone = $('#ttPhone').val();
         tt.address = $('#ttAddress').val();
         tt.code = $('#ttCode').val();
         tt.obd = $('#ttObd').val();
@@ -1089,6 +1114,7 @@
         tt.Organization = $('#ttOrganization').val();
         tt.name = $('#ttName').val();
         tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
+        tt.phone = $('#ttPhone').val();
         tt.address = $('#ttAddress').val();
         tt.code = $('#ttCode').val();
         tt.obd = $('#ttObd').val();
@@ -1155,6 +1181,7 @@
         tt.openDate = $('#openDate').val();
         tt.closeDate = $('#closeDate').val();
         tt.restaurant_Sifr = $('#ttRestaurantSifr').val();
+        tt.phone = $('#ttPhone').val();
         let ttId = "";
         if (hasSingleOldTt) {
             ttId = existingTtId;
