@@ -914,6 +914,14 @@ namespace Portal.Controllers
                                 return new ObjectResult(result);
                             }
 
+                            var locationWithEditedPhone = FindLocationWithPhone(editedPhone, ttNewBase.Location.Guid);
+                            if (locationWithEditedPhone != null)
+                            {
+                                result.Ok = false;
+                                result.Data = GetDuplicatePhoneMessage(editedPhone, locationWithEditedPhone.Name);
+                                return new ObjectResult(result);
+                            }
+
                             ttNewBase.Location.Phone = string.IsNullOrEmpty(editedPhone) ? null : editedPhone;
                             break;
 
@@ -1185,7 +1193,17 @@ namespace Portal.Controllers
                     {
                         location = dbSql.LocationVersions.FirstOrDefault(x => x.Guid == Guid.Parse(ttJsn.Guid)).Location;
                     }
-                    
+
+                    var locationWithPhone = FindLocationWithPhone(
+                        phone,
+                        ttJsn.original != null ? location.Guid : (Guid?)null);
+                    if (locationWithPhone != null)
+                    {
+                        result.Ok = false;
+                        result.Data = GetDuplicatePhoneMessage(phone, locationWithPhone.Name);
+                        return new ObjectResult(result);
+                    }
+
                     TT ttFromOldBD = new();
                     if (ttJsn?.original != null && ttJsn.Guid != "0")
                     {
@@ -1652,6 +1670,30 @@ namespace Portal.Controllers
         {
             return string.IsNullOrEmpty(phone)
                 || (phone.Length == 10 && phone.All(character => character >= '0' && character <= '9'));
+        }
+
+        private Models.MSSQL.Location.Location FindLocationWithPhone(string phone, Guid? excludedLocationGuid)
+        {
+            if (string.IsNullOrEmpty(phone))
+            {
+                return null;
+            }
+
+            var locations = dbSql.Locations
+                .AsNoTracking()
+                .Where(location => location.Phone == phone);
+
+            if (excludedLocationGuid.HasValue)
+            {
+                locations = locations.Where(location => location.Guid != excludedLocationGuid.Value);
+            }
+
+            return locations.FirstOrDefault();
+        }
+
+        private static string GetDuplicatePhoneMessage(string phone, string ttName)
+        {
+            return $"Номер телефона \"{phone}\" уже указан у ТТ \"{ttName}\".";
         }
 
         // Выбранные элементы коллекций на ТТ

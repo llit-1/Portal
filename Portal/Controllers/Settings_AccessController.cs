@@ -15,7 +15,7 @@ using Portal.Global;
 
 namespace Portal.Controllers
 {
-    [Authorize(Roles = "settings, HR")]
+    [Authorize(Roles = "settings")]
     public class Settings_AccessController : Controller
     {
         private DB.SQLiteDBContext db;
@@ -43,34 +43,11 @@ namespace Portal.Controllers
         public IActionResult UsersTable()
         {
             // получаем данные пользователя
-            var login = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
             var users = new List<RKNet_Model.Account.User>();
-
-            if (login == "Admin")
-            {
                 users = db.Users
                 .Include(u => u.TTs)
                 .Include(u => u.Reports)
                 .ToList();
-            }
-            else
-            {
-                users = db.Users
-                .Include(u => u.TTs)
-                .Include(u => u.Groups)
-                .Include(u => u.Reports)
-                .Where(u => u.Login != "Admin")
-                .ToList();
-
-                
-
-                if(User.IsInRole("HR"))
-                {
-                    var group = db.Groups.FirstOrDefault(x => x.Id == 22);
-                    users = users.Where(x => x.Groups.Contains(group)).ToList(); 
-                }
-
-            }
 
             return PartialView(users);
         }
@@ -396,9 +373,34 @@ namespace Portal.Controllers
                 {
                     var restaurantSifr = tt.Restaurant_Sifr;
 
-                    var location = dbSql.Locations
-                        .Include(item => item.LocationType)
-                        .FirstOrDefault(item => item.RKCode == restaurantSifr);
+                    Models.MSSQL.Location.Location location;
+
+                    if (restaurantSifr == 0)
+                    {
+                        var ttName = tt.Name?.Trim();
+                        if (string.IsNullOrWhiteSpace(ttName))
+                        {
+                            throw new Exception("У ТТ с RKCode 0 не заполнено имя. Невозможно найти Location.");
+                        }
+
+                        var locationsByName = dbSql.Locations
+                            .Include(item => item.LocationType)
+                            .Where(item => item.Actual == 1 && item.Name != null && item.Name.Trim() == ttName)
+                            .ToList();
+
+                        if (locationsByName.Count > 1)
+                        {
+                            throw new Exception($"Для ТТ {tt.Name} с RKCode 0 найдено несколько актуальных Location с одинаковым именем. Изменения не применены.");
+                        }
+
+                        location = locationsByName.SingleOrDefault();
+                    }
+                    else
+                    {
+                        location = dbSql.Locations
+                            .Include(item => item.LocationType)
+                            .FirstOrDefault(item => item.RKCode == restaurantSifr);
+                    }
 
                     if (location == null)
                     {
@@ -623,175 +625,6 @@ namespace Portal.Controllers
                 .ToList();
         }
 
-        // Удаление пользователя
-        [HttpPost]
-        public IActionResult MigratePortalUsersToNxGroups()
-        {
-            var result = new RKNet_Model.Result<object>();
-            var nxClient = new NxRestClient();
-            User currentUser = null;
-            NxMigrationAction? currentAction = null;
-            var skippedUsers403 = new List<object>();
-
-            try
-            {
-                var users = db.Users
-                    .Include(u => u.TTs)
-                    .Include(u => u.Roles)
-                    .Include(u => u.Groups)
-                    .Where(u => !string.IsNullOrWhiteSpace(u.Login))
-                    .Where(u => !string.Equals(u.Login, "VVAbramov"))
-                    .OrderBy(u => u.Login)
-                    .ToList();
-
-                var nxGroups = nxClient.GetUserGroups();
-                var nxUsers = nxClient.GetUsers();
-                var plans = users
-                    .Select(user => new
-                    {
-                        User = user,
-                        user.Login,
-                        Plan = BuildNxMigrationPlan(user, nxGroups, nxUsers)
-                    })
-                    .ToList();
-
-                foreach (var item in plans)
-                {
-                    currentUser = item.User;
-                    currentAction = item.Plan.Action;
-
-                    try
-                    {
-                        if (item.Plan.Action == NxMigrationAction.Skip)
-                        {
-                            continue;
-                        }
-
-                        if (item.Plan.Action == NxMigrationAction.ClearManagedGroups)
-                        {
-                            nxClient.SyncUserGroups(item.Login, Array.Empty<Guid>(), item.Plan.ManagedNxGroupIds);
-                            continue;
-                        }
-
-                        nxClient.SyncUserGroups(item.Login, item.Plan.RequiredNxGroupIds, item.Plan.ManagedNxGroupIds);
-                    }
-                    catch (Exception ex) when (IsNxForbiddenError(ex))
-                    {
-                        skippedUsers403.Add(new
-                        {
-                            login = item.Login,
-                            name = item.User?.Name,
-                            action = item.Plan.Action.ToString(),
-                            error = ex.Message
-                        });
-                    }
-                }
-
-                result.Ok = true;
-                result.Data = new
-                {
-                    migratedUsers = plans.Count,
-                    logins = plans.Select(item => item.Login).ToList(),
-                    skippedUsers403
-                };
-            }
-            catch (Exception ex)
-            {
-                result.Ok = false;
-                result.Data = BuildNxMigrationErrorMessage(ex, currentUser, currentAction);
-            }
-
-            return new ObjectResult(result);
-        }
-
-        private bool IsNxForbiddenError(Exception ex)
-        {
-            return ex != null &&
-                ex.ToString().IndexOf("403", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private string BuildNxMigrationErrorMessage(Exception ex, User currentUser, NxMigrationAction? currentAction)
-        {
-            if (currentUser == null)
-            {
-                return ex.ToString();
-            }
-
-            var ttNames = (currentUser.TTs ?? new List<TT>())
-                .Where(tt => tt != null)
-                .Select(tt => tt.Name)
-                .Where(name => !string.IsNullOrWhiteSpace(name))
-                .ToList();
-
-            var ttInfo = ttNames.Any()
-                ? string.Join(", ", ttNames)
-                : "нет ТТ";
-
-            return
-                $"{ex}\n" +
-                $"Migration user login: {currentUser.Login}\n" +
-                $"Migration user name: {currentUser.Name}\n" +
-                $"Migration action: {(currentAction?.ToString() ?? "unknown")}\n" +
-                $"Migration user TTs: {ttInfo}";
-        }
-
-        private NxMigrationPlan BuildNxMigrationPlan(
-            User user,
-            IEnumerable<NxRestClient.NxItemInfo> nxGroups,
-            IEnumerable<NxRestClient.NxUserInfo> nxUsers)
-        {
-            if (user == null || string.IsNullOrWhiteSpace(user.Login))
-            {
-                return new NxMigrationPlan
-                {
-                    Action = NxMigrationAction.Skip,
-                    ManagedNxGroupIds = new List<Guid>(),
-                    RequiredNxGroupIds = new List<Guid>()
-                };
-            }
-
-            var managedNxGroupIds = GetManagedNxGroupIds(nxGroups);
-            var hasNxAccount = new NxRestClient().UserExists(user.Login, nxUsers);
-
-            if (!user.Enabled)
-            {
-                return new NxMigrationPlan
-                {
-                    Action = hasNxAccount ? NxMigrationAction.ClearManagedGroups : NxMigrationAction.Skip,
-                    ManagedNxGroupIds = managedNxGroupIds,
-                    RequiredNxGroupIds = new List<Guid>()
-                };
-            }
-
-            if (!HasNxRole(user))
-            {
-                return new NxMigrationPlan
-                {
-                    Action = hasNxAccount ? NxMigrationAction.ClearManagedGroups : NxMigrationAction.Skip,
-                    ManagedNxGroupIds = managedNxGroupIds,
-                    RequiredNxGroupIds = new List<Guid>()
-                };
-            }
-
-            if (!hasNxAccount)
-            {
-                return new NxMigrationPlan
-                {
-                    Action = NxMigrationAction.Skip,
-                    ManagedNxGroupIds = managedNxGroupIds,
-                    RequiredNxGroupIds = new List<Guid>()
-                };
-            }
-
-            var syncPlan = BuildNxGroupSyncPlan(user.Login, user.TTs?.ToList(), user.AllTT, nxGroups);
-            return new NxMigrationPlan
-            {
-                Action = NxMigrationAction.SyncGroups,
-                ManagedNxGroupIds = syncPlan.ManagedNxGroupIds,
-                RequiredNxGroupIds = syncPlan.RequiredNxGroupIds
-            };
-        }
-
         [HttpPost]
         public IActionResult CheckPortalUsersInNx()
         {
@@ -844,116 +677,7 @@ namespace Portal.Controllers
             return new ObjectResult(result);
         }
 
-        private NxGroupSyncPlan BuildNxGroupSyncPlan(
-            string login,
-            IEnumerable<TT> userTTs,
-            bool allTT,
-            IEnumerable<NxRestClient.NxItemInfo> nxGroups)
-        {
-            var nxLayoutRequiredLocationTypes = new HashSet<Guid>
-            {
-                Guid.Parse("94AD659C-AF5B-4CA0-50AD-08DBDF6ABE84"),
-                Guid.Parse("B0E427F9-8996-4C03-33C1-08DBDF713401")
-            };
-
-            if (string.IsNullOrWhiteSpace(login))
-            {
-                throw new Exception("Логин пользователя пустой. Невозможно синхронизировать группы NX.");
-            }
-
-            var tts = userTTs?
-                .Where(tt => tt != null)
-                .ToList() ?? new List<TT>();
-
-            var allTtGroup = nxGroups.FirstOrDefault(group =>
-                string.Equals(group.Name, "ALLTT", StringComparison.OrdinalIgnoreCase));
-
-            var managedNxGroupIds = dbSql.Locations
-                .Where(location => location.NXLayout != null)
-                .Select(location => location.NXLayout.Value)
-                .Distinct()
-                .ToList();
-
-            var requiredNxGroupIds = new List<Guid>();
-
-            if (allTtGroup != null && Guid.TryParse(allTtGroup.Id, out var allTtGroupId))
-            {
-                managedNxGroupIds.Add(allTtGroupId);
-            }
-
-            managedNxGroupIds = managedNxGroupIds
-                .Distinct()
-                .ToList();
-
-            if (allTT)
-            {
-                if (allTtGroup == null || !Guid.TryParse(allTtGroup.Id, out var parsedAllTtGroupId))
-                {
-                    throw new Exception("В NX не найдена группа ALLTT. Изменения не применены.");
-                }
-
-                requiredNxGroupIds.Add(parsedAllTtGroupId);
-            }
-            else
-            {
-                foreach (var tt in tts)
-                {
-                    var location = dbSql.Locations
-                        .Include(item => item.LocationType)
-                        .FirstOrDefault(item => item.RKCode == tt.Restaurant_Sifr);
-
-                    if (location == null)
-                    {
-                        throw new Exception($"Для ТТ {tt.Name} с Restaurant_Sifr {tt.Restaurant_Sifr} не найден Location. Изменения не применены.");
-                    }
-
-                    if (location.NXLayout == null)
-                    {
-                        var locationTypeGuid = location.LocationType?.Guid;
-                        var shouldThrowNxLayoutError =
-                            location.Actual == 1 &&
-                            locationTypeGuid.HasValue &&
-                            nxLayoutRequiredLocationTypes.Contains(locationTypeGuid.Value);
-
-                        if (shouldThrowNxLayoutError)
-                        {
-                            throw new Exception($"Для ТТ {tt.Name} не найден NXLayout. Изменения не применены.");
-                        }
-
-                        continue;
-                    }
-
-                    requiredNxGroupIds.Add(location.NXLayout.Value);
-                }
-            }
-
-            return new NxGroupSyncPlan
-            {
-                RequiredNxGroupIds = requiredNxGroupIds.Distinct().ToList(),
-                ManagedNxGroupIds = managedNxGroupIds
-            };
-        }
-
-        private class NxGroupSyncPlan
-        {
-            public List<Guid> RequiredNxGroupIds { get; set; }
-            public List<Guid> ManagedNxGroupIds { get; set; }
-        }
-
-        private class NxMigrationPlan
-        {
-            public NxMigrationAction Action { get; set; }
-            public List<Guid> RequiredNxGroupIds { get; set; }
-            public List<Guid> ManagedNxGroupIds { get; set; }
-        }
-
-        private enum NxMigrationAction
-        {
-            Skip,
-            ClearManagedGroups,
-            SyncGroups
-        }
-
+        // Удаление пользователя
         public IActionResult UserDelete(int userId)
         {
             try

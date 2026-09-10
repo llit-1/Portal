@@ -76,7 +76,7 @@ namespace Portal.Controllers
             return PartialView();
         }
 
-        public IActionResult Calculate(string typeGuid, string tt)
+        public async Task<IActionResult> Calculate(string typeGuid, string tt)
         {
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             var log = new LogEvent<string>(User);
@@ -403,6 +403,18 @@ namespace Portal.Controllers
                     }
                     calculatorItem.Blocked = itemBlock.Type;
                     calculatorItem.IdOfBlock = itemBlock.Id;
+
+                    var blockLog = new CalculatorLog
+                    {
+                        UserName = calculatorInformation.User,
+                        ItemCode = calculatorItem.ItemOnTT.Item.RkCode,
+                        ItemName = calculatorItem.ItemOnTT.Item.Name,
+                        TTCode = calculatorInformation.TTs[0].Restaurant_Sifr,
+                        TTName = calculatorInformation.TTs[0].Name,
+                        Rest = 0,
+                        Result = -1
+                    };
+                    await LogSave(JsonConvert.SerializeObject(blockLog));
                 }
             }
             ViewBag.logs = calculatorLogTests;

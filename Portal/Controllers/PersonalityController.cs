@@ -45,6 +45,41 @@ namespace Portal
 
         }
 
+        private string GetDuplicatePhoneError(string phone, Guid? currentPersonalityGuid)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                return null;
+            }
+
+            phone = phone.Trim();
+            var personalities = dbSql.Personalities.AsNoTracking()
+                .Where(x => x.Phone != null && x.Phone.Trim() == phone);
+            if (currentPersonalityGuid.HasValue)
+            {
+                personalities = personalities.Where(x => x.Guid != currentPersonalityGuid.Value);
+            }
+
+            var duplicate = personalities.FirstOrDefault();
+            if (duplicate == null)
+            {
+                return null;
+            }
+
+            var version = dbSql.PersonalityVersions.AsNoTracking()
+                .Where(x => x.Personalities.Guid == duplicate.Guid)
+                .OrderByDescending(x => x.Actual)
+                .ThenByDescending(x => x.VersionStartDate)
+                .Select(x => new { x.Surname, x.Name, x.Patronymic })
+                .FirstOrDefault();
+            var name = version == null
+                ? duplicate.Name
+                : string.Join(" ", new[] { version.Surname, version.Name, version.Patronymic }
+                    .Where(x => !string.IsNullOrWhiteSpace(x)));
+
+            return $"Номер телефона {phone} уже закреплён за сотрудником: {name}";
+        }
+
         private void ResetOtherActualVersions(Guid personalityGuid, Guid? currentVersionGuid = null)
         {
             var versionsToDeactivate = dbSql.PersonalityVersions
@@ -404,6 +439,14 @@ namespace Portal
                     return BadRequest("Отсутствуют данные пользователя");
                 }
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
+                var phoneError = GetDuplicatePhoneError(personalityJson.Tel,
+                    personalityJson.NewPerson == "1" ? (Guid?)null : Guid.Parse(personalityJson.personGUID));
+                if (phoneError != null)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = phoneError;
+                    return new ObjectResult(result);
+                }
                 if (personalityJson.NewPerson == "1")
                 {
                     Personality personality = new Personality();
@@ -595,6 +638,13 @@ namespace Portal
                     return BadRequest(result);
                 }
                 PersonalityJson personalityJson = JsonConvert.DeserializeObject<PersonalityJson>(json);
+                var phoneError = GetDuplicatePhoneError(personalityJson.Tel, Guid.Parse(personalityJson.personGUID));
+                if (phoneError != null)
+                {
+                    result.Ok = false;
+                    result.ErrorMessage = phoneError;
+                    return new ObjectResult(result);
+                }
                 PersonalityLMK personalityLMK = new PersonalityLMK();
                 PersonalityVersion personalityVersion = dbSql.PersonalityVersions.Include(p => p.JobTitle)
                                                                                  .Include(p => p.Schedule)

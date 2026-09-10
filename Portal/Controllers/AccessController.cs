@@ -11,7 +11,7 @@ using RKNet_Model.TT;
 
 namespace Portal.Controllers
 {
-    [Authorize(Roles = "settings, HR")]
+    [Authorize(Roles = "settings")]
     public class AccessController : Controller
     {
         private DB.SQLiteDBContext db;

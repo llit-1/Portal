@@ -209,7 +209,7 @@ namespace Portal.Controllers
 
 
         // Настройки
-        [Authorize(Roles = "settings,TTSettings,HR")]
+        [Authorize(Roles = "settings,TTSettings")]
         public IActionResult Settings()
         {
             return PartialView();
