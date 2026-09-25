@@ -64,6 +64,8 @@
                 <tbody>
                     @for (int i = 0; i < Model.Items.Count; i++)
                     {
+                        var lastLog = ViewBag.logs[i] as Portal.Models.MSSQL.CalculatorLogsTest; // последний лог за 30 минут, из него показываем справочные значения
+                        var lastPlan = lastLog != null && lastLog.Result > 0 ? lastLog.Result : 0; // Result = -1 пишется при блокировке позиции, это не план
                         var blockState = Model.Items[i].Blocked;
                         var isLocked = blockState != 0;
                         var isHardLocked = blockState == 2 || blockState == 3;
@@ -98,7 +100,7 @@
                                     <input class="inputObject @inputStateClass" data-locked="@isLocked.ToString().ToLower()" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)' disabled="@isLocked">
                                 }
                             </td>
-                            <td class="answer" style="text-align: center" id=@i>0</td>                            
+                            <td class="answer @(lastPlan > 0 ? "answer--from-log" : "")" title="@(lastPlan > 0 ? $"Справочно: план рассчитан в {lastLog.Date:HH:mm}" : "")" style="text-align: center" id=@i>@lastPlan</td>                            
                             <td class="hidden">
                                 <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
                                 <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
@@ -461,6 +463,8 @@
                 resp = bunsCorrect(trObject, resp, itemCode);
         }        
         answerObject.textContent = resp;
+        answerObject.classList.remove('answer--from-log'); // значение пересчитано, это уже не справка
+        answerObject.removeAttribute('title');
         var log = {};
         log.UserName = '@Html.Raw(Model.User)';
         log.ItemCode = itemCode;
@@ -722,6 +726,10 @@
         background: #f8d7da;
         border-color: #e5aab2;
         color: #a61b29;
+    }
+
+    .answer--from-log {
+        color: #9b9b9b;
     }
 
     .calculator_info {

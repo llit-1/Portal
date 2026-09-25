@@ -13,7 +13,17 @@ namespace Portal.Controllers
 {
     [Authorize(Roles = "menuDelivery")]
     public class MenuController : Controller
-    {        
+    {
+        private readonly DB.MSSQLDBContext dbSql;
+
+        public MenuController(DB.MSSQLDBContext dbSqlContext)
+        {
+            dbSql = dbSqlContext;
+        }
+
+        /// <summary>Стопы доставки ставятся и читаются через новую апишку (yeapi), а не через старую.</summary>
+        private bool UseYeapiStops => User.IsInRole(Global.YeapiStopClient.RoleName);
+        
         public IActionResult Index()
         {
             var user = new RKNet_Model.Account.User();
@@ -47,11 +57,20 @@ namespace Portal.Controllers
 
                 if (userResult.Data.TTs.Count == 1)
                 {
-                    var stopsResult = ApiRequest.GetDeliveryStopsByTT(userResult.Data.TTs.First().Code.ToString());
-                    if (stopsResult.Ok) viewMenu.DeliveryStops = stopsResult.Data;
+                    if (UseYeapiStops)
+                    {
+                        var yeapiStops = GetYeapiDeliveryStops(userResult.Data.TTs.First(), viewMenu.MenuCategory.Items);
+                        if (!yeapiStops.Ok) return new ObjectResult(yeapiStops.ErrorMessage);
+                        viewMenu.DeliveryStops = yeapiStops.Data;
+                    }
+                    else
+                    {
+                        var stopsResult = ApiRequest.GetDeliveryStopsByTT(userResult.Data.TTs.First().Code.ToString());
+                        if (stopsResult.Ok) viewMenu.DeliveryStops = stopsResult.Data;
+                    }
 
                     var cashStopsResult = ApiRequest.GetCashStopsByTT(userResult.Data.TTs.First().Code.ToString());
-                    if (stopsResult.Ok) viewMenu.SkuStops = cashStopsResult.Data;
+                    if (cashStopsResult.Ok) viewMenu.SkuStops = cashStopsResult.Data;
                 }
             }
                   
@@ -65,7 +84,38 @@ namespace Portal.Controllers
         [Authorize(Roles = "menuDelivery_stops")]
         public IActionResult DeliveryStops(string ttCode)
         {
-            var viewMenu = new ViewModels.Menu.MenuViewModel();            
+            var viewMenu = new ViewModels.Menu.MenuViewModel();
+
+            var userLogin = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
+            var userResult = ApiRequest.GetUser(userLogin);
+            if (!userResult.Ok) return new ObjectResult(userResult.ErrorMessage);
+            viewMenu.User = userResult.Data;
+
+            if (UseYeapiStops)
+            {
+                var tt = userResult.Data.TTs.FirstOrDefault(t => t.Code.ToString() == ttCode);
+                if (tt == null) return new ObjectResult($"Торговая точка с кодом {ttCode} не привязана к пользователю.");
+
+                var locationGuid = ResolveLocationGuid(tt);
+                if (locationGuid == null) return new ObjectResult($"Для ТТ {tt.Name} не найдена точка в справочнике локаций.");
+
+                try
+                {
+                    foreach (var rkCode in new Global.YeapiStopClient().GetStoppedRkCodes(locationGuid.Value))
+                    {
+                        var itemResult = ApiRequest.GetMenuItemByRkCode(rkCode, false);
+                        if (!itemResult.Ok) continue;
+                        viewMenu.MenuCategory.Items.Add(itemResult.Data);
+                        viewMenu.DeliveryStops.Add(new RKNet_Model.MSSQL.DeliveryItemStop { ItemId = itemResult.Data.Id, ItemRkCode = itemResult.Data.rkCode });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new ObjectResult("ошибка получения стопов из новой апишки: " + ex.Message);
+                }
+
+                return PartialView("MenuCategory", viewMenu);
+            }
 
             var stopsResult = ApiRequest.GetDeliveryStopsByTT(ttCode);
             if (stopsResult.Ok) viewMenu.DeliveryStops = stopsResult.Data;
@@ -75,11 +125,6 @@ namespace Portal.Controllers
                 var itemResult = ApiRequest.GetMenuItem(stop.ItemId, false);
                 if(itemResult.Ok) viewMenu.MenuCategory.Items.Add(itemResult.Data);
             }
-
-            var userLogin = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
-            var userResult = ApiRequest.GetUser(userLogin);
-            if (!userResult.Ok) return new ObjectResult(userResult.ErrorMessage);
-            viewMenu.User = userResult.Data;
 
             return PartialView("MenuCategory", viewMenu);
         }
@@ -355,6 +400,9 @@ namespace Portal.Controllers
         public IActionResult SetStopDeliveryItem(int ttId, int itemId)
         {
             var userLogin = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
+            if (UseYeapiStops)
+                return new ObjectResult(ChangeYeapiStop(ttId, itemId, userLogin, stop: true));
+
             var result = ApiRequest.SetStopDeliveryItem(ttId, itemId, userLogin);            
             return new ObjectResult(result);
         }
@@ -363,8 +411,102 @@ namespace Portal.Controllers
         public IActionResult RemoveStopDeliveryItem(int ttId, int itemId)
         {
             var userLogin = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.WindowsAccountName).Value;
+            if (UseYeapiStops)
+                return new ObjectResult(ChangeYeapiStop(ttId, itemId, userLogin, stop: false));
+
             var result = ApiRequest.RemoveStopDeliveryItem(ttId, itemId, userLogin);
             return new ObjectResult(result);
+        }
+
+        // ----- стопы доставки через новую апишку (роль menuDelivery_stops_yeapi) -----
+
+        /// <summary>Ставит или снимает быстрый стоп в yeapi; ТТ проверяется по привязке пользователя, как в старой апишке.</summary>
+        private RKNet_Model.Result<string> ChangeYeapiStop(int ttId, int itemId, string userLogin, bool stop)
+        {
+            var result = new RKNet_Model.Result<string>();
+
+            var userResult = ApiRequest.GetUser(userLogin);
+            if (!userResult.Ok)
+            {
+                result.Ok = false;
+                result.ErrorMessage = userResult.ErrorMessage;
+                return result;
+            }
+
+            var tt = userResult.Data.TTs.FirstOrDefault(t => t.Id == ttId);
+            if (tt == null)
+            {
+                result.Ok = false;
+                result.ErrorMessage = $"Торговая точка с Id = {ttId} не привязана к пользователю.";
+                return result;
+            }
+
+            var locationGuid = ResolveLocationGuid(tt);
+            if (locationGuid == null)
+            {
+                result.Ok = false;
+                result.ErrorMessage = $"Для ТТ {tt.Name} не найдена точка в справочнике локаций — стоп в новую апишку не отправлен.";
+                return result;
+            }
+
+            var itemResult = ApiRequest.GetMenuItem(itemId, false);
+            if (!itemResult.Ok)
+            {
+                result.Ok = false;
+                result.ErrorMessage = itemResult.ErrorMessage;
+                return result;
+            }
+
+            var client = new Global.YeapiStopClient();
+            return stop
+                ? client.SetQuickStop(locationGuid.Value, itemResult.Data.rkCode, itemResult.Data.marketName, userResult.Data.Name)
+                : client.RemoveQuickStop(locationGuid.Value, itemResult.Data.rkCode);
+        }
+
+        /// <summary>Стопы yeapi по точке в виде старых DeliveryItemStop — представление меню остаётся без изменений.</summary>
+        private RKNet_Model.Result<List<RKNet_Model.MSSQL.DeliveryItemStop>> GetYeapiDeliveryStops(RKNet_Model.TT.TT tt, IEnumerable<RKNet_Model.Menu.Item> items)
+        {
+            var result = new RKNet_Model.Result<List<RKNet_Model.MSSQL.DeliveryItemStop>> { Data = new List<RKNet_Model.MSSQL.DeliveryItemStop>() };
+
+            var locationGuid = ResolveLocationGuid(tt);
+            if (locationGuid == null)
+            {
+                result.Ok = false;
+                result.ErrorMessage = $"Для ТТ {tt.Name} не найдена точка в справочнике локаций.";
+                return result;
+            }
+
+            try
+            {
+                var stopped = new Global.YeapiStopClient().GetStoppedRkCodes(locationGuid.Value);
+                result.Data = items
+                    .Where(item => stopped.Contains(item.rkCode))
+                    .Select(item => new RKNet_Model.MSSQL.DeliveryItemStop { ItemId = item.Id, ItemRkCode = item.rkCode })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                result.ErrorMessage = "ошибка получения стопов из новой апишки: " + ex.Message;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ТТ портала → точка yeapi. Сопоставление как в синхронизации NX: Restaurant_Sifr = Locations.RKCode,
+        /// для ТТ без кода Р-Кипер — по точному совпадению названия среди актуальных точек.
+        /// </summary>
+        private Guid? ResolveLocationGuid(RKNet_Model.TT.TT tt)
+        {
+            if (tt.Restaurant_Sifr != 0)
+                return dbSql.Locations.Where(l => l.RKCode == tt.Restaurant_Sifr).Select(l => (Guid?)l.Guid).FirstOrDefault();
+
+            var name = tt.Name?.Trim();
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            var matches = dbSql.Locations.Where(l => l.Actual == 1 && l.Name != null && l.Name.Trim() == name).Select(l => l.Guid).Take(2).ToList();
+            return matches.Count == 1 ? matches[0] : (Guid?)null;
         }
 
         // формирование структуры меню для ComboTree из меню Р-Кипер
