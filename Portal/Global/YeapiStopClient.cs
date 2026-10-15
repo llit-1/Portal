@@ -16,9 +16,6 @@ namespace Portal.Global
     /// </summary>
     public class YeapiStopClient
     {
-        /// <summary>Роль, при которой «Меню доставки» ставит и показывает стопы через yeapi, а не через старую апишку.</summary>
-        public const string RoleName = "menuDelivery_stops_yeapi";
-
         private const int QuickStopLevel = 2;
         private const int AuditorStopLevel = 1;
 
