@@ -1,6 +1,6 @@
 @model Portal.Models.Calculator.CalculatorInformation
 <!--блок элементов сверху-->
-<div class="row" style="margin-top: 0px; margin-bottom:10px">
+<div class="row calculator-noprint" style="margin-top: 0px; margin-bottom:10px">
 
     <!--Назад-->
     <a href="#calculators" class="col-sm-1 el-marging" style="width:100px; cursor:pointer; color:black">
@@ -44,23 +44,23 @@
         </div>
         <div class="calculator-rightbar">
             <table class="calculator-table">
-                <thread>
+                <thead>
                     <tr>
                         
-                        <th>№</th>
-                        <th>Наименование</th>
-                        <th class="defrostTime">Время дефроста</th>
-                        <th class="bakingMode">Режим выпечки</th>
-                        <th>Осталось</th>
-                        <th>План</th>
-                        <th>Факт</th>
+                        <th class="calc-col-num">№</th>
+                        <th class="calc-col-name">Наименование</th>
+                        <th class="defrostTime calc-col-defrost">Время дефроста</th>
+                        <th class="bakingMode calc-col-mode">Режим выпечки</th>
+                        <th class="calc-col-rest">Осталось</th>
+                        <th class="calc-col-plan">План</th>
+                        <th class="calc-col-fact">Факт</th>
                         @if (Model.Items[0].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
                         {
-                            <th>Расход булок</th>
+                            <th class="calc-col-buns">Расход булок</th>
                         }
-                        <th>Блокировка</th>                        
+                        <th class="calc-col-lock">Блокировка</th>                        
                     </tr>
-                </thread>
+                </thead>
                 <tbody>
                     @for (int i = 0; i < Model.Items.Count; i++)
                     {
@@ -88,11 +88,11 @@
                             _ => "Позиция заблокирована"
                         };
                         <tr>
-                            <td style="text-align: center;">@(i + 1)</td>
-                            <td>@Model.Items[i].ItemOnTT.Item.Name</td>
-                            <td class="defrostTime" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
-                            <td class="bakingMode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
-                            <td style="text-align: center;">
+                            <td class="calc-col-num" style="text-align: center;">@(i + 1)</td>
+                            <td class="calc-col-name">@Model.Items[i].ItemOnTT.Item.Name</td>
+                            <td class="defrostTime calc-col-defrost" style="text-align: center">@Model.Items[i].ItemOnTT.Item.DefrostTime</td>
+                            <td class="bakingMode calc-col-mode" style="text-align: center">@Model.Items[i].ItemOnTT.Item.BakingMode</td>
+                            <td class="calc-col-rest" style="text-align: center;">
                                 @if(ViewBag.logs[i] != null)
                                 {
                                     <input class="inputObject @inputStateClass" data-locked="@isLocked.ToString().ToLower()" placeholder="@ViewBag.logs[i]?.Rest" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)' disabled="@isLocked">
@@ -100,7 +100,7 @@
                                     <input class="inputObject @inputStateClass" data-locked="@isLocked.ToString().ToLower()" style="text-align: center;" maxlength="4" type="text" size='4' oninput='calculate(this)' disabled="@isLocked">
                                 }
                             </td>
-                            <td class="answer @(lastPlan > 0 ? "answer--from-log" : "")" title="@(lastPlan > 0 ? $"Справочно: план рассчитан в {lastLog.Date:HH:mm}" : "")" style="text-align: center" id=@i>@lastPlan</td>                            
+                            <td class="answer calc-col-plan @(lastPlan > 0 ? "answer--from-log" : "")" title="@(lastPlan > 0 ? $"Справочно: план рассчитан в {lastLog.Date:HH:mm}" : "")" style="text-align: center" id=@i>@lastPlan</td>                            
                             <td class="hidden">
                                 <input class="averageRestOfThisPeriod" value="@Model.Items[i].AverageRestOfThisPeriod">
                                 <input class="averageNextPer" value="@Model.Items[i].AverageNextPer">
@@ -138,7 +138,7 @@
                                     <input class="isSandvich" value="false">
                                 }
                             </td>
-                            <td style="text-align: center;">
+                            <td class="calc-col-fact" style="text-align: center;">
                                 @if (ViewBag.logs[i]?.Fact == null)
                                 {
                                     <input class="fact @inputStateClass" data-locked="@isLocked.ToString().ToLower()" style="text-align: center;" maxlength="4" type="text" size='4' oninput='factChange(this)' disabled="@isLocked">
@@ -149,9 +149,9 @@
                             </td>
                             @if (Model.Items[i].ItemOnTT.Item.ItemsGroup == Guid.Parse("9C42DDD0-3ABE-4105-AFA1-BFDA989C3836"))
                             {
-                                <td style="text-align: center" class="Buns"></td>
+                                <td style="text-align: center" class="Buns calc-col-buns"></td>
                             }
-                             <td class="calculator-lock-cell">
+                             <td class="calculator-lock-cell calc-col-lock">
                                 <span class="calculator-lock @(isLocked ? "calculator-lock--closed" : "calculator-lock--open") @(isHardLocked ? "calculator-lock--hard" : "") @(isToggleableLock ? "calculator-lock--toggleable" : "")"
                                       title="@lockTitle"
                                       data-block-state="@blockState"
@@ -747,6 +747,166 @@
         border: 1px solid #B6D4FE;
         border-radius: 5px;
         text-align: center;
+    }
+
+    /* Печать: альбомный лист, только шапка калькулятора и таблица */
+    @@page {
+        size: A4 landscape;
+        margin: 7mm;
+    }
+
+    @@media print {
+        html, body, #global {
+            overflow: visible !important;
+            height: auto !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+
+        #cm-menu, header, #cm-footer, #loading, #spinner, .modal,
+        .calculator-noprint, .calculator_info, .div-img {
+            display: none !important;
+        }
+
+        .container-fluid {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .calculator-mainbar {
+            display: block;
+            margin: 0;
+        }
+
+        /* шапка: калькулятор, ТТ, пользователь и дата в одну строку */
+        .calculator-leftbar {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            margin-bottom: 6px;
+            font-size: 15pt;
+        }
+
+        .calculator-bar {
+            width: auto;
+            margin: 0;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        /* Таблица на печати строится на flex, чтобы поменять порядок колонок без изменения экранной вёрстки:
+           №, Наименование, Осталось, План, Факт, (Расход булок), Время дефроста, Режим выпечки, Блокировка */
+        .calculator-table,
+        .calculator-table thead,
+        .calculator-table tbody {
+            display: block;
+            width: 100%;
+        }
+
+        .calculator-table {
+            font-size: 14pt;
+            border-top: 1px solid #555;
+            border-left: 1px solid #555;
+        }
+
+        .calculator-table tr {
+            display: flex;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .calculator-table th,
+        .calculator-table td {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            box-sizing: border-box;
+            border: none !important;
+            border-right: 1px solid #555 !important;
+            border-bottom: 1px solid #555 !important;
+            padding: 2px 6px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .calculator-table th {
+            background: #d9d9d9 !important;
+            font-size: 12pt;
+        }
+
+        /* полосы через строку, чтобы взгляд не съезжал от названия к значениям */
+        .calculator-table tbody tr:nth-child(even) td {
+            background: #ececec !important;
+        }
+
+        .calculator-table th,
+        .calculator-table tbody tr:nth-child(even) td {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .calculator-table .calc-col-num     { order: 1; width: 11mm; }
+        .calculator-table .calc-col-name    { order: 2; flex: 1 1 0; min-width: 0; justify-content: flex-start; text-align: left; white-space: nowrap; }
+        .calculator-table .calc-col-rest    { order: 3; width: 25mm; }
+        .calculator-table .calc-col-plan    { order: 4; width: 21mm; }
+        .calculator-table .calc-col-fact    { order: 5; width: 26mm; }
+        .calculator-table .calc-col-buns    { order: 6; width: 24mm; }
+        .calculator-table .calc-col-defrost { order: 7; width: 28mm; }
+        .calculator-table .calc-col-mode    { order: 8; width: 26mm; }
+        .calculator-table .calc-col-lock    { order: 9; width: 30mm; }
+
+        .calculator-table th.calc-col-name {
+            justify-content: center;
+        }
+
+        .calculator-table input {
+            border: none !important;
+            background: transparent !important;
+            width: 100%;
+            height: auto;
+            padding: 0;
+            line-height: 1.2;
+            font-size: 14pt;
+            color: #000 !important;
+        }
+
+        .calculator-table input::placeholder {
+            color: #777;
+            font-style: italic;
+        }
+
+        /* главное значение на листе — факт */
+        .calculator-table th.calc-col-fact {
+            font-weight: bold;
+        }
+
+        .calculator-table td.calc-col-fact input {
+            font-size: 17pt;
+            line-height: 1;
+            font-weight: bold;
+        }
+
+        .calculator-table .answer--from-log {
+            color: #777 !important;
+            font-style: italic;
+        }
+
+        /* блокировка текстом вместо цветного замка */
+        .calculator-lock {
+            width: auto;
+            height: auto;
+            font-size: 13pt;
+        }
+
+        .calculator-lock i {
+            display: none;
+        }
+
+        .calculator-lock--closed::after {
+            content: "блок";
+        }
     }
 
 </style>
